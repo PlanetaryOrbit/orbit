@@ -1,16 +1,19 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import type { NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import Sidebar from "@/components/sidebar";
 import type { LayoutProps } from "@/layoutTypes";
 import axios from "axios";
 import { Transition } from "@headlessui/react";
+import { IconMenu2 } from "@tabler/icons";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { useRouter } from "next/router";
 import hexRgb from "hex-rgb";
 import * as colors from "tailwindcss/colors";
 import { useEffect, useState } from "react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons";
 
 const workspace: LayoutProps = ({ children }) => {
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
@@ -57,8 +60,8 @@ const workspace: LayoutProps = ({ children }) => {
 	}, [router.query.id, setWorkspace, router]);
 
 	useEffect(() => {
-		if (workspace && workspace.groupTheme) {
-			const theme = useTheme(workspace.groupTheme);
+		if (workspace && workspace.theme) {
+			const theme = useTheme(workspace.theme);
 			document.documentElement.style.setProperty("--group-theme", theme);
 		}
 	}, [workspace]);
