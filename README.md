@@ -8,7 +8,7 @@
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v1.00beta1-purple"></img>
+    <img src="https://img.shields.io/badge/version-v1.00beta5-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
@@ -50,7 +50,7 @@
           Host your docs with Orbit
         </li>
 		<li>
-          Assign your staff activity requirements (soon)
+          Assign your staff activity requirements (WIP)
         </li>
 		<li>
           Track when your members are inactive with notices
