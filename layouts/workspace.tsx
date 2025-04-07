@@ -24,7 +24,7 @@ const workspace: LayoutProps = ({ children }) => {
 	const [isMobile, setIsMobile] = useState(false);
 
 	const useTheme = (groupTheme: string) => {
-		const themes: any = {
+		const themes: Record<string, string> = {
 			"bg-orbit": "#FF0099",
 			"bg-blue-500": colors.blue[500],
 			"bg-red-500": colors.red[500],
@@ -38,62 +38,38 @@ const workspace: LayoutProps = ({ children }) => {
 			"bg-black": colors.black,
 			"bg-gray-500": colors.gray[500],
 		}
-		const hex = hexRgb(themes[groupTheme || "bg-orbit"] || "#FF0099")
-		const theme = `${hex.red} ${hex.green} ${hex.blue}`
-		return theme
+		const hex = hexRgb(themes[groupTheme] || "#FF0099")
+		return `${hex.red} ${hex.green} ${hex.blue}`
 	}
 
 	useEffect(() => {
-		router.events.on('routeChangeStart', () => {
-			setLoading(true)
-		});
-		router.events.on('routeChangeComplete', () => {
-			setLoading(false)
-		});
-	}, [])
-
+		router.events.on('routeChangeStart', () => setLoading(true));
+		router.events.on('routeChangeComplete', () => setLoading(false));
+	}, [router.events])
 
 	useEffect(() => {
 		async function getworkspace() {
-			let res;
 			try {
-				res = await axios.get('/api/workspace/' + router.query.id);
+				const res = await axios.get('/api/workspace/' + router.query.id);
+				setWorkspace(res.data.workspace);
 			} catch (e: any) {
-				if (e?.response?.status === 400) {
-					router.push('/')
-					return;
-				}
-				if (e?.response?.status === 401) {
-					router.push('/')
-					return;
-				}
-				if (e?.response?.status === 404) {
-					router.push('/')
-					return;
-				}
-				return;
+				router.push('/')
 			}
-			if (!res) return;
-			//set the css var
-			setWorkspace({
-				...res.data.workspace,
-				groupTheme: res.data.workspace.groupTheme.color,
-			});
 		}
-		getworkspace();
-	}, []);
+		if (router.query.id) getworkspace();
+	}, [router.query.id, setWorkspace, router]);
 
 	useEffect(() => {
-		const theme = useTheme(workspace.groupTheme || 'bg-orbit')
-		document.documentElement.style.setProperty('--group-theme', theme);
+		if (workspace?.groupTheme) {
+			const theme = useTheme(workspace.groupTheme)
+			document.documentElement.style.setProperty('--group-theme', theme);
+		}
 	}, [workspace.groupTheme]);
 
 	useEffect(() => {
 		const checkMobile = () => {
 			setIsMobile(window.innerWidth < 768);
-			if (window.innerWidth < 768) {
-				setOpen(false);
-			}
+			setOpen(window.innerWidth >= 768);
 		};
 
 		checkMobile();
