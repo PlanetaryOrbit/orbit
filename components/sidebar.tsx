@@ -1,7 +1,6 @@
 import React from 'react';
 import type { NextPage } from "next";
 import { loginState, workspacestate } from "@/state";
-import { themeState } from "../state/theme";
 import { useRecoilState } from "recoil";
 import { Menu, Listbox } from "@headlessui/react";
 import { useRouter } from "next/router";
@@ -57,21 +56,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     router.push('/login');
   };
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("theme", newTheme);
-    }
-  };
-
   return (
     <>
-      <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow">
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow"
+      >
         <IconMenu2 className="w-6 h-6 text-gray-700 dark:text-gray-200" />
       </button>
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
 
       <aside
@@ -79,7 +76,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           "fixed lg:sticky top-0 h-screen bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 z-50",
           isCollapsed ? "w-[4.5rem]" : "w-64",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}>
+        )}
+      >
         <div className="h-full flex flex-col p-3">
           <button onClick={() => setIsCollapsed(!isCollapsed)} className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
             <IconChevronLeft className={clsx("w-5 h-5 text-gray-500 transition-transform", isCollapsed && "rotate-180")} />
@@ -125,17 +123,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               )
             ))}
           </nav>
-
-          <button
-            onClick={toggleTheme}
-            className={clsx(
-              "mb-4 p-2 rounded-lg flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700",
-              isCollapsed ? "justify-center" : "justify-start"
-            )}
-          >
-            {theme === 'dark' ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
-            {!isCollapsed && <span>{theme === 'dark' ? "Light Mode" : "Dark Mode"}</span>}
-          </button>
 
           <Menu>
             <Menu.Button className={clsx(
