@@ -22,7 +22,6 @@ interface SidebarProps {
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace] = useRecoilState(workspacestate);
-  const [theme, setTheme] = useRecoilState(themeState);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
