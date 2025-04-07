@@ -53,19 +53,28 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
 	return (
 		<>
-			<button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow">
+
+			<button
+				onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+				className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow"
+			>
 				<IconMenu2 className="w-6 h-6 text-gray-700 dark:text-gray-200 flex-shrink-0" />
 			</button>
 
 			{isMobileMenuOpen && (
-				<div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+				<div
+					className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+					onClick={() => setIsMobileMenuOpen(false)}
+				/>
 			)}
 
-			<aside className={clsx(
-				"fixed lg:sticky top-0 h-screen bg-white dark:bg-gray-800 shadow-lg transition-all duration-300",
-				isCollapsed ? "w-[4.5rem]" : "w-64",
-				isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-			)}>
+			<aside
+				className={clsx(
+					"fixed lg:sticky top-0 h-screen bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 z-50",
+					isCollapsed ? "w-[4.5rem]" : "w-64",
+					isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+				)}
+			>
 				<div className="h-full flex flex-col p-3">
 					<button onClick={() => setIsCollapsed(!isCollapsed)} className="grid place-content-center p-2 mb-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
 						<IconChevronLeft className={clsx("w-5 h-5 text-gray-500 transition-transform flex-shrink-0", isCollapsed && "rotate-180")} />
@@ -112,6 +121,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 						</Listbox>
 					</div>
 
+					{/* Navigation */}
 					<nav className="flex-1 space-y-1 mt-4">
 						{pages.map((page) => (
 							(page.accessible === undefined || page.accessible) && (
@@ -170,9 +180,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 													active && "bg-primary/10"
 												)}
 											>
-												<div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-													<IconUser className="w-5 h-5" />
-												</div>
+												<IconUser className="w-5 h-5" />
 												<span>Profile</span>
 											</button>
 										)}
@@ -186,9 +194,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 													active && "bg-primary/10"
 												)}
 											>
-												<div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-													<IconLogout className="w-5 h-5" />
-												</div>
+												<IconLogout className="w-5 h-5" />
 												<span>Logout</span>
 											</button>
 										)}
@@ -197,11 +203,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 							</div>
 						</Menu>
 					</div>
-
+					
 					{!isCollapsed && (
 						<>
-							<button 
-								onClick={() => setShowCopyright(true)} 
+							<button
+								onClick={() => setShowCopyright(true)}
 								className="mt-4 text-left text-xs text-gray-500 hover:text-primary"
 							>
 								© Copyright Notices
@@ -213,7 +219,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 								className="relative z-50"
 							>
 								<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
 								<div className="fixed inset-0 flex items-center justify-center p-4">
 									<Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
 										<div className="flex items-center justify-between mb-4">
@@ -227,7 +232,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 												<IconX className="w-5 h-5 text-gray-500" />
 											</button>
 										</div>
-
 										<div className="space-y-4">
 											<div>
 												<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
@@ -237,7 +241,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 													Copyright © 2025 Planetary. All rights reserved.
 												</p>
 											</div>
-
 											<div>
 												<h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
 													Original Tovy features and code:
