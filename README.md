@@ -70,11 +70,14 @@
   <h2>Quicklinks</h2>
   <ul>
     <li>
-      Don't know how to install? –– <a href="https://docs.tovyblox.xyz/">Visit our documentation!</a>
+      Don't know how to install? <a href="https://guide.tovy.relatio.cc/">Visit our documentation!</a>
     </li>
     <li>
-      🐛 Bugs? ✨ Suggestions? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+      🐛 Bugs should be reported in the issues tab on this repository.
     </li>
+	  <li>
+		  	✨ Suggestions should be directed to our <a href="https://discord.gg/planetorbit">discord</a>
+	  </li>
   </ul>
   <h2>License</h2>
   Orbit is licensed under the <a href="./LICENSE">GNU General Public License v3.0.</a>
