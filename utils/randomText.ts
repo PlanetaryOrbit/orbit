@@ -12,7 +12,8 @@ const randomText = (name: string) => {
 		`Hey ${name}, coffee's brewing! ☕️`,
 		`Rise and grind, ${name} 🏋️‍♂️`,
 		`New day, new opportunities, ${name} 🌄`,
-		`The early bird gets the worm, ${name} 🐦`
+		`The early bird gets the worm, ${name} 🐦`,
+		`Boot sequence complete, ${name}. Let’s launch 🚀`
 	];
 
 	const afternoonOnlyTexts = [
@@ -24,7 +25,8 @@ const randomText = (name: string) => {
 		`Hello there, ${name} 👋`,
 		`A productive afternoon to you, ${name} 🛠️`,
 		`Let’s power through the afternoon, ${name} ⚡️`,
-		`Still going strong, ${name}? 🔋`
+		`Still going strong, ${name}? 🔋`,
+		`Orbit stabilizing… productivity at peak, ${name} 🌑`
 	];
 
 	const nightOnlyTexts = [
@@ -36,14 +38,15 @@ const randomText = (name: string) => {
 		`Time to slow down and reflect, ${name} 🧘`,
 		`The stars are out, ${name} ⭐️`,
 		`Great job today, ${name} 🙌`,
-		`Sweet dreams in advance, ${name} 😴`
+		`Sweet dreams in advance, ${name} 😴`,
+		`Orbit doesn’t sleep — but you should soon, ${name} 💤`
 	];
 
 	const hour = new Date().getHours();
 
-	if (hour >= 18) return randomTextFromArray(nightOnlyTexts);
+	if (hour >= 20) return randomTextFromArray(nightOnlyTexts);
 	if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);
-	return randomTextFromArray(morningOnlyTexts);
+	if (hour >= 5) return randomTextFromArray(morningOnlyTexts);
 };
 
 export default randomText;
