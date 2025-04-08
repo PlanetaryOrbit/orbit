@@ -46,7 +46,7 @@ const randomText = (name: string) => {
 
 	if (hour >= 20) return randomTextFromArray(nightOnlyTexts);
 	if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);
-	if (hour >= 05) return randomTextFromArray(morningOnlyTexts);
+	if (hour >= 5) return randomTextFromArray(morningOnlyTexts);
 };
 
 export default randomText;
