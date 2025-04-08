@@ -131,7 +131,7 @@ const Activity: pageWithLayout = () => {
 										key={user.userId}
 										tooltipText={
 											user.reason
-												? `${user.username} | ${moment(user.from).format("DD MMM")} - ${moment(user.to).format("DD MMM")} for ${user.reason}`
+												? `${user.username} | ${moment(user.from).format("DD MMM")} - ${moment(user.to).format("DD MMM")}`
 												: `${user.username}`
 										}
 										orientation="top"
