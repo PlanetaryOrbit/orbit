@@ -12,7 +12,7 @@ const randomText = (name: string) => {
 		`Hey ${name}, coffee's brewing! ☕️`,
 		`Rise and grind, ${name} 🏋️‍♂️`,
 		`New day, new opportunities, ${name} 🌄`,
-		`The early bird gets the worm, ${name} 🐦`
+		`The early bird gets the worm, ${name} 🐦`,
 		`Boot sequence complete, ${name}. Let’s launch 🚀`
 	];
 
@@ -25,7 +25,7 @@ const randomText = (name: string) => {
 		`Hello there, ${name} 👋`,
 		`A productive afternoon to you, ${name} 🛠️`,
 		`Let’s power through the afternoon, ${name} ⚡️`,
-		`Still going strong, ${name}? 🔋`
+		`Still going strong, ${name}? 🔋`,
 		`Orbit stabilizing… productivity at peak, ${name} 🌑`
 	];
 
@@ -38,7 +38,7 @@ const randomText = (name: string) => {
 		`Time to slow down and reflect, ${name} 🧘`,
 		`The stars are out, ${name} ⭐️`,
 		`Great job today, ${name} 🙌`,
-		`Sweet dreams in advance, ${name} 😴`
+		`Sweet dreams in advance, ${name} 😴`,
 		`Orbit doesn’t sleep — but you should soon, ${name} 💤`
 	];
 
