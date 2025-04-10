@@ -41,20 +41,25 @@ export async function handler(
       return res.status(404).json({ success: false, error: 'Notice not found' });
     }
 
-    if (status === 'cancel') {
-      await prisma.inactivityNotice.delete({
-        where: { id },
-      });
-    } else {
-      await prisma.inactivityNotice.update({
-        where: { id },
-        data: {
-          approved: status === 'approve',
-          reviewed: true,
-        },
-      });
-    }
-
+	if (status === 'cancel') { // Revoking a notice
+		await prisma.inactivityNotice.update({
+		  where: { id },
+		  data: {
+			approved: false,
+			reviewed: true,
+			revoked: true, 
+		  },
+		});
+	  } else {
+		await prisma.inactivityNotice.update({
+		  where: { id },
+		  data: {
+			approved: status === 'approve',
+			reviewed: true,
+			revoked: false,
+		  },
+		});
+	  }
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('[API ERROR]', error);

@@ -40,16 +40,22 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 		datasets: []
 	});
 	const [chartOptions, setChartOptions] = useState({});
-	const [timeline, setTimeline] = useState<any>([...sessions, ...notices]);
+	const [timeline, setTimeline] = useState<any>([
+		...sessions,
+		...notices.filter(notice => notice.approved === true) // Only show approved notices
+	]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [dialogData, setDialogData] = useState<any>({});
 
 	useEffect(() => {
-		setTimeline(timeline.sort((a: any, b: any) => {
-			const dateA = new Date(a.startTime).getTime();
-			const dateB = new Date(b.endTime).getTime();
-			return dateB - dateA;
-		}));
+		setTimeline(
+			[...sessions, ...notices.filter(notice => notice.approved === true)]
+				.sort((a: any, b: any) => {
+					const dateA = new Date(a.startTime).getTime();
+					const dateB = new Date(b.endTime).getTime();
+					return dateB - dateA;
+				})
+		);
 
 		setChartData({
 			labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -132,7 +138,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 					data: data.message,
 					universe: null
 				});
-				
+
 			}
 
 			setDialogData({
@@ -192,7 +198,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 										</div>
 									</div>
 								) : (
-									<ol className="relative border-l dark:bg-gray-600 border-gray-200 ml-3 mt-3">
+									<ol className="relative border-l ml-3 mt-3">
 										{timeline.map((item: any, index: number) => (
 											<div key={item.id}>
 												{"reason" in item ? (
@@ -202,13 +208,12 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														</span>
 														<div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600">
 															<div className="flex justify-between items-center mb-1">
-																<p className="text-sm font-medium text-gray-900">Inactivity Notice</p>
+																<p className="text-sm dark:text-white font-medium text-gray-900">Inactivity Notice</p>
 																<time className="text-xs text-gray-500">
 																	{moment(item.startTime).format("DD MMM")} - {moment(item.endTime).format("DD MMM YYYY")}
 																</time>
 															</div>
 															<p className="text-sm text-gray-600 dark:text-gray-300">{item.reason}</p>
-															<p className="text-3xl font-semibold text-gray-900 dark:text-white">{timeSpent}m</p>
 														</div>
 													</li>
 												) : (
@@ -216,7 +221,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														<span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white">
 															<img className="rounded-full" src={item.user.picture ? item.user.picture : avatar} alt="timeline avatar" />
 														</span>
-														<div 
+														<div
 															onClick={() => fetchSession(item.id)}
 															className="p-4 bg-gray-50 dark:bg-gray-500 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
 														>
@@ -246,7 +251,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Time Active</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{timeSpent}m</p>
+								<p className="text-3xl font-semibold dark:text-white text-gray-600">{timeSpent}m</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -255,7 +260,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Sessions</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400 ">{timesPlayed}</p>
+								<p className="text-3xl font-semibold dark:text-white text-gray-600">{timesPlayed}</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -264,7 +269,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Messages</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{messages}</p>
+								<p className="text-3xl font-semibold dark:text-white text-gray-600">{messages}</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -273,7 +278,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Idle Time</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{idleMins}m</p>
+								<p className="text-3xl font-semibold dark:text-white text-gray-600">{idleMins}m</p>
 							</div>
 						</div>
 
@@ -295,8 +300,8 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 												</div>
 												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
 													<div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-														<div 
-															className="h-full bg-primary transition-all" 
+														<div
+															className="h-full bg-primary transition-all"
 															style={{
 																width: `${Math.min(getQuotaPercentage(quota) || 0, 100)}%`
 															}}

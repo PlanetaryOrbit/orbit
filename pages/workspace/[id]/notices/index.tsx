@@ -91,11 +91,13 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case "approved":
-				return <IconCheck className="w-5 h-5 text-green-500" />;
+				return <IconCheck className="w-5 h-5 text-green-500 dark:text-green-400" />;
+			case "revoked":
+				return <IconX className="w-5 h-5 text-red-500 dark:text-red-400" />;
 			case "declined":
-				return <IconX className="w-5 h-5 text-red-500" />;
+				return <IconX className="w-5 h-5 text-red-500 dark:text-red-400" />;
 			default:
-				return <IconClock className="w-5 h-5 text-yellow-500" />;
+				return <IconClock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />;
 		}
 	};
 
@@ -103,6 +105,8 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 		switch (status) {
 			case "approved":
 				return "Approved";
+			case "revoked":
+				return "Revoked";
 			case "declined":
 				return "Declined";
 			default:
@@ -173,11 +177,11 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 											<div className="flex items-center justify-between mb-1">
 												<div className="flex items-center gap-2">
 													<span className={`text-sm font-medium ${
-														notice.approved ? "text-green-600" : 
-														notice.reviewed ? "text-red-600" : 
-														"text-yellow-600"
+														notice.approved ? "text-green-600 dark:text-green-400" : 
+														notice.reviewed ? "text-red-600 dark:text-red-400" : 
+														"text-yellow-600 dark:text-yellow-400"
 													}`}>
-														{getStatusText(notice.approved ? "approved" : notice.reviewed ? "declined" : "pending")}
+														{getStatusText(notice.approved ? "approved" : notice.revoked ? "revoked" : notice.reviewed ? "declined" : "pending")}
 													</span>
 													<span className="text-xs text-gray-500">
 														{moment(new Date(notice.startTime)).format("MMM Do")} - {moment(new Date(notice.endTime)).format("MMM Do YYYY")}
