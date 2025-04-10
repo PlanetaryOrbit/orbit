@@ -58,6 +58,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 			accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
 		},
 		{
+			name: "Applications",
+			href: "/workspace/[id]/career",
+			icon: IconClipboardList,
+			accessible: workspace.yourPermission.includes("manage_applicant"),
+		},
+		{
 			name: "Staff",
 			href: "/workspace/[id]/views",
 			icon: IconUsers,
@@ -150,10 +156,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 								onClick={() => setIsCollapsed(!isCollapsed)}
 								className={clsx(
 									"p-2 mb-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all",
-									isCollapsed ? "flex justify-center" : "flex flex-row-reverse items-center justify-between"
+									isCollapsed ? "flex justify-center" : "flex flex-row-reverse items-center justify-between",
+									"hidden md:flex"
 								)}
 							>
-								<span className={clsx("text-sm dark:text-white", !isCollapsed ? "flex" : "hidden")}>
+								<span className={clsx("text-sm dark:text-white", !isCollapsed ? "md:flex" : "hidden")}>
 									Collapse menu
 								</span>
 								<IconChevronLeft
@@ -163,7 +170,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 									)}
 								/>
 							</button>
-
 
 							<div className="relative">
 								<Listbox
@@ -183,7 +189,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 								>
 									<Listbox.Button
 										className={clsx(
-											"w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700",
+											"w-full mt-12 md:mt-0 flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700",
 											isCollapsed && "justify-center",
 										)}
 									>
@@ -204,23 +210,33 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 											</>
 										)}
 									</Listbox.Button>
-									<div className={clsx("absolute top-0 z-50 w-64 mt-14", isCollapsed ? "left-full ml-2" : "left-0")}>
-										<Listbox.Options className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 max-h-64 overflow-auto">
+									<div className={clsx(
+										"fixed z-50 mt-2",
+									)}>
+										<Listbox.Options className="min-w-[16rem] bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto">
 											{login?.workspaces?.map((ws) => (
 												<Listbox.Option
 													key={ws.groupId}
 													value={ws.groupId}
 													className={({ active }) =>
-														clsx("flex items-center gap-3 px-3 py-2 cursor-pointer", active && "bg-primary/10")
+														clsx(
+															"flex items-center gap-3 px-4 py-3 cursor-pointer",
+															active && "bg-primary/10 dark:bg-gray-700",
+															workspace.groupId === ws.groupId && "bg-primary/5 dark:bg-gray-800"
+														)
 													}
 												>
 													<img
 														src={ws.groupThumbnail || "/placeholder.svg"}
 														alt=""
-														className="w-8 h-8 rounded-lg object-cover"
+														className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
 													/>
-													<span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
-													{workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
+													<span className="flex-1 min-w-0 truncate text-sm dark:text-white">
+														{ws.groupName}
+													</span>
+													{workspace.groupId === ws.groupId && (
+														<IconCheck className="w-5 h-5 text-primary flex-shrink-0" />
+													)}
 												</Listbox.Option>
 											))}
 										</Listbox.Options>
