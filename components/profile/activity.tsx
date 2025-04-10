@@ -40,16 +40,22 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 		datasets: []
 	});
 	const [chartOptions, setChartOptions] = useState({});
-	const [timeline, setTimeline] = useState<any>([...sessions, ...notices]);
+	const [timeline, setTimeline] = useState<any>([
+		...sessions,
+		...notices.filter(notice => notice.approved === true) // Only show approved notices
+	]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [dialogData, setDialogData] = useState<any>({});
 
 	useEffect(() => {
-		setTimeline(timeline.sort((a: any, b: any) => {
-			const dateA = new Date(a.startTime).getTime();
-			const dateB = new Date(b.endTime).getTime();
-			return dateB - dateA;
-		}));
+		setTimeline(
+			[...sessions, ...notices.filter(notice => notice.approved === true)]
+				.sort((a: any, b: any) => {
+					const dateA = new Date(a.startTime).getTime();
+					const dateB = new Date(b.endTime).getTime();
+					return dateB - dateA;
+				})
+		);
 
 		setChartData({
 			labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -132,7 +138,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 					data: data.message,
 					universe: null
 				});
-				
+
 			}
 
 			setDialogData({
@@ -215,7 +221,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														<span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white">
 															<img className="rounded-full" src={item.user.picture ? item.user.picture : avatar} alt="timeline avatar" />
 														</span>
-														<div 
+														<div
 															onClick={() => fetchSession(item.id)}
 															className="p-4 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
 														>
@@ -294,8 +300,8 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 												</div>
 												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
 													<div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-														<div 
-															className="h-full bg-primary transition-all" 
+														<div
+															className="h-full bg-primary transition-all"
 															style={{
 																width: `${Math.min(getQuotaPercentage(quota) || 0, 100)}%`
 															}}
