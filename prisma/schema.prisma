@@ -181,6 +181,7 @@ model inactivityNotice {
   reason           String
   approved         Boolean?  @default(false)
   reviewed         Boolean?  @default(false)
+  revoked          Boolean?  @default(false) 
   workspaceGroupId Int
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
