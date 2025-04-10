@@ -63,22 +63,27 @@ const Notices: pageWithLayout<pageProps> = (props) => {
 
 	const [isOpen, setIsOpen] = useState(false);
 
-	const updateNotice = async (notice: inactivityNotice & {
-		user: user;
-	}, status: string) => {
-		const req = axios.post(`/api/workspace/${id}/activity/notices/update`, {
-			id: notice.id,
-			status
-		}).then(res => {
-			if (res.data.success) {
-				setNotices(notices.filter(n => n.id !== notice.id));
+	const updateNotice = async (notice: inactivityNotice & { user: user }, status: string) => {
+		try {
+			const { data } = await toast.promise(
+				axios.post(`/api/workspace/${id}/activity/notices/update`, {
+					id: notice.id,
+					status
+				}),
+				{
+					loading: "Updating notice...",
+					success: "Notice updated!",
+					error: "Failed to update notice"
+				}
+			);
+	
+			if (data.success) {
+				// Remove the notice from the list
+				setNotices(prev => prev.filter(n => n.id !== notice.id));
 			}
-		});
-		toast.promise(req, {
-			loading: "Updating notice...",
-			success: "Notice updated!",
-			error: "Failed to update notice"
-		});
+		} catch (error) {
+			console.error("Update error:", error);
+		}
 	}
 
 	return <>
