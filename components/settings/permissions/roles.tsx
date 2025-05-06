@@ -30,6 +30,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		'Manage alliances': 'manage_alliances',
 		'Represent alliance': 'represent_alliance',
 		"Manage docs": "manage_docs",
+		"Manage remote admin": "remote_admin",
 	};
 
 	const newRole = async () => {

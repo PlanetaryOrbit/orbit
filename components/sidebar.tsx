@@ -21,6 +21,7 @@ import {
   IconSun,
   IconMoon,
   IconX,
+  IconHandStop,
 } from "@tabler/icons"
 import axios from "axios"
 import clsx from "clsx"
@@ -78,6 +79,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       icon: IconFileText,
       accessible: workspace.yourPermission.includes("manage_docs"),
     },
+	{
+		name: "Remote Admin",
+		href: "/workspace/[id]/remote_admin",
+		icon: IconHandStop,
+		accessible: workspace.yourPermission.includes("remote_admin"),
+	},
     {
       name: "Settings",
       href: "/workspace/[id]/settings",
