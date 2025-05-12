@@ -255,3 +255,10 @@ model allyVisit {
 	time	DateTime
 	name	String
 }
+
+model VerificationToken {
+	id		String 		@id @unique @default(uuid()) @db.Uuid
+	pkce    String      @unique
+	nonce   String      @unique
+	expires DateTime
+}

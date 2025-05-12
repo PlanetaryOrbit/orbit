@@ -47,6 +47,7 @@
     "next-remove-imports": "^1.0.8",
     "noblox.js": "^6.1.1",
     "node-cache": "^5.1.2",
+    "openid-client": "^6.5.0",
     "react": "18.2.0",
     "react-chartjs-2": "^5.0.1",
     "react-data-grid": "^7.0.0-beta.19",
