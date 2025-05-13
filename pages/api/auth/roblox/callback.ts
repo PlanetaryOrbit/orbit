@@ -1,7 +1,7 @@
 import * as noblox from "noblox.js";
 import { NextApiRequest, NextApiResponse } from "next";
-import oidcConfig from "@/lib/oidcConfig";
-import { authorizationCodeGrant, fetchUserInfo, tokenIntrospection } from "openid-client";
+import oidcConfig, { getHostUrl } from "@/lib/oidcConfig";
+import { authorizationCodeGrant } from "openid-client";
 import { withSessionRoute } from "@/lib/withSession";
 import { getRobloxThumbnail } from "@/utils/roblox";
 
@@ -19,11 +19,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
   if (!dbRecord) return res.redirect("/api/auth/roblox/login");
-  let currentUrl: URL = new URL(req.url!, process.env.VERCEL_URL ?? process.env.HOST_URL);
+  let currentUrl: URL = new URL(req.url!, getHostUrl(req));
   let tokens = await authorizationCodeGrant(oidc, currentUrl, {
     pkceCodeVerifier: dbRecord.pkce,
     expectedNonce: dbRecord.nonce,
+	expectedState: dbRecord.id,
     idTokenExpected: true,
+  });
+  await prisma.verificationToken.delete({
+    where: {
+      id: req.cookies.verificationToken,
+    },
   });
   let ti = tokens.claims();
   if (!ti) return res.redirect("/api/auth/roblox/login");

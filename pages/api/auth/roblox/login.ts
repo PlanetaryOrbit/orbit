@@ -1,4 +1,4 @@
-import oidcConfig from "@/lib/oidcConfig";
+import oidcConfig, { getHostUrl } from "@/lib/oidcConfig";
 import { NextApiRequest, NextApiResponse } from "next";
 import { randomPKCECodeVerifier, randomNonce, buildAuthorizationUrl, calculatePKCECodeChallenge } from 'openid-client'
 
@@ -21,8 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		nonce,
 		code_challenge,
 		code_challenge_method: "S256",
-		redirect_uri: new URL('/api/auth/roblox/callback', process.env.HOST_URL).toString(),
+		redirect_uri: new URL('/api/auth/roblox/callback', getHostUrl(req)).toString(),
 		scope: 'openid',
 		response_type: 'code',
+		state: dbRecord.id,
 	}).toString())
 }

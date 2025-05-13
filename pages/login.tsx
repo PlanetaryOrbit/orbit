@@ -1,6 +1,6 @@
 import { NextPage } from "next";
 import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
 import Button from "@/components/button";
@@ -17,9 +17,20 @@ const Login: NextPage = ({ }) => {
 	const methods = useForm<form>();
 	const { register, handleSubmit, setError, formState: { errors } } = methods;
 
+	const [oidcEligible, setOidcEligible] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [login, setLogin] = useRecoilState(loginState);
 
+	useEffect(() => {
+		async function getOidcEligible() {
+			let oidcCheck = await axios.get('/api/auth/roblox/can-use-oidc');
+			if (oidcCheck.data.success) {
+				setOidcEligible(true);
+			}
+		}
+		getOidcEligible();
+	}, []);
+	
 	const onSubmit: SubmitHandler<form> = async (data) => {
 		setLoading(true);
 		let req;
@@ -56,7 +67,11 @@ const Login: NextPage = ({ }) => {
 					<p className="text-md text-gray-500 dark:text-gray-200">
 						Login to your Orbit account to continue
 					</p>
-
+					{oidcEligible &&
+				    	<Button onPress={() => Router.push("/api/auth/roblox/login")} classoverride="w-full">
+							Sign in with Roblox
+						</Button>
+					}
 					<FormProvider {...methods}>
 						<form className="mt-2 mb-8" onSubmit={handleSubmit(onSubmit)}>
 							<Input label="Username" placeholder="Username" id="username" {...register("username", { required: { value: true, message: "This field is required" } })} />
