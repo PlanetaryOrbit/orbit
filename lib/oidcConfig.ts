@@ -16,12 +16,24 @@ export function getHostUrl(req: NextApiRequest) {
     process.env.VERCEL_URL
       ? "https://" + process.env.VERCEL_URL
       : process.env.HOST_URL ||
-        (req.headers.host || (req.rawHeaders.find(h => h === "X-Forwarded-Host") && req.rawHeaders[req.rawHeaders.findIndex(h => h === "X-Forwarded-Host")+1])
+        (req.headers.host ||
+        (req.rawHeaders.find((h) => h === "X-Forwarded-Host") &&
+          req.rawHeaders[
+            req.rawHeaders.findIndex((h) => h === "X-Forwarded-Host") + 1
+          ])
           ? `${
-              (req.headers["x-forwarded-proto"] === "https" || (req.socket as TLSSocket).encrypted)
+              req.headers["x-forwarded-proto"] === "https" ||
+              (req.socket as TLSSocket).encrypted
                 ? "https"
                 : "http"
-            }://${req.rawHeaders.find(h => h === "X-Forwarded-Host") ? req.rawHeaders[req.rawHeaders.findIndex(h => h === "X-Forwarded-Host")+1] : req.headers.host}`
+            }://${
+              req.rawHeaders.find((h) => h === "X-Forwarded-Host")
+                ? req.rawHeaders[
+                    req.rawHeaders.findIndex((h) => h === "X-Forwarded-Host") +
+                      1
+                  ]
+                : req.headers.host
+            }`
           : "")
   );
 }
