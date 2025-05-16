@@ -111,13 +111,6 @@ const Home: pageWithLayout<pageProps> = ({ documents }) => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-6">
-					<button 
-						onClick={() => router.back()}
-						className="p-2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors"
-						aria-label="Go back"
-					>
-						<IconArrowLeft className="w-5 h-5" />
-					</button>
 					<div>
 						<h1 className="text-xl font-medium text-gray-900 dark:text-white">Documents</h1>
 						<p className="text-sm text-gray-500 dark:text-gray-300">Create and manage your workspace documentation</p>

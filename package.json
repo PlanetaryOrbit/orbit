@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.0.0-beta6",
+  "version": "2.0.0-beta0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -42,6 +42,7 @@
     "framer-motion": "^12.6.3",
     "hex-rgb": "^5.0.0",
     "iron-session": "^6.3.1",
+    "is-svg": "^6.0.0",
     "moment": "^2.29.4",
     "next": "^15.2.4",
     "next-remove-imports": "^1.0.8",
@@ -57,16 +58,22 @@
     "react-popper": "^2.3.0",
     "recoil": "^0.7.5",
     "recoil-nexus": "^0.4.0",
+    "sanitize-html": "^2.17.0",
     "sass": "^1.56.1",
     "tailwind-merge": "^1.6.1",
     "ts-node": "^10.9.1",
     "uuid": "^3.4.0",
     "zxcvbn": "^4.4.2"
+    "@types/sanitize-html": "2.16.0",
+    "is-svg": "^4.2.1",
+    "sanitize-html": "^2.7.0"
+
   },
   "devDependencies": {
     "@types/node": "18.7.16",
     "@types/react": "18.0.19",
     "@types/react-dom": "18.0.6",
+    "@types/sanitize-html": "^2.16.0",
     "autoprefixer": "^10.4.8",
     "eslint": "8.23.0",
     "eslint-config-next": "12.3.0",

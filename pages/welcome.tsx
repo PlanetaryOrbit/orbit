@@ -101,11 +101,11 @@ const Login: NextPage = () => {
 	return (
 		<div className="flex bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center">
 			<p className="text-md -mt-1 text-white absolute top-4 left-4 xs:hidden md:text-6xl font-extrabold">
-				Welcome <br /> to <span className="text-pink-100 "> Orbit </span>
+				👋 Welcome <br /> to <span className="text-pink-100 "> Orbit </span>
 			</p>
 			<Slider activeSlide={selectedSlide}>
 				<div>
-					<p className="font-bold text-2xl ">Let's get started</p>
+					<p className="font-bold text-2xl dark:text-white">Let's get started</p>
 					<p className="text-md -mt-1 text-gray-500 dark:text-gray-200">
 						To configure your Orbit instance, we'll need some information
 					</p>
@@ -164,7 +164,7 @@ const Login: NextPage = () => {
 					</div>
 				</div>
 				<div>
-					<p className="font-bold text-2xl" id="2">
+					<p className="font-bold text-2xl dark:text-white" id="2">
 						Make your Orbit account
 					</p>
 					<p className="text-md -mt-1 text-gray-500 dark:text-gray-200">

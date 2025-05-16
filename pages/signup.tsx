@@ -99,7 +99,7 @@ const SignUp: NextPage = ({ }) => {
 					</div>
 				</div>
 				<div>
-					<p className="font-bold text-2xl" id="2">
+					<p className="font-bold text-2xl dark:text-white" id="2">
 						Make your Orbit account
 					</p>
 					<p className="text-md text-gray-500 dark:text-gray-200">
@@ -127,7 +127,7 @@ const SignUp: NextPage = ({ }) => {
 					</div>
 				</div>
 				<div>
-					<p className="font-bold text-2xl" id="2">
+					<p className="font-bold text-2xl dark:text-white" id="2">
 						Verify your Roblox account
 					</p>
 					<p className="text-md text-gray-500 dark:text-gray-200">
