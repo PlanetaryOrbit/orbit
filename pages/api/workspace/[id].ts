@@ -89,6 +89,7 @@ export async function handler(
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"View entire groups activity": "view_entire_groups_activity",
+		"Manage remote admin": "remote_admin",
 	};
 
 	

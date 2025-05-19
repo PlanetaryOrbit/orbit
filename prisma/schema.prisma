@@ -20,6 +20,7 @@ model workspace {
   roles             role[]
   userBook          userBook[]
   wallposts         wallPost[]
+  games             Game[]             @relation("WorkspaceGames")
 }
 
 model config {
@@ -43,7 +44,7 @@ model instanceConfig {
 model user {
   userid            BigInt             @id @unique
   isOwner           Boolean?
-  registered		Boolean?
+  registered        Boolean?
   picture           String?
   username          String?
   activitySessions  ActivitySession[]
@@ -58,7 +59,18 @@ model user {
   wallPosts         wallPost[]
   Ally              Ally[]
   roles             role[]
-  allyVisits		allyVisit[]
+  allyVisits        allyVisit[]
+
+  // Remote‑Admin audit (against this user)
+  player     Player[]    @relation("PlayerToUser")
+  warnings   Warning[]   @relation("UserWarnings")
+  actionLogs ActionLog[] @relation("UserActions")
+  reports    ModCall[]   @relation("UserReports")
+
+  // Remote‑Admin workspace admin
+  issuedWarnings   Warning[]   @relation("AdminWarnings")
+  issuedActionLogs ActionLog[] @relation("AdminActions")
+  claimedCalls     ModCall[]   @relation("ClaimedCalls")
 }
 
 model userInfo {
@@ -69,8 +81,8 @@ model userInfo {
 }
 
 model QuotaRole {
-  quotaId  String @db.Uuid
-  roleId   String @db.Uuid
+  quotaId String @db.Uuid
+  roleId  String @db.Uuid
 
   quota Quota @relation(fields: [quotaId], references: [id])
   role  role  @relation(fields: [roleId], references: [id])
@@ -86,7 +98,7 @@ model role {
   name             String
   groupRoles       Int[]
   workspace        workspace     @relation(fields: [workspaceGroupId], references: [groupId])
-  quotaRoles QuotaRole[]
+  quotaRoles       QuotaRole[]
   SessionType      SessionType[]
   documents        document[]
   members          user[]
@@ -181,7 +193,7 @@ model inactivityNotice {
   reason           String
   approved         Boolean?  @default(false)
   reviewed         Boolean?  @default(false)
-  revoked          Boolean?  @default(false) 
+  revoked          Boolean?  @default(false)
   workspaceGroupId Int
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
@@ -225,12 +237,12 @@ model rank {
 }
 
 model Quota {
-  id               String       @id @default(uuid()) @db.Uuid
+  id               String      @id @default(uuid()) @db.Uuid
   type             String
   value            Int
   workspaceGroupId Int
   name             String
-  workspace        workspace    @relation(fields: [workspaceGroupId], references: [groupId])
+  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
 }
 
@@ -240,18 +252,109 @@ model Ally {
   icon             String
   groupId          String
   notes            String[]
-  id               String    @id @unique @default(uuid()) @db.Uuid
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  id               String      @id @default(uuid()) @db.Uuid
+  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   reps             user[]
-  allyVisits	   allyVisit[]
+  allyVisits       allyVisit[]
 }
 
 model allyVisit {
-	id		String 		@id @unique @default(uuid()) @db.Uuid
-	ally	Ally 		@relation(fields: [allyId], references: [id])
-	allyId	String 		@db.Uuid
-	host	user 		@relation(fields: [hostId], references: [userid])
-	hostId  BigInt
-	time	DateTime
-	name	String
+  id     String   @id @default(uuid()) @db.Uuid
+  ally   Ally     @relation(fields: [allyId], references: [id])
+  allyId String
+  host   user     @relation(fields: [hostId], references: [userid])
+  hostId BigInt
+  time   DateTime
+  name   String
+}
+
+// --------------------------
+// Remote‑Admin Models
+// --------------------------
+
+model Game {
+  id               String      @id @default(uuid()) @db.Uuid
+  name             String
+  workspaceGroupId Int
+  workspace        workspace   @relation("WorkspaceGames", fields: [workspaceGroupId], references: [groupId])
+  servers          Server[]    @relation("GameToServer")
+  actions          ActionLog[] @relation("GameActions")
+  warnings         Warning[]   @relation("GameWarnings")
+  modCalls         ModCall[]   @relation("GameModCalls")
+}
+
+model Server {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  game        Game      @relation("GameToServer", fields: [gameId], references: [id])
+  gameId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  serverCode  String    @unique
+  status      String
+  playerCount Int
+  uptime      DateTime?
+  players     Player[]  @relation("ServerPlayers")
+  modCalls    ModCall[] @relation("ServerModCalls")
+}
+
+model Player {
+  id            String      @id @default(uuid()) @db.Uuid
+  robloxOwnerId BigInt
+  username      String
+  joinTime      DateTime    @default(now())
+  user          user?       @relation("PlayerToUser", fields: [userId], references: [userid])
+  userId        BigInt?
+  server        Server      @relation("ServerPlayers", fields: [serverId], references: [id])
+  serverId      String
+  warnings      Warning[]   @relation("PlayerWarnings")
+  actionLogs    ActionLog[] @relation("PlayerActions")
+  reports       ModCall[]   @relation("PlayerReports")
+}
+
+model Warning {
+  id       String   @id @default(uuid()) @db.Uuid
+  reason   String
+  issuedAt DateTime @default(now())
+  player   Player   @relation("PlayerWarnings", fields: [playerId], references: [id])
+  playerId String
+  user     user?    @relation("UserWarnings", fields: [userId], references: [userid])
+  userId   BigInt?
+  game     Game     @relation("GameWarnings", fields: [gameId], references: [id])
+  gameId   String
+  admin    user     @relation("AdminWarnings", fields: [adminId], references: [userid])
+  adminId  BigInt
+}
+
+model ActionLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  type      String
+  timestamp DateTime @default(now())
+  details   String?
+  player    Player   @relation("PlayerActions", fields: [playerId], references: [id])
+  playerId  String
+  user      user?    @relation("UserActions", fields: [userId], references: [userid])
+  userId    BigInt?
+  game      Game     @relation("GameActions", fields: [gameId], references: [id])
+  gameId    String
+  admin     user     @relation("AdminActions", fields: [adminId], references: [userid])
+  adminId   BigInt
+}
+
+model ModCall {
+  id        String   @id @default(uuid()) @db.Uuid
+  reason    String
+  location  String?
+  createdAt DateTime @default(now())
+  status    String   @default("open")
+  player    Player   @relation("PlayerReports", fields: [playerId], references: [id])
+  playerId  String
+  user      user?    @relation("UserReports", fields: [userId], references: [userid])
+  userId    BigInt?
+  server    Server   @relation("ServerModCalls", fields: [serverId], references: [id])
+  serverId  String
+  game      Game     @relation("GameModCalls", fields: [gameId], references: [id])
+  gameId    String
+  claimedBy user?    @relation("ClaimedCalls", fields: [adminId], references: [userid])
+  adminId   BigInt?
 }
