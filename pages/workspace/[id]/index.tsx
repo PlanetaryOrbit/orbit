@@ -107,7 +107,7 @@ const Home: pageWithLayout = () => {
                 </h1>
                 <div
                   className={clsx(
-                    "h-1 w-16 bg-gradient-to-r from-primary to-primary/30 rounded-full mb-3 transition-all duration-1000 transform",
+                    "h-1 w-16 bg-primary rounded-full mb-3 transition-all duration-1000 transform"
                     titleVisible ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0",
                   )}
                 ></div>
