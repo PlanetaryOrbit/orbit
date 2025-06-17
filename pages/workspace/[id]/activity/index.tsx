@@ -86,7 +86,7 @@ const Activity: pageWithLayout = () => {
 								<div className="bg-primary/10 p-2 rounded-lg">
 									<Icon className="w-5 h-5 text-primary" />
 								</div>
-								<p className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</p>
+								<p className="text-sm font-medium text-gray-600 dark:text-white">{label}</p>
 							</div>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">{value}</p>
 						</div>
@@ -133,17 +133,13 @@ const Activity: pageWithLayout = () => {
 										}
 										orientation="top"
 									>
-										<div className="relative group">
+										<div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(user.userId)} ring-2 ring-primary/10 hover:ring-primary/30 transition-all`}>
 											<img
 												src={user.picture}
 												alt={user.username}
-												className={`w-10 h-10 rounded-full ring-2 ${
-													highlight ? "ring-primary/10" : "opacity-60 ring-primary/10"
-												} group-hover:ring-primary/30 transition-all`}
+												className="w-10 h-10 rounded-full object-cover border-2 border-white"
+												style={{ background: "transparent" }}
 											/>
-											{highlight && (
-												<div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-white" />
-											)}
 										</div>
 									</Tooltip>
 								))}
@@ -279,6 +275,26 @@ const ActionButton = ({ icon: Icon, title, desc, onClick }: any) => (
 		</div>
 	</button>
 );
+
+const BG_COLORS = [
+	"bg-red-200",
+	"bg-green-200",
+	"bg-blue-200",
+	"bg-yellow-200",
+	"bg-pink-200",
+	"bg-indigo-200",
+	"bg-teal-200",
+	"bg-orange-200",
+];
+
+function getRandomBg(userid: string | number) {
+	const str = String(userid);
+	let hash = 0;
+	for (let i = 0; i < str.length; i++) {
+		hash = str.charCodeAt(i) + ((hash << 5) - hash);
+	}
+	return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+}
 
 Activity.layout = workspace;
 

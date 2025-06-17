@@ -66,6 +66,7 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
 	const router = useRouter();
 	const [wallMessage, setWallMessage] = useState("");
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const friendlyDate = `${new Date(document.createdAt).toLocaleDateString()} at ${new Date(document.createdAt).toLocaleTimeString()}`;
 
 	const output = useMemo(() => {
@@ -82,6 +83,11 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 	const goback = () => {
 		window.history.back();
 	}
+
+	const confirmDelete = async () => {
+		await deleteDoc();
+		setShowDeleteModal(false);
+	};
 
 	return (
 		<div className="pagePadding">
@@ -131,7 +137,7 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 							Edit Document
 						</button>
 						<button
-							onClick={deleteDoc}
+							onClick={() => setShowDeleteModal(true)}
 							className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
 						>
 							<IconTrash className="w-4 h-4" />
@@ -140,6 +146,32 @@ const Settings: pageWithLayout<Props> = ({ document }) => {
 					</div>
 				)}
 			</div>
+			{showDeleteModal && (
+			<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+				<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+					Confirm Deletion
+				</h2>
+				<p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+					Are you sure you want to delete this Document? This action cannot be undone.
+				</p>
+				<div className="flex justify-center gap-4">
+					<button
+					onClick={() => setShowDeleteModal(false)}
+					className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white"
+					>
+					Cancel
+					</button>
+					<button
+					onClick={confirmDelete}
+					className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+					>
+					Delete
+					</button>
+				</div>
+				</div>
+			</div>
+			)}
 		</div>
 	);
 };

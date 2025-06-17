@@ -52,7 +52,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
 			<div className="" key={session.id}>
 				<div className="bg-[url('https://tr.rbxcdn.com/4a3833e22d4523b58e173057a531a766/768/432/Image/Png')] w-full rounded-md overflow-clip">
 					<div className="px-5 py-4 backdrop-blur flex">
-						<div><p className="text-xl font-bold"> Training session </p>
+						<div><p className="text-xl font-bold"> Session </p>
 							<div className="flex mt-1">
 								<img src={login.thumbnail} className="bg-primary rounded-full w-8 h-8 my-auto" />
 								<p className="font-semibold pl-2 leading-5 my-auto"> Hosted by ItsWHOOOP <br /> <span className="text-red-500"> Slocked </span> </p>

@@ -115,6 +115,27 @@ const Home: pageWithLayout<{
 		return [...lastThreeDays, ...nextThreeDays].sort((a, b) => a.getTime() - b.getTime());
 	}, []);
 
+	const isSessionInPastLocal = (session: esession) => {
+		console.log('Session:', session.sessionType?.name, 'Hour:', session.Hour, 'Minute:', session.Minute);
+		const localSessionDate = new Date(
+			selectedDate.getFullYear(),
+			selectedDate.getMonth(),
+			selectedDate.getDate(),
+			session.Hour,
+			session.Minute,
+			0,
+			0
+		);
+		const now = new Date();
+		const isPast = localSessionDate < now;
+		console.log(
+			'Session:', session.sessionType?.name,
+			'| Local session date:', localSessionDate,
+			'| Now:', now,
+			'| isPast:', isPast
+		);
+		return isPast;
+	};
 
 	const claimSession = async (schedule: esession) => {
 		try {
@@ -125,8 +146,17 @@ const Home: pageWithLayout<{
 			});
 
 			if (res.status === 200) {
-				const newSessions = sessionsData.filter((session) => session.id !== schedule.id);
-				setSessionsData([...newSessions, res.data.session]);
+				// Debug log
+				console.log('Claim response:', res.data.session);
+				const updatedSessions = sessionsData.map(s => {
+					if (s.id === schedule.id) {
+						return res.data.session;
+					}
+					return s;
+				});
+				console.log('Updated sessionsData:', updatedSessions);
+				setSessionsData(updatedSessions);
+				setSelectedSession(res.data.session);
 				toast.success('Session claimed successfully');
 			}
 		} catch (error: any) {
@@ -191,8 +221,19 @@ const Home: pageWithLayout<{
 			});
 
 			if (res.status === 200) {
-				const newSessions = sessionsData.filter((session) => session.id !== schedule.id);
-				setSessionsData([...newSessions, res.data.session]);
+				// Update the sessions data with the new session
+				const updatedSessions = sessionsData.map(s => {
+					if (s.id === schedule.id) {
+						return {
+							...s,
+							...res.data.session,
+							sessions: res.data.session.sessions
+						};
+					}
+					return s;
+				});
+				setSessionsData(updatedSessions);
+				setSelectedSession(updatedSessions.find(s => s.id === schedule.id));
 				toast.success('Session unclaimed successfully');
 			}
 		} catch (error: any) {
@@ -204,7 +245,7 @@ const Home: pageWithLayout<{
 
 	useEffect(() => {
 		const activeSessions = sessionsData.filter((session) => {
-			return session.Days.includes(selectedDate.getDay());
+			return Array.isArray(session.Days) && session.Days.includes(selectedDate.getDay());
 		});
 		setActiveSessions(activeSessions);
 	}, [selectedDate, sessionsData]);
@@ -239,6 +280,12 @@ const Home: pageWithLayout<{
 		}
 		return { disabled: false, text: "Claims the session so people know you\'re the host" }
 	}
+
+	// Compute the session for the selected date
+	const sessionForSelectedDate = selectedSession && Array.isArray(selectedSession.sessions)
+		? selectedSession.sessions.find(s => new Date(s.date).getUTCDate() === selectedDate.getUTCDate())
+		: undefined;
+	const canUnclaimHost = sessionForSelectedDate?.owner?.userid?.toString() === login.userId?.toString() || workspace.yourPermission?.includes('manage_sessions');
 
 	return (
 		<div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -297,29 +344,33 @@ const Home: pageWithLayout<{
 							{activeSessions.length > 0 ? (
 								<div className="space-y-4">
 									{activeSessions.map((session) => {
-										const date = new Date();
-										date.setUTCMinutes(session.Minute);
-										date.setUTCHours(session.Hour);
-										date.setUTCDate(selectedDate.getUTCDate());
-										date.setUTCMonth(selectedDate.getUTCMonth());
-										date.setUTCFullYear(selectedDate.getUTCFullYear());
+										const displayDate = new Date(
+											selectedDate.getFullYear(),
+											selectedDate.getMonth(),
+											selectedDate.getDate(),
+											session.Hour,
+											session.Minute,
+											0,
+											0
+										);
 
 										const currentSession = session.sessions.find(s => 
 										  new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
 										);
 
-										const isDisabled = checkDisabled(session).disabled;
+										const check = checkDisabled(session);
+										const isDisabled = check.disabled || isSessionInPastLocal(session);
 
 										return (
 											<div key={session.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
 												<div className="p-6">
-													<div className="flex items-start justify-between">
+													<div className="flex items-center justify-between">
 														<div>
 															<h3 className="text-lg font-medium text-gray-900 dark:text-white">
 																{session.sessionType.name}
 															</h3>
 															<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-																{moment(date).format('hh:mm A')}
+																{displayDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
 															</p>
 														</div>
 														<div className="flex items-center gap-2">
@@ -336,30 +387,32 @@ const Home: pageWithLayout<{
 																		</div>
 																		<div className="text-gray-500 dark:text-gray-400">Host</div>
 																	</div>
-																	{currentSession.owner.userid === BigInt(login.userId) && (
+																	{(currentSession.owner.userid === BigInt(login.userId) || workspace.yourPermission?.includes('manage_sessions')) && (
 																		<button onClick={() => unclaimSession(session)} disabled={isLoading} className="ml-2 p-2 text-gray-400 hover:text-red-500 transition-colors">
 																			<IconX className="w-5 h-5" />
 																		</button>
 																	)}
 																</div>
 															) : (
-															<Button onPress={() => claimSession(session)} loading={isLoading} disabled={isDisabled}>
-																Claim Session
-															</Button>
-														)}
-														{session.sessionType.slots && (
-															<Button onPress={() => setSelectedSession(session)} classoverride="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-white" disabled={isLoading}>
-																View Slots
-															</Button>
-														)}
+																!isSessionInPastLocal(session) && (
+																	<Button onPress={() => claimSession(session)} loading={isLoading} disabled={isDisabled}>
+																		Claim Session
+																	</Button>
+																)
+															)}
+															{session.sessionType.slots && (
+																<Button onPress={() => setSelectedSession(session)} classoverride="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-white" disabled={isLoading}>
+																	View Slots
+																</Button>
+															)}
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									);
-								})}
-							</div>
-						) : (
+										);
+									})}
+								</div>
+							) : (
 						<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
 							<div className="mx-auto w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-4">
 								<IconCalendarEvent className="w-6 h-6 text-primary" />
@@ -412,79 +465,98 @@ const Home: pageWithLayout<{
 									</Dialog.Title>
 
 									<div className="space-y-4 max-h-96 overflow-y-auto">
-									{selectedSession?.sessionType.slots.map((slot: any, index: number) => {
-  if (typeof slot !== 'object') return null;
-  const slotData = JSON.parse(JSON.stringify(slot));
-  const session = Array.isArray(selectedSession?.sessions)
-    ? selectedSession.sessions.find(s =>
-        new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
-      )
-    : undefined;
-
-  const user = session?.users.find(u =>
-    u.roleID === slotData.id && u.slot === index
-  );
-
-  return (
-    <div key={index} className="bg-gray-50 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-900 mb-3">
-        {slotData.name}
-      </h4>
-      <div className="space-y-2">
-        {Array.from(Array(slotData.slots)).map((_, i) => {
-          const matchedUser = session?.users.find(u =>
-            u.roleID === slotData.id && u.slot === i
-          );
-
-          return (
-            <div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
-              <div className="flex items-center gap-2">
-                <img
-                  src={matchedUser?.user?.picture || '/default-avatar.png'}
-                  alt={matchedUser?.user?.username || ''}
-                  className="w-6 h-6 rounded-full"
-                />
-                <span className="text-sm text-gray-600">
-                  {slotData.name} #{i + 1}
-                </span>
-              </div>
-              {matchedUser ? (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={matchedUser.user.picture || '/default-avatar.png'}
-                    alt={matchedUser.user.username || ''}
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <span className="text-sm font-medium">
-                    {matchedUser.user.username}
-                  </span>
-                  {matchedUser.user.userid === BigInt(login.userId) && (
-                    <button
-                      onClick={() => unclaimSessionSlot(selectedSession, slotData.id, i)}
-                      disabled={isLoading}
-                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <IconX className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
-                  classoverride="text-sm px-3 py-1"
-                  loading={isLoading}
-                >
-                  Claim
-                </Button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-})}
-
+										<div className="bg-gray-50 rounded-lg p-4 mb-4">
+											<h4 className="text-sm font-medium text-gray-900 mb-3">Host</h4>
+											<div className="flex items-center justify-between bg-white rounded-md p-2">
+												<div className="flex items-center gap-2">
+													{sessionForSelectedDate?.owner ? (
+														<>
+															<img
+																src={sessionForSelectedDate.owner.picture || '/default-avatar.png'}
+																alt={sessionForSelectedDate.owner.username || ''}
+																className="w-6 h-6 rounded-full"
+															/>
+															<span className="text-sm text-gray-600">
+																{sessionForSelectedDate.owner.username}
+															</span>
+														</>
+													) : (
+														<span className="text-sm text-gray-500">Unclaimed</span>
+													)}
+												</div>
+												{sessionForSelectedDate?.owner && (sessionForSelectedDate.owner.userid === BigInt(login.userId) || workspace.yourPermission?.includes('manage_sessions')) && selectedSession && (
+													<button
+														onClick={() => unclaimSession(selectedSession)}
+														disabled={isLoading}
+														className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+													>
+														<IconX className="w-4 h-4" />
+													</button>
+												)}
+												{!sessionForSelectedDate?.owner && selectedSession && !isSessionInPastLocal(selectedSession) && (
+													<Button
+														onPress={() => claimSession(selectedSession)}
+														classoverride="text-sm px-3 py-1"
+														loading={isLoading}
+													>
+														Claim
+													</Button>
+												)}
+											</div>
+										</div>
+										{selectedSession?.sessionType?.slots && Array.isArray(selectedSession.sessionType.slots) && selectedSession.sessionType.slots.map((slot: any, index: number) => {
+										if (typeof slot !== 'object') return null;
+										const slotData = JSON.parse(JSON.stringify(slot));
+										const session = Array.isArray(selectedSession?.sessions)
+											? selectedSession.sessions.find(s =>
+												new Date(s.date).getUTCDate() === selectedDate.getUTCDate()
+											)
+											: undefined;
+										const matchedUser = session?.users?.find(u =>
+													u.roleID === slotData.id && u.slot === index
+												);
+										return (
+											<div key={index} className="bg-gray-50 rounded-lg p-4">
+													<h4 className="text-sm font-medium text-gray-900 mb-3">{slotData.name}</h4>
+											<div className="space-y-2">
+												{Array.from(Array(slotData.slots)).map((_, i) => {
+															const matchedUser = session?.users?.find(u =>
+													u.roleID === slotData.id && u.slot === i
+												);
+												return (
+													<div key={i} className="flex items-center justify-between bg-white rounded-md p-2">
+													<div className="flex items-center gap-2">
+																		{matchedUser ? (
+																			<>
+														<img
+																					src={matchedUser.user.picture || '/default-avatar.png'}
+																					alt={matchedUser.user.username || 'Unclaimed'}
+																					className="w-6 h-6 rounded-full"
+														/>
+																				<span className="text-sm font-medium text-gray-900">
+																					{matchedUser.user.username}
+														</span>
+																			</>
+																		) : (
+																			<span className="text-sm text-gray-500">Unclaimed</span>
+																		)}
+													</div>
+													{!matchedUser && !isSessionInPastLocal(selectedSession) && (
+														<Button
+															onPress={() => claimSessionSlot(selectedSession, slotData.id, i)}
+															classoverride="text-sm px-3 py-1"
+															loading={isLoading}
+														>
+															Claim
+														</Button>
+													)}
+													</div>
+												);
+												})}
+											</div>
+											</div>
+										);
+										})}
 									</div>
 								</Dialog.Panel>
 							</Transition.Child>

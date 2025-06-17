@@ -14,6 +14,8 @@ type User = {
 	displayname: string
 	thumbnail: string
 	registered: boolean
+	birthdayDay?: number | null
+	birthdayMonth?: number | null
 }
 
 type Data = {
@@ -48,7 +50,9 @@ export async function handler(
 		displayname: await getDisplayName(req.session.userid),
 		canMakeWorkspace: dbuser?.isOwner || false,
 		thumbnail: await getThumbnail(req.session.userid),
-		registered: dbuser?.registered || false
+		registered: dbuser?.registered || false,
+		birthdayDay: dbuser?.birthdayDay ?? null,
+		birthdayMonth: dbuser?.birthdayMonth ?? null,
 	}
 	const tovyuser = await prisma.user.findUnique({
 		where: {

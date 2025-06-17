@@ -1,5 +1,5 @@
 >[!IMPORTANT]
->**Work-in-progress** - Planetary is currently in the process of updating this read me and creating our documentation for Orbit. We recommend you host for free with Planetary Cloud, however the <a href="https://guide.tovy.relatio.cc/">original Tovy instructions</a> still apply and will guide you through how to self-host until documentation is created for Orbit. Expect bugs in this beta. We've tried our best to iron out everything we could find in Tovy, but we expect there to be issues. Let us know by creating an issue, or if you're adventurous... patch it yourself and send in a PR.
+>**Work-in-progress** - Planetary is currently in the process of updating this read me and creating our documentation for Orbit. We recommend you host for free with Planetary Cloud, however you can still self-host by following our <a href="https://docs.planetaryapp.cloud">Documentation</a>. Expect bugs in this beta. We've tried our best to iron out everything we could find in Tovy, but we expect there to be issues. Let us know by creating an issue, or if you're adventurous... patch it yourself and send in a PR.
 
 >[!TIP]
 > The best and easiest way to get started with Orbit is our cloud hosting solution, Planetary Cloud. It's easy, secure, and supafast. See https://planetaryapp.cloud to get started. The best part? It's **FREE**!
@@ -8,7 +8,7 @@
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v2.00beta0-purple"></img>
+    <img src="https://img.shields.io/badge/version-v2.0.9_beta7-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
@@ -71,16 +71,19 @@
   <h2>Quicklinks</h2>
   <ul>
     <li>
-      Don't know how to install? –– <a href="https://guide.tovy.relatio.cc/guides">Visit our documentation!</a>
+      Don't know how to install? –– <a href="https://docs.planetaryapp.cloud">Visit our documentation!</a>
     </li>
     <li>
-      🐛 Bugs? ✨ Suggestions? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+      🐛 Bugs? –– <a href="https://discord.gg/planetorbit">Get support and let us know here!</a>
+    </li>
+    <li>
+      ✨ Suggestions? –– <a href="https://feedback.planetaryapp.cloud/">View our Upcoming Features and Suggest your own!</a>
     </li>
   </ul>
 
   <h2>🚀 One-Click Deploy</h2>
   <p>The fastest way to get started with Orbit is by deploying it to <strong>Vercel</strong> in just one click:</p>
-  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=prisma%20db%20push%20%26%26%20prisma%20generate%20%26%26%20prisma%20migrate%20deploy%20%26%26%20next%20build">
+  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=prisma%20db%20push%20%26%26%20next%20build">
     <img src="https://vercel.com/button" alt="Deploy with Vercel" />
   </a>
   <p><strong>Required environment variables:</strong></p>

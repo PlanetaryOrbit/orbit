@@ -21,15 +21,16 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 	const [workspace] = useRecoilState(workspacestate);
 	const router = useRouter();
 	const permissions = {
-		"Admin (Manage workspace)": "admin",
-		"Manage sessions": "manage_sessions",
-		'View all activity': 'view_entire_groups_activity',
-		"Manage activity & members": "manage_activity",
 		"Post on wall": "post_on_wall",
 		"View members": "view_members",
-		'Manage alliances': 'manage_alliances',
+		'View all activity': 'view_entire_groups_activity',
 		'Represent alliance': 'represent_alliance',
+		"Manage wall": "manage_wall",
+		'Manage alliances': 'manage_alliances',
 		"Manage docs": "manage_docs",
+		"Manage sessions": "manage_sessions",
+		"Manage activity & staff": "manage_activity",
+		"Admin (Manage workspace)": "admin",
 	};
 
 	const newRole = async () => {

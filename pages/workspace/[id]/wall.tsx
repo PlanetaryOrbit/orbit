@@ -18,12 +18,13 @@ import {
   IconPhoto,
   IconMoodSmile,
   IconX,
-  IconArrowLeft,
+  IconTrash,
 } from "@tabler/icons";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 
-// Client-side sanitization options
 const SANITIZE_OPTIONS = {
   allowedTags: [],
   allowedAttributes: {},
@@ -77,6 +78,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<number | null>(null);
 
   // Sanitize posts on client-side as an extra layer of security
   useEffect(() => {
@@ -93,6 +96,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   }, [props.posts]);
 
+  const confirmDelete = async () => {
+    if (!postToDelete) return;
+
+    try {
+      await axios.delete(`/api/workspace/${id}/wall/${postToDelete}/delete`);
+      setPosts((prev) => prev.filter((p) => p.id !== postToDelete));
+      toast.success("Post deleted");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Failed to delete post");
+    } finally {
+      setShowDeleteModal(false);
+      setPostToDelete(null);
+    }
+  };
+  
   function sendPost() {
     setLoading(true);
     axios
@@ -149,7 +168,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      // Validate that the result is actually an image data URL
       const result = reader.result as string;
       if (typeof result === "string" && result.startsWith("data:image/")) {
         setSelectedImage(result);
@@ -170,6 +188,26 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   };
 
+  const BG_COLORS = [
+    "bg-red-200",
+    "bg-green-200",
+    "bg-blue-200",
+    "bg-yellow-200",
+    "bg-pink-200",
+    "bg-indigo-200",
+    "bg-teal-200",
+    "bg-orange-200",
+  ];
+
+  function getRandomBg(userid: string | number) {
+    const str = String(userid);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+  }
+
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
@@ -187,11 +225,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8">
         <div className="flex items-start gap-4">
-          <img
-            src={login.thumbnail}
-            alt="Your avatar"
-            className="w-10 h-10 rounded-full bg-primary flex-shrink-0"
-          />
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(login.userId)}`}>
+            <img
+              src={login.thumbnail}
+              alt="Your avatar"
+              className="w-10 h-10 rounded-full object-cover border-2 border-white"
+              style={{ background: "transparent" }}
+            />
+          </div>
           <div className="flex-1">
             <textarea
               className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white"
@@ -293,11 +334,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
-                <img
-                  alt="avatar headshot"
-                  src={post.author.picture}
-                  className="w-12 h-12 rounded-full bg-primary flex-shrink-0"
-                />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(post.authorId)}`}>
+                  <img
+                    alt="avatar headshot"
+                    src={post.author.picture}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white"
+                    style={{ background: "transparent" }}
+                  />
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div>
@@ -310,10 +354,15 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                         )}
                       </p>
                     </div>
+					{(post.authorId === login.userId || workspace.yourPermission.includes("manage_wall") || login.canMakeWorkspace) && (
+                      <button onClick={() => { setPostToDelete(post.id); setShowDeleteModal(true); }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                        <IconTrash size={18} />
+                      </button>
+                    )}
                   </div>
-                  <p className="mt-3 text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-                    {post.content}
-                  </p>
+                  <div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-3">
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
+                  </div>
                   {post.image && (
                     <div className="mt-4">
                       <img
@@ -333,6 +382,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           ))
         )}
       </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Confirm Deletion
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-white">Cancel</button>
+              <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { workspacestate } from "@/state";
+import { themeState } from "@/state/theme";
 import { FC } from '@/types/settingsComponent'
 import { Chart, ChartData, ScatterDataPoint } from "chart.js"
 import { Line } from "react-chartjs-2";
@@ -47,6 +48,9 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 	const [isOpen, setIsOpen] = useState(false);
 	const [dialogData, setDialogData] = useState<any>({});
 
+	const theme = useRecoilValue(themeState);
+	const isDark = theme === "dark";
+
 	useEffect(() => {
 		setTimeline(timeline.sort((a: any, b: any) => {
 			const dateA = new Date(a.startTime).getTime();
@@ -72,24 +76,33 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 			maintainAspectRatio: false,
 			plugins: {
 				legend: {
-					position: "top"
+					position: "top",
+					labels: {
+						color: isDark ? "#fff" : "#222", // legend text color
+					},
 				},
 			},
 			scales: {
 				y: {
 					beginAtZero: true,
 					grid: {
-						color: "rgba(0, 0, 0, 0.05)"
-					}
+						color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+					},
+					ticks: {
+						color: isDark ? "#fff" : "#222", // axis label color
+					},
 				},
 				x: {
 					grid: {
-						color: "rgba(0, 0, 0, 0.05)"
-					}
+						color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+					},
+					ticks: {
+						color: isDark ? "#fff" : "#222",
+					},
 				}
 			}
 		})
-	}, []);
+	}, [data, timeline, isDark]);
 
 	const getQuotaPercentage = (quota: Quota) => {
 		switch (quota.type) {
@@ -195,7 +208,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 										</div>
 									</div>
 								) : (
-									<ol className="relative border-l dark:bg-gray-600 border-gray-200 ml-3 mt-3">
+									<ol className="relative border-l border-gray-200 ml-3 mt-3">
 										{timeline.map((item: any, index: number) => (
 											<div key={item.id}>
 												{"reason" in item ? (
@@ -224,7 +237,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 														>
 															<div className="flex justify-between items-center mb-1 dark:bg-gray-500">
 																<p className="text-sm font-medium text-gray-900 dark:text-white">Activity Session</p>
-																<time className="text-xs text-gray-500">
+																<time className="text-xs text-gray-500 dark:text-white">
 																	{moment(item.startTime).format("HH:mm")} - {moment(item.endTime).format("HH:mm")} on {moment(item.startTime).format("DD MMM YYYY")}
 																</time>
 															</div>
@@ -248,7 +261,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Time Active</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{timeSpent}m</p>
+								<p className="text-3xl font-semibold text-gray-400 dark:text-white">{timeSpent}m</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -257,7 +270,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Sessions</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400 ">{timesPlayed}</p>
+								<p className="text-3xl font-semibold text-gray-400 dark:text-white">{timesPlayed}</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -266,7 +279,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Messages</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{messages}</p>
+								<p className="text-3xl font-semibold text-gray-400 dark:text-white">{messages}</p>
 							</div>
 							<div className="bg-white dark:bg-gray-700 rounded-xl p-5 shadow-sm">
 								<div className="flex items-center gap-3 mb-3">
@@ -275,7 +288,7 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									</div>
 									<p className="text-sm font-medium text-gray-600 dark:text-white">Idle Time</p>
 								</div>
-								<p className="text-3xl font-semibold text-gray-400">{idleMins}m</p>
+								<p className="text-3xl font-semibold text-gray-400 dark:text-white">{idleMins}m</p>
 							</div>
 						</div>
 
@@ -285,15 +298,15 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									<div className="bg-primary/10 p-2 rounded-lg">
 										<IconChartBar className="w-5 h-5 text-primary" />
 									</div>
-									<h2 className="text-lg font-medium text-gray-900">Activity Quotas</h2>
+									<h2 className="text-lg font-medium dark:text-white text-gray-900">Activity Quotas</h2>
 								</div>
 								<div className="p-4">
 									<div className="grid gap-4">
 										{quotas.map((quota: any) => (
-											<div key={quota.id} className="bg-gray-50 rounded-lg p-4">
+											<div key={quota.id} className="bg-gray-50 dark:bg-gray-500 rounded-lg p-4">
 												<div className="flex justify-between items-center mb-2">
-													<h3 className="text-sm font-medium text-gray-900">{quota.name}</h3>
-													<p className="text-xs text-gray-500">{getQuotaProgress(quota)}</p>
+													<h3 className="text-sm font-medium dark:text-white text-gray-900">{quota.name}</h3>
+													<p className="text-xs text-gray-500 dark:text-white">{getQuotaProgress(quota)}</p>
 												</div>
 												<Tooltip orientation="top" tooltipText={getQuotaProgress(quota)}>
 													<div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -351,27 +364,27 @@ const Activity: FC<Props> = ({ timeSpent, timesPlayed, data, quotas, sessionsAtt
 									) : (
 										<div>
 											{dialogData.universe && (
-												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Universe</h4>
-													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.universe.name}</p>
+												<div className="space-y-4">
+													<div>
+														<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Universe</h4>
+														<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.universe.name}</p>
+													</div>
+													<div>
+														<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Duration</h4>
+														<p className="text-sm text-gray-600 dark:text-gray-400">
+															{moment.duration(moment(dialogData.data?.endTime).diff(moment(dialogData.data?.startTime))).humanize()}
+														</p>
+													</div>
+													<div>
+														<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Messages Sent</h4>
+														<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.messages || 0}</p>
+													</div>
+													<div>
+														<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Idle Time</h4>
+														<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.idleTime || 0} minutes</p>
+													</div>
 												</div>
 											)}
-											<div className="space-y-4">
-												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:text-white dark:bg-gray-800">Duration</h4>
-													<p className="text-sm text-gray-600 dark:text-gray-400">
-														{moment.duration(moment(dialogData.data?.endTime).diff(moment(dialogData.data?.startTime))).humanize()}
-													</p>
-												</div>
-												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Messages Sent</h4>
-													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.messages || 0}</p>
-												</div>
-												<div>
-													<h4 className="text-sm font-medium text-gray-900 mb-1 dark:bg-gray-800 dark:text-white">Idle Time</h4>
-													<p className="text-sm text-gray-600 dark:text-gray-400">{dialogData.data?.idleTime || 0} minutes</p>
-												</div>
-											</div>
 										</div>
 									)}
 									<div className="mt-6">

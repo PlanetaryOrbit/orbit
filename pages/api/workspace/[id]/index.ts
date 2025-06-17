@@ -22,6 +22,7 @@ type Data = {
 		settings: {
 			guidesEnabled: boolean
 			sessionsEnabled: boolean
+			alliesEnabled: boolean
 			noticesEnabled: boolean
 			widgets: string[]
 		}
@@ -88,8 +89,9 @@ export async function handler(
 		settings: {
 			guidesEnabled: (await getConfig('guides', workspace.groupId))?.enabled || false,
 			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
+			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
 			noticesEnabled: false,
 			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
 		}
 	} })
-} 
+}

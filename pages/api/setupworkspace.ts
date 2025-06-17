@@ -9,7 +9,7 @@ import { User } from "@/types/index.d";
 import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import { withSessionRoute } from "@/lib/withSession";
-import * as bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import { setRegistry } from "@/utils/registryManager";
 import {
   getRobloxUsername,
@@ -22,6 +22,7 @@ type Data = {
   success: boolean;
   error?: string;
   user?: User & { isOwner: boolean };
+  debug?: any;
 };
 
 type requestData = {
@@ -30,6 +31,16 @@ type requestData = {
   password: string;
   color: string;
 };
+
+// Safe password hashing function
+async function safeHashPassword(password: string): Promise<string> {
+  try {
+    return await bcryptjs.hash(password, 10);
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    throw new Error("Failed to hash password");
+  }
+}
 
 export default withSessionRoute(handler);
 
@@ -79,6 +90,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   try {
+    // Get Roblox user ID first
     let userid = (await getRobloxUserId(username, req.headers.origin).catch(
       (e) => {
         console.error("Error getting Roblox user ID:", e);
@@ -95,109 +107,159 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .json({ success: false, error: "Username not found" });
     }
 
-    const workspaceCount = await prisma.workspace.count({});
-    if (workspaceCount > 0) {
+    // Check if workspace exists first
+    const existingWorkspace = await prisma.workspace.findFirst().catch((e) => {
+      console.error("Error checking existing workspace:", e);
+      return null;
+    });
+
+    if (existingWorkspace) {
       console.error("Workspace already exists");
       return res
         .status(403)
         .json({ success: false, error: "Workspace already exists" });
     }
 
+    // Hash password before any database operations
+    const hashedPassword = await safeHashPassword(password);
+    console.log("Password hashed successfully");
+
     // Create workspace with validated groupIdNumber
-    await prisma.workspace.create({
-      data: {
-        groupId: groupIdNumber,
-      },
-    });
+    const workspace = await prisma.workspace
+      .create({
+        data: {
+          groupId: groupIdNumber,
+        },
+      })
+      .catch((e) => {
+        console.error("Error creating workspace:", e);
+        throw new Error("Failed to create workspace");
+      });
 
-    // Initialize all required configs with validated groupIdNumber
-    await Promise.all([
-      prisma.config.create({
-        data: {
-          key: "customization",
-          workspaceGroupId: groupIdNumber,
-          value: {
-            color: color,
-          },
-        },
-      }),
-      prisma.config.create({
-        data: {
-          key: "theme",
-          workspaceGroupId: groupIdNumber,
-          value: color,
-        },
-      }),
-      prisma.config.create({
-        data: {
-          key: "guides",
-          workspaceGroupId: groupIdNumber,
-          value: {
-            enabled: true,
-          },
-        },
-      }),
-      prisma.config.create({
-        data: {
-          key: "sessions",
-          workspaceGroupId: groupIdNumber,
-          value: {
-            enabled: true,
-          },
-        },
-      }),
-      prisma.config.create({
-        data: {
-          key: "home",
-          workspaceGroupId: groupIdNumber,
-          value: {
-            widgets: [],
-          },
-        },
-      }),
-    ]);
+    console.log("Created workspace:", workspace);
 
-    const role = await prisma.role.create({
-      data: {
-        workspaceGroupId: groupIdNumber,
-        name: "Admin",
-        isOwnerRole: true,
-        permissions: [
-          "admin",
-          "view_staff_config",
-          "manage_sessions",
-          "manage_activity",
-          "post_on_wall",
-          "view_wall",
-          "view_members",
-          "manage_members",
-          "manage_docs",
-          "view_entire_groups_activity",
-        ],
-      },
-    });
+    // Create all configs in a single transaction
+    try {
+      await prisma.$transaction([
+        prisma.config.create({
+          data: {
+            key: "customization",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              color: color,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "theme",
+            workspaceGroupId: groupIdNumber,
+            value: color,
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "guides",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "sessions",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "allies",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+            },
+          },
+        }),
+        prisma.config.create({
+          data: {
+            key: "home",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              widgets: [],
+            },
+          },
+        }),
+      ]);
+      console.log("Created all configs successfully");
+    } catch (e) {
+      console.error("Error creating configs:", e);
+      throw new Error("Failed to create configs");
+    }
 
-    await prisma.user.create({
-      data: {
-        userid: userid,
-        info: {
-          create: {
-            passwordhash: await bcrypt.hash(password, 10),
+    // Create role in a separate transaction
+    const role = await prisma.role
+      .create({
+        data: {
+          workspaceGroupId: groupIdNumber,
+          name: "Admin",
+          isOwnerRole: true,
+          permissions: [
+            "admin",
+            "view_staff_config",
+            "manage_sessions",
+            "manage_activity",
+            "post_on_wall",
+			"manage_wall",
+            "view_wall",
+            "view_members",
+            "manage_members",
+            "manage_docs",
+            "view_entire_groups_activity",
+          ],
+        },
+      })
+      .catch((e) => {
+        console.error("Error creating role:", e);
+        throw new Error("Failed to create role");
+      });
+
+    console.log("Created role:", role);
+
+    // Create user in a separate transaction
+    const user = await prisma.user
+      .create({
+        data: {
+          userid: userid,
+          info: {
+            create: {
+              passwordhash: hashedPassword,
+            },
+          },
+          isOwner: true,
+          roles: {
+            connect: {
+              id: role.id,
+            },
           },
         },
-        isOwner: true,
-        roles: {
-          connect: {
-            id: role.id,
-          },
-        },
-      },
-    });
+      })
+      .catch((e) => {
+        console.error("Error creating user:", e);
+        throw new Error("Failed to create user");
+      });
 
+    console.log("Created user:", user);
+
+    // Set session after all database operations are complete
     req.session.userid = userid;
     await req.session?.save();
 
-    const user: User & { isOwner: boolean } = {
+    // Get user info after session is set
+    const userInfo: User & { isOwner: boolean } = {
       userId: req.session.userid,
       username: await getUsername(req.session.userid),
       displayname: await getDisplayName(req.session.userid),
@@ -205,11 +267,16 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       isOwner: true,
     };
 
+    // Set registry last
     await setRegistry(req.headers.host as string);
 
-    res.status(200).json({ success: true, user });
-  } catch (e) {
-    console.error("Error in setup workspace:", e);
-    res.status(500).json({ success: false, error: "Internal server error" });
+    return res.status(200).json({ success: true, user: userInfo });
+  } catch (error) {
+    console.error("Error in setup workspace:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      debug: process.env.NODE_ENV === "development" ? error : undefined,
+    });
   }
 }

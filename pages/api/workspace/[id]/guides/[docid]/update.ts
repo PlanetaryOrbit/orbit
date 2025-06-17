@@ -50,4 +50,4 @@ export async function handler(
 		success: true, 
 		document: JSON.parse(JSON.stringify(document, (key, value) => (typeof value === 'bigint' ? value.toString() : value)))
 	});
-} 
+}

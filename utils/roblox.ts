@@ -1,8 +1,19 @@
 import noblox from "noblox.js";
 
+const TIMEOUT_MS = 12000;
+
+async function withTimeout<T>(promise: Promise<T>, ms = TIMEOUT_MS): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), ms)
+    ),
+  ]);
+}
+
 export async function getRobloxUsername(id: number | bigint) {
   try {
-    return await noblox.getUsernameFromId(Number(id));
+    return await withTimeout(noblox.getUsernameFromId(Number(id)));
   } catch (error) {
     console.error(`Error getting username for user ${id}:`, error);
     return "Unknown User";
@@ -11,41 +22,36 @@ export async function getRobloxUsername(id: number | bigint) {
 
 export async function getRobloxThumbnail(id: number | bigint) {
   try {
-    return (await noblox.getPlayerThumbnail(Number(id), "720x720", "png", false, "headshot"))[0].imageUrl;
+    const thumbnails = await withTimeout(
+      noblox.getPlayerThumbnail(Number(id), "720x720", "png", false, "headshot")
+    );
+    return thumbnails[0].imageUrl;
   } catch (error) {
     console.error(`Error getting thumbnail for user ${id}:`, error);
-    return ""
+    return "";
   }
 }
 
 export async function getRobloxDisplayName(id: number | bigint) {
   try {
-    const username = await noblox.getUsernameFromId(Number(id));
-    if (!username) {
+    const userInfo = await withTimeout(noblox.getUserInfo(Number(id)));
+    return userInfo.displayName || "Unknown User";
+  } catch (error) {
+    console.error(`Error getting display name for user ${id}:`, error);
+    try {
+      return await getRobloxUsername(id);
+    } catch {
       return "Unknown User";
     }
-    
-    try {
-      const playerInfo = await noblox.getPlayerInfo(Number(id));
-      return playerInfo.displayName;
-    } catch (innerError) {
-      console.error(`Error getting player info for user ${id}:`, innerError);
-      // If we can't get display name, use username as fallback
-      return username;
-    }
-  } catch (error) {
-    console.error(`Error getting username for user ${id}:`, error);
-    return "Unknown User";
   }
 }
 
-// origin is not used anymore, but we need to keep it for backwards compatibility
 export async function getRobloxUserId(username: string, origin?: string): Promise<number> {
   try {
-    const id = await noblox.getIdFromUsername(username);
+    const id = await withTimeout(noblox.getIdFromUsername(username));
     return id;
   } catch (error) {
     console.error(`Error getting user ID for username ${username}:`, error);
-    throw error; // re-throw this error for authentication
+    throw error;
   }
 }

@@ -18,7 +18,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 	const { id } = router.query;
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
 	const [text, setText] = useState("");
-	const [type, setType] = useState("warning");
+	const [type, setType] = useState("note");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const addNote = async () => {
@@ -47,13 +47,17 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 
 	const getIcon = (type: string) => {
 		switch (type) {
+			case "note":
+				return <IconPencil className="w-5 h-5 text-gray-500" />;
 			case "warning":
 				return <IconAlertTriangle className="w-5 h-5 text-yellow-500" />;
 			case "promotion":
 				return <IconStar className="w-5 h-5 text-primary" />;
+			case "demotion":
+				return <IconX className="w-5 h-5 text-red-500" />;
 			case "suspension":
 				return <IconX className="w-5 h-5 text-red-500" />;
-			case "fire":
+			case "termination":
 				return <IconX className="w-5 h-5 text-red-500" />;
 			default:
 				return <IconPencil className="w-5 h-5 text-gray-500" />;
@@ -66,7 +70,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 				<div className="p-6">
 					<h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New Note</h2>
 					<div className="space-y-4">
-						<div className="bg-gray-100 dark:bg-gray-600 p-4 rounded-lg">
+						<div className="bg-white dark:bg-gray-600 p-4 rounded-lg">
 							<label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1 dark:text-white">
 								Type
 							</label>
@@ -74,11 +78,13 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 								id="type"
 								value={type}
 								onChange={(e) => setType(e.target.value)}
-								className="block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-500 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+								className="block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+								<option value="note">Note</option>
 								<option value="warning">Warning</option>
 								<option value="promotion">Promotion</option>
+								<option value="promotion">Demotion</option>
 								<option value="suspension">Suspension</option>
-								<option value="fire">Fire</option>
+								<option value="termination">Termination</option>
 							</select>
 						</div>
 						<div>

@@ -150,7 +150,7 @@ const Button: FC<Props> = (props) => {
 															onChange={(value) => updateRole(user.userid, value)}
 														>
 															<div className="relative">
-																<Listbox.Button className="relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
+																<Listbox.Button className="relative w-40 py-2 pl-3 pr-10 text-left dark:text-white bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
 																	<span className="block truncate text-sm">
 																		{user.roles[0].name}
 																	</span>

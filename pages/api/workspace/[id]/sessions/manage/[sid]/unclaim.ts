@@ -77,22 +77,53 @@ export async function handler(
 		where: {
 			date: dateTime,
 			sessionTypeId: schedule.sessionTypeId
+		},
+		include: {
+			owner: true,
+			users: {
+				include: {
+					user: true
+				}
+			}
 		}
 	});
 	if (!findSession) return res.status(400).json({ success: false, error: 'Invalid session' });
-	const schedulewithsession = await prisma.session.update({
+	
+	const schedulewithsession = await prisma.schedule.update({
 		where: {
+			id: schedule.id
+		},
+		data: {
+			sessions: {
+				update: {
+					where: {
 			id: findSession.id
 		},
 		data: {
 			ownerId: null,
 			startedAt: null
 		}
-	})
-
-
-
-
+				}
+			}
+		},
+		include: {
+			sessionType: {
+				include: {
+					hostingRoles: true
+				}
+			},
+			sessions: {
+				include: {
+					owner: true,
+					users: {
+						include: {
+							user: true
+						}
+					}
+				}
+			}
+		}
+	});
 
 	res.status(200).json({ success: true, session: JSON.parse(JSON.stringify(schedulewithsession, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
 }

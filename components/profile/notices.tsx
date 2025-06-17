@@ -23,7 +23,7 @@ const Notices: FC<Props> = ({ notices }) => {
 	};
   
 	return (
-	  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+	  <div className="bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
 		<div className="p-6">
 		  <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Inactivity Notices</h2>
 		  {notices.length === 0 ? (

@@ -20,7 +20,7 @@ export default function StickyNoteAnnouncement() {
   if (!isVisible) return null
 
   return (
-    <div className="z-0 bg-gray-200 dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
+    <div className="z-0 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
       <img
         src="/favicon-32x32.png"
         alt="Orbit"
@@ -32,38 +32,33 @@ export default function StickyNoteAnnouncement() {
           Planetary
         </h3>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0"> </p>
-        <div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
-          <p>
-            👋 <strong>Welcome to Orbit!</strong>
-            <br />
-            We're excited to have you on board 🎉
-          </p>
-          <p> </p>
-          <p> </p>
-          <p>
-            🚧 <strong>Note:</strong> Orbit is currently in <em>beta</em>, which means you may encounter the occasional
-            bug or unfinished feature.
-          </p>
-          <p> We're working hard to improve the experience — and your feedback helps us do that!</p>
-          <p> </p>
-          <p> </p>
-          <p>
-            🛠️ <strong>Spotted an issue or have a suggestion?</strong>
-            <br />
-            Let us know through <strong>Github</strong> — we're actively listening.
-          </p>
-          <p>
-            ❗ <strong>Group-specific questions?</strong>
-            <br />
-            Orbit supports multiple groups. For rules, roles, or rank queries, contact your group's leadership directly.
-          </p>
-          <p> </p>
-          <p> </p>
-          <p>Thanks for being part of the journey 🚀</p>
-        </div>
-      </div>
+		<p className="text-sm text-gray-500 dark:text-gray-400 mt-0"></p>
+		<div className="text-gray-800 dark:text-gray-300 text-sm space-y-2">
+			<p>
+				👋 <strong>Welcome to Orbit V2.0.9b6!</strong> — Now with Birthdays Support! 🎉
+				<br />
+				We’re excited to have you with us 🚀
+			</p>
 
+			<p className="mt-4 font-semibold">🎂 New: Birthdays Feature</p>
+			<p>
+				You can now set your birthday in your profile. Orbit will remind your team when birthdays are coming up - never miss a celebration again!
+			</p>
+
+			<p className="mt-4 font-semibold">✨ Other Improvements</p>
+			<ul className="list-disc list-inside space-y-1">
+				<li>We’ve launched a brand new login UI — it’s cleaner and faster. (Thanks @s3ntrical and @e)</li>
+				<li>You’ll now be required to set a secure password when signing up, helping protect your data even further.</li>
+				<li>User avatars are now cached for up to 3 days, improving performance across workspaces.</li>
+				<li>Fixed multiple minor UI bugs across the board, improving consistency and experience.</li>
+				<li>Workspace colors, links, and visuals have all received polish to better match your themes and improve legibility.</li>
+			</ul>
+
+			<p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+				Orbit is still in <em>beta</em> — we’re squashing bugs and improving things fast. Thanks for being part of the journey!
+			</p>
+		</div>
+      </div>
       <button
         onClick={handleDismiss}
         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"

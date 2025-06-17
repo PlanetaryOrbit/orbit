@@ -5,7 +5,7 @@ import { useRecoilState } from "recoil";
 import SwitchComponenet from "@/components/switch";
 import { workspacestate } from "@/state";
 import { FC } from '@/types/settingsComponent'
-import { IconClock } from "@tabler/icons";
+import { IconSpeakerphone } from "@tabler/icons";
 
 type props = {
 	triggerToast: typeof toast;
@@ -34,7 +34,7 @@ const Guide: FC<props> = (props) => {
 			<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
 				<div className="flex items-center gap-3">
 					<div className="p-2 bg-primary/10 rounded-lg">
-						<IconClock size={20} className="text-primary" />
+						<IconSpeakerphone size={20} className="text-primary" />
 					</div>
 					<div>
 						<p className="text-sm font-medium text-gray-900 dark:text-white">Sessions</p>
@@ -44,7 +44,7 @@ const Guide: FC<props> = (props) => {
 				<SwitchComponenet 
 					checked={workspace.settings?.sessionsEnabled} 
 					onChange={updateColor} 
-					label="Enable Sessions" 
+					label="" 
 					classoverride="mt-0"
 				/>
 			</div>

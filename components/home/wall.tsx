@@ -8,6 +8,8 @@ import Button from "@/components/button";
 import type { wallPost, user } from "@/utils/database";
 import { useRouter } from "next/router";
 import { IconChevronRight, IconMessage } from '@tabler/icons'
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 
 const Wall: React.FC = () => {
 	const [posts, setPosts] = useState<(wallPost & {
@@ -65,7 +67,9 @@ const Wall: React.FC = () => {
 											{moment(post.createdAt).format("MMM D")}
 										</span>
 									</div>
-									<p className="mt-1 text-gray-700 dark:text-gray-300">{post.content}</p>
+									<div className="prose text-gray-800 dark:text-gray-200 dark:prose-invert max-w-none mt-1">
+										<ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
+									</div>
 									{post.image && (
 										<div className="mt-3">
 											<img 

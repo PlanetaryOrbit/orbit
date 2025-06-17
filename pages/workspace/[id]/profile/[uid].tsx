@@ -1,6 +1,7 @@
 import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
+import { InformationPanel } from "@/components/profile/info";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
@@ -13,9 +14,10 @@ import prisma from "@/utils/database";
 import moment from "moment";
 import { InferGetServerSidePropsType } from "next";
 import { useRecoilState } from "recoil";
-import { IconUserCircle, IconHistory, IconBell, IconBook } from "@tabler/icons";
+import { IconUserCircle, IconHistory, IconBell, IconBook, IconClipboard } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export const getServerSideProps = withPermissionCheckSsr(
 	async ({ query, req }) => {
@@ -46,6 +48,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 			!userTakingAction?.roles[0]?.isOwnerRole &&
 			!userTakingAction?.roles[0]?.permissions?.includes('manage_activity')
 		) return { notFound: true };
+
+		const isAdmin =
+		userTakingAction?.roles?.some(role =>
+			role.permissions?.includes("manage_activity")
+		) ?? false;
 
 		const quotas = userTakingAction.roles
   			.flatMap((role) => role.quotaRoles)
@@ -151,6 +158,21 @@ export const getServerSideProps = withPermissionCheckSsr(
 			}
 		});
 
+		const user = await prisma.user.findUnique({
+			where: { userid: BigInt(query.uid as string) },
+			select: {
+				userid: true,
+				username: true,
+				registered: true,
+				birthdayDay: true,
+				birthdayMonth: true,
+			},
+		});
+
+		if (!user) {
+			return { notFound: true };
+		}
+
 		return {
 			props: {
 				notices: JSON.parse(JSON.stringify(notices, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
@@ -164,10 +186,15 @@ export const getServerSideProps = withPermissionCheckSsr(
 					avatar: await getThumbnail(Number(query?.uid as string))
 				},
 				isUser: req.session.userid === Number(query?.uid as string),
+				isAdmin,
 				sessisonsHosted: sessisonsHosted.length,
 				sessionsAttended: sessionsAttended.length,
 				quotas,
-				userBook: JSON.parse(JSON.stringify(ubook, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)))
+				userBook: JSON.parse(JSON.stringify(ubook, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
+				user: {
+					...JSON.parse(JSON.stringify(user, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
+					userid: user.userid.toString(),
+				},
 			}
 		};
 	}
@@ -193,11 +220,21 @@ type pageProps = {
 	sessionsHosted: number;
 	sessionsAttended: number;
 	isUser: boolean;
+	isAdmin: boolean;
+	user: {
+		userid: string;
+		username: string;
+		displayname: string;
+		registered: boolean;
+		birthdayDay: number;
+		birthdayMonth: number;
+	}
 }
-const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, data, sessions, userBook: initialUserBook, isUser, info, sessionsHosted, sessionsAttended, quotas }) => {
+const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, data, sessions, userBook: initialUserBook, isUser, info, sessionsHosted, sessionsAttended, quotas, user, isAdmin }) => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const [userBook, setUserBook] = useState(initialUserBook);
 	const router = useRouter();
+
 
 	const refetchUserBook = async () => {
 		try {
@@ -209,16 +246,39 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 		}
 	};
 
+	const BG_COLORS = [
+		"bg-red-200",
+		"bg-green-200",
+		"bg-blue-200",
+		"bg-yellow-200",
+		"bg-pink-200",
+		"bg-indigo-200",
+		"bg-teal-200",
+		"bg-orange-200",
+	];
+
+	function getRandomBg(userid: string | number) {
+		const str = String(userid);
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			hash = str.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+	}
+
 	return <div className="pagePadding">
 		<div className="max-w-7xl mx-auto">
 			<div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
 				<div className="flex items-center gap-4">
 					<div className="relative">
-						<img 
-							src={info.avatar} 
-							className="rounded-xl bg-primary h-20 w-20 object-cover" 
-							alt={`${info.displayName}'s avatar`} 
-						/>
+						<div className={`rounded-xl h-20 w-20 flex items-center justify-center ${getRandomBg(user.userid)}`}>
+							<img 
+								src={info.avatar} 
+								className="rounded-xl h-20 w-20 object-cover border-2 border-white"
+								alt={`${info.displayName}'s avatar`} 
+								style={{ background: "transparent" }}
+							/>
+						</div>
 						<div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-lg flex items-center justify-center">
 							<IconUserCircle className="w-4 h-4 text-white" />
 						</div>
@@ -233,6 +293,16 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 			<div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
 				<Tab.Group>
 					<Tab.List className="flex p-1 gap-1 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+						<Tab className={({ selected }) =>
+							`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+								selected 
+									? "bg-white dark:bg-gray-800 text-primary shadow-sm" 
+									: "text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+							}`
+						}>
+							<IconClipboard className="w-4 h-4" />
+							Information
+						</Tab>
 						<Tab className={({ selected }) =>
 							`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
 								selected 
@@ -265,6 +335,20 @@ const Profile: pageWithLayout<pageProps> = ({ notices, timeSpent, timesPlayed, d
 						</Tab>
 					</Tab.List>
 					<Tab.Panels className="p-6 bg-white dark:bg-gray-800 rounded-b-xl">
+						<Tab.Panel>
+							<InformationPanel
+							user={{
+								userid: String(user.userid),
+								username: user.username,
+								displayname: info.displayName,
+								registered: user.registered,
+								birthdayDay: user.birthdayDay,
+								birthdayMonth: user.birthdayMonth,
+							}}
+							isUser={isUser}
+							isAdmin={isAdmin}
+							/>
+						</Tab.Panel>
 						<Tab.Panel>
 							<Activity
 								timeSpent={timeSpent}

@@ -18,50 +18,30 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
   const [selectedColor, setSelectedColor] = useState<string>(workspace?.groupTheme || "")
 
-  // Initialize from localStorage if available
   useEffect(() => {
-    const savedTheme = localStorage.getItem("orbit-theme-color")
-    if (savedTheme) {
-      setSelectedColor(savedTheme)
-
-      // Also update the workspace state to match localStorage
-      if (workspace && workspace.groupTheme !== savedTheme) {
-        setWorkspace((prev) => ({
-          ...prev,
-          groupTheme: savedTheme,
-        }))
-      }
-    } else if (workspace?.groupTheme) {
+    if (workspace?.groupTheme) {
       setSelectedColor(workspace.groupTheme)
-      localStorage.setItem("orbit-theme-color", workspace.groupTheme)
     }
   }, [workspace])
 
   const updateColor = async (color: string) => {
     try {
-      // Update the local state for immediate UI feedback
       setSelectedColor(color)
-
-      // Update the workspace state
       setWorkspace((prev) => ({
         ...prev,
         groupTheme: color,
       }))
 
-      // Store in localStorage for persistence between page navigations
-      localStorage.setItem("orbit-theme-color", color)
-
-      // Get the RGB value and apply it to the CSS variable
+      // Update the CSS variable
       const rgbValue = getRGBFromTailwindColor(color)
       document.documentElement.style.setProperty("--group-theme", rgbValue)
 
-      // Then send the update to the server
+      // Update the color in the database
       const res = await axios.patch(`/api/workspace/${workspace.groupId}/settings/general/color`, { color })
 
       if (res.status === 200) {
         triggerToast.success("Color updated successfully!")
       } else {
-        // If the server update fails, revert the local change
         triggerToast.error("Failed to update color.")
         handleRevert()
       }
@@ -73,13 +53,12 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
 
   // Helper function to revert changes on error
   const handleRevert = () => {
-    const previousColor = localStorage.getItem("orbit-theme-color") || "bg-pink-500"
+    const previousColor = workspace?.groupTheme || "bg-pink-500"
     setSelectedColor(previousColor)
     setWorkspace((prev) => ({
       ...prev,
       groupTheme: previousColor,
     }))
-    localStorage.setItem("orbit-theme-color", previousColor)
     const rgbValue = getRGBFromTailwindColor(previousColor)
     document.documentElement.style.setProperty("--group-theme", rgbValue)
   }
@@ -100,8 +79,10 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   ]
 
   return (
-    <div className={clsx("transition-all", { "ml-64": isSidebarExpanded, "ml-0": !isSidebarExpanded })}>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Choose a color theme for your workspace</p>
+    <div className="ml-0">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-left">
+        Choose a color theme for your workspace
+      </p>
       <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
         {colors.map((color, i) => (
           <button

@@ -1,6 +1,6 @@
 import { useRecoilState } from "recoil";
-import { themeState } from "../state/theme"; // adjust path if needed
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline"; // or your preferred icon set
+import { themeState } from "../state/theme";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 const ThemeToggle = () => {
   const [theme, setTheme] = useRecoilState(themeState);
@@ -8,7 +8,7 @@ const ThemeToggle = () => {
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme); // Optional: remember choice
+    localStorage.setItem("theme", newTheme);
   };
 
   return (

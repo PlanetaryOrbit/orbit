@@ -52,7 +52,7 @@ const Activity: FC<props> = (props) => {
 
 	return (
 		<div className="relative z-15">
-			<p className="mb-2 z-15 dark:text-white"> Sessions are a powerful way to keep track of your groups sessions & shifts</p>
+			<p className="mb-2 z-15 dark:text-gray-400"> Sessions are a powerful way to keep track of your groups sessions & shifts</p>
 			<Listbox value={selectedRole} onChange={(value: number) => updateRole(value)} as="div" className="relative inline-block w-full text-left mb-2">
 				<Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-gray-200 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-gray-200">
 					

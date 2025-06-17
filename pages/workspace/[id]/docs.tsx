@@ -48,6 +48,33 @@ export const getServerSideProps = withPermissionCheckSsr(async (context: any) =>
 		};
 	}
 
+	const config = await prisma.config.findFirst({
+		where: {
+			workspaceGroupId: parseInt(id as string),
+			key: "guides",
+		},
+	});
+
+	let guidesEnabled = false;
+	if (config?.value) {
+		let val = config.value;
+		if (typeof val === "string") {
+			try {
+				val = JSON.parse(val);
+			} catch {
+				val = {};
+			}
+		}
+		guidesEnabled =
+			typeof val === "object" && val !== null && "enabled" in val
+				? (val as { enabled?: boolean }).enabled ?? false
+				: false;
+	}
+
+	if (!guidesEnabled) {
+		return { notFound: true };
+	}
+
 	if (user.roles[0].permissions.includes('manage_docs') || user.roles[0].isOwnerRole) {
 		const docs = await prisma.document.findMany({
 			where: {

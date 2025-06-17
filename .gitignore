@@ -41,3 +41,11 @@ next-env.d.ts
 .cl-run-featureflags
 .planetary-instanceconfig
 .env.example
+
+Frame_5_3.png
+orbitbackground-light.png
+/public/avatars
+
+# build
+deploy.sh
+deploy.sh

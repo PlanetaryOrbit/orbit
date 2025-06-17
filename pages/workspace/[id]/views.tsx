@@ -118,7 +118,7 @@ export const getServerSideProps = withPermissionCheckSsr(async ({ params }: GetS
 		computedUsers.push({
 			info: {
 				userId: Number(user.userid),
-				picture: user.picture || '',
+				picture: await getThumbnail(user.userid),
 				username: user.username,
 			},
 			book: user.book,
@@ -250,20 +250,20 @@ type pageProps = {
 
 }
 const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
-	const [login, setLogin] = useRecoilState(loginState);
-	const router = useRouter();
-	const [sorting, setSorting] = useState<SortingState>([])
-	const [rowSelection, setRowSelection] = useState({});
-	const [isOpen, setIsOpen] = useState(false);
-	const [message, setMessage] = useState("");
-	const [type, setType] = useState("");
-	const [minutes, setMinutes] = useState(0);
-	const [users, setUsers] = useState(usersInGroup);
-	const [isLoading, setIsLoading] = useState(false);
-	const [searchOpen, setSearchOpen] = useState(false);
-	const [searchQuery, setSearchQuery] = useState('');
-	const [searchResults, setSearchResults] = useState([]);
-	const [colFilters, setColFilters] = useState<{
+  const [login, setLogin] = useRecoilState(loginState);
+  const router = useRouter();
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [rowSelection, setRowSelection] = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState("");
+  const [minutes, setMinutes] = useState(0);
+  const [users, setUsers] = useState(usersInGroup);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [colFilters, setColFilters] = useState<{
 		id: string
 		column: string
 		filter: string
@@ -303,8 +303,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			cell: (row) => {
 				return (
 					<div className="flex flex-row cursor-pointer" onClick={() => router.push(`/workspace/${router.query.id}/profile/${row.getValue().userId}`)}>
-						<img src={row.getValue().picture!} className="w-10 h-10 rounded-full bg-primary " alt="profile image" />
-						<p className="leading-5 my-auto px-2 font-semibold">
+						<div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(row.getValue().userId.toString())}`}>
+							<img
+								src={row.getValue().picture!}
+								className="w-10 h-10 rounded-full object-cover border-2 border-white"
+								style={{ background: "transparent" }}
+							/>
+						</div>
+						<p className="leading-5 my-auto px-2 font-semibold dark:text-white">
 							{row.getValue().username} <br />
 						</p>
 					</div>
@@ -315,7 +321,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Sessions claimed',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -323,7 +329,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Sessions hosted',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -331,7 +337,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Warnings',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().filter(x => x.type == "warning").length}</p>
+					<p className="dark:text-white">{row.getValue().filter(x => x.type == "warning").length}</p>
 				);
 			}
 		}),
@@ -339,7 +345,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Wall Posts',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -347,7 +353,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Rank',
 			cell: (row) => {
 				return (
-					<p>{ranks.find(x => x.rank == row.getValue())?.name || "N/A"}</p>
+					<p className="dark:text-white">{ranks.find(x => x.rank == row.getValue())?.name || "N/A"}</p>
 				);
 			}
 		}),
@@ -355,7 +361,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Inactivity Notices',
 			cell: (row) => {
 				return (
-					<p>{row.getValue().length}</p>
+					<p className="dark:text-white">{row.getValue().length}</p>
 				);
 			}
 		}),
@@ -363,7 +369,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Minutes',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -371,7 +377,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Idle minutes',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -379,7 +385,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 			header: 'Messages',
 			cell: (row) => {
 				return (
-					<p>{row.getValue()}</p>
+					<p className="dark:text-white">{row.getValue()}</p>
 				);
 			}
 		}),
@@ -861,11 +867,11 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 											<th
 												key={header.id}
 												scope="col"
-												className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+												className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{header.isPlaceholder ? null : (
-													<div className="flex items-center space-x-1">
+													<div className="flex items-center space-x-1 dark:text-gray-300">
 														<span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
 													</div>
 												)}
@@ -1010,6 +1016,26 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
 		</div>
 	);
 };
+
+const BG_COLORS = [
+  "bg-red-200",
+  "bg-green-200",
+  "bg-blue-200",
+  "bg-yellow-200",
+  "bg-pink-200",
+  "bg-indigo-200",
+  "bg-teal-200",
+  "bg-orange-200",
+];
+
+function getRandomBg(userid: string | number) {
+  const str = String(userid);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return BG_COLORS[Math.abs(hash) % BG_COLORS.length];
+}
 
 const Filter: React.FC<{
 	data: {

@@ -34,7 +34,7 @@ const loginState = atom<LoginState>({
 const workspacestate = atom({
 	key: "workspacestate",
 	default: {
-		groupId: 1,
+		groupId: typeof window !== 'undefined' ? parseInt(window.location.pathname.split('/')[2]) || 1 : 1,
 		groupThumbnail: '',
 		groupName: '',
 		yourPermission: [] as string[],
@@ -44,6 +44,7 @@ const workspacestate = atom({
 		settings: {
 			guidesEnabled: false,
 			sessionsEnabled: false,
+			alliesEnabled: false,
 			noticesEnabled: false,
 			widgets: [] as string[]
 		}

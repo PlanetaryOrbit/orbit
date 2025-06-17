@@ -44,7 +44,7 @@ const Guide: FC<props> = (props) => {
 				<SwitchComponenet 
 					checked={workspace.settings?.guidesEnabled} 
 					onChange={updateColor} 
-					label="Enable Documents" 
+					label="" 
 					classoverride="mt-0"
 				/>
 			</div>

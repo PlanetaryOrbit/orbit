@@ -150,6 +150,7 @@ const Login: NextPage = () => {
 					<div className="flex">
 						<button 
 							type="button"
+							onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
 							className="border-orbit border-2 py-3 text-sm rounded-xl px-6 text-gray-600 dark:text-white font-bold hover:bg-orbit/80 dark:hover:bg-blue-400 transition"
 						>
 							Documentation

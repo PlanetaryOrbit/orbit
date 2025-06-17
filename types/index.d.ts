@@ -2,9 +2,10 @@ import * as IronSession from "iron-session";
 declare module "iron-session" {
 	interface IronSessionData {
 	  userid: number;
-	  verification: { 
+	  verification?: { 
 		userid: number;
 		verificationCode: string;
+		isReset?: boolean;
 	  }
 	}
   }

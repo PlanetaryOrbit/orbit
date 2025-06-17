@@ -123,13 +123,15 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         return udate.getUTCDay()
       })
 
+      const time24 = form.getValues().time || "00:00";
+
       const session = await axios.post(`/api/workspace/${workspace.groupId}/sessions/manage/new`, {
         name: form.getValues().name,
         gameId: fallbackToManual ? form.getValues().gameId : selectedGame,
         schedule: {
           enabled,
           days: days2,
-          time: `${date.getUTCHours()}:${date.getUTCMinutes()}`,
+          time: time24,
           allowUnscheduled,
         },
         slots,
@@ -346,7 +348,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       required: { value: true, message: "Session name is required" },
                     })}
                     label="Session Type Name"
-                    placeholder="Weekly Training"
+                    placeholder="Weekly Session"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Choose a descriptive name for your session type
@@ -722,7 +724,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             },
                           })}
                           label="Notification Title"
-                          placeholder="New Training Session"
+                          placeholder="New Session"
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">The title of the Discord embed</p>
                         {form.formState.errors.webhookTitle && (
@@ -742,7 +744,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           })}
                           label="Notification Message"
                           textarea
-                          placeholder="Join us for our weekly training session!"
+                          placeholder="Join us for our weekly session!"
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           The main content of the Discord notification

@@ -11,6 +11,7 @@ type Data = {
 	success: boolean
 	error?: string
 	count?: number
+	value?: any
 }
 
 export default withPermissionCheck(handler, 'admin');
@@ -21,12 +22,15 @@ export async function handler(
 ) {
 	if (req.method === 'GET') {
 		const config = await getConfig('allies', parseInt(req.query.id as string));
-		return res.status(200).json({ success: true, count: config.count })
+		if (!config) {
+			return res.status(404).json({ success: false, error: 'Not found' });
+		}
+		return res.status(200).json({ success: true, value: config });
 	}
 	if (req.method !== 'PATCH') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!req.body.count) return res.status(400).json({ success: false, error: 'No count provided' })
-	setConfig('allies', {
-		count: req.body.count
+	if (typeof req.body.enabled !== "boolean") return res.status(400).json({ success: false, error: 'No enabled provided' })
+	await setConfig('allies', {
+		enabled: req.body.enabled
 	}, parseInt(req.query.id as string));
 	
 	res.status(200).json({ success: true })

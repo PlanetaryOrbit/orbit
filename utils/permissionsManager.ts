@@ -17,6 +17,7 @@ export function withPermissionCheck(
 ) {
 	return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
 		const uid = req.session.userid;
+		console.log('Session userid:', uid);
 		if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing required fields' });
 		const workspaceId = parseInt(req.query.id as string);
@@ -33,8 +34,10 @@ export function withPermissionCheck(
 				}
 			}
 		});
+		console.log('User data:', user);
 		if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		const userrole = user.roles[0];
+		console.log('User role:', userrole);
 		if (!userrole) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		if (userrole.isOwnerRole) return handler(req, res);
 		if (!permission) return handler(req, res);

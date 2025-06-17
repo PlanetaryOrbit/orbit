@@ -22,7 +22,7 @@ export async function handler(
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	const { type, notes } = req.body;
 	if (!type || !notes) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	if (type !== 'fire' && type !== 'suspension' && type !== 'warning' && type !== 'promotion') return res.status(400).json({ success: false, error: 'Invalid type' });
+	if (type !== 'termination' && type !== 'suspension' && type !== 'warning' && type !== 'promotion' && type !== 'demotion' && type !== 'note') return res.status(400).json({ success: false, error: 'Invalid type' });
 	const { uid, id } = req.query; 
 	if (!uid) return res.status(400).json({ success: false, error: 'Missing required fields' }); 
 
