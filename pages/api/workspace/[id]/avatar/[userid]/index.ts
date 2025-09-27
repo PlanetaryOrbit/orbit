@@ -9,8 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!userid || Array.isArray(userid)) {
     return res.status(400).end("Invalid userId");
   }
+  const numericUserId = Number(userid);
+  if (!Number.isInteger(numericUserId) || numericUserId <= 0) {
+    return res.status(400).end("Invalid userId");
+  }
 
-  const avatarPath = path.join(process.cwd(), "public", "avatars", `${userid}.png`);
+  const avatarPath = path.join(process.cwd(), "public", "avatars", `${numericUserId}.png`);
 
   try {
     if (!fs.existsSync(path.dirname(avatarPath))) {
@@ -23,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    const remoteUrl = await getRemoteAvatarUrl(Number(userid));
+    const remoteUrl = await getRemoteAvatarUrl(numericUserId);
     const response = await axios.get(remoteUrl, { responseType: "arraybuffer" });
     fs.writeFileSync(avatarPath, response.data);
 
@@ -32,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.send(response.data);
   } catch (err) {
     try {
-      const remoteUrl = await getRemoteAvatarUrl(Number(userid));
+      const remoteUrl = await getRemoteAvatarUrl(numericUserId);
       const response = await axios.get(remoteUrl, { responseType: "arraybuffer" });
       res.setHeader("Content-Type", "image/png");
       res.send(response.data);
