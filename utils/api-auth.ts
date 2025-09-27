@@ -15,6 +15,11 @@ export async function validateApiKey(apiKey: string, workspaceId: string) {
     return null
   }
 
+  const requestedWorkspaceId = Number.parseInt(workspaceId)
+  if (!requestedWorkspaceId || key.workspaceGroupId !== requestedWorkspaceId) {
+    return null
+  }
+
   // Check if key is expired
   if (key.expiresAt && new Date(key.expiresAt) < new Date()) {
     return null

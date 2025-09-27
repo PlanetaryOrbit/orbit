@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         take: Number(limit),
       })
 
-      const formattedPosts = posts.map((post) => ({
+      const formattedPosts = posts.map((post: any) => ({
         id: post.id,
         content: post.content,
         image: post.image,
@@ -81,14 +81,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ success: false, error: "Content is required" })
       }
 
-      if (!authorId) {
-        return res.status(400).json({ success: false, error: "Author ID is required" })
+      const effectiveAuthorId = authorId ? String(authorId) : String(key.createdById)
+
+      if (authorId && String(authorId) !== String(key.createdById)) {
+        return res.status(403).json({ success: false, error: "authorId must match API key owner" })
       }
 
       // Check if author exists and has permission in this workspace
       const author = await prisma.user.findFirst({
         where: {
-          userid: BigInt(authorId),
+          userid: BigInt(effectiveAuthorId),
           roles: {
             some: {
               workspaceGroupId: workspaceId,
@@ -107,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           content,
           image,
           workspaceGroupId: workspaceId,
-          authorId: BigInt(authorId),
+          authorId: BigInt(effectiveAuthorId),
         },
         include: {
           author: {
