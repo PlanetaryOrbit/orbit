@@ -40,7 +40,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     const config = await prisma.config.findFirst({
       where: {
-        key: authorization,
+        value: {
+          path: ["key"],
+          equals: authorization,
+        },
       },
     });
 
