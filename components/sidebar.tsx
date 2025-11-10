@@ -33,6 +33,7 @@ import {
   IconClockFilled,
   IconTrophy,
   IconTrophyFilled,
+  IconChevronLeft,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -120,6 +121,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType
     accessible?: boolean
   }[] = [
+	{ name: "Back to Workspaces", href: "/", icon: IconChevronLeft },
     { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
     { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
     { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
@@ -305,71 +307,30 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   }
                 }}
               >
-                <Listbox.Button
-                  className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
-                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
-                    "dark:hover:bg-zinc-700",
-                    isCollapsed && "justify-center"
-                  )}
-                >
-                  <img
-                    src={workspace.groupThumbnail || "/favicon-32x32.png"}
-                    alt=""
-                    className={clsx(
-                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
-                      isCollapsed && "scale-90 opacity-80"
-                    )}
-                  />
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0 text-left transition-all duration-300">
-                      <p className="text-sm font-medium truncate dark:text-white max-w-full">
-                        {workspace.groupName}
-                      </p>
-                      <p className="text-xs text-zinc-500 dark:text-white truncate max-w-full">
-                        Switch workspace
-                      </p>
-                    </div>
-                  )}
-                  {!isCollapsed && (
-                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
-                  )}
-                </Listbox.Button>
-              
-                <Listbox.Options
-                  className={clsx(
-                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
-                  )}
-                >
-                  {login?.workspaces && login.workspaces.length > 1 ? (
-                    login.workspaces
-                      .filter(ws => ws.groupId !== workspace.groupId)
-                      .map((ws) => (
-                        <Listbox.Option
-                          key={ws.groupId}
-                          value={ws.groupId}
-                          className={({ active }) =>
-                            clsx(
-                              "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
-                              active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
-                            )
-                          }
-                        >
-                          <img
-                            src={ws.groupThumbnail || "/placeholder.svg"}
-                            alt=""
-                            className="w-8 h-8 rounded-lg object-cover transition duration-200"
-                          />
-                          <span className="flex-1 truncate text-sm dark:text-white">{ws.groupName}</span>
-                          {workspace.groupId === ws.groupId && <IconCheck className="w-5 h-5 text-primary" />}
-                        </Listbox.Option>
-                      ))
-                  ) : (
-                    <div className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">
-                      No other workspaces
-                    </div>
-                  )}
-                </Listbox.Options>
+				<div
+				  className={clsx(
+				    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+				    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
+				    "dark:hover:bg-zinc-700",
+				    isCollapsed && "justify-center"
+				  )}
+				>
+				  <img
+				    src={workspace.groupThumbnail || "/favicon-32x32.png"}
+				    alt=""
+				    className={clsx(
+				      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+				      isCollapsed && "scale-90 opacity-80"
+				    )}
+				  />
+				  {!isCollapsed && (
+				    <div className="flex-1 min-w-0 text-left transition-all duration-300">
+				      <p className="text-sm font-medium truncate dark:text-white max-w-full">
+				        {workspace.groupName}
+				      </p>
+				    </div>
+				  )}
+				</div>
               </Listbox>
             </div>
 
@@ -424,9 +385,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       Manage account
                     </p>
                   </div>
-                )}
-                {!isCollapsed && (
-                  <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
                 )}
               </Menu.Button>
           
