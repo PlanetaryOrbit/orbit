@@ -33,7 +33,6 @@ import {
   IconClockFilled,
   IconTrophy,
   IconTrophyFilled,
-  IconChevronLeft,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
