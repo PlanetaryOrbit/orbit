@@ -7,7 +7,7 @@ We always recommend keeping your Instance up-to-date to ensure you have the best
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.4.x   | :white_check_mark: |
+| 2.1.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
