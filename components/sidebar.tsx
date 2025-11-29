@@ -21,6 +21,7 @@ import {
   IconChevronDown,
   IconFileText,
   IconFileTextFilled,
+  IconShield,
   IconCheck,
   IconRosetteDiscountCheck,
   IconRosetteDiscountCheckFilled,
@@ -99,6 +100,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
+  const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -147,6 +149,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }] : []),
     { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
     ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    ...(policiesEnabled ? [{ name: "Policies", href: "/workspace/[id]/policies", icon: IconShield, filledIcon: IconShield, accessible: workspace.yourPermission.includes("manage_policies") || workspace.yourPermission.includes("admin") }] : []),
     { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
   ];
 
@@ -260,6 +263,24 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         setLeaderboardEnabled(enabled);
       })
       .catch(() => setLeaderboardEnabled(false));
+  }, [workspace.groupId]);
+
+  useEffect(() => {
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/policies`)
+      .then(res => res.json())
+      .then(data => {
+        let enabled = false;
+        let val = data.value ?? data;
+        if (typeof val === "string") {
+          try { val = JSON.parse(val); } catch { val = {}; }
+        }
+        enabled =
+          typeof val === "object" && val !== null && "enabled" in val
+            ? (val as { enabled?: boolean }).enabled ?? false
+            : false;
+        setPoliciesEnabled(enabled);
+      })
+      .catch(() => setPoliciesEnabled(false));
   }, [workspace.groupId]);
 
   return (
@@ -394,7 +415,16 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           : page.icon;
                       return <IconComponent className="w-5 h-5" />;
                     })()}
-                    {!isCollapsed && <span>{page.name}</span>}
+                    {!isCollapsed && (
+                      <div className="flex items-center gap-2">
+                        <span>{page.name}</span>
+                        {page.name === "Policies" && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+                            BETA
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </button>
                 )
               )}

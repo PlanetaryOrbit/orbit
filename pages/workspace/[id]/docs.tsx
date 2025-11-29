@@ -8,7 +8,7 @@ import prisma, { document } from "@/utils/database";
 import { GetServerSideProps } from "next";
 import randomText from "@/utils/randomText";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { IconFileText, IconPlus, IconClock, IconUser, IconArrowLeft, IconAlertTriangle, IconExternalLink, IconLink } from "@tabler/icons-react";
+import { IconFileText, IconPlus, IconClock, IconUser, IconArrowLeft, IconAlertTriangle, IconExternalLink, IconLink, IconShield } from "@tabler/icons-react";
 import clsx from 'clsx';
 import { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -254,16 +254,30 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
 								)}
 								<div className="flex items-start gap-3">
 									<div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-										{document.content && (document.content as any).external ? (
+										{document.requiresAcknowledgment ? (
+											<IconShield className="w-5 h-5 text-primary" />
+										) : document.content && (document.content as any).external ? (
 											<IconLink className="w-5 h-5 text-primary" />
 										) : (
 											<IconFileText className="w-5 h-5 text-primary" />
 										)}
 									</div>
 									<div className="flex-1">
-										<h3 className="text-base font-medium text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
-											{document.name}
-										</h3>
+										<div className="flex items-center space-x-2">
+											<h3 className="text-base font-medium text-zinc-900 dark:text-white group-hover:text-primary transition-colors">
+												{document.name}
+											</h3>
+											{document.requiresAcknowledgment && (
+												<span className="px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full">
+													Policy
+												</span>
+											)}
+											{document.isTrainingDocument && (
+												<span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+													Training
+												</span>
+											)}
+										</div>
 										<div className="mt-3 flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-300">
 											<div className="flex items-center gap-1.5">
 												<div className={`h-5 w-5 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg("", document.owner?.username || "")}`}>

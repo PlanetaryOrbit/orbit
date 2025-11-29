@@ -6,13 +6,18 @@ import { loginState, workspacestate } from "@/state"
 import Workspace from "@/layouts/workspace"
 import Sessions from "@/components/home/sessions"
 import Docs from "@/components/home/docs"
+import Policies from "@/components/home/policies"
 import randomText from "@/utils/randomText"
 import wall from "@/components/home/wall"
 import StickyNoteAnnouncement from "@/components/sticky-note-announcement"
 import Birthdays from "@/components/birthdays"
 import NewToTeam from "@/components/newmembers"
+import UserPolicyDashboard from "@/components/UserPolicyDashboard"
+import PolicyNotificationBanner from "@/components/PolicyNotificationBanner"
+import ComplianceOverviewWidget from "@/components/ComplianceOverviewWidget"
 import { useRecoilState } from "recoil"
 import { useMemo, useEffect, useState } from "react"
+import { useRouter } from "next/router"
 import {
   IconHome,
   IconWall,
@@ -24,6 +29,7 @@ import {
   IconRefresh,
   IconArrowRight,
   IconGift,
+  IconShield,
 } from "@tabler/icons-react"
 import clsx from "clsx"
 
@@ -38,11 +44,13 @@ interface WidgetConfig {
 const Home: pageWithLayout = () => {
   const [login, setLogin] = useRecoilState(loginState)
   const [workspace, setWorkspace] = useRecoilState(workspacestate)
+  const router = useRouter()
   const text = useMemo(() => randomText(login.displayname), [login.displayname])
   const [isLoadingTitle, setIsLoadingTitle] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [titleVisible, setTitleVisible] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [policiesEnabled, setPoliciesEnabled] = useState(false)
 
   const widgets: Record<string, WidgetConfig> = {
     wall: {
@@ -65,6 +73,20 @@ const Home: pageWithLayout = () => {
       title: "Documents",
       description: "Latest workspace documents",
       color: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
+    },
+    policies: {
+      component: Policies,
+      icon: IconShield,
+      title: "Policy Dashboard",
+      description: "Track your policy acknowledgments (BETA)",
+      color: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
+    },
+    compliance: {
+      component: () => <ComplianceOverviewWidget workspaceId={workspace.groupId.toString()} />,
+      icon: IconShield,
+      title: "Compliance Overview",
+      description: "Workspace-wide compliance metrics (BETA)",
+      color: "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
     },
   }
 
@@ -90,6 +112,26 @@ const Home: pageWithLayout = () => {
       setLoading(false)
     }
   }, [workspace])
+
+  useEffect(() => {
+    if (workspace?.groupId) {
+      fetch(`/api/workspace/${workspace.groupId}/settings/general/policies`)
+        .then(res => res.json())
+        .then(data => {
+          let enabled = false;
+          let val = data.value ?? data;
+          if (typeof val === "string") {
+            try { val = JSON.parse(val); } catch { val = {}; }
+          }
+          enabled =
+            typeof val === "object" && val !== null && "enabled" in val
+              ? (val as { enabled?: boolean }).enabled ?? false
+              : false;
+          setPoliciesEnabled(enabled);
+        })
+        .catch(() => setPoliciesEnabled(false));
+    }
+  }, [workspace?.groupId])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -140,6 +182,20 @@ const Home: pageWithLayout = () => {
            
           </div>
         </div>
+        {policiesEnabled && (
+          <div className="mb-8 z-0 relative">
+            <PolicyNotificationBanner
+              workspaceId={workspace.groupId.toString()}
+              onPolicyClick={(policyId) => {
+                if (policyId === 'dashboard') {
+                  router.push(`/workspace/${workspace.groupId}/policies`);
+                } else {
+                  router.push(`/workspace/${workspace.groupId}/policies/sign/${policyId}`);
+                }
+              }}
+            />
+          </div>
+        )}
         <div className="mb-8 z-0 relative">
           <Birthdays />
         </div>

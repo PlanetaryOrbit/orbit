@@ -33,6 +33,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		"Manage activity": "manage_activity",
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
+		"Manage policies": "manage_policies",
 		"Manage views": "manage_views",
 		"Manage alliances": "manage_alliances",
 		"Admin (Manage workspace)": "admin",

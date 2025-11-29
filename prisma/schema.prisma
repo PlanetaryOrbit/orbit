@@ -27,6 +27,7 @@ model workspace {
   wallposts         wallPost[]
   externalServices  workspaceExternalServices?
   members           workspaceMember[]
+  policyLinks       PolicyShareableLink[]
 }
 
 model config {
@@ -48,21 +49,21 @@ model instanceConfig {
 }
 
 model user {
-  userid               BigInt               @id @unique
+  userid               BigInt                 @id @unique
   isOwner              Boolean?
   picture              String?
   username             String?
   registered           Boolean?
   birthdayDay          Int?
   birthdayMonth        Int?
-  adjustmentsMade      ActivityAdjustment[] @relation("AdjustmentActor")
-  adjustmentsReceived  ActivityAdjustment[] @relation("AdjustmentUser")
+  adjustmentsMade      ActivityAdjustment[]   @relation("AdjustmentActor")
+  adjustmentsReceived  ActivityAdjustment[]   @relation("AdjustmentUser")
   activityHistory      ActivityHistory[]
   activityResets       ActivityReset[]
   activitySessions     ActivitySession[]
   sessions             Session[]
-  sessionLogsAsActor   SessionLog[]         @relation("SessionLogActor")
-  sessionLogsAsTarget  SessionLog[]         @relation("SessionLogTarget")
+  sessionLogsAsActor   SessionLog[]           @relation("SessionLogActor")
+  sessionLogsAsTarget  SessionLog[]           @relation("SessionLogTarget")
   sessionNotes         SessionNote[]
   allyVisits           allyVisit[]
   apiKey               apiKey[]
@@ -70,13 +71,15 @@ model user {
   inactivityNotices    inactivityNotice[]
   ranks                rank[]
   sessionsRoles        sessionUser[]
-  writtenBooks         userBook[]           @relation("bookAdmin")
-  book                 userBook[]           @relation("bookUser")
+  writtenBooks         userBook[]             @relation("bookAdmin")
+  book                 userBook[]             @relation("bookUser")
   info                 userInfo?
   wallPosts            wallPost[]
   workspaceMemberships workspaceMember[]
-  Ally                 Ally[]               @relation("AllyTouser")
-  roles                role[]               @relation("roleTouser")
+  Ally                 Ally[]                 @relation("AllyTouser")
+  roles                role[]                 @relation("roleTouser")
+  policyAcknowledgments PolicyAcknowledgment[]
+  createdPolicyLinks   PolicyShareableLink[]
 }
 
 model userInfo {
@@ -257,16 +260,24 @@ model inactivityNotice {
 }
 
 model document {
-  id               String    @id @unique @default(uuid()) @db.Uuid
-  name             String
-  content          Json
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  ownerId          BigInt
-  workspaceGroupId Int
-  owner            user      @relation(fields: [ownerId], references: [userid])
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
-  roles            role[]    @relation("documentTorole")
+  id                     String                 @id @unique @default(uuid()) @db.Uuid
+  name                   String
+  content                Json
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  ownerId                BigInt
+  workspaceGroupId       Int
+  requiresAcknowledgment Boolean                @default(false)
+  acknowledgmentDeadline DateTime?
+  acknowledgmentMethod   String?                @default("signature")
+  acknowledgmentWord     String?
+  assignToEveryone       Boolean                @default(false)
+  isTrainingDocument     Boolean                @default(false)
+  owner                  user                   @relation(fields: [ownerId], references: [userid])
+  workspace              workspace              @relation(fields: [workspaceGroupId], references: [groupId])
+  roles                  role[]                 @relation("documentTorole")
+  acknowledgments        PolicyAcknowledgment[]
+  shareableLinks         PolicyShareableLink[]
 }
 
 model userBook {
@@ -425,4 +436,42 @@ model SavedView {
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 
   @@index([workspaceGroupId])
+}
+
+model PolicyAcknowledgment {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       BigInt
+  documentId   String    @db.Uuid
+  acknowledgedAt DateTime @default(now())
+  ipAddress    String?
+  signature    String?   // Digital signature or acknowledgment text
+  isRequired   Boolean   @default(false)
+  user         user      @relation(fields: [userId], references: [userid])
+  document     document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
+}
+
+model PolicyShareableLink {
+  id           String    @id @default(uuid()) @db.Uuid
+  documentId   String    @db.Uuid
+  workspaceGroupId Int
+  name         String    // User-defined name for the link
+  description  String?   // Optional description
+  createdById  BigInt
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  isActive     Boolean   @default(true)
+  accessCount  Int       @default(0)
+  lastAccessed DateTime?
+
+  document     document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspace    workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  createdBy    user      @relation(fields: [createdById], references: [userid])
+
+  @@index([documentId])
+  @@index([workspaceGroupId])
+  @@index([createdById])
 }

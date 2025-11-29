@@ -231,6 +231,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "sessions_host",
             "manage_members",
             "manage_docs",
+            "manage_policies",
             "view_entire_groups_activity",
             "manage_alliances",
             "represent_alliance",
