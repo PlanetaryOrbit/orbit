@@ -26,6 +26,7 @@ type Data = {
 			alliesEnabled: boolean
 			noticesEnabled: boolean
 			policiesEnabled: boolean
+			liveServersEnabled: boolean
 			widgets: string[]
 		}
 	}
@@ -102,6 +103,7 @@ export async function handler(
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"Manage alliances": "manage_alliances",
+		"View Live Servers": "view_servers",
 		"Admin (Manage workspace)": "admin",
 	};	
 	
@@ -120,6 +122,7 @@ export async function handler(
 			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
 			noticesEnabled: (await getConfig('notices', workspace.groupId))?.enabled || false,
 			policiesEnabled: (await getConfig('policies', workspace.groupId))?.enabled || false,
+			liveServersEnabled: (await getConfig('live_servers', workspace.groupId))?.enabled || false,
 			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
 		}
 	} })

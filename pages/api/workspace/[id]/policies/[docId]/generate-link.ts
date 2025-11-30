@@ -43,9 +43,7 @@ export async function handler(
 	}
 
 	// Generate the shareable link with proper protocol detection
-	const protocol = req.headers['x-forwarded-proto'] ||
-		(req.headers.host?.includes('localhost') ? 'http' : 'https');
-	const baseUrl = process.env.NEXTAUTH_URL || `${protocol}://${req.headers.host}`;
+	const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
 	const directLink = `${baseUrl}/workspace/${id}/policies/sign/${docId}`;
 
 	let secureToken: string | undefined = undefined;
