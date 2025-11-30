@@ -9,6 +9,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!workspaceId || typeof workspaceId !== "string") return res.status(400).json({ success: false, error: 'Invalid workspace id' });
 
   const gid = parseInt(workspaceId)
+  if (isNaN(gid)) return res.status(400).json({ success: false, error: 'Invalid workspace id' })
 
   if (req.method === "GET") {
     try {
