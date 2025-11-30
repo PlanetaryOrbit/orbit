@@ -27,8 +27,8 @@ export async function handler(
 
 	try {
 		try {
-			const before = await getConfig('theme', workspaceId);
-			await setConfig('theme', color, workspaceId);
+			const before = await getConfig('customization', workspaceId);
+			await setConfig('customization', color, workspaceId);
 			try {
 				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'theme', { before, after: color });
 			} catch (e) {}
