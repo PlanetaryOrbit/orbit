@@ -18,9 +18,9 @@ async function fetchWithTimeout(input: RequestInfo, init?: RequestInit, timeout 
   }
 }
 
-// Get public servers for a universe
-async function getServersForUniverse(universeId: number | string) {
-  const url = `https://games.roblox.com/v1/games/${universeId}/servers/Public?sortOrder=Desc&limit=50`
+// Get public servers for a place
+async function getServersForPlaceId(placeId: number | string) {
+  const url = `https://games.roblox.com/v1/games/${placeId}/servers/Public?sortOrder=Desc&limit=50`
   const res = await fetchWithTimeout(url, undefined, 10000)
   if (!res.ok) throw new Error(`Servers request failed: ${res.status}`)
   const body = await res.json()
@@ -31,7 +31,7 @@ console.log(body)
     playing: s.playing,
     maxPlayers: s.maxPlayers
   })) : []
-  console.log(`Fetched ${servers.length} servers for universe ${universeId}`)
+  console.log(`Fetched ${servers.length} servers for place ${placeId}`)
   return servers
 }
 
@@ -105,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const meta = await fetchUniverseDetails(universeId)
         const resolvedName = meta?.name || name ||  `Universe ${universeId}`
 
-        const servers = await getServersForUniverse(universeId)
+        const servers = await getServersForPlaceId(configuredId)
         return { name: resolvedName, placeId: configuredId, universeId, servers }
       } catch (err: any) {
         console.error(`Failed to fetch live info for id ${configuredId}:`, err && err.message ? err.message : err)
