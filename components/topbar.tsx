@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { loginState } from "../state";
+import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
 import { Menu, Transition } from "@headlessui/react";
 import { useRouter } from "next/router";

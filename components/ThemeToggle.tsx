@@ -1,5 +1,5 @@
 import { useRecoilState } from "recoil";
-import { themeState } from "../state/theme";
+import { themeState } from "@/state/theme";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 const ThemeToggle = () => {

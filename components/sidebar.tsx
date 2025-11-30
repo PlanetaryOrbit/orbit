@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import type { NextPage } from "next"
 import { loginState, workspacestate } from "@/state"
-import { themeState } from "../state/theme"
+import { themeState } from "@/state/theme"
 import { useRecoilState } from "recoil"
 import { Menu, Listbox, Dialog } from "@headlessui/react"
 import { useRouter } from "next/router"

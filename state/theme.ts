@@ -8,7 +8,10 @@ const getInitialTheme = (): "light" | "dark" => {
 	return "light"; // fallback default
 };
 
-export const themeState = atom<"light" | "dark">({
+const __global = globalThis as any;
+__global.__recoilAtoms = __global.__recoilAtoms || {};
+
+export const themeState = __global.__recoilAtoms.themeState || (__global.__recoilAtoms.themeState = atom<"light" | "dark">({
 	key: "themeState",
 	default: getInitialTheme(),
-});
+}));

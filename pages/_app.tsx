@@ -21,7 +21,7 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { themeState } from "../state/theme";
+import { themeState } from "@/state/theme";
 import AuthProvider from "./AuthProvider";
 import axios from "axios";
 import { loginState } from "@/state";
