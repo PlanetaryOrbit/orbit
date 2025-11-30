@@ -105,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const meta = await fetchUniverseDetails(universeId)
         const resolvedName = meta?.name || name ||  `Universe ${universeId}`
 
-        const servers = await getServersForUniverse(configuredId)
+        const servers = await getServersForUniverse(universeId)
         return { name: resolvedName, placeId: configuredId, universeId, servers }
       } catch (err: any) {
         console.error(`Failed to fetch live info for id ${configuredId}:`, err && err.message ? err.message : err)
