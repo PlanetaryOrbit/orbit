@@ -66,7 +66,10 @@ async function fetchUniverseDetails(universeId: number | string) {
 }
 
 // Live endpoint: returns configured games and their active servers (queried from Roblox)
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { withPermissionCheck } from '@/utils/permissionsManager'
+import { withSessionRoute } from '@/lib/withSession'
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id: workspaceId } = req.query;
   if (!workspaceId || typeof workspaceId !== "string") return res.status(400).json({ success: false, error: 'Invalid workspace id' });
   const gid = parseInt(workspaceId)
@@ -123,3 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ success: false, error: 'Internal error' })
   }
 }
+
+export default withSessionRoute(
+  withPermissionCheck(handler, ['view_servers', 'admin'])
+)
