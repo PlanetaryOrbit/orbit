@@ -29,7 +29,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     setConfig("activity", activityconfig, parseInt(req.query.id as string));
   }
 
-  let xml_string = fs.readFileSync(path.join("Orbit-activity.rbxmx"), "utf8");
+  let xml_string = fs.readFileSync(
+    path.join(process.cwd(), "public", "Orbit-activity.rbxmx"),
+    "utf8"
+  );
+  
   res.setHeader(
     "Content-Disposition",
     "attachment; filename=Orbit-activity.rbxmx"
