@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: "Version bump type"
         required: true
-        default: 'auto'
+        default: "auto"
         type: choice
         options:
           - auto
@@ -53,7 +53,7 @@ jobs:
         id: next_version
         run: |
           LATEST_TAG="${{ steps.get_version.outputs.latest_tag }}"
-          
+
           # Expect tags like 2.1.3beta4
           if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
@@ -67,10 +67,10 @@ jobs:
             PATCH=3
             BETA=0
           fi
-          
+
           # Bump type from workflow_dispatch or default to auto
           BUMP_TYPE="${{ github.event.inputs.version_bump || 'auto' }}"
-          
+
           if [ "$BUMP_TYPE" = "major" ]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
@@ -88,7 +88,7 @@ jobs:
             # Auto mode: just increment beta
             BETA=$((BETA + 1))
           fi
-          
+
           NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}"
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
@@ -122,16 +122,16 @@ jobs:
           release_name: Orbit ${{ steps.next_version.outputs.new_tag }}
           body: |
             ## Orbit Release ${{ steps.next_version.outputs.new_tag }}
-            
+
             ### Docker Images
             ```bash
             docker pull ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}
             ```
-            
+
             ### Platforms
             - `linux/amd64` (Intel/AMD x86_64)
             - `linux/arm64` (Apple Silicon, ARM servers)
-            
+
             ### Changes
             - Auto-deployed from commit ${{ github.sha }}
           draft: false
