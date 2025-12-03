@@ -125,45 +125,45 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType
     accessible?: boolean
   }[] = [
-    { name: "Home", href: "/workspace/[id]", icon: IconHome, filledIcon: IconHomeFilled },
-    { name: "Wall", href: "/workspace/[id]/wall", icon: IconMessage2, filledIcon: IconMessage2Filled },
-    { name: "Activity", href: "/workspace/[id]/activity", icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+    { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
+    { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled },
+    { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
 	...(leaderboardEnabled ? [{
       name: "Leaderboard",
-      href: "/workspace/[id]/leaderboard",
+      href: `/workspace/${workspace.groupId}/leaderboard`,
       icon: IconTrophy,
       filledIcon: IconTrophyFilled,
       accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
     }] : []),
    ...(noticesEnabled ? [{
       name: "Notices",
-      href: "/workspace/[id]/notices",
+      href: `/workspace/${workspace.groupId}/notices`,
       icon: IconClock,
       filledIcon: IconClockFilled,
       accessible: true,
     }] : []),
     ...(alliesEnabled ? [{
       name: "Alliances",
-      href: "/workspace/[id]/alliances",
+      href: `/workspace/${workspace.groupId}/alliances`,
       icon: IconRosetteDiscountCheck,
       filledIcon: IconRosetteDiscountCheckFilled,
       accessible: true,
     }] : []),
     ...(sessionsEnabled ? [{
       name: "Sessions",
-      href: "/workspace/[id]/sessions",
+      href: `/workspace/${workspace.groupId}/sessions`,
       icon: IconBell,
       filledIcon: IconBellFilled,
       accessible: true,
     }] : []),
-    { name: "Staff", href: "/workspace/[id]/views", icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
-    ...(docsEnabled ? [{ name: "Docs", href: "/workspace/[id]/docs", icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-    ...(policiesEnabled ? [{ name: "Policies", href: "/workspace/[id]/policies", icon: IconShield, filledIcon: IconShieldFilled, accessible: workspace.yourPermission.includes("manage_policies") || workspace.yourPermission.includes("admin") }] : []),
-    { name: "Settings", href: "/workspace/[id]/settings", icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
+    { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+    ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: workspace.yourPermission.includes("manage_policies") || workspace.yourPermission.includes("admin") }] : []),
+    { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
   ];
 
   const gotopage = (page: string) => {
-    router.push(page.replace("[id]", workspace.groupId.toString()))
+    router.push(page)
     setIsMobileMenuOpen(false)
   }
 
@@ -198,116 +198,17 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   }, [showChangelog, changelog.length]);
 
   useEffect(() => {
-    // Fetch the config for docs/guides
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/guides`)
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/configuration`)
       .then(res => res.json())
       .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try {
-            val = JSON.parse(val);
-          } catch {
-            val = {};
-          }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setDocsEnabled(enabled);
+        setDocsEnabled(data.value.guides?.enabled ?? false);
+		setAlliesEnabled(data.value.allies?.enabled ?? false);
+		setSessionsEnabled(data.value.sessions?.enabled ?? false);
+		setNoticesEnabled(data.value.notices?.enabled ?? false);
+		setLeaderboardEnabled(data.value.leaderboard?.enabled ?? false);
+		setPoliciesEnabled(data.value.policies?.enabled ?? false);
       })
       .catch(() => setDocsEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/ally`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setAlliesEnabled(enabled);
-      })
-      .catch(() => setAlliesEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/sessions`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setSessionsEnabled(enabled);
-      })
-      .catch(() => setSessionsEnabled(false));
-  }, [workspace.groupId]);
-
-    useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/notices`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setNoticesEnabled(enabled);
-      })
-      .catch(() => setNoticesEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/leaderboard`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setLeaderboardEnabled(enabled);
-      })
-      .catch(() => setLeaderboardEnabled(false));
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    fetch(`/api/workspace/${workspace.groupId}/settings/general/policies`)
-      .then(res => res.json())
-      .then(data => {
-        let enabled = false;
-        let val = data.value ?? data;
-        if (typeof val === "string") {
-          try { val = JSON.parse(val); } catch { val = {}; }
-        }
-        enabled =
-          typeof val === "object" && val !== null && "enabled" in val
-            ? (val as { enabled?: boolean }).enabled ?? false
-            : false;
-        setPoliciesEnabled(enabled);
-      })
-      .catch(() => setPoliciesEnabled(false));
   }, [workspace.groupId]);
 
   return (
