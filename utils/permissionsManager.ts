@@ -494,18 +494,6 @@ export async function checkGroupRoles(groupID: number) {
                   continue;
                 }
 
-                // Add delay and retry for getThumbnail
-                await delay(300); // Small delay before thumbnail fetch
-                const thumbnail = await retryNobloxRequest(() => getThumbnail(member.userId)).catch(
-                  (error) => {
-                    console.error(
-                      `[checkGroupRoles] Failed to get thumbnail for user ${member.userId}:`,
-                      error
-                    );
-                    return "";
-                  }
-                );
-
                 await prisma.user
                   .upsert({
                     where: {
@@ -519,7 +507,7 @@ export async function checkGroupRoles(groupID: number) {
                         },
                       },
                       username: member.username,
-                      picture: thumbnail,
+                      picture: getThumbnail(member.userId),
                     },
                     update: {
                       roles: {

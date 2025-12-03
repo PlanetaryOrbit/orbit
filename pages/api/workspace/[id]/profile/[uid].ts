@@ -196,7 +196,7 @@ export default withSessionRoute(async function handler(
       }
     ).length;
 
-    const avatar = await getThumbnail(user.userid);
+    const avatar = getThumbnail(user.userid);
 
     const quotas = user.roles
       .flatMap((role) => role.quotaRoles)

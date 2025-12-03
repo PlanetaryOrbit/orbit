@@ -32,7 +32,7 @@ export async function handler(
 		const infoUsers = await Promise.all(users.map(async (user: any) => {
 			return {
 				username: user.username,
-				thumbnail: await getThumbnail(user.userid)
+				thumbnail: getThumbnail(user.userid)
 			}
 		}))
 

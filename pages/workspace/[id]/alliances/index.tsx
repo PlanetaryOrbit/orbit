@@ -73,7 +73,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         return {
           ...user,
           userid: Number(user.userid),
-          thumbnail: await getThumbnail(user.userid),
+          thumbnail: getThumbnail(user.userid),
         };
       })
     );
@@ -94,7 +94,7 @@ export const getServerSideProps = withPermissionCheckSsr(
               ...rep,
               userid: Number(rep.userid),
               username: await getUsername(rep.userid),
-              thumbnail: await getThumbnail(rep.userid),
+              thumbnail: getThumbnail(rep.userid),
             };
           })
         );

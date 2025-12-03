@@ -298,7 +298,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       userId: req.session.userid,
       username: await getUsername(req.session.userid),
       displayname: await getDisplayName(req.session.userid),
-      thumbnail: await getThumbnail(req.session.userid),
+      thumbnail: getThumbnail(req.session.userid),
       isOwner: true,
     };
 
