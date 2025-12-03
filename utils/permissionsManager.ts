@@ -114,11 +114,9 @@ export function withPermissionCheck(
         },
       },
     });
-    console.log("User data:", user);
     if (!user)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     const userrole = user.roles[0];
-    console.log("User role:", userrole);
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
