@@ -38,7 +38,6 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!await prisma.workspace.count()) return res.status(400).json({ success: false, error: 'Workspace not setup' })
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 	const { id } = req.query
 	const time = new Date()
@@ -46,43 +45,69 @@ export async function handler(
 	if (!id) return res.status(400).json({ success: false, error: 'No id provided' })
 	if (isNaN(Number(id))) return res.status(400).json({ success: false, error: 'Invalid id provided' })
 	
-	let workspace = await prisma.workspace.findUnique({
-		where: {
-			groupId: parseInt((id as string))
-		}
-	})
-
+	const [workspaceCount, workspace] = await Promise.all([
+		prisma.workspace.count(),
+		prisma.workspace.findUnique({
+			where: {
+				groupId: parseInt((id as string))
+			}
+		})
+	]);
+	
+	if (!workspaceCount) return res.status(400).json({ success: false, error: 'Workspace not setup' })
 	if (!workspace) return res.status(400).json({ success: false, error: 'Workspace not found' })
 	console.log(`Workspace found after ${new Date().getTime() - time.getTime()}ms`)
-	const themeconfig = await getConfig('customization', workspace.groupId)
-	console.log(`Theme config found after ${new Date().getTime() - time.getTime()}ms`)
-	const roles = await prisma.role.findMany({
-		where: {
-			workspaceGroupId: workspace.groupId
-		},
-		orderBy: {
-			isOwnerRole: 'desc'
-		}
-	})
-	console.log(`Roles found after ${new Date().getTime() - time.getTime()}ms`)
-	let groupinfo = await noblox.getGroup(workspace.groupId)
-
-	const user = await prisma.user.findUnique({
-		where: {
-			userid: req.session.userid
-		},
-		include: {
-			roles: {
-				where: {
-					workspaceGroupId: workspace.groupId
-				},
-				orderBy: {
-					isOwnerRole: 'desc'
+	
+	const [
+		themeconfig,
+		roles,
+		groupinfo,
+		groupLogo,
+		user,
+		guidesConfig,
+		leaderboardConfig,
+		sessionsConfig,
+		alliesConfig,
+		noticesConfig,
+		policiesConfig,
+		homeConfig
+	] = await Promise.all([
+		getConfig('customization', workspace.groupId),
+		prisma.role.findMany({
+			where: {
+				workspaceGroupId: workspace.groupId
+			},
+			orderBy: {
+				isOwnerRole: 'desc'
+			}
+		}),
+		noblox.getGroup(workspace.groupId),
+		noblox.getLogo(workspace.groupId),
+		prisma.user.findUnique({
+			where: {
+				userid: req.session.userid
+			},
+			include: {
+				roles: {
+					where: {
+						workspaceGroupId: workspace.groupId
+					},
+					orderBy: {
+						isOwnerRole: 'desc'
+					}
 				}
 			}
-		}
-	})
-	console.log(`User found after ${new Date().getTime() - time.getTime()}ms`)
+		}),
+		getConfig('guides', workspace.groupId),
+		getConfig('leaderboard', workspace.groupId),
+		getConfig('sessions', workspace.groupId),
+		getConfig('allies', workspace.groupId),
+		getConfig('notices', workspace.groupId),
+		getConfig('policies', workspace.groupId),
+		getConfig('home', workspace.groupId)
+	]);
+	
+	console.log(`All data fetched after ${new Date().getTime() - time.getTime()}ms`)
 
 	if (!user) return res.status(401).json({ success: false, error: 'Not logged in' })
 	if (!user.roles.length) return res.status(401).json({ success: false, error: 'Not logged in' })
@@ -102,25 +127,26 @@ export async function handler(
 		"Manage members": "manage_members",
 		"Manage docs": "manage_docs",
 		"Manage alliances": "manage_alliances",
+		"Manage policies": "manage_policies",
 		"Admin (Manage workspace)": "admin",
 	};	
 	
 	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
 		groupId: workspace.groupId,
-		groupThumbnail: await noblox.getLogo(workspace.groupId),
+		groupThumbnail: groupLogo,
 		groupName: groupinfo.name,
 		yourPermission: user.roles[0].isOwnerRole ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
 		roles: roles,
 		yourRole: user.roles[0].id,
 		settings: {
-			guidesEnabled: (await getConfig('guides', workspace.groupId))?.enabled || false,
-			leaderboardEnabled: (await getConfig('leaderboard', workspace.groupId))?.enabled || false,
-			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
-			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
-			noticesEnabled: (await getConfig('notices', workspace.groupId))?.enabled || false,
-			policiesEnabled: (await getConfig('policies', workspace.groupId))?.enabled || false,
-			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
+			guidesEnabled: guidesConfig?.enabled || false,
+			leaderboardEnabled: leaderboardConfig?.enabled || false,
+			sessionsEnabled: sessionsConfig?.enabled || false,
+			alliesEnabled: alliesConfig?.enabled || false,
+			noticesEnabled: noticesConfig?.enabled || false,
+			policiesEnabled: policiesConfig?.enabled || false,
+			widgets: homeConfig?.widgets || []
 		}
 	} })
 }
