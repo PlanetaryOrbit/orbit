@@ -41,6 +41,7 @@ interface WidgetConfig {
   title: string
   description: string
   color: string
+  beta?: boolean;
 }
 
 const Home: pageWithLayout = () => {
@@ -87,15 +88,17 @@ const Home: pageWithLayout = () => {
       component: Policies,
       icon: IconShield,
       title: "Policies",
-      description: "Track your policy acknowledgments (BETA)",
+      description: "Track your policy acknowledgments",
       color: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
+	  beta: true,
     },
     compliance: {
       component: () => <ComplianceOverviewWidget workspaceId={workspace.groupId.toString()} />,
       icon: IconShield,
       title: "Compliance Overview",
-      description: "Workspace-wide compliance metrics (BETA)",
+      description: "Workspace-wide compliance metrics",
       color: "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
+	  beta: true,
     },
   }
 
@@ -258,7 +261,12 @@ const Home: pageWithLayout = () => {
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
+                        <div className="flex flex-row items-center gap-2">
+							<h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
+							{widgetConfig.beta && <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+								BETA
+							</span>}
+						</div>
                         <p className="text-sm text-zinc-600 dark:text-zinc-300">{widgetConfig.description}</p>
                       </div>
                     </div>
