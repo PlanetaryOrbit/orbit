@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "2.1.6beta7",
+  "version": "2.1.6beta10",
   "private": true,
   "scripts": {
     "dev": "next dev",
