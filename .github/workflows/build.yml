@@ -87,41 +87,20 @@ jobs:
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
 
-      # Build ARM64 first (usually faster)
-      - name: Build and push ARM64 image
+      # Build and push multi-platform image with optimized caching
+      - name: Build and push multi-platform image
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64
-          cache-from: type=gha,scope=arm64
-          cache-to: type=gha,mode=max,scope=arm64
-
-      # Build AMD64 separately (no cache to avoid hangs)
-      - name: Build and push AMD64 image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          no-cache: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
-
-      # Create multi-platform manifest
-      - name: Create and push manifest
-        run: |
-          docker buildx imagetools create -t \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
-
-          docker buildx imagetools create -t \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
 
       - name: Create Git tag
         run: |
