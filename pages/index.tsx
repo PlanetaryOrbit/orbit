@@ -375,13 +375,34 @@ const Home: NextPage = () => {
         </div>
 
         {/* Workspaces Grid */}
-        {filteredWorkspaces.length > 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          >
-            {filteredWorkspaces.map((workspace, i) => (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          {/* Create Workspace Card (show if owner and no search) */}
+          {isOwner && !searchQuery && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => setIsOpen(true)}
+              className="group relative bg-[#18181b] rounded-xl border border-dashed border-white/20 overflow-hidden cursor-pointer hover:border-pink-500/50 hover:bg-[#1f1f23] transition-all duration-200"
+            >
+              <div className="aspect-video flex items-center justify-center bg-white/5">
+                <IconPlus className="w-12 h-12 text-white/30 group-hover:text-pink-400 group-hover:scale-110 transition-all" />
+              </div>
+              <div className="p-5">
+                <h3 className="font-semibold text-white mb-1">
+                  Create Workspace
+                </h3>
+                <p className="text-sm text-slate-400">
+                  Start managing a new community
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {filteredWorkspaces.map((workspace, i) => (
               <motion.div
                 key={workspace.groupId}
                 initial={{ opacity: 0, y: 20 }}
@@ -495,8 +516,7 @@ const Home: NextPage = () => {
                 )}
               </div>
             </div>
-          </motion.div>
-        )}
+        </motion.div>
       </main>
 
       {/* Create Workspace Modal */}
