@@ -220,7 +220,7 @@ const Home: NextPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] relative">
+    <div className="min-h-screen bg-black relative">
       <SpaceBackground />
       <Head>
         <title>Orbit - Your Workspaces</title>
@@ -228,7 +228,7 @@ const Home: NextPage = () => {
       </Head>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-slate-900/60 backdrop-blur-xl border-b border-white/10">
+      <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -388,7 +388,7 @@ const Home: NextPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => gotoWorkspace(workspace.groupId)}
-                className="group relative bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 hover:border-pink-500/50 transition-all duration-300"
+                className="group relative bg-[#18181b] rounded-xl border border-white/10 overflow-hidden cursor-pointer hover:border-white/20 transition-all duration-200"
               >
                 {/* Thumbnail */}
                 <div className="aspect-video relative overflow-hidden">
@@ -425,14 +425,13 @@ const Home: NextPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden"
           >
-            <div className="bg-slate-900/40 backdrop-blur-sm rounded-2xl border border-white/10 p-12 lg:p-16 text-center">
-              {/* Icon */}
-              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-                <IconBuildingSkyscraper className="w-10 h-10 text-pink-400" />
+            <div className="bg-[#18181b] rounded-xl border border-white/10 p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-white/5 flex items-center justify-center">
+                <IconBuildingSkyscraper className="w-8 h-8 text-white/40" />
               </div>
 
               <div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   {searchQuery ? (
                     <>
                       No results for <span className="text-pink-400">"{searchQuery}"</span>
@@ -441,7 +440,7 @@ const Home: NextPage = () => {
                     "Welcome to Orbit!"
                   )}
                 </h3>
-                <p className="text-base lg:text-lg text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
+                <p className="text-sm text-slate-400 mb-6 max-w-md mx-auto">
                   {searchQuery 
                     ? "Try adjusting your search or browse all available workspaces."
                     : isOwner 
