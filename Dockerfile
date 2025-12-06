@@ -44,9 +44,10 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.next ./.next
 COPY --from=builder /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 
 # Expose port 3000
 EXPOSE 3000
 
-# Start the app
-CMD ["pnpm", "run", "start"]
+# Start the app (migrate database then start)
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm run start"]
