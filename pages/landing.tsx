@@ -19,7 +19,7 @@ import {
   IconMenu2,
   IconX,
   IconStar,
-  IconZap,
+  IconBolt,
   IconLock,
   IconRefresh,
   IconChevronDown,
@@ -82,7 +82,7 @@ const Landing: NextPage = () => {
       description: "Create custom roles with granular permissions. Control access levels with precision."
     },
     {
-      icon: IconZap,
+      icon: IconBolt,
       title: "Instant Actions",
       description: "Promote, demote, warn, or manage members with one-click actions. No delays."
     },
