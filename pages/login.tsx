@@ -496,7 +496,7 @@ const Login: NextPage = () => {
                   Orbit features, enhancements, and modifications:
                 </h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Copyright © 2025 Planetary. All rights reserved.
+                  Copyright © 2025 Planetary. GNU GPL-3.0.
                 </p>
               </div>
 
@@ -505,7 +505,7 @@ const Login: NextPage = () => {
                   Original Tovy features and code:
                 </h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Copyright © 2022 Tovy. All rights reserved.
+                  Copyright © 2022 Tovy. GNU GPL-3.0.
                 </p>
               </div>
             </div>
