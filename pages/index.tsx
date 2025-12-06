@@ -2,25 +2,415 @@
 
 import type { NextPage } from "next"
 import Head from "next/head"
-import Topbar from "@/components/topbar"
 import { useRouter } from "next/router"
 import { loginState } from "@/state"
 import { Transition, Dialog } from "@headlessui/react"
 import { useState, useEffect, Fragment } from "react"
-import Button from "@/components/button"
 import axios from "axios"
-import Input from "@/components/input"
 import { useForm, FormProvider } from "react-hook-form"
 import { useRecoilState } from "recoil"
 import { toast } from "react-hot-toast"
-import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper, IconSettings, IconX } from "@tabler/icons-react"
+import { useTheme } from "next-themes"
+import {
+  IconPlus,
+  IconRefresh,
+  IconChevronRight,
+  IconBuildingSkyscraper,
+  IconSettings,
+  IconX,
+  IconSearch,
+  IconRocket,
+  IconLogout,
+  IconSun,
+  IconMoon,
+  IconChevronDown,
+  IconExternalLink,
+} from "@tabler/icons-react"
+import SpaceBackground from "@/components/SpaceBackground"
+
+// Separate components for better organization
+const UserMenu = ({ login, logout }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 p-1.5 pr-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+      >
+        <img
+          src={login?.thumbnail || "/placeholder.svg"}
+          alt={login?.displayname}
+          className="w-8 h-8 rounded-lg object-cover"
+        />
+        <span className="text-sm font-medium text-white hidden sm:block">
+          {login?.displayname}
+        </span>
+        <IconChevronDown className="w-4 h-4 text-white/60" />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-20">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <img
+                  src={login?.thumbnail || "/placeholder.svg"}
+                  alt={login?.displayname}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-white">
+                    {login?.displayname}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    @{login?.username}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-2">
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+              >
+                <IconLogout className="w-5 h-5" />
+                Sign out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+const WorkspaceCard = ({ workspace, onClick }) => (
+  <div
+    onClick={onClick}
+    className="group bg-slate-900 rounded-lg border border-slate-800 overflow-hidden cursor-pointer hover:border-slate-700 transition-all"
+  >
+    <div className="aspect-video relative overflow-hidden bg-slate-800">
+      <img
+        src={workspace.groupThumbnail}
+        alt={workspace.groupName}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+    </div>
+    <div className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-white truncate">
+            {workspace.groupName}
+          </h3>
+          <p className="mt-1 text-sm text-slate-400">
+            Group ID: {workspace.groupId}
+          </p>
+        </div>
+        <IconChevronRight className="w-5 h-5 text-slate-400 group-hover:text-pink-400 transition-colors" />
+      </div>
+    </div>
+  </div>
+)
+
+const CreateWorkspaceCard = ({ onClick }) => (
+  <div
+    onClick={onClick}
+    className="group bg-slate-900 rounded-lg border border-dashed border-slate-700 overflow-hidden cursor-pointer hover:border-pink-500 transition-all"
+  >
+    <div className="aspect-video flex items-center justify-center bg-slate-800">
+      <IconPlus className="w-12 h-12 text-slate-600 group-hover:text-pink-400 transition-colors" />
+    </div>
+    <div className="p-4">
+      <h3 className="font-semibold text-white">Create Workspace</h3>
+      <p className="text-sm text-slate-400 mt-1">Start managing a new group</p>
+    </div>
+  </div>
+)
+
+const EmptyState = ({ isOwner, searchQuery, onCreateClick, onClearSearch }) => {
+  if (searchQuery) {
+    return (
+      <div className="bg-slate-900 rounded-lg border border-slate-800 p-12 text-center">
+        <IconBuildingSkyscraper className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-white mb-2">
+          No results for "{searchQuery}"
+        </h3>
+        <p className="text-sm text-slate-400 mb-4">
+          Try adjusting your search or browse all workspaces.
+        </p>
+        <button
+          onClick={onClearSearch}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+        >
+          <IconX className="w-4 h-4" />
+          Clear Search
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-slate-900 rounded-lg border border-slate-800 p-12 text-center">
+      <IconBuildingSkyscraper className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-white mb-2">
+        {isOwner ? "Create your first workspace" : "No workspaces available"}
+      </h3>
+      <p className="text-sm text-slate-400 mb-6">
+        {isOwner 
+          ? "Get started by creating a workspace for your Roblox group."
+          : "Contact your administrator to get access."}
+      </p>
+      {isOwner && (
+        <button
+          onClick={onCreateClick}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all"
+        >
+          <IconPlus className="w-5 h-5" />
+          Create Workspace
+        </button>
+      )}
+    </div>
+  )
+}
+
+const CreateWorkspaceModal = ({ isOpen, onClose, onSubmit, loading }) => {
+  const methods = useForm()
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-200"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-150"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow-xl">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between">
+                    <Dialog.Title className="text-lg font-semibold text-slate-900 dark:text-white">
+                      Create Workspace
+                    </Dialog.Title>
+                    <button
+                      onClick={onClose}
+                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <IconX className="w-5 h-5 text-slate-400" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <FormProvider {...methods}>
+                    <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Group ID
+                        </label>
+                        <input
+                          {...methods.register("groupID", {
+                            required: "Group ID is required",
+                            pattern: { value: /^[0-9]+$/, message: "Must be a valid number" },
+                          })}
+                          placeholder="12345678"
+                          className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        />
+                        {methods.formState.errors.groupID && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {methods.formState.errors.groupID.message as string}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          className="flex-1 py-2 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 py-2 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-pink-700 disabled:opacity-50 transition-all"
+                        >
+                          {loading ? "Creating..." : "Create"}
+                        </button>
+                      </div>
+                    </form>
+                  </FormProvider>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  )
+}
+
+const InstanceSettingsModal = ({ isOpen, onClose, config, setConfig, onSave, loading, message }) => (
+  <Transition appear show={isOpen} as={Fragment}>
+    <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Transition.Child
+        as={Fragment}
+        enter="ease-out duration-200"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="ease-in duration-150"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+      </Transition.Child>
+
+      <div className="fixed inset-0 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-200"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-150"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <Dialog.Panel className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-xl">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <Dialog.Title className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Instance Settings
+                  </Dialog.Title>
+                  <button
+                    onClick={onClose}
+                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <IconX className="w-5 h-5 text-slate-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  Roblox OAuth Configuration
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Client ID
+                    </label>
+                    <input
+                      type="text"
+                      value={config.clientId}
+                      onChange={(e) => setConfig(prev => ({ ...prev, clientId: e.target.value }))}
+                      placeholder="Enter Client ID"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Client Secret
+                    </label>
+                    <input
+                      type="password"
+                      value={config.clientSecret}
+                      onChange={(e) => setConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
+                      placeholder="Enter Client Secret"
+                      className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Redirect URI <span className="text-xs text-slate-400">(auto-generated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={config.redirectUri}
+                      readOnly
+                      className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400"
+                    />
+                  </div>
+                </div>
+                
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Need help?{' '}
+                  <a 
+                    href="https://docs.planetaryapp.us/workspace/oauth" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-pink-600 dark:text-pink-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    View documentation
+                    <IconExternalLink className="w-3 h-3" />
+                  </a>
+                </p>
+
+                {message && (
+                  <div className={`p-3 rounded-lg text-sm ${
+                    message.includes('success') 
+                      ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300'
+                      : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300'
+                  }`}>
+                    {message}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={onClose}
+                    disabled={loading}
+                    className="flex-1 py-2 px-4 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onSave}
+                    disabled={loading}
+                    className="flex-1 py-2 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-pink-700 disabled:opacity-50 transition-all"
+                  >
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </div>
+            </Dialog.Panel>
+          </Transition.Child>
+        </div>
+      </div>
+    </Dialog>
+  </Transition>
+)
 
 const Home: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState)
   const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const methods = useForm()
   const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
   const [showInstanceSettings, setShowInstanceSettings] = useState(false)
   const [robloxConfig, setRobloxConfig] = useState({
@@ -31,135 +421,66 @@ const Home: NextPage = () => {
   const [configLoading, setConfigLoading] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
 
+  const filteredWorkspaces = login.workspaces?.filter(workspace =>
+    workspace.groupName.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || []
+
   const gotoWorkspace = (id: number) => {
     router.push(`/workspace/${id}`)
   }
 
-  const createWorkspace = async () => {
+  const createWorkspace = async (data) => {
     setLoading(true)
     const t = toast.loading("Creating workspace...")
 
-    const request = await axios
-      .post("/api/createws", {
-        groupId: Number(methods.getValues("groupID")),
-      })
-      .catch((err) => {
-        console.log(err)
-        setLoading(false)
-
-        if (err.response?.data?.error === "You are not a high enough rank") {
-          methods.setError("groupID", {
-            type: "custom",
-            message: "You need to be a rank 10 or higher to create a workspace",
-          })
-        }
-        if (err.response?.data?.error === "Workspace already exists") {
-          methods.setError("groupID", {
-            type: "custom",
-            message: "This group already has a workspace",
-          })
-        }
-      })
-
-    if (request) {
+    try {
+      await axios.post("/api/createws", { groupId: Number(data.groupID) })
       toast.success("Workspace created!", { id: t })
-      setIsOpen(false)
-      router.push(`/workspace/${methods.getValues("groupID")}?new=true`)
+      setShowCreateModal(false)
+      router.push(`/workspace/${data.groupID}?new=true`)
+    } catch (err: any) {
+      const error = err.response?.data?.error
+      if (error === "You are not a high enough rank") {
+        methods.setError("groupID", {
+          type: "custom",
+          message: "You need to be rank 10 or higher",
+        })
+      } else if (error === "Workspace already exists") {
+        methods.setError("groupID", {
+          type: "custom",
+          message: "This group already has a workspace",
+        })
+      }
+      toast.error("Failed to create workspace", { id: t })
+    } finally {
+      setLoading(false)
     }
   }
-  useEffect(() => {
-    const checkLogin = async () => {
-      let req
-      try {
-        req = await axios.get("/api/@me")
-      } catch (err: any) {
-        if (err.response?.data.error === "Workspace not setup") {
-          const currentPath = router.pathname
-          // Only redirect if we are not already on the /welcome page
-          if (currentPath !== "/welcome") {
-            router.push("/welcome")
-          }
-
-          setLoading(false)
-          return
-        }
-        if (err.response?.data.error === "Not logged in") {
-          router.push("/login")
-          setLoading(false)
-          return
-        }
-      } finally {
-        if (req?.data) {
-          setLogin({
-            ...req.data.user,
-            workspaces: req.data.workspaces,
-          })
-        }
-        setLoading(false)
-      }
-    }
-
-	const checkOwnerStatus = async () => {
-	  try {
-		const response = await axios.get("/api/auth/checkOwner")
-		if (response.data.success) {
-		  setIsOwner(response.data.isOwner)
-		}
-	  } catch (error: any) {
-		if (error.response?.status !== 401) {
-		  console.error("Failed to check owner status:", error)
-		}
-	  }
-	}
-
-	checkLogin()
-	checkOwnerStatus()
-  }, [])
 
   const checkRoles = async () => {
-    const request = axios
-      .post("/api/auth/checkRoles", {})
-      .then(() => {
-        router.reload()
-      })
+    const request = axios.post("/api/auth/checkRoles", {})
+      .then(() => router.reload())
       .catch(console.error)
 
     toast.promise(request, {
       loading: "Checking roles...",
-      success: "Roles checked!",
+      success: "Roles updated!",
       error: "An error occurred",
     })
   }
 
-  useEffect(() => {
-    if (showInstanceSettings && isOwner) {
-      loadRobloxConfig()
-    }
-  }, [showInstanceSettings, isOwner])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentOrigin = window.location.origin
-      const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
-      setRobloxConfig(prev => ({ ...prev, redirectUri: autoRedirectUri }))
-    }
-  }, [])
-
-  const loadRobloxConfig = async () => {
-    try {
-      const response = await axios.get('/api/admin/instance-config')
-      const { robloxClientId, robloxClientSecret } = response.data
-      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-      const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
-      
-      setRobloxConfig({
-        clientId: robloxClientId || '',
-        clientSecret: robloxClientSecret || '',
-        redirectUri: autoRedirectUri
-      })
-    } catch (error) {
-      console.error('Failed to load OAuth config:', error)
-    }
+  const logout = async () => {
+    await axios.post("/api/auth/logout")
+    setLogin({
+      userId: 1,
+      username: '',
+      displayname: '',
+      canMakeWorkspace: false,
+      thumbnail: '',
+      workspaces: [],
+      isOwner: false
+    })
+    router.push('/login')
   }
 
   const saveRobloxConfig = async () => {
@@ -174,286 +495,174 @@ const Home: NextPage = () => {
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (error) {
-      console.error('Failed to save OAuth config:', error)
-      setSaveMessage('Failed to save settings. Please try again.')
+      setSaveMessage('Failed to save settings.')
       setTimeout(() => setSaveMessage(''), 3000)
     } finally {
       setConfigLoading(false)
     }
   }
 
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const [userRes, ownerRes] = await Promise.all([
+          axios.get("/api/@me"),
+          axios.get("/api/auth/checkOwner").catch(() => ({ data: { isOwner: false } }))
+        ])
+
+        setLogin({
+          ...userRes.data.user,
+          workspaces: userRes.data.workspaces,
+        })
+        setIsOwner(ownerRes.data.isOwner)
+      } catch (err: any) {
+        if (err.response?.data.error === "Workspace not setup") {
+          router.push("/welcome")
+        } else if (err.response?.data.error === "Not logged in") {
+          router.push("/login")
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    init()
+  }, [])
+
+  useEffect(() => {
+    if (showInstanceSettings && isOwner) {
+      axios.get('/api/admin/instance-config')
+        .then(res => {
+          const origin = typeof window !== 'undefined' ? window.location.origin : ''
+          setRobloxConfig({
+            clientId: res.data.robloxClientId || '',
+            clientSecret: res.data.robloxClientSecret || '',
+            redirectUri: `${origin}/api/auth/roblox/callback`
+          })
+        })
+        .catch(console.error)
+    }
+  }, [showInstanceSettings, isOwner])
+
   return (
-    <div>
+    <div className="min-h-screen bg-black">
+      <SpaceBackground />
       <Head>
-        <title>Orbit - Workspaces</title>
-        <meta name="description" content="Manage your Roblox workspaces with Orbit" />
+        <title>Orbit - Your Workspaces</title>
       </Head>
 
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-800">
-        <Topbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-4 sm:mb-0">Your Workspaces</h1>
-            <div className="flex space-x-3">
-              {isOwner && (
-                <Button onClick={() => setIsOpen(true)} classoverride="flex items-center">
-                  <IconPlus className="mr-2 h-5 w-5" />
-                  New Workspace
-                </Button>
-              )}
-              <Button
-                onClick={checkRoles}
-                classoverride="flex items-center bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
+      <nav className="sticky top-0 z-50 bg-black/60 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
+                <IconRocket className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white">Orbit</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
               >
-                <IconRefresh className="mr-2 h-5 w-5" />
-                Check Roles
-              </Button>
+                {theme === "dark" ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
+              </button>
+              <UserMenu login={login} logout={logout} />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Your Workspaces</h1>
+            <p className="mt-1 text-slate-400">Manage your Roblox groups</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={checkRoles}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
+              >
+                <IconRefresh className="w-5 h-5" />
+                <span className="hidden sm:inline">Sync</span>
+              </button>
+
               {isOwner && (
-                <Button
-                  onClick={() => setShowInstanceSettings(true)}
-                  classoverride="flex items-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-200 dark:hover:bg-blue-300 text-white">
-                  <IconSettings className="h-5 w-5" />
-                </Button>
+                <>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg text-white hover:from-pink-600 hover:to-pink-700 transition-all"
+                  >
+                    <IconPlus className="w-5 h-5" />
+                    <span className="hidden sm:inline">New</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowInstanceSettings(true)}
+                    className="p-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
+                  >
+                    <IconSettings className="w-5 h-5" />
+                  </button>
+                </>
               )}
             </div>
           </div>
-
-          {login.workspaces?.length ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-              {login.workspaces.map((workspace, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer aspect-square flex flex-col"
-                  onClick={() => gotoWorkspace(workspace.groupId)}
-                >
-                  <div
-                    className="flex-1 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${workspace.groupThumbnail})` }}
-                  />
-                  <div className="p-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">
-                      {workspace.groupName}
-                    </h3>
-                    <IconChevronRight className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center">
-              <div className="bg-zinc-100 dark:bg-zinc-600 rounded-full p-4 mb-4">
-                <IconBuildingSkyscraper className="h-12 w-12 text-zinc-400 dark:text-zinc-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">No workspaces available</h3>
-              <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-                {isOwner ? "Create a new workspace to get started" : "You don't have permission to create workspaces"}
-              </p>
-              {isOwner ? (
-                <Button onClick={() => setIsOpen(true)} classoverride="flex items-center">
-                  <IconPlus className="mr-2 h-5 w-5" />
-                  Create Workspace
-                </Button>
-              ) : (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Contact an administrator if you need to create a workspace
-                </p>
-              )}
-            </div>
-          )}
-
-          <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-              </Transition.Child>
-
-              <div className="fixed inset-0 overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4 text-center">
-                  <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 scale-95"
-                    enterTo="opacity-100 scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 scale-100"
-                    leaveTo="opacity-0 scale-95"
-                  >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
-                      <Dialog.Title as="h3" className="text-2xl font-bold text-zinc-900 dark:text-white">
-                        Create New Workspace
-                      </Dialog.Title>
-
-                      <div className="mt-4">
-                        <FormProvider {...methods}>
-                          <form>
-                            <Input
-                              label="Group ID"
-                              placeholder="Enter your Roblox group ID"
-                              {...methods.register("groupID", {
-                                required: "This field is required",
-                                pattern: { value: /^[a-zA-Z0-9-.]*$/, message: "No spaces or special characters" },
-                                maxLength: { value: 10, message: "Length must be below 10 characters" },
-                              })}
-                            />
-                          </form>
-                        </FormProvider>
-                      </div>
-
-                      <div className="mt-6 flex justify-end space-x-3">
-                        <Button
-                          onClick={() => setIsOpen(false)}
-                          classoverride="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={methods.handleSubmit(createWorkspace)} loading={loading}>
-                          Create
-                        </Button>
-                      </div>
-                    </Dialog.Panel>
-                  </Transition.Child>
-                </div>
-              </div>
-            </Dialog>
-          </Transition>
-
-          <Transition appear show={showInstanceSettings} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={() => setShowInstanceSettings(false)}>
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-              </Transition.Child>
-
-              <div className="fixed inset-0 overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4 text-center">
-                  <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 scale-95"
-                    enterTo="opacity-100 scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 scale-100"
-                    leaveTo="opacity-0 scale-95"
-                  >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
-                      <div className="flex items-center justify-between mb-6">
-                        <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
-                          Instance Settings
-                        </Dialog.Title>
-                        <button
-                          onClick={() => setShowInstanceSettings(false)}
-                          className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                        >
-                          <IconX className="w-5 h-5 text-zinc-500" />
-                        </button>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                            Roblox OAuth Configuration
-                          </h3>
-                          
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Client ID
-                              </label>
-                              <input
-                                type="text"
-                                value={robloxConfig.clientId}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
-                                placeholder="e.g. 23748326747865334"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Client Secret
-                              </label>
-                              <input
-                                type="password"
-                                value={robloxConfig.clientSecret}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
-                                placeholder="e.g. JHJD_NMIRHNSD$ER$6dj38"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Redirect URI <span className="text-xs text-zinc-500">(auto-generated)</span>
-                              </label>
-                              <input
-                                type="url"
-                                value={robloxConfig.redirectUri}
-                                readOnly
-                                placeholder="https://instance.planetaryapp.cloud/api/auth/roblox/callback"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm cursor-not-allowed"
-                                title="This field is automatically generated based on your current domain"
-                              />
-                            </div>
-                          </div>
-                          
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                            Need a hand? Check our documentation at{' '}
-                            <a href="https://docs.planetaryapp.us/workspace/oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              docs.planetaryapp.us
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-
-                      {saveMessage && (
-                        <div className={`mt-4 p-3 rounded-md text-sm ${
-                          saveMessage.includes('successfully') 
-                            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                        }`}>
-                          {saveMessage}
-                        </div>
-                      )}
-
-                      <div className="flex justify-end space-x-3 mt-6">
-                        <Button
-                          onClick={() => setShowInstanceSettings(false)}
-                          disabled={configLoading}
-                          classoverride="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={saveRobloxConfig}
-                          loading={configLoading}
-                          disabled={configLoading}
-                        >
-                          Save Settings
-                        </Button>
-                      </div>
-                    </Dialog.Panel>
-                  </Transition.Child>
-                </div>
-              </div>
-            </Dialog>
-          </Transition>
         </div>
-      </div>
+
+        {filteredWorkspaces.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {isOwner && !searchQuery && (
+              <CreateWorkspaceCard onClick={() => setShowCreateModal(true)} />
+            )}
+            {filteredWorkspaces.map(workspace => (
+              <WorkspaceCard
+                key={workspace.groupId}
+                workspace={workspace}
+                onClick={() => gotoWorkspace(workspace.groupId)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            isOwner={isOwner}
+            searchQuery={searchQuery}
+            onCreateClick={() => setShowCreateModal(true)}
+            onClearSearch={() => setSearchQuery("")}
+          />
+        )}
+      </main>
+
+      <CreateWorkspaceModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={createWorkspace}
+        loading={loading}
+      />
+
+      <InstanceSettingsModal
+        isOpen={showInstanceSettings}
+        onClose={() => setShowInstanceSettings(false)}
+        config={robloxConfig}
+        setConfig={setRobloxConfig}
+        onSave={saveRobloxConfig}
+        loading={configLoading}
+        message={saveMessage}
+      />
     </div>
   )
 }
