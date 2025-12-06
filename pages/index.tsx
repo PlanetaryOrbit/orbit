@@ -32,6 +32,7 @@ import {
   IconChartBar,
   IconShield,
 } from "@tabler/icons-react"
+import SpaceBackground from "@/components/SpaceBackground"
 
 const Home: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState)
@@ -219,22 +220,23 @@ const Home: NextPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-[#0a0a0f] relative">
+      <SpaceBackground />
       <Head>
         <title>Orbit - Your Workspaces</title>
         <meta name="description" content="Manage your Roblox workspaces with Orbit" />
       </Head>
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
+      <nav className="sticky top-0 z-50 bg-slate-900/60 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
                 <IconRocket className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-white">Orbit</span>
+              <span className="text-xl font-bold text-white">Orbit</span>
             </div>
 
             {/* Right Side */}
@@ -242,7 +244,7 @@ const Home: NextPage = () => {
               {/* Theme Toggle */}
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
               >
                 {theme === "dark" ? <IconSun className="w-5 h-5" /> : <IconMoon className="w-5 h-5" />}
               </button>
@@ -251,17 +253,17 @@ const Home: NextPage = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-3 p-1.5 pr-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  className="flex items-center gap-3 p-1.5 pr-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
                 >
                   <img
                     src={login?.thumbnail || "/placeholder.svg"}
                     alt={login?.displayname}
                     className="w-8 h-8 rounded-lg object-cover"
                   />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:block">
+                  <span className="text-sm font-medium text-white hidden sm:block">
                     {login?.displayname}
                   </span>
-                  <IconChevronDown className="w-4 h-4 text-slate-400" />
+                  <IconChevronDown className="w-4 h-4 text-white/60" />
                 </button>
 
                 <AnimatePresence>
@@ -319,10 +321,10 @@ const Home: NextPage = () => {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-white">
               Your Workspaces
             </h1>
-            <p className="mt-1 text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-slate-400">
               Select a workspace to manage your group
             </p>
           </div>
@@ -330,13 +332,13 @@ const Home: NextPage = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
             <div className="relative">
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
               <input
                 type="text"
                 placeholder="Search workspaces..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all"
+                className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500/40 focus:border-pink-500 transition-all"
               />
             </div>
 
@@ -344,7 +346,7 @@ const Home: NextPage = () => {
             <div className="flex gap-3">
               <button
                 onClick={checkRoles}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm font-medium text-white hover:bg-white/20 transition-colors"
               >
                 <IconRefresh className="w-5 h-5" />
                 <span className="hidden sm:inline">Sync Roles</span>
@@ -354,7 +356,7 @@ const Home: NextPage = () => {
                 <>
                   <button
                     onClick={() => setIsOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-pink-600 rounded-xl text-sm font-medium text-white hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-pink-500/20 transition-all"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-xl text-sm font-medium text-white hover:opacity-90 shadow-lg shadow-pink-500/30 transition-all"
                   >
                     <IconPlus className="w-5 h-5" />
                     <span className="hidden sm:inline">New Workspace</span>
@@ -362,7 +364,7 @@ const Home: NextPage = () => {
 
                   <button
                     onClick={() => setShowInstanceSettings(true)}
-                    className="p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    className="p-2.5 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors"
                   >
                     <IconSettings className="w-5 h-5" />
                   </button>
@@ -386,7 +388,7 @@ const Home: NextPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => gotoWorkspace(workspace.groupId)}
-                className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300"
+                className="group relative bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden cursor-pointer hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 hover:border-pink-500/50 transition-all duration-300"
               >
                 {/* Thumbnail */}
                 <div className="aspect-video relative overflow-hidden">
@@ -402,14 +404,14 @@ const Home: NextPage = () => {
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                      <h3 className="font-semibold text-white truncate group-hover:text-pink-400 transition-colors">
                         {workspace.groupName}
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 text-sm text-slate-400">
                         Group ID: {workspace.groupId}
                       </p>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-400 group-hover:bg-pink-100 dark:group-hover:bg-pink-500/20 group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">
+                    <div className="p-2 rounded-xl bg-white/5 text-white/60 group-hover:bg-pink-500/20 group-hover:text-pink-400 transition-colors">
                       <IconChevronRight className="w-5 h-5" />
                     </div>
                   </div>
@@ -424,11 +426,11 @@ const Home: NextPage = () => {
             className="relative overflow-hidden"
           >
             {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-3xl" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-fuchsia-500/5 to-pink-500/5 rounded-3xl" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-fuchsia-500/10 rounded-full blur-3xl" />
             
-            <div className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700 p-12 lg:p-16 text-center">
+            <div className="relative bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 p-12 lg:p-16 text-center">
               {/* Animated Icon */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -459,16 +461,16 @@ const Home: NextPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
                   {searchQuery ? (
                     <>
-                      No results for <span className="text-pink-600 dark:text-pink-400">"{searchQuery}"</span>
+                      No results for <span className="text-pink-400">"{searchQuery}"</span>
                     </>
                   ) : (
                     "Welcome to Orbit!"
                   )}
                 </h3>
-                <p className="text-base lg:text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
+                <p className="text-base lg:text-lg text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
                   {searchQuery 
                     ? "Try adjusting your search or browse all available workspaces."
                     : isOwner 
