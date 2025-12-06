@@ -7,29 +7,29 @@
    CSS CUSTOM PROPERTIES (Design Tokens)
    ============================================ */
 :root {
-  /* Primary Colors - Indigo/Violet gradient */
-  --color-primary-50: 238 242 255;
-  --color-primary-100: 224 231 255;
-  --color-primary-200: 199 210 254;
-  --color-primary-300: 165 180 252;
-  --color-primary-400: 129 140 248;
-  --color-primary-500: 99 102 241;
-  --color-primary-600: 79 70 229;
-  --color-primary-700: 67 56 202;
-  --color-primary-800: 55 48 163;
-  --color-primary-900: 49 46 129;
+  /* Primary Colors - Pink (Brand Color) */
+  --color-primary-50: 255 241 242;
+  --color-primary-100: 255 228 230;
+  --color-primary-200: 254 205 211;
+  --color-primary-300: 252 165 175;
+  --color-primary-400: 251 113 133;
+  --color-primary-500: 255 0 153;
+  --color-primary-600: 236 72 153;
+  --color-primary-700: 219 39 119;
+  --color-primary-800: 190 24 93;
+  --color-primary-900: 131 24 67;
 
-  /* Accent Colors - Pink/Rose */
-  --color-accent-50: 255 241 242;
-  --color-accent-100: 255 228 230;
-  --color-accent-200: 254 205 211;
-  --color-accent-300: 253 164 175;
-  --color-accent-400: 251 113 133;
-  --color-accent-500: 244 63 94;
-  --color-accent-600: 225 29 72;
-  --color-accent-700: 190 18 60;
-  --color-accent-800: 159 18 57;
-  --color-accent-900: 136 19 55;
+  /* Accent Colors - Deep Pink */
+  --color-accent-50: 253 242 248;
+  --color-accent-100: 252 231 243;
+  --color-accent-200: 251 207 232;
+  --color-accent-300: 249 168 212;
+  --color-accent-400: 244 114 182;
+  --color-accent-500: 236 72 153;
+  --color-accent-600: 219 39 119;
+  --color-accent-700: 190 24 93;
+  --color-accent-800: 157 23 77;
+  --color-accent-900: 131 24 67;
 
   /* Success Colors - Emerald */
   --color-success-50: 236 253 245;
@@ -216,7 +216,7 @@ body {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, rgb(var(--color-primary-500)) 0%, rgb(var(--color-accent-500)) 100%);
+  background: linear-gradient(135deg, #FF0099 0%, #EC4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -224,11 +224,11 @@ body {
 
 /* Gradient Background */
 .gradient-bg {
-  background: linear-gradient(135deg, rgb(var(--color-primary-500)) 0%, rgb(var(--color-accent-500)) 100%);
+  background: linear-gradient(135deg, #FF0099 0%, #EC4899 100%);
 }
 
 .gradient-bg-subtle {
-  background: linear-gradient(135deg, rgb(var(--color-primary-500) / 0.1) 0%, rgb(var(--color-accent-500) / 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 0, 153, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
 }
 
 /* Glass Effect */

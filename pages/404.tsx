@@ -17,7 +17,7 @@ const NotFound: NextPage = () => {
       {/* Navigation */}
       <nav className="p-6">
         <Link href="/" className="inline-flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <IconRocket className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold text-slate-900 dark:text-white">Orbit</span>
@@ -34,14 +34,14 @@ const NotFound: NextPage = () => {
             transition={{ duration: 0.5 }}
             className="relative mb-8"
           >
-            <div className="text-[12rem] font-extrabold leading-none bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
+            <div className="text-[12rem] font-extrabold leading-none bg-gradient-to-br from-pink-500 via-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
               404
             </div>
             {/* Floating elements */}
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-1/4 left-0 w-8 h-8 rounded-full bg-indigo-500/20 blur-sm"
+              className="absolute top-1/4 left-0 w-8 h-8 rounded-full bg-pink-500/20 blur-sm"
             />
             <motion.div
               animate={{ y: [0, 10, 0] }}
@@ -71,7 +71,7 @@ const NotFound: NextPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 shadow-lg shadow-indigo-500/20 transition-all"
               >
                 <IconHome className="w-5 h-5" />
                 Go to Dashboard
@@ -96,7 +96,7 @@ const NotFound: NextPage = () => {
             href="https://discord.gg/planetary"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="text-pink-600 dark:text-pink-400 hover:underline"
           >
             Contact support
           </a>

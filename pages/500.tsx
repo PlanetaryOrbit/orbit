@@ -17,7 +17,7 @@ const ServerError: NextPage = () => {
       {/* Navigation */}
       <nav className="p-6">
         <Link href="/" className="inline-flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <IconRocket className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold text-slate-900 dark:text-white">Orbit</span>
@@ -77,7 +77,7 @@ const ServerError: NextPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 shadow-lg shadow-indigo-500/20 transition-all"
               >
                 <IconRefresh className="w-5 h-5" />
                 Try Again
@@ -102,7 +102,7 @@ const ServerError: NextPage = () => {
             href="https://discord.gg/planetary"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="text-pink-600 dark:text-pink-400 hover:underline"
           >
             contact support
           </a>

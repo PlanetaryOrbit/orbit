@@ -219,8 +219,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     className={({ active }) =>
                       clsx(
                         "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
-                        active ? "bg-indigo-50 dark:bg-indigo-500/10" : "",
-                        workspace.groupId === ws.groupId && "bg-indigo-50 dark:bg-indigo-500/10"
+                        active ? "bg-pink-50 dark:bg-pink-500/10" : "",
+                        workspace.groupId === ws.groupId && "bg-pink-50 dark:bg-pink-500/10"
                       )
                     }
                   >
@@ -233,7 +233,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       {ws.groupName}
                     </span>
                     {workspace.groupId === ws.groupId && (
-                      <IconCheck className="w-4 h-4 text-indigo-500" />
+                      <IconCheck className="w-4 h-4 text-pink-500" />
                     )}
                   </Listbox.Option>
                 ))}
@@ -253,12 +253,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   className={clsx(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                     isActivePage(page.href)
-                      ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                      ? "bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400"
                       : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
                     isCollapsed && "justify-center px-2"
                   )}
                 >
-                  <page.icon className={clsx("w-5 h-5 flex-shrink-0", isActivePage(page.href) && "text-indigo-500")} />
+                  <page.icon className={clsx("w-5 h-5 flex-shrink-0", isActivePage(page.href) && "text-pink-500")} />
                   {!isCollapsed && (
                     <span className="flex-1 text-left">{page.name}</span>
                   )}
@@ -363,7 +363,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="px-3 py-2 text-xs text-slate-400 dark:text-slate-500">
               <button
                 onClick={() => setShowChangelog(true)}
-                className="hover:text-indigo-500 transition-colors"
+                className="hover:text-pink-500 transition-colors"
               >
                 Orbit v{packageJson.version}
               </button>
@@ -425,7 +425,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       href={entry.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                      className="inline-flex items-center gap-2 font-semibold text-pink-600 dark:text-pink-400 hover:underline"
                     >
                       {entry.title}
                       <IconExternalLink className="w-4 h-4" />

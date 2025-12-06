@@ -129,7 +129,7 @@ const LoginPage: NextPage = () => {
 
       <div className="min-h-screen flex">
         {/* Left Panel - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-pink-600 via-purple-600 to-pink-500 overflow-hidden">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
@@ -211,7 +211,7 @@ const LoginPage: NextPage = () => {
           {/* Top Bar */}
           <div className="flex items-center justify-between p-6">
             <div className="lg:hidden flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center">
                 <IconRocket className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-white">Orbit</span>
@@ -277,7 +277,7 @@ const LoginPage: NextPage = () => {
                             className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border ${
                               loginErrors.username 
                                 ? "border-red-500 focus:ring-red-500/20" 
-                                : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                : "border-slate-200 dark:border-slate-700 focus:ring-pink-500/20 focus:border-pink-500"
                             } text-slate-900 dark:text-white placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:ring-2`}
                           />
                           {loginErrors.username && (
@@ -297,7 +297,7 @@ const LoginPage: NextPage = () => {
                               className={`w-full px-4 py-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border ${
                                 loginErrors.password 
                                   ? "border-red-500 focus:ring-red-500/20" 
-                                  : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                  : "border-slate-200 dark:border-slate-700 focus:ring-pink-500/20 focus:border-pink-500"
                               } text-slate-900 dark:text-white placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:ring-2`}
                             />
                             <button
@@ -316,7 +316,7 @@ const LoginPage: NextPage = () => {
                         <div className="flex items-center justify-between">
                           <Link 
                             href="/forgot-password" 
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                            className="text-sm text-pink-600 dark:text-pink-400 hover:underline"
                           >
                             Forgot password?
                           </Link>
@@ -325,7 +325,7 @@ const LoginPage: NextPage = () => {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full py-3 px-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                          className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           {loading ? (
                             <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -398,7 +398,7 @@ const LoginPage: NextPage = () => {
                             className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border ${
                               signupErrors.username 
                                 ? "border-red-500 focus:ring-red-500/20" 
-                                : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                : "border-slate-200 dark:border-slate-700 focus:ring-pink-500/20 focus:border-pink-500"
                             } text-slate-900 dark:text-white placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:ring-2`}
                           />
                           {signupErrors.username && (
@@ -409,7 +409,7 @@ const LoginPage: NextPage = () => {
                         <button
                           type="submit"
                           disabled={loading}
-                          className="w-full py-3 px-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+                          className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           Continue
                           <IconArrowRight className="w-5 h-5" />
@@ -479,7 +479,7 @@ const LoginPage: NextPage = () => {
                               className={`w-full px-4 py-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border ${
                                 signupErrors.password 
                                   ? "border-red-500 focus:ring-red-500/20" 
-                                  : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                  : "border-slate-200 dark:border-slate-700 focus:ring-pink-500/20 focus:border-pink-500"
                               } text-slate-900 dark:text-white placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:ring-2`}
                             />
                             <button
@@ -509,7 +509,7 @@ const LoginPage: NextPage = () => {
                             className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border ${
                               signupErrors.verifypassword 
                                 ? "border-red-500 focus:ring-red-500/20" 
-                                : "border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                : "border-slate-200 dark:border-slate-700 focus:ring-pink-500/20 focus:border-pink-500"
                             } text-slate-900 dark:text-white placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:ring-2`}
                           />
                           {signupErrors.verifypassword && (
@@ -542,7 +542,7 @@ const LoginPage: NextPage = () => {
                           <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+                            className="flex-1 py-3 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
                           >
                             {loading ? (
                               <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -629,7 +629,7 @@ const LoginPage: NextPage = () => {
                         <button
                           onClick={onVerifyAgain}
                           disabled={loading}
-                          className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+                          className="flex-1 py-3 px-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-medium rounded-xl hover:from-pink-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           {loading ? (
                             <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">

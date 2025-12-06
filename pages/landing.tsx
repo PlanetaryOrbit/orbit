@@ -235,7 +235,7 @@ const Landing: NextPage = () => {
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center">
                 <IconRocket className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold">Planetary</span>
@@ -257,7 +257,7 @@ const Landing: NextPage = () => {
               </a>
               <a 
                 href="/login" 
-                className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+                className="px-5 py-2.5 bg-gradient-to-r from-pink-500 to-pink-500 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 Get Started Free
               </a>
@@ -293,7 +293,7 @@ const Landing: NextPage = () => {
                   <a href="/login" className="block text-center py-3 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/5 transition-colors">
                     Sign In
                   </a>
-                  <a href="/login" className="block text-center py-3 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-lg text-sm font-semibold">
+                  <a href="/login" className="block text-center py-3 bg-gradient-to-r from-pink-500 to-pink-500 rounded-lg text-sm font-semibold">
                     Get Started Free
                   </a>
                 </div>
@@ -309,9 +309,9 @@ const Landing: NextPage = () => {
       <section className="relative pt-32 lg:pt-40 pb-20 lg:pb-32 overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-indigo-500/5 to-pink-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-pink-500/5 to-pink-500/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -359,7 +359,7 @@ const Landing: NextPage = () => {
             >
               <a 
                 href="/login"
-                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-xl text-lg font-semibold hover:opacity-90 transition-all flex items-center justify-center space-x-2 pulse-glow"
+                className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-500 rounded-xl text-lg font-semibold hover:opacity-90 transition-all flex items-center justify-center space-x-2 pulse-glow"
               >
                 <span>Get Started Free</span>
                 <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -405,7 +405,7 @@ const Landing: NextPage = () => {
                   {/* Dashboard Header */}
                   <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
                     <div className="flex items-center space-x-4">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500" />
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-pink-500" />
                       <span className="font-semibold">Your Workspace</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -447,7 +447,7 @@ const Landing: NextPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-indigo-400 font-semibold text-sm uppercase tracking-wider"
+              className="text-pink-400 font-semibold text-sm uppercase tracking-wider"
             >
               Features
             </motion.span>
@@ -482,8 +482,8 @@ const Landing: NextPage = () => {
                 transition={{ delay: index * 0.1 }}
                 className="card-hover bg-[#1A1A2E] border border-white/5 rounded-2xl p-6 lg:p-8"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-pink-500/20 flex items-center justify-center mb-6">
-                  <feature.icon className="w-6 h-6 text-indigo-400" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/20 flex items-center justify-center mb-6">
+                  <feature.icon className="w-6 h-6 text-pink-400" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                 <p className="text-gray-400 leading-relaxed">{feature.description}</p>
@@ -503,7 +503,7 @@ const Landing: NextPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-indigo-400 font-semibold text-sm uppercase tracking-wider"
+              className="text-pink-400 font-semibold text-sm uppercase tracking-wider"
             >
               Choose Your Path
             </motion.span>
@@ -533,15 +533,15 @@ const Landing: NextPage = () => {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-2xl blur opacity-20" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-pink-500 rounded-2xl blur opacity-20" />
               <div className="relative bg-[#1A1A2E] border border-white/10 rounded-2xl p-8">
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center">
                     <IconCloud className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold">Planetary Cloud</h3>
-                    <span className="text-indigo-400 text-sm font-medium">Recommended</span>
+                    <span className="text-pink-400 text-sm font-medium">Recommended</span>
                   </div>
                 </div>
                 <div className="mb-6">
@@ -565,7 +565,7 @@ const Landing: NextPage = () => {
                 </ul>
                 <a 
                   href="/login"
-                  className="block w-full py-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-xl text-center font-semibold hover:opacity-90 transition-opacity"
+                  className="block w-full py-4 bg-gradient-to-r from-pink-500 to-pink-500 rounded-xl text-center font-semibold hover:opacity-90 transition-opacity"
                 >
                   Get Started Free
                 </a>
@@ -630,7 +630,7 @@ const Landing: NextPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-indigo-400 font-semibold text-sm uppercase tracking-wider"
+              className="text-pink-400 font-semibold text-sm uppercase tracking-wider"
             >
               Testimonials
             </motion.span>
@@ -657,12 +657,12 @@ const Landing: NextPage = () => {
                 transition={{ duration: 0.3 }}
                 className="bg-[#1A1A2E] border border-white/5 rounded-2xl p-8 lg:p-12 text-center"
               >
-                <IconQuote className="w-12 h-12 text-indigo-500/30 mx-auto mb-6" />
+                <IconQuote className="w-12 h-12 text-pink-500/30 mx-auto mb-6" />
                 <p className="text-xl lg:text-2xl text-gray-300 leading-relaxed mb-8">
                   "{testimonials[activeTestimonial].quote}"
                 </p>
                 <div className="flex items-center justify-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center text-2xl">
                     {testimonials[activeTestimonial].avatar}
                   </div>
                   <div className="text-left">
@@ -683,7 +683,7 @@ const Landing: NextPage = () => {
                   onClick={() => setActiveTestimonial(index)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     index === activeTestimonial 
-                      ? "w-8 bg-gradient-to-r from-indigo-500 to-pink-500" 
+                      ? "w-8 bg-gradient-to-r from-pink-500 to-pink-500" 
                       : "bg-white/20 hover:bg-white/40"
                   }`}
                   aria-label={`View testimonial ${index + 1}`}
@@ -704,7 +704,7 @@ const Landing: NextPage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-indigo-400 font-semibold text-sm uppercase tracking-wider"
+              className="text-pink-400 font-semibold text-sm uppercase tracking-wider"
             >
               FAQ
             </motion.span>
@@ -771,7 +771,7 @@ const Landing: NextPage = () => {
             viewport={{ once: true }}
             className="relative overflow-hidden rounded-3xl"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-pink-600" />
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-pink-600" />
             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
             <div className="relative px-8 py-16 lg:px-16 lg:py-24 text-center">
               <h2 className="text-3xl lg:text-5xl font-bold mb-6">
@@ -815,7 +815,7 @@ const Landing: NextPage = () => {
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-500 flex items-center justify-center">
                   <IconRocket className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold">Planetary</span>

@@ -46,18 +46,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary: clsx(
-        "bg-gradient-to-r from-indigo-500 to-indigo-600",
+        "bg-gradient-to-r from-pink-500 to-pink-600",
         "text-white shadow-sm",
-        "hover:from-indigo-600 hover:to-indigo-700 hover:shadow-md hover:-translate-y-0.5",
+        "hover:from-pink-600 hover:to-pink-700 hover:shadow-md hover:-translate-y-0.5",
         "active:translate-y-0 active:shadow-sm",
-        "focus-visible:ring-indigo-500"
+        "focus-visible:ring-pink-500"
       ),
       gradient: clsx(
-        "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
+        "bg-gradient-to-r from-pink-500 to-fuchsia-500",
         "text-white shadow-lg",
         "hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5",
         "active:translate-y-0",
-        "focus-visible:ring-purple-500"
+        "focus-visible:ring-pink-500"
       ),
       secondary: clsx(
         "bg-white dark:bg-slate-800",
@@ -75,10 +75,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ),
       outline: clsx(
         "bg-transparent",
-        "text-indigo-600 dark:text-indigo-400",
-        "border-2 border-indigo-500 dark:border-indigo-400",
-        "hover:bg-indigo-50 dark:hover:bg-indigo-500/10",
-        "focus-visible:ring-indigo-500"
+        "text-pink-600 dark:text-pink-400",
+        "border-2 border-pink-500 dark:border-pink-400",
+        "hover:bg-pink-50 dark:hover:bg-pink-500/10",
+        "focus-visible:ring-pink-500"
       ),
       danger: clsx(
         "bg-gradient-to-r from-red-500 to-red-600",
