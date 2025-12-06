@@ -27,6 +27,10 @@ import {
   IconUsers,
   IconChevronDown,
   IconExternalLink,
+  IconArrowRight,
+  IconBrandDiscord,
+  IconChartBar,
+  IconShield,
 } from "@tabler/icons-react"
 
 const Home: NextPage = () => {
@@ -417,30 +421,147 @@ const Home: NextPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center"
+            className="relative overflow-hidden"
           >
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-              <IconBuildingSkyscraper className="w-8 h-8 text-slate-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-              {searchQuery ? "No workspaces found" : "No workspaces yet"}
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-              {searchQuery 
-                ? `No workspaces match "${searchQuery}". Try a different search.`
-                : isOwner 
-                  ? "Create your first workspace to start managing your Roblox group."
-                  : "You don't have access to any workspaces yet. Contact an administrator."}
-            </p>
-            {isOwner && !searchQuery && (
-              <button
-                onClick={() => setIsOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl text-sm font-medium text-white hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 transition-all"
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-3xl" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/5 rounded-full blur-3xl" />
+            
+            <div className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl border border-slate-200 dark:border-slate-700 p-12 lg:p-16 text-center">
+              {/* Animated Icon */}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="relative inline-block mb-8"
               >
-                <IconPlus className="w-5 h-5" />
-                Create Workspace
-              </button>
-            )}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-3xl blur-xl opacity-20" />
+                <div className="relative w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+                  <IconBuildingSkyscraper className="w-12 h-12 text-white" />
+                </div>
+                {/* Floating elements */}
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-indigo-400/40 blur-sm"
+                />
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  className="absolute -bottom-2 -left-2 w-8 h-8 rounded-full bg-pink-400/40 blur-sm"
+                />
+              </motion.div>
+
+              {/* Content */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                  {searchQuery ? (
+                    <>
+                      No results for <span className="text-indigo-600 dark:text-indigo-400">"{searchQuery}"</span>
+                    </>
+                  ) : (
+                    "Welcome to Orbit!"
+                  )}
+                </h3>
+                <p className="text-base lg:text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
+                  {searchQuery 
+                    ? "Try adjusting your search or browse all available workspaces."
+                    : isOwner 
+                      ? "You're all set! Create your first workspace to start managing your Roblox group with powerful tools and insights."
+                      : "You don't have access to any workspaces yet. Contact your administrator to get started."}
+                </p>
+
+                {/* Action buttons */}
+                {isOwner && !searchQuery ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button
+                      onClick={() => setIsOpen(true)}
+                      className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl text-base font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/30 transition-all hover:-translate-y-0.5"
+                    >
+                      <IconPlus className="w-5 h-5" />
+                      Create Your First Workspace
+                      <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    <a
+                      href="https://docs.planetaryapp.us"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all"
+                    >
+                      <IconUsers className="w-5 h-5" />
+                      View Documentation
+                    </a>
+                  </div>
+                ) : searchQuery ? (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
+                  >
+                    <IconX className="w-5 h-5" />
+                    Clear Search
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Need help getting started?
+                    </p>
+                    <a
+                      href="https://discord.gg/planetary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl text-sm font-medium text-white hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 transition-all"
+                    >
+                      <IconBrandDiscord className="w-5 h-5" />
+                      Join Our Discord
+                    </a>
+                  </div>
+                )}
+
+                {/* Feature highlights for empty state */}
+                {!searchQuery && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-12 pt-12 border-t border-slate-200 dark:border-slate-700"
+                  >
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">
+                      What you'll get with Orbit:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                      {[
+                        { icon: IconUsers, label: "Staff Management", desc: "Track and organize your team" },
+                        { icon: IconChartBar, label: "Activity Analytics", desc: "Monitor performance metrics" },
+                        { icon: IconShield, label: "Role Permissions", desc: "Granular access control" },
+                      ].map((feature, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.6 + i * 0.1 }}
+                          className="flex flex-col items-center text-center"
+                        >
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mb-3">
+                            <feature.icon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                            {feature.label}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {feature.desc}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </main>
