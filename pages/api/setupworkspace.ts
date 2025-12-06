@@ -50,9 +50,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .status(405)
       .json({ success: false, error: "Method not allowed" });
 
-  // Log raw body for debugging
-  console.log("Raw request body:", req.body);
-  console.log("Request headers:", req.headers);
 
   // Ensure body is parsed
   if (!req.body || typeof req.body !== "object") {
