@@ -86,7 +86,7 @@ const Login: NextPage = () => {
     loginMethods.reset();
     signupMethods.reset();
     setVerificationError(false);
-    // setSignupStep(0);
+    setSignupStep(0);
     setLoading(false);
   }, [mode]);
 
@@ -329,7 +329,7 @@ const Login: NextPage = () => {
                           disabled={loading}
                           className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
                           Sign up with Roblox
                         </button>
                       </div>

@@ -4,11 +4,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model workspace {
   groupId           Int                        @id @unique
+  groupName         String?
+  groupLogo         String?
+  lastSynced        DateTime?
   adjustments       ActivityAdjustment[]
   activityHistory   ActivityHistory[]
   activityResets    ActivityReset[]

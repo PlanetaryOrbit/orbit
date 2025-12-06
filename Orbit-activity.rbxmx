@@ -47,6 +47,7 @@ local Configuration = {
 	url = "<url>",
 	auth = "<apikey>",
 	-- Edit to your liking
+	privateEnabled = false, -- Set to false if you do not want Orbit to track private servers
 	bansEnabled = false, -- Set to false if you do not want Orbit to handle bans (This will use less HTTP requests)
 	cooldownPeriod = 30, -- The interval (seconds) between retrying failed HTTP requests
 	rankChecking = false, -- Enables rank checking on player join/leave to ensure only relevant data is sent to Orbit (RECOMMENDED)
@@ -55,7 +56,13 @@ local Configuration = {
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
 }
 
+if Configuration.privateEnabled == false then
+	if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
+		return warn("Orbit: Your activity does not track in private servers or Studio.")
+	end
+end
 warn("Orbit: Module loaded; activity will be tracked.")
+
 
 -- Functions
 local function isUserTracked(Player)

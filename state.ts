@@ -18,10 +18,7 @@ export type LoginState = {
 	isOwner: boolean;
 }
 
-const __global = globalThis as any;
-__global.__recoilAtoms = __global.__recoilAtoms || {};
-
-const loginState = __global.__recoilAtoms.loginState || (__global.__recoilAtoms.loginState = atom<LoginState>({
+const loginState = atom<LoginState>({
 	key: "loginState",
 	default: {
 		userId: 1,
@@ -32,9 +29,9 @@ const loginState = __global.__recoilAtoms.loginState || (__global.__recoilAtoms.
 		workspaces: [] as workspaceinfo[],
 		isOwner: false
 	},
-}));
+});
 
-const workspacestate = __global.__recoilAtoms.workspacestate || (__global.__recoilAtoms.workspacestate = atom({
+const workspacestate = atom({
 	key: "workspacestate",
 	default: {
 		groupId: typeof window !== 'undefined' ? parseInt(window.location.pathname.split('/')[2]) || 1 : 1,
@@ -51,11 +48,10 @@ const workspacestate = __global.__recoilAtoms.workspacestate || (__global.__reco
 			noticesEnabled: false,
 			leaderboardEnabled: false,
 			policiesEnabled: false,
-			liveServersEnabled: false,
 			widgets: [] as string[]
 		}
 	}
-}));
+});
 
 
 export {loginState, workspacestate};

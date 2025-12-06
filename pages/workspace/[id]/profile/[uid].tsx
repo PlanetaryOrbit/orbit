@@ -386,7 +386,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         info: {
           username: await getUsername(Number(query?.uid as string)),
           displayName: await getDisplayName(Number(query?.uid as string)),
-          avatar: await getThumbnail(Number(query?.uid as string)),
+          avatar: getThumbnail(Number(query?.uid as string)),
         },
         isUser: (req as any)?.session?.userid === Number(query?.uid as string),
         isAdmin,

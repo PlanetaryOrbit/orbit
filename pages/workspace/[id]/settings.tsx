@@ -105,7 +105,7 @@ const SECTIONS = {
     icon: IconFlag,
     description: "Enable or disable workspace features",
     components: Object.entries(All)
-      .filter(([key]) => key === "Guide" || key === "Sessions" || key === "Alliances" || key === "Leaderboard" || key === "Notices" || key === "Policies" || key === "LiveServers")
+      .filter(([key]) => key === "Guide" || key === "Sessions" || key === "Alliances" || key === "Leaderboard" || key === "Notices" || key === "Policies")
       .map(([key, Component]) => ({
         key,
         component: Component,

@@ -29,6 +29,8 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		'Assign users to Sessions': 'sessions_assign',
 		'Assign Self to Sessions': 'sessions_claim',
 		'Host/Co-Host Sessions': 'sessions_host',
+		'Create Unscheduled Sessions': 'sessions_unscheduled',
+		'Create Scheduled Sessions': 'sessions_scheduled',
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
 		"Manage quotas": "manage_quotas",
@@ -65,10 +67,6 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		
 		rroles[index].name = value;
 		setRoles(rroles);
-		await axios.post(
-			`/api/workspace/${workspace.groupId}/settings/roles/${id}/update`,
-			{ name: value, permissions: rroles[index].permissions, groupRoles: rroles[index].groupRoles }
-		);
 	};
 
 	const togglePermission = async (id: string, permission: string) => {
@@ -89,11 +87,6 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 			rroles[index].permissions.push(permission);
 		}
 		setRoles(rroles);
-
-		await axios.post(
-			`/api/workspace/${workspace.groupId}/settings/roles/${id}/update`,
-			{ name: rroles[index].name, permissions: rroles[index].permissions, groupRoles: rroles[index].groupRoles }
-		);
 	};
 
 	const toggleGroupRole = async (id: string, role: Role) => {
@@ -102,7 +95,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		const rroles = Object.assign(([] as typeof roles), roles);
 		
 		if (rroles[index].isOwnerRole) {
-			toast.error('Owner role group assignments cannot be modified');
+			toast.error('Owner role group assignments cannot be modified.');
 			return;
 		}
 		
@@ -112,11 +105,26 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 			rroles[index].groupRoles.push(role.id);
 		}
 		setRoles(rroles);
-		await axios.post(
-			`/api/workspace/${workspace.groupId}/settings/roles/${id}/update`,
-			{ name: rroles[index].name, permissions: rroles[index].permissions, groupRoles: rroles[index].groupRoles }
-		);
 	};
+
+	 const saveRole = async (id: string) => {
+		 const index = roles.findIndex((r: any) => r.id === id);
+		 if (index === -1) return;
+		 const payload = {
+			 name: roles[index].name,
+			 permissions: roles[index].permissions,
+			 groupRoles: roles[index].groupRoles,
+		 };
+		 try {
+			 await axios.post(
+				 `/api/workspace/${workspace.groupId}/settings/roles/${id}/update`,
+				 payload
+			 );
+			 toast.success('Role saved!');
+		 } catch (e) {
+			 toast.error('Failed to save role.');
+		 }
+	 };
 
 	const checkRoles = async () => {
 		const res = axios.post(
@@ -276,15 +284,23 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 												)}
 											</div>
 
-											{!role.isOwnerRole && (
-												<button
-													onClick={() => deleteRole(role.id)}
-													className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
-												>
-													<IconTrash size={16} className="mr-1.5" />
-													Delete Role
-												</button>
-											)}
+																					{!role.isOwnerRole && (
+																						<div className="flex gap-2">
+																							<button
+																								onClick={() => saveRole(role.id)}
+																								className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-colors"
+																							>
+																								Save Changes
+																							</button>
+																							<button
+																								onClick={() => deleteRole(role.id)}
+																								className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
+																							>
+																								<IconTrash size={16} className="mr-1.5" />
+																								Delete Role
+																							</button>
+																						</div>
+																					)}
 										</div>
 									</Disclosure.Panel>
 								</Transition>

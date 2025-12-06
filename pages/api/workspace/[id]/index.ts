@@ -72,7 +72,8 @@ export async function handler(
 	});
 	if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
-	const groupinfo = await noblox.getGroup(workspace.groupId);
+	const groupName = workspace.groupName || 'Unknown Group';
+	const groupLogo = workspace.groupLogo || '';
 	const themeconfig = await getConfig('theme', workspace.groupId);
 
 	const permissions = {
@@ -84,6 +85,8 @@ export async function handler(
 		'Assign users to Sessions': 'sessions_assign',
 		'Assign Self to Sessions': 'sessions_claim',
 		'Host Sessions': 'sessions_host',
+		"Create Unscheduled": "sessions_unscheduled",
+		"Create Scheduled": "sessions_scheduled",
 		"Manage sessions": "manage_sessions",
 		"Manage activity": "manage_activity",
 		"Manage quotas": "manage_quotas",
@@ -93,8 +96,8 @@ export async function handler(
 		"Admin (Manage workspace)": "admin",
 	};	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
 		groupId: workspace.groupId,
-		groupThumbnail: await noblox.getLogo(workspace.groupId),
-		groupName: groupinfo.name,
+		groupThumbnail: groupLogo,
+		groupName: groupName,
 		yourPermission: user.roles[0].isOwnerRole ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
 		roles: workspace.roles,

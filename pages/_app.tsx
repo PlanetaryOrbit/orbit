@@ -52,7 +52,7 @@ function ThemeHandler() {
   useEffect(() => {
     if (!theme) return;
     document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
+    document.documentElement.classList.add(theme as string);
   }, [theme]);
 
   return null;

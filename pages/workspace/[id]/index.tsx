@@ -5,6 +5,7 @@ import type { pageWithLayout } from "@/layoutTypes"
 import { loginState, workspacestate } from "@/state"
 import Workspace from "@/layouts/workspace"
 import Sessions from "@/components/home/sessions"
+import Notices from "@/components/home/notices"
 import Docs from "@/components/home/docs"
 import Policies from "@/components/home/policies"
 import randomText from "@/utils/randomText"
@@ -30,6 +31,7 @@ import {
   IconArrowRight,
   IconGift,
   IconShield,
+  IconAlertTriangle,
 } from "@tabler/icons-react"
 import clsx from "clsx"
 
@@ -39,6 +41,7 @@ interface WidgetConfig {
   title: string
   description: string
   color: string
+  beta?: boolean;
 }
 
 const Home: pageWithLayout = () => {
@@ -67,6 +70,13 @@ const Home: pageWithLayout = () => {
       description: "Ongoing and upcoming sessions",
       color: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
     },
+    notices: {
+      component: Notices,
+      icon: IconAlertTriangle,
+      title: "Notices",
+      description: "Staff currently on notice",
+      color: "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20",
+    },
     documents: {
       component: Docs,
       icon: IconFileText,
@@ -77,16 +87,18 @@ const Home: pageWithLayout = () => {
     policies: {
       component: Policies,
       icon: IconShield,
-      title: "Policy Dashboard",
-      description: "Track your policy acknowledgments (BETA)",
+      title: "Policies",
+      description: "Track your policy acknowledgments",
       color: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
+	  beta: true,
     },
     compliance: {
       component: () => <ComplianceOverviewWidget workspaceId={workspace.groupId.toString()} />,
       icon: IconShield,
       title: "Compliance Overview",
-      description: "Workspace-wide compliance metrics (BETA)",
+      description: "Workspace-wide compliance metrics",
       color: "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
+	  beta: true,
     },
   }
 
@@ -196,12 +208,16 @@ const Home: pageWithLayout = () => {
             />
           </div>
         )}
-        <div className="mb-8 z-0 relative">
-          <Birthdays />
-        </div>
-        <div className="mb-8 z-0 relative">
-          <NewToTeam />
-        </div>
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("birthdays") && (
+          <div className="mb-8 z-0 relative">
+            <Birthdays />
+          </div>
+        )}
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
+          <div className="mb-8 z-0 relative">
+            <NewToTeam />
+          </div>
+        )}
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
@@ -245,7 +261,12 @@ const Home: pageWithLayout = () => {
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
+                        <div className="flex flex-row items-center gap-2">
+							<h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
+							{widgetConfig.beta && <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+								BETA
+							</span>}
+						</div>
                         <p className="text-sm text-zinc-600 dark:text-zinc-300">{widgetConfig.description}</p>
                       </div>
                     </div>

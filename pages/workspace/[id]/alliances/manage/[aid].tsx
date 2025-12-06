@@ -77,7 +77,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         return {
           ...user,
           userid: Number(user.userid),
-          thumbnail: await getThumbnail(user.userid),
+          thumbnail: getThumbnail(user.userid),
         };
       })
     );
@@ -105,13 +105,20 @@ export const getServerSideProps = withPermissionCheckSsr(
           ...rep,
           userid: Number(rep.userid),
           username: await getUsername(rep.userid),
-          thumbnail: await getThumbnail(rep.userid),
+          thumbnail: getThumbnail(rep.userid),
         };
       })
     );
 
     let infoAlly = ally;
     infoAlly.reps = infoReps;
+    const eligibleIds = new Set(infoUsers.map((u: any) => Number(u.userid)));
+    const repIds = new Set(infoReps.map((r: any) => Number(r.userid)));
+    const allDbIdsRaw = await prisma.user.findMany({ select: { userid: true } });
+    const extraIds = allDbIdsRaw
+      .map((u: any) => Number(u.userid))
+      .filter((id: number) => !eligibleIds.has(id) && !repIds.has(id));
+      const missingReps = infoReps.filter((r: any) => !eligibleIds.has(Number(r.userid)));
     // @ts-ignore
     const visits = await prisma.allyVisit.findMany({
       where: {
@@ -126,7 +133,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           ...visit,
           hostId: Number(visit.hostId),
           hostUsername: await getUsername(visit.hostId),
-          hostThumbnail: await getThumbnail(visit.hostId),
+          hostThumbnail: getThumbnail(visit.hostId),
           time: new Date(visit.time).toISOString(),
         };
       })
@@ -173,6 +180,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         infoUsers,
         infoAlly,
         infoVisits,
+        missingReps,
         canEdit: true,
       },
     };
@@ -666,7 +674,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         <div
                           className={`w-8 h-8 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
                             rep.userid
-                          )} border-2 border-white hover:scale-110 transition-transform`}
+                          )} border-2 ${(props as any).missingReps?.some((m: any) => Number(m.userid) === Number(rep.userid)) ? 'border-amber-400 opacity-70' : 'border-white'} hover:scale-110 transition-transform`}
                         >
                           <img
                             src={rep.thumbnail}
@@ -784,6 +792,40 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                           </span>
                         </label>
                       ))}
+
+                      {(props as any).missingReps
+                        ?.filter((m: any) => reps.includes(Number(m.userid)))
+                        .map((m: any) => (
+                          <label
+                            key={`missing-${m.userid}`}
+                            className="flex items-center gap-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              value={m.userid}
+                              checked={reps.includes(Number(m.userid))}
+                              onChange={handleCheckboxChange}
+                              className="rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                                String(m.userid)
+                              )} overflow-hidden opacity-70`}
+                            >
+                              <img
+                                src={m.thumbnail || "/default-avatar.jpg"}
+                                className="w-full h-full object-cover"
+                                alt={m.username}
+                                style={{ background: "transparent" }}
+                                onError={(e) => (e.currentTarget.src = "/default-avatar.jpg")}
+                              />
+                            </div>
+                            <span className="text-sm text-zinc-900 dark:text-white">
+                              {m.username}
+                              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">(not in workspace)</span>
+                            </span>
+                          </label>
+                        ))}
                     </div>
                   </>
                 ) : (
@@ -791,10 +833,13 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     {ally.reps && ally.reps.length > 0 ? (
                       ally.reps.map((rep: any, index: number) => (
                         <div
-                          key={index}
+                          key={`rep-${index}`}
                           className="text-sm text-zinc-700 dark:text-zinc-300"
                         >
                           • {rep.username}
+                          {(props as any).missingReps?.some((m: any) => Number(m.userid) === Number(rep.userid)) && (
+                            <span className="ml-2 text-xs text-amber-500">(not in workspace)</span>
+                          )}
                         </div>
                       ))
                     ) : (

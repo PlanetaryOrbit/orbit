@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "2.1.6beta5",
+  "version": "2.1.6beta13",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -15,7 +15,7 @@
     "@inovua/reactdatagrid-community": "^5.8.0",
     "@intercom/messenger-js-sdk": "^0.0.14",
     "@popperjs/core": "^2.11.8",
-    "@prisma/client": "^6.10.1",
+    "@prisma/adapter-pg": "^7.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@tabler/icons": "^2.47.0",
     "@tabler/icons-react": "^3.34.0",
@@ -38,6 +38,7 @@
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.3",
     "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "emoji-picker-react": "^4.12.2",
     "express-rate-limit": "^7.5.0",
@@ -54,6 +55,8 @@
     "next-themes": "^0.4.6",
     "noblox.js": "^6.2.0",
     "node-cache": "^5.1.2",
+    "pg": "^8.16.3",
+    "pnpm": "^10.24.0",
     "posthog-js": "^1.255.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",
@@ -71,15 +74,18 @@
     "rss-parser": "^3.13.0",
     "sanitize-html": "^2.16.0",
     "sass": "^1.77.4",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^2.2.0",
     "ts-node": "^10.9.2",
     "uuid": "^9.0.1",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@prisma/client": "^7.1.0",
     "@types/file-type": "^10.6.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.12.12",
+    "@types/pg": "^8.15.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.3",
     "@types/sanitize-html": "^2.16.0",
@@ -88,7 +94,7 @@
     "eslint-config-next": "^15.3.4",
     "js-yaml": "^4.1.1",
     "postcss": "^8.4.38",
-    "prisma": "6.19.0",
+    "prisma": "^7.1.0",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.5.0"
   }

@@ -61,7 +61,7 @@ async function retryNobloxRequest<T>(
 
 export function withPermissionCheck(
   handler: NextApiHandler,
-  permission?: string
+  permission?: string | string[]
 ) {
   return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
     const uid = req.session.userid;
@@ -95,7 +95,9 @@ export function withPermissionCheck(
       const userrole = cached.data;
       if (userrole.isOwnerRole) return handler(req, res);
       if (!permission) return handler(req, res);
-      if (userrole.permissions?.includes(permission)) return handler(req, res);
+      const permissions = Array.isArray(permission) ? permission : [permission];
+      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      if (hasPermission) return handler(req, res);
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
@@ -114,25 +116,25 @@ export function withPermissionCheck(
         },
       },
     });
-    console.log("User data:", user);
     if (!user)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     const userrole = user.roles[0];
-    console.log("User role:", userrole);
     if (!userrole)
       return res.status(401).json({ success: false, error: "Unauthorized" });
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
     
     if (userrole.isOwnerRole) return handler(req, res);
     if (!permission) return handler(req, res);
-    if (userrole.permissions?.includes(permission)) return handler(req, res);
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+    if (hasPermission) return handler(req, res);
     return res.status(401).json({ success: false, error: "Unauthorized" });
   });
 }
 
 export function withPermissionCheckSsr(
   handler: (context: GetServerSidePropsContext) => Promise<any>,
-  permission?: string
+  permission?: string | string[]
 ) {
   return withSessionSsr(async (context) => {
     const { req, res, query } = context;
@@ -173,7 +175,9 @@ export function withPermissionCheckSsr(
       const userrole = cached.data;
       if (userrole.isOwnerRole) return handler(context);
       if (!permission) return handler(context);
-      if (userrole.permissions?.includes(permission)) return handler(context);
+      const permissions = Array.isArray(permission) ? permission : [permission];
+      const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+      if (hasPermission) return handler(context);
       return {
         redirect: {
           destination: "/",
@@ -217,10 +221,11 @@ export function withPermissionCheckSsr(
       };
     }
     permissionsCache.set(cacheKey, { data: userrole, timestamp: now });
+    const permissions = Array.isArray(permission) ? permission : (permission ? [permission] : []);
     const hasPermission =
       !permission ||
       user?.roles.some(
-        (role) => role.isOwnerRole || role.permissions.includes(permission)
+        (role) => role.isOwnerRole || permissions.some(perm => role.permissions.includes(perm))
       );
 
     if (!hasPermission) {
@@ -238,17 +243,79 @@ export function withPermissionCheckSsr(
 
 export async function checkGroupRoles(groupID: number) {
   try {
-    console.log(`[checkGroupRoles] Starting role sync for group ${groupID}`);
+    console.log(`[update-group] Starting sync for group ${groupID}`);
+    try {
+      const [logo, group] = await Promise.all([
+        noblox.getLogo(groupID).catch(() => null),
+        noblox.getGroup(groupID).catch(() => null)
+      ]);
+      
+      if (logo || group) {
+        await prisma.workspace.update({
+          where: { groupId: groupID },
+          data: {
+            ...(group && { groupName: group.name }),
+            ...(logo && { groupLogo: logo }),
+            lastSynced: new Date()
+          }
+        });
+        console.log(`[update-group] Updated group info cache for ${groupID}`);
+      }
+    } catch (err) {
+      console.error(`[update-group] Failed to update group info cache:`, err);
+    }
+
+    const allPermissions = [
+      'admin',
+      'view_staff_config',
+      'manage_sessions',
+      'sessions_unscheduled',
+      'sessions_scheduled',
+      'sessions_assign',
+      'sessions_claim',
+      'sessions_host',
+      'manage_activity',
+      'post_on_wall',
+      'manage_wall',
+      'manage_views',
+      'view_wall',
+      'view_members',
+      'manage_members',
+      'manage_quotas',
+      'manage_docs',
+      'manage_policies',
+      'view_entire_groups_activity',
+      'manage_alliances',
+      'represent_alliance'
+    ];
+
+    try {
+      await prisma.role.updateMany({
+        where: {
+          workspaceGroupId: groupID,
+          isOwnerRole: true,
+        },
+        data: {
+          permissions: allPermissions,
+        },
+      });
+      console.log(`[update-group] Updated owner role permissions for group ${groupID}`);
+    } catch (error) {
+      console.error(
+        `[update-group] Failed to update owner role permissions for group ${groupID}:`,
+        error
+      );
+    }
 
     const rss = await retryNobloxRequest(() => noblox.getRoles(groupID)).catch((error) => {
       console.error(
-        `[checkGroupRoles] Failed to get roles for group ${groupID}:`,
+        `[update-group] Failed to get roles for group ${groupID}:`,
         error
       );
       return null;
     });
     if (!rss) {
-      console.log(`[checkGroupRoles] No roles found for group ${groupID}`);
+      console.log(`[update-group] No roles found for group ${groupID}`);
       return;
     }
 
@@ -262,7 +329,7 @@ export async function checkGroupRoles(groupID: number) {
       })
       .catch((error) => {
         console.error(
-          `[checkGroupRoles] Failed to fetch roles from database for group ${groupID}:`,
+          `[update-group] Failed to fetch roles from database for group ${groupID}:`,
           error
         );
         return [];
@@ -270,7 +337,7 @@ export async function checkGroupRoles(groupID: number) {
 
     const config = await getConfig("activity", groupID).catch((error) => {
       console.error(
-        `[checkGroupRoles] Failed to get config for group ${groupID}:`,
+        `[update-group] Failed to get config for group ${groupID}:`,
         error
       );
       return null;
@@ -282,14 +349,14 @@ export async function checkGroupRoles(groupID: number) {
       ranks.push(role);
     }
     console.log(
-      `[checkGroupRoles] Processing ${ranks.length} ranks for group ${groupID}`
+      `[update-group] Processing ${ranks.length} ranks for group ${groupID}`
     );
 
     if (ranks && ranks.length) {
       for (const rank of ranks) {
         try {
           console.log(
-            `[checkGroupRoles] Processing rank ${rank.name} (${rank.id}) for group ${groupID}`
+            `[update-group] Processing rank ${rank.name} (${rank.id}) for group ${groupID}`
           );
 
           const role = rs.find((r) => r.groupRoles?.includes(rank.id));
@@ -298,14 +365,14 @@ export async function checkGroupRoles(groupID: number) {
           await delay(500); // Small delay between rank processing
           const members = await retryNobloxRequest(() => noblox.getPlayers(groupID, rank.id)).catch((error) => {
             console.error(
-              `[checkGroupRoles] Failed to get players for rank ${rank.id}:`,
+              `[update-group] Failed to get players for rank ${rank.id}:`,
               error
             );
             return null;
           });
           if (!members) {
             console.log(
-              `[checkGroupRoles] No members found for rank ${rank.id}, skipping`
+              `[update-group] No members found for rank ${rank.id}, skipping`
             );
             continue;
           }
@@ -328,7 +395,7 @@ export async function checkGroupRoles(groupID: number) {
             })
             .catch((error) => {
               console.error(
-                `[checkGroupRoles] Failed to fetch users from database:`,
+                `[update-group] Failed to fetch users from database:`,
                 error
               );
               return [];
@@ -362,14 +429,14 @@ export async function checkGroupRoles(groupID: number) {
                   })
                   .catch((error) => {
                     console.error(
-                      `[checkGroupRoles] Failed to upsert rank for user ${user.userid}:`,
+                      `[update-group] Failed to upsert rank for user ${user.userid}:`,
                       error
                     );
                   });
               }
             } catch (error) {
               console.error(
-                `[checkGroupRoles] Error processing rank for user ${user.userid}:`,
+                `[update-group] Error processing rank for user ${user.userid}:`,
                 error
               );
             }
@@ -388,7 +455,7 @@ export async function checkGroupRoles(groupID: number) {
                   continue;
                 if (user.roles.find((r) => r.id === role?.id)?.isOwnerRole) {
                   console.log(
-                    `Skipping role removal for user ${user.userid} - they have an owner role`
+                    `[update-group] Skipping role removal for user ${user.userid} - they have an owner role`
                   );
                   continue;
                 }
@@ -407,13 +474,13 @@ export async function checkGroupRoles(groupID: number) {
                   })
                   .catch((error) => {
                     console.error(
-                      `[checkGroupRoles] Failed to disconnect role for user ${user.userid}:`,
+                      `[update-group] Failed to disconnect role for user ${user.userid}:`,
                       error
                     );
                   });
               } catch (error) {
                 console.error(
-                  `[checkGroupRoles] Error removing role for user ${user.userid}:`,
+                  `[update-group] Error removing role for user ${user.userid}:`,
                   error
                 );
               }
@@ -437,7 +504,7 @@ export async function checkGroupRoles(groupID: number) {
                     })
                     .catch((error) => {
                       console.error(
-                        `[checkGroupRoles] Failed to update username for user ${member.userId}:`,
+                        `[update-group] Failed to update username for user ${member.userId}:`,
                         error
                       );
                     });
@@ -460,7 +527,7 @@ export async function checkGroupRoles(groupID: number) {
                     })
                     .catch((error) => {
                       console.error(
-                        `[checkGroupRoles] Failed to upsert rank for existing user ${member.userId}:`,
+                        `[update-group] Failed to upsert rank for existing user ${member.userId}:`,
                         error
                       );
                     });
@@ -480,7 +547,7 @@ export async function checkGroupRoles(groupID: number) {
                   })
                   .catch((error) => {
                     console.error(
-                      `[checkGroupRoles] Failed to find user ${member.userId}:`,
+                      `[update-group] Failed to find user ${member.userId}:`,
                       error
                     );
                     return null;
@@ -489,22 +556,10 @@ export async function checkGroupRoles(groupID: number) {
 
                 if (role.isOwnerRole) {
                   console.log(
-                    `Skipping assignment of owner role ${role.id} to new user ${member.userId}`
+                    `[update-group] Skipping assignment of owner role ${role.id} to new user ${member.userId}`
                   );
                   continue;
                 }
-
-                // Add delay and retry for getThumbnail
-                await delay(300); // Small delay before thumbnail fetch
-                const thumbnail = await retryNobloxRequest(() => getThumbnail(member.userId)).catch(
-                  (error) => {
-                    console.error(
-                      `[checkGroupRoles] Failed to get thumbnail for user ${member.userId}:`,
-                      error
-                    );
-                    return "";
-                  }
-                );
 
                 await prisma.user
                   .upsert({
@@ -519,7 +574,7 @@ export async function checkGroupRoles(groupID: number) {
                         },
                       },
                       username: member.username,
-                      picture: thumbnail,
+                      picture: getThumbnail(member.userId),
                     },
                     update: {
                       roles: {
@@ -532,7 +587,7 @@ export async function checkGroupRoles(groupID: number) {
                   })
                   .catch((error) => {
                     console.error(
-                      `[checkGroupRoles] Failed to upsert user ${member.userId}:`,
+                      `[update-group] Failed to upsert user ${member.userId}:`,
                       error
                     );
                   });
@@ -556,13 +611,13 @@ export async function checkGroupRoles(groupID: number) {
                   })
                   .catch((error) => {
                     console.error(
-                      `[checkGroupRoles] Failed to upsert rank for new user ${member.userId}:`,
+                      `[update-group] Failed to upsert rank for new user ${member.userId}:`,
                       error
                     );
                   });
               } catch (error) {
                 console.error(
-                  `[checkGroupRoles] Error processing member ${member.userId}:`,
+                  `[update-group] Error processing member ${member.userId}:`,
                   error
                 );
               }
@@ -570,17 +625,17 @@ export async function checkGroupRoles(groupID: number) {
           }
         } catch (error) {
           console.error(
-            `[checkGroupRoles] Error processing rank ${rank.id}:`,
+            `[update-group] Error processing rank ${rank.id}:`,
             error
           );
         }
       }
     }
 
-    console.log(`[checkGroupRoles] Completed role sync for group ${groupID}`);
+    console.log(`[update-group] Completed role sync for group ${groupID}`);
   } catch (error) {
     console.error(
-      `[checkGroupRoles] Fatal error syncing group ${groupID}:`,
+      `[update-group] Fatal error syncing group ${groupID}:`,
       error
     );
     throw error;
@@ -645,7 +700,7 @@ export async function checkSpecificUser(userID: number) {
     if (user.roles.length) {
       if (user.roles[0].isOwnerRole) {
         console.log(
-          `Skipping role update for user ${userID} - they have an owner role`
+          `[update-group]Skipping role update for user ${userID} - they have an owner role`
         );
         continue;
       }
@@ -664,7 +719,7 @@ export async function checkSpecificUser(userID: number) {
     }
     if (role.isOwnerRole) {
       console.log(
-        `Skipping assignment of owner role ${role.id} to user ${userID}`
+        `[update-group] Skipping assignment of owner role ${role.id} to user ${userID}`
       );
       continue;
     }

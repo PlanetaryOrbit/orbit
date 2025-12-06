@@ -889,7 +889,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
                   <span className="hidden sm:inline">Visibility Filters</span>
                 </button>
               )}
-              {workspace.yourPermission?.includes("manage_sessions") && (
+              {(workspace.yourPermission?.includes("sessions_scheduled") ||
+                workspace.yourPermission?.includes("sessions_unscheduled")) && (
                 <button
                   onClick={() =>
                     router.push(`/workspace/${router.query.id}/sessions/new`)

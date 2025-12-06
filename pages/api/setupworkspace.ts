@@ -51,8 +51,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .json({ success: false, error: "Method not allowed" });
 
   // Log raw body for debugging
-  console.log("Raw request body:", req.body);
-  console.log("Request headers:", req.headers);
+
 
   // Ensure body is parsed
   if (!req.body || typeof req.body !== "object") {
@@ -124,11 +123,27 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const hashedPassword = await safeHashPassword(password);
     console.log("Password hashed successfully");
 
-    // Create workspace with validated groupIdNumber
+    let groupName = `Group ${groupIdNumber}`;
+    let groupLogo = '';
+    
+    try {
+      const [logo, group] = await Promise.all([
+        noblox.getLogo(groupIdNumber).catch(() => ''),
+        noblox.getGroup(groupIdNumber).catch(() => null)
+      ]);
+      if (group) groupName = group.name;
+      if (logo) groupLogo = logo;
+    } catch (err) {
+      console.error('Failed to fetch group info during workspace setup:', err);
+    }
+
     const workspace = await prisma.workspace
       .create({
         data: {
           groupId: groupIdNumber,
+          groupName,
+          groupLogo,
+          lastSynced: new Date()
         },
       })
       .catch((e) => {
@@ -238,6 +253,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "admin",
             "view_staff_config",
             "manage_sessions",
+            "sessions_unscheduled",
+            "sessions_scheduled",
             "manage_activity",
             "post_on_wall",
             "manage_wall",
@@ -298,7 +315,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       userId: req.session.userid,
       username: await getUsername(req.session.userid),
       displayname: await getDisplayName(req.session.userid),
-      thumbnail: await getThumbnail(req.session.userid),
+      thumbnail: getThumbnail(req.session.userid),
       isOwner: true,
     };
 

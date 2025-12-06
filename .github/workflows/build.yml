@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: "Version bump type"
         required: true
-        default: 'auto'
+        default: "auto"
         type: choice
         options:
           - auto
@@ -44,7 +44,6 @@ jobs:
       - name: Get current version
         id: get_version
         run: |
-          # Try to get the latest tag
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.1.3beta0")
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "📦 Latest tag: $LATEST_TAG"
@@ -53,24 +52,21 @@ jobs:
         id: next_version
         run: |
           LATEST_TAG="${{ steps.get_version.outputs.latest_tag }}"
-          
-          # Expect tags like 2.1.3beta4
+
           if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
             BETA="${BASH_REMATCH[4]}"
           else
-            # If no valid tag found, start from 2.1.3beta0
             MAJOR=2
             MINOR=1
             PATCH=3
             BETA=0
           fi
-          
-          # Bump type from workflow_dispatch or default to auto
+
           BUMP_TYPE="${{ github.event.inputs.version_bump || 'auto' }}"
-          
+
           if [ "$BUMP_TYPE" = "major" ]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
@@ -82,28 +78,50 @@ jobs:
             BETA=1
           elif [ "$BUMP_TYPE" = "patch" ]; then
             PATCH=$((PATCH + 1))
-            # Reset beta to 1 on a new patch
             BETA=1
           else
-            # Auto mode: just increment beta
             BETA=$((BETA + 1))
           fi
-          
+
           NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}"
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
 
-      - name: Build and push multi-platform image
+      # Build ARM64 first (usually faster)
+      - name: Build and push ARM64 image
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64
+          cache-from: type=gha,scope=arm64
+          cache-to: type=gha,mode=max,scope=arm64
+
+      # Build AMD64 separately (no cache to avoid hangs)
+      - name: Build and push AMD64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          no-cache: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
+
+      # Create multi-platform manifest
+      - name: Create and push manifest
+        run: |
+          docker buildx imagetools create -t \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
+
+          docker buildx imagetools create -t \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-amd64
 
       - name: Create Git tag
         run: |
@@ -122,16 +140,16 @@ jobs:
           release_name: Orbit ${{ steps.next_version.outputs.new_tag }}
           body: |
             ## Orbit Release ${{ steps.next_version.outputs.new_tag }}
-            
+
             ### Docker Images
             ```bash
             docker pull ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}
             ```
-            
+
             ### Platforms
             - `linux/amd64` (Intel/AMD x86_64)
             - `linux/arm64` (Apple Silicon, ARM servers)
-            
+
             ### Changes
             - Auto-deployed from commit ${{ github.sha }}
           draft: false

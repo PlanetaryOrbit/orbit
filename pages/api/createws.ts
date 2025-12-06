@@ -22,8 +22,8 @@ type Data = {
 	user?: User
 	workspaces?: { 
 		groupId: number
-		groupthumbnail: string
-		groupname: string
+		groupThumbnail: string
+		groupName: string
 	}[]
 	workspaceGroupId?: number
 }
@@ -75,11 +75,27 @@ export async function handler(
 
 	// Default color fallback (kept for backward compatibility)
 	color = 'bg-orbit'
+	let groupName = `Group ${groupId}`;
+	let groupLogo = '';
+	
+	try {
+		const [logo, group] = await Promise.all([
+			noblox.getLogo(groupId).catch(() => ''),
+			noblox.getGroup(groupId).catch(() => null)
+		]);
+		if (group) groupName = group.name;
+		if (logo) groupLogo = logo;
+	} catch (err) {
+		console.error('Failed to fetch group info during workspace creation:', err);
+	}
 
 	  const workspace = await prisma.$transaction(async (tx) => {
 		const ws = await tx.workspace.create({
 			data: {
 		  groupId,
+		  groupName,
+		  groupLogo,
+		  lastSynced: new Date()
 		  //ownerId: BigInt(req.session.userid)
 			}
 		})
@@ -136,6 +152,8 @@ export async function handler(
 					'admin',
 					'view_staff_config',
 					'manage_sessions',
+					'sessions_unscheduled',
+					'sessions_scheduled',
 					'sessions_assign',
 					'sessions_claim',
 					'sessions_host',
@@ -164,6 +182,15 @@ export async function handler(
 
 		return ws
 	})
+
+	// Run initial role sync synchronously to populate cache before returning
+	try {
+		const { checkGroupRoles } = await import('@/utils/permissionsManager');
+		await checkGroupRoles(groupId);
+		console.log(`[createws] Completed initial sync for workspace ${groupId}`);
+	} catch (err) {
+		console.error(`[createws] Failed to complete initial sync:`, err);
+	}
 
 	return res.status(200).json({ success: true, workspaceGroupId: workspace.groupId })
 }

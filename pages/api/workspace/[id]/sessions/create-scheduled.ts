@@ -36,7 +36,7 @@ type Data = {
   sessions?: any[];
 };
 
-export default withPermissionCheck(handler, "manage_sessions");
+export default withPermissionCheck(handler, "sessions_scheduled");
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!checkSessionCreationRateLimit(req, res)) return;

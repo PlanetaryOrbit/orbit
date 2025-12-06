@@ -317,7 +317,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       computedUsers.push({
         info: {
           userId: Number(user.userid),
-          picture: await getThumbnail(user.userid),
+          picture: getThumbnail(user.userid),
           username: user.username,
         },
         book: user.book,

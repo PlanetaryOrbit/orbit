@@ -16,7 +16,7 @@ export async function getUsername(userId: number | bigint) {
 	}
 }
 
-export async function getThumbnail(userId: number | bigint): Promise<string> {
+export function getThumbnail(userId: number | bigint): string {
   return `/api/workspace/[id]/avatar/${userId}`;
 }
 
