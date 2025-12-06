@@ -425,42 +425,13 @@ const Home: NextPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden"
           >
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-fuchsia-500/5 to-pink-500/5 rounded-3xl" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-fuchsia-500/10 rounded-full blur-3xl" />
-            
-            <div className="relative bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 p-12 lg:p-16 text-center">
-              {/* Animated Icon */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="relative inline-block mb-8"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-3xl blur-xl opacity-20" />
-                <div className="relative w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-pink-500/20">
-                  <IconBuildingSkyscraper className="w-12 h-12 text-white" />
-                </div>
-                {/* Floating elements */}
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-400/40 blur-sm"
-                />
-                <motion.div
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  className="absolute -bottom-2 -left-2 w-8 h-8 rounded-full bg-pink-400/40 blur-sm"
-                />
-              </motion.div>
+            <div className="bg-slate-900/40 backdrop-blur-sm rounded-2xl border border-white/10 p-12 lg:p-16 text-center">
+              {/* Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+                <IconBuildingSkyscraper className="w-10 h-10 text-pink-400" />
+              </div>
 
-              {/* Content */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
+              <div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-white mb-3">
                   {searchQuery ? (
                     <>
@@ -523,46 +494,7 @@ const Home: NextPage = () => {
                     </a>
                   </div>
                 )}
-
-                {/* Feature highlights for empty state */}
-                {!searchQuery && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-12 pt-12 border-t border-slate-200 dark:border-slate-700"
-                  >
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">
-                      What you'll get with Orbit:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                      {[
-                        { icon: IconUsers, label: "Staff Management", desc: "Track and organize your team" },
-                        { icon: IconChartBar, label: "Activity Analytics", desc: "Monitor performance metrics" },
-                        { icon: IconShield, label: "Role Permissions", desc: "Granular access control" },
-                      ].map((feature, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.6 + i * 0.1 }}
-                          className="flex flex-col items-center text-center"
-                        >
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mb-3">
-                            <feature.icon className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-                          </div>
-                          <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
-                            {feature.label}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {feature.desc}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
