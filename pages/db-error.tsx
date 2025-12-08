@@ -130,6 +130,12 @@ export default function DatabaseErrorPage() {
             border: 1px solid #d4d4d8;
           }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .db-card {
+            animation: none !important;
+            transform: none !important;
+          }
+        }
       `}</style>
     </>
   );
