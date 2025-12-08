@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import Router from "next/router";
+import Router, { useRouter } from "next/router";
 
 export default function DatabaseErrorPage() {
   const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true";
+  const router = useRouter();
 
   useEffect(() => {
     if (isDbConfigured) {
@@ -22,7 +23,7 @@ export default function DatabaseErrorPage() {
             environment variable in your deployment.
           </p>
 
-          <button className="db-btn" onClick={() => location.reload()}>
+          <button className="db-btn" onClick={() => router.reload()}>
             Reload Page
           </button>
         </div>
