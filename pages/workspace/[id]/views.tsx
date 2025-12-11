@@ -1331,7 +1331,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
                   <span className="w-7 h-7 rounded-md flex items-center justify-center bg-zinc-100 dark:bg-zinc-700/30 text-zinc-700 dark:text-zinc-200">
                     <IconUsers className="w-4 h-4" />
                   </span>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-zinc-900 dark:text-white">
                     {savedViews.find((s) => s.id === selectedViewId)?.name || "Views"}
                   </span>
                 </div>

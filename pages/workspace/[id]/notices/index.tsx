@@ -408,33 +408,37 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 Notices
               </h1>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Manage your inactivity notices
+                {activeTab === "my-notices" ? "Manage your inactivity notices" : "Review and manage team notices"}
               </p>
             </div>
           </div>
           {canManageNotices && (
-            <div className="flex space-x-1 mb-6 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg w-fit">
+            <div className="flex gap-2 border-b border-zinc-200 dark:border-zinc-700 mb-6">
               <button
                 onClick={() => setActiveTab("my-notices")}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
                   activeTab === "my-notices"
-                    ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                 }`}
               >
-                <IconUserCircle className="w-4 h-4 inline-block mr-2 text-zinc-600 dark:text-zinc-400" />
-                My Notices
+                <div className="flex items-center gap-2">
+                  <IconUserCircle className="w-4 h-4" />
+                  <span>My Notices</span>
+                </div>
               </button>
               <button
                 onClick={() => setActiveTab("manage-notices")}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-sm font-medium transition-colors relative ${
                   activeTab === "manage-notices"
-                    ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                 }`}
               >
-                <IconUsers className="w-4 h-4 inline-block mr-2 text-zinc-600 dark:text-zinc-400" />
-                Manage Notices
+                <div className="flex items-center gap-2">
+                  <IconUsers className="w-4 h-4" />
+                  <span>Manage Notices</span>
+                </div>
               </button>
             </div>
           )}

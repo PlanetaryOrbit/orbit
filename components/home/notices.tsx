@@ -132,13 +132,6 @@ const NoticesWidget: React.FC = () => {
           </div>
         );
       })}
-      <button
-        onClick={goToNotices}
-        className="inline-flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-      >
-        View all notices
-        <IconChevronRight className="w-4 h-4" />
-      </button>
     </div>
   );
 };

@@ -123,6 +123,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       const docs = await prisma.document.findMany({
         where: {
           workspaceGroupId: parseInt(id as string),
+          requiresAcknowledgment: false,
         },
         include: {
           owner: {
@@ -147,6 +148,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     const docs = await prisma.document.findMany({
       where: {
         workspaceGroupId: parseInt(id as string),
+        requiresAcknowledgment: false,
         roles: {
           some: {
             id: { in: userRoleIds },

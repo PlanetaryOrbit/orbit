@@ -104,6 +104,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [noticesEnabled, setNoticesEnabled] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
+  const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -158,7 +159,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }] : []),
     { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
     ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: workspace.yourPermission.includes("manage_policies") || workspace.yourPermission.includes("admin") }] : []),
+    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
     { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: workspace.yourPermission.includes("admin") },
   ];
 
@@ -210,6 +211,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       })
       .catch(() => setDocsEnabled(false));
   }, [workspace.groupId]);
+
+  useEffect(() => {
+    if (policiesEnabled) {
+      fetch(`/api/workspace/${workspace.groupId}/policies/pending`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setPendingPolicyCount(data.count);
+          }
+        })
+        .catch(() => setPendingPolicyCount(0));
+    }
+  }, [workspace.groupId, policiesEnabled]);
 
   return (
     <>
@@ -329,7 +343,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     key={page.name}
                     onClick={() => gotopage(page.href)}
                     className={clsx(
-                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative",
                       router.asPath === page.href.replace("[id]", workspace.groupId.toString())
                         ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
                         : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
@@ -347,11 +361,23 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       <div className="flex items-center gap-2">
                         <span>{page.name}</span>
                         {page.name === "Policies" && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
-                            BETA
-                          </span>
+                          <>
+                            <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+                              BETA
+                            </span>
+                            {pendingPolicyCount > 0 && (
+                              <span className="px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                                {pendingPolicyCount}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
+                    )}
+                    {isCollapsed && page.name === "Policies" && pendingPolicyCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        {pendingPolicyCount}
+                      </span>
                     )}
                   </button>
                 )

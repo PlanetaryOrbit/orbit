@@ -10,7 +10,9 @@ import {
 	IconRefresh,
 	IconChartBar,
 	IconUsers,
-	IconPercentage
+	IconPercentage,
+	IconExternalLink,
+	IconX
 } from "@tabler/icons-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -60,6 +62,8 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 	const [isLoading, setIsLoading] = useState(true);
 	const [selectedPolicy, setSelectedPolicy] = useState<PolicyDocument | null>(null);
 	const [showAcknowledgmentModal, setShowAcknowledgmentModal] = useState(false);
+	const [viewingAcknowledgedPolicy, setViewingAcknowledgedPolicy] = useState<any>(null);
+	const [showViewModal, setShowViewModal] = useState(false);
 
 	useEffect(() => {
 		fetchPolicyStatus();
@@ -131,14 +135,12 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 		);
 	}
 
-	if (pendingPolicies.length === 0 && acknowledgedPolicies.length === 0) {
-		return null;
-	}
-
 	const urgentPolicies = pendingPolicies.filter(policy => {
 		const deadlineStatus = getDeadlineStatus(policy.acknowledgmentDeadline);
 		return deadlineStatus?.status === 'overdue' || deadlineStatus?.status === 'today' || deadlineStatus?.status === 'soon';
 	});
+
+	const totalPolicies = pendingPolicies.length + acknowledgedPolicies.length;
 
 	return (
 		<div className={clsx("bg-white dark:bg-zinc-800 rounded-lg shadow-sm", className)}>
@@ -151,121 +153,41 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 						</div>
 						<div>
 							<h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-								Policy Compliance
+								My Policies
 							</h3>
 							<p className="text-sm text-zinc-500 dark:text-zinc-400">
-								{complianceStats ? `${Math.round(complianceStats.overview.overallComplianceRate)}% overall compliance` : 'Loading compliance data...'}
+								{totalPolicies === 0 ? 'No policies assigned' : 
+								 pendingPolicies.length === 0 ? 'All policies acknowledged' :
+								 `${pendingPolicies.length} pending, ${acknowledgedPolicies.length} acknowledged`}
 							</p>
 						</div>
 					</div>
-					<button
-						onClick={() => { fetchPolicyStatus(); fetchComplianceStats(); }}
-						className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
-						title="Refresh"
-					>
-						<IconRefresh className="w-4 h-4" />
-					</button>
+					<div className="flex items-center space-x-2">
+						<div className="text-right mr-2">
+							<p className="text-2xl font-bold text-zinc-900 dark:text-white">{totalPolicies}</p>
+							<p className="text-xs text-zinc-500 dark:text-zinc-400">Total Policies</p>
+						</div>
+						<button
+							onClick={() => { fetchPolicyStatus(); fetchComplianceStats(); }}
+							className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
+							title="Refresh"
+						>
+							<IconRefresh className="w-4 h-4" />
+						</button>
+					</div>
 				</div>
 			</div>
 
-			{/* Compliance Overview Stats */}
-			{complianceStats && (
-				<div className="px-6 py-4 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 border-b border-zinc-200 dark:border-zinc-700">
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-						<div className="text-center">
-							<div className="flex items-center justify-center mb-1">
-								<IconFileText className="w-4 h-4 text-primary mr-1" />
-								<span className="text-lg font-bold text-zinc-900 dark:text-white">
-									{complianceStats.overview.totalPolicies}
-								</span>
-							</div>
-							<p className="text-xs text-zinc-600 dark:text-zinc-400">Total Policies</p>
-						</div>
-						<div className="text-center">
-							<div className="flex items-center justify-center mb-1">
-								<IconUsers className="w-4 h-4 text-primary mr-1" />
-								<span className="text-lg font-bold text-zinc-900 dark:text-white">
-									{complianceStats.overview.totalMembers}
-								</span>
-							</div>
-							<p className="text-xs text-zinc-600 dark:text-zinc-400">Team Members</p>
-						</div>
-						<div className="text-center">
-							<div className="flex items-center justify-center mb-1">
-								<IconPercentage className="w-4 h-4 text-green-600 mr-1" />
-								<span className="text-lg font-bold text-green-600 dark:text-green-400">
-									{Math.round(complianceStats.overview.overallComplianceRate)}
-								</span>
-							</div>
-							<p className="text-xs text-zinc-600 dark:text-zinc-400">Compliance Rate</p>
-						</div>
-						<div className="text-center">
-							<div className="flex items-center justify-center mb-1">
-								<IconClock className="w-4 h-4 text-amber-600 mr-1" />
-								<span className="text-lg font-bold text-amber-600 dark:text-amber-400">
-									{complianceStats.overview.pendingAcknowledgments}
-								</span>
-							</div>
-							<p className="text-xs text-zinc-600 dark:text-zinc-400">Pending</p>
-						</div>
+			{/* Empty State */}
+			{totalPolicies === 0 && (
+				<div className="px-6 py-12 text-center">
+					<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
+						<IconFileText className="w-8 h-8 text-zinc-400" />
 					</div>
-					{complianceStats.overview.overdueAcknowledgments > 0 && (
-						<div className="mt-3 text-center">
-							<span className="inline-flex items-center px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
-								<IconAlertTriangle className="w-3 h-3 mr-1" />
-								{complianceStats.overview.overdueAcknowledgments} overdue acknowledgments
-							</span>
-						</div>
-					)}
-				</div>
-			)}
-
-			{/* Policy Breakdown */}
-			{complianceStats && complianceStats.policyBreakdown.length > 0 && (
-				<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-					<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center">
-						<IconChartBar className="w-4 h-4 text-primary mr-2" />
-						Policy Compliance Breakdown
-					</h4>
-					<div className="space-y-3">
-						{complianceStats.policyBreakdown.slice(0, 5).map((policy) => (
-							<div key={policy.id} className="flex items-center justify-between">
-								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
-										{policy.name}
-									</p>
-									<div className="flex items-center space-x-2 mt-1">
-										<div className="flex-1 bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5">
-											<div
-												className="h-1.5 rounded-full transition-all duration-300"
-												style={{
-													width: `${policy.complianceRate}%`,
-													backgroundColor: policy.complianceRate >= 90 ? '#10b981' :
-																		 policy.complianceRate >= 70 ? '#f59e0b' : '#ef4444'
-												}}
-											/>
-										</div>
-										<span className={clsx(
-											"text-xs font-medium",
-											policy.complianceRate >= 90 ? "text-green-600 dark:text-green-400" :
-											policy.complianceRate >= 70 ? "text-amber-600 dark:text-amber-400" :
-											"text-red-600 dark:text-red-400"
-										)}>
-											{Math.round(policy.complianceRate)}%
-										</span>
-									</div>
-									<p className="text-xs text-zinc-500 dark:text-zinc-400">
-										{policy.totalAcknowledged} of {policy.totalRequired} acknowledged
-										{policy.overdueCount > 0 && (
-											<span className="text-red-600 dark:text-red-400 ml-2">
-												• {policy.overdueCount} overdue
-											</span>
-										)}
-									</p>
-								</div>
-							</div>
-						))}
-					</div>
+					<h4 className="text-base font-medium text-zinc-900 dark:text-white mb-2">No Policies Assigned</h4>
+					<p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+						You don't have any policies to review at this time. Policies will appear here when they are assigned to your role.
+					</p>
 				</div>
 			)}
 
@@ -360,14 +282,26 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 			{/* Recently Acknowledged */}
 			{acknowledgedPolicies.length > 0 && (
 				<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
-					<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center">
-						<IconCheck className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
-						Recently Acknowledged
+					<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center justify-between">
+						<span className="flex items-center">
+							<IconCheck className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
+							Acknowledged Policies
+						</span>
+						<span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">
+							{acknowledgedPolicies.length} total
+						</span>
 					</h4>
-					<div className="space-y-2">
-						{acknowledgedPolicies.slice(0, 3).map((ack) => (
-							<div key={ack.id} className="flex items-center space-x-3 py-2">
-								<div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+					<div className="space-y-2 max-h-64 overflow-y-auto">
+						{acknowledgedPolicies.map((ack) => (
+							<div 
+								key={ack.id} 
+								className="flex items-center space-x-3 py-2 px-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer group"
+								onClick={() => {
+									setViewingAcknowledgedPolicy(ack);
+									setShowViewModal(true);
+								}}
+							>
+								<div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
 									<IconCheck className="w-3 h-3 text-green-600 dark:text-green-400" />
 								</div>
 								<div className="flex-1 min-w-0">
@@ -375,9 +309,16 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 										{ack.name}
 									</p>
 									<p className="text-xs text-zinc-500 dark:text-zinc-400">
-										Acknowledged {new Date(ack.acknowledgment.acknowledgedAt).toLocaleDateString()}
+										Signed {new Date(ack.acknowledgment.acknowledgedAt).toLocaleDateString('en-US', { 
+											month: 'short', 
+											day: 'numeric', 
+											year: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
 									</p>
 								</div>
+								<IconChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
 							</div>
 						))}
 					</div>
@@ -410,6 +351,136 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 					onAcknowledged={handlePolicyAcknowledged}
 					currentUsername={currentUsername}
 				/>
+			)}
+
+			{/* View Acknowledged Policy Modal */}
+			{viewingAcknowledgedPolicy && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+					>
+						{/* Modal Header */}
+						<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+							<div className="flex items-center space-x-3">
+								<div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+									<IconCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+								</div>
+								<div>
+									<h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+										{viewingAcknowledgedPolicy.name}
+									</h3>
+									<p className="text-xs text-zinc-500 dark:text-zinc-400">
+										Acknowledged on {new Date(viewingAcknowledgedPolicy.acknowledgment.acknowledgedAt).toLocaleDateString('en-US', { 
+											month: 'long', 
+											day: 'numeric', 
+											year: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
+									</p>
+								</div>
+							</div>
+							<button
+								onClick={() => {
+									setViewingAcknowledgedPolicy(null);
+									setShowViewModal(false);
+								}}
+								className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+							>
+								<IconX className="w-5 h-5 text-zinc-500" />
+							</button>
+						</div>
+
+						{/* Modal Content */}
+						<div className="flex-1 overflow-y-auto px-6 py-4">
+							{/* External URL */}
+							{viewingAcknowledgedPolicy.content && 
+							 typeof viewingAcknowledgedPolicy.content === 'object' && 
+							 viewingAcknowledgedPolicy.content.external ? (
+								<div className="text-center py-8">
+									<div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+										<IconExternalLink className="w-6 h-6 text-primary" />
+									</div>
+									<h4 className="text-base font-medium text-zinc-900 dark:text-white mb-2">
+										External Policy Document
+									</h4>
+									<p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+										This policy is hosted externally
+									</p>
+									<a
+										href={viewingAcknowledgedPolicy.content.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+									>
+										<IconExternalLink className="w-4 h-4 mr-2" />
+										Open Policy Document
+									</a>
+								</div>
+							) : (
+								<div className="prose prose-sm dark:prose-invert max-w-none">
+									{typeof viewingAcknowledgedPolicy.content === 'string' ? (
+										<div className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+											{viewingAcknowledgedPolicy.content}
+										</div>
+									) : (
+										<div className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+											{JSON.stringify(viewingAcknowledgedPolicy.content, null, 2)}
+										</div>
+									)}
+								</div>
+							)}
+
+							{/* Acknowledgment Details */}
+							<div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+								<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+									Acknowledgment Details
+								</h4>
+								<div className="space-y-2 text-sm">
+									<div className="flex justify-between">
+										<span className="text-zinc-500 dark:text-zinc-400">Signed by:</span>
+										<span className="text-zinc-900 dark:text-white font-medium">
+											{currentUsername || 'You'}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-zinc-500 dark:text-zinc-400">Date & Time:</span>
+										<span className="text-zinc-900 dark:text-white font-medium">
+											{new Date(viewingAcknowledgedPolicy.acknowledgment.acknowledgedAt).toLocaleString('en-US', {
+												dateStyle: 'long',
+												timeStyle: 'short'
+											})}
+										</span>
+									</div>
+									{viewingAcknowledgedPolicy.acknowledgment.signature && (
+										<div className="flex justify-between">
+											<span className="text-zinc-500 dark:text-zinc-400">Signature:</span>
+											<span className="text-zinc-900 dark:text-white font-medium italic">
+												{viewingAcknowledgedPolicy.acknowledgment.signature}
+											</span>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+
+						{/* Modal Footer */}
+						<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex justify-end">
+							<button
+								onClick={() => {
+									setViewingAcknowledgedPolicy(null);
+									setShowViewModal(false);
+								}}
+								className="px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+							>
+								Close
+							</button>
+						</div>
+					</motion.div>
+				</div>
 			)}
 		</div>
 	);

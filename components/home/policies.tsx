@@ -1,17 +1,15 @@
 import React from "react";
 import { useRecoilState } from "recoil";
 import { workspacestate, loginState } from "@/state";
-import UserPolicyDashboard from "@/components/UserPolicyDashboard";
+import ComplianceOverviewWidget from "@/components/ComplianceOverviewWidget";
 
 const PoliciesWidget: React.FC = () => {
 	const [workspace] = useRecoilState(workspacestate);
 	const [login] = useRecoilState(loginState);
 
 	return (
-		<UserPolicyDashboard
+		<ComplianceOverviewWidget
 			workspaceId={workspace.groupId.toString()}
-			className="border-0 shadow-none bg-transparent"
-			currentUsername={login.username}
 		/>
 	);
 };

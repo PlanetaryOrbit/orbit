@@ -23,11 +23,20 @@ export async function handler(
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	
 	const now = new Date();
+	const todayStart = new Date(now);
+	todayStart.setHours(0, 0, 0, 0);
+	const todayEnd = new Date(now);
+	todayEnd.setHours(23, 59, 59, 999);
+	
 	const allSessions = await prisma.session.findMany({
 		where: {
 			sessionType: {
 				workspaceGroupId: parseInt(req.query.id as string)
 			},
+			date: {
+				gte: todayStart,
+				lte: todayEnd
+			}
 		},
 		include: {
 			owner: {
@@ -58,7 +67,8 @@ export async function handler(
 	if (activeSessions.length === 0) {
 		nextSession = allSessions.find(session => {
 			const startTime = new Date(session.date);
-			return startTime > now;
+			const endTime = new Date(startTime.getTime() + session.duration * 60000);
+			return startTime > now || (now >= startTime && now <= endTime);
 		});
 		if (nextSession) {
 			nextSession = { ...nextSession, isLive: false };

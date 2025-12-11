@@ -126,7 +126,39 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   };
 
   const colors = [
+    "bg-pink-100",
+    "bg-rose-100",
+    "bg-orange-100",
+    "bg-amber-100",
+    "bg-lime-100",
+    "bg-emerald-100",
+    "bg-cyan-100",
+    "bg-sky-100",
+    "bg-indigo-100",
+    "bg-purple-100",
+    "bg-pink-400",
+    "bg-rose-400",
+    "bg-orange-400",
+    "bg-amber-400",
+    "bg-lime-400",
+    "bg-emerald-400",
+    "bg-cyan-400",
+    "bg-sky-400",
+    "bg-indigo-400",
+    "bg-violet-400",
     "bg-orbit",
+    "bg-rose-600",
+    "bg-orange-600",
+    "bg-amber-600",
+    "bg-lime-600",
+    "bg-emerald-600",
+    "bg-cyan-600",
+    "bg-sky-600",
+    "bg-indigo-600",
+    "bg-violet-600",
+  ];
+
+  const sessionColorOptions = [
     "bg-blue-500",
     "bg-red-500",
     "bg-red-700",
@@ -137,6 +169,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     "bg-purple-500",
     "bg-pink-500",
     "bg-zinc-500",
+    "bg-orbit",
   ];
 
   const sessionColorTypes = [
@@ -179,7 +212,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
           Choose a color theme for your workspace
         </p>
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-10 gap-3">
           {colors.map((color, i) => (
             <button
               key={i}
@@ -252,7 +285,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                   }
                   className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
-                  {colors.map((color) => (
+                  {sessionColorOptions.map((color) => (
                     <option key={color} value={color}>
                       {getColorDisplayName(color)}
                     </option>

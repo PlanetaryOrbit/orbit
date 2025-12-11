@@ -84,18 +84,36 @@ const Login: NextPage = () => {
 	};
 
 	const colors = [
+		"bg-pink-100",
+		"bg-rose-100",
+		"bg-orange-100",
+		"bg-amber-100",
+		"bg-lime-100",
+		"bg-emerald-100",
+		"bg-cyan-100",
+		"bg-sky-100",
+		"bg-indigo-100",
+		"bg-purple-100",
+		"bg-pink-400",
+		"bg-rose-400",
+		"bg-orange-400",
+		"bg-amber-400",
+		"bg-lime-400",
+		"bg-emerald-400",
+		"bg-cyan-400",
+		"bg-sky-400",
+		"bg-indigo-400",
+		"bg-violet-400",
 		"bg-orbit",
-		"bg-blue-500",
-		"bg-red-500",
-		"bg-red-700",
-		"bg-green-500",
-		"bg-green-600",
-		"bg-yellow-500",
-		"bg-orange-500",
-		"bg-purple-500",
-		"bg-pink-500",
-		"bg-black",
-		"bg-zinc-500",
+		"bg-rose-600",
+		"bg-orange-600",
+		"bg-amber-600",
+		"bg-lime-600",
+		"bg-emerald-600",
+		"bg-cyan-600",
+		"bg-sky-600",
+		"bg-indigo-600",
+		"bg-violet-600",
 	];
 
 	return (
@@ -134,14 +152,14 @@ const Login: NextPage = () => {
 
 					<div className="mt-7">
 						<label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
-						<div className="grid grid-cols-5 md:grid-cols-7 lg:grid-cols-11 xl:grid-cols-10 gap-y-3 mb-8 mt-2">
+						<div className="grid grid-cols-10 gap-3 mt-2 mb-8">
 							{colors.map((color, i) => (
 								<button
 									key={i}
 									type="button"
 									onClick={() => setSelectedColor(color)}
-									className={`h-12 w-12 block rounded-full transform ease-in-out ${color} ${
-										selectedColor === color ? "border-black border-4 dark:border-white" : ""
+									className={`aspect-square rounded-lg transform transition-all ease-in-out ${color} ${
+										selectedColor === color ? "ring-4 ring-black dark:ring-white ring-offset-2" : "hover:scale-105"
 									}`}
 								/>
 							))}
