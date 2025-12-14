@@ -164,8 +164,13 @@ export default withSessionRoute(async function handler(
       },
     });
 
-    const roleBasedHostedSessions = allSessionParticipations.filter(
+    const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
+    const roleBasedHostedParticipations = allSessionParticipations.filter(
       (participation) => {
+        if (ownedSessionIds.has(participation.sessionid)) {
+          return false;
+        }
+
         const slots = participation.session.sessionType.slots as any[];
         const slotIndex = participation.slot;
         const slotName = slots[slotIndex]?.name || "";
@@ -176,13 +181,15 @@ export default withSessionRoute(async function handler(
           slotName.toLowerCase().includes("co-host")
         );
       }
-    ).length;
-
+    );
     const roleBasedSessionsHosted =
-      ownedSessions.length + roleBasedHostedSessions;
-    const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
+      ownedSessions.length + roleBasedHostedParticipations.length;
     const roleBasedSessionsAttended = allSessionParticipations.filter(
       (participation) => {
+        if (ownedSessionIds.has(participation.sessionid)) {
+          return false;
+        }
+
         const slots = participation.session.sessionType.slots as any[];
         const slotIndex = participation.slot;
         const slotName = slots[slotIndex]?.name || "";
@@ -192,9 +199,64 @@ export default withSessionRoute(async function handler(
           slotName.toLowerCase().includes("host") ||
           slotName.toLowerCase().includes("co-host");
 
-        return !isHosting && !ownedSessionIds.has(participation.sessionid);
+        return !isHosting;
       }
     ).length;
+
+    const sessionsLogged = {
+      all: new Set([
+        ...ownedSessions.map(s => s.id),
+        ...allSessionParticipations.map(p => p.sessionid)
+      ]).size,
+      byType: {} as Record<string, number>,
+      byRole: {
+        host: ownedSessions.length,
+        cohost: allSessionParticipations.filter((p) => {
+          const slots = p.session.sessionType.slots as any[];
+          const slotName = slots[p.slot]?.name || "";
+          return p.roleID.toLowerCase().includes("co-host") || slotName.toLowerCase().includes("co-host");
+        }).length,
+      }
+    };
+
+    const allUserSessions = [
+      ...ownedSessions.map(s => ({ id: s.id, type: s.type })),
+      ...allSessionParticipations.map(p => ({ 
+        id: p.sessionid, 
+        type: (p.session as any).type 
+      }))
+    ];
+    const uniqueSessionsById = new Map(allUserSessions.map(s => [s.id, s.type]));
+    for (const [, sessionType] of uniqueSessionsById) {
+      const type = sessionType || 'other';
+      sessionsLogged.byType[type] = (sessionsLogged.byType[type] || 0) + 1;
+    }
+
+    const allianceVisits = await prisma.allyVisit.findMany({
+      where: {
+        ally: {
+          workspaceGroupId: workspaceGroupId,
+        },
+        time: {
+          gte: startDate,
+          lte: currentDate,
+        },
+        OR: [
+          { hostId: userId },
+          { participants: { has: userId } }
+        ]
+      },
+      include: {
+        ally: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
+      }
+    });
+
+    const allianceVisitsCount = allianceVisits.length;
 
     const avatar = getThumbnail(user.userid);
 
@@ -239,6 +301,8 @@ export default withSessionRoute(async function handler(
         hostedSessions: serializedHostedSessions,
         roleBasedSessionsHosted,
         roleBasedSessionsAttended,
+        sessionsLogged,
+        allianceVisitsCount,
         quotas,
         avatar,
       },

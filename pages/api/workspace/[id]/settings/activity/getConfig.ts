@@ -10,6 +10,7 @@ type Data = {
 	roles?: any
 	currentRole?: any
 	leaderboardRole?: any
+	idleTimeEnabled?: boolean
 }
 
 export default withPermissionCheck(handler, 'admin');
@@ -33,6 +34,7 @@ export async function handler(
 		roles,
 		currentRole: activityconfig?.role,
 		leaderboardRole: activityconfig?.leaderboardRole,
+		idleTimeEnabled: activityconfig?.idleTimeEnabled ?? true,
 		success: true,
 	});
 }

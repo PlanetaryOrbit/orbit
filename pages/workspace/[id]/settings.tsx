@@ -70,7 +70,6 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       }
     }),
   )
-  console.log(usersWithInfo)
 
   return {
     props: {

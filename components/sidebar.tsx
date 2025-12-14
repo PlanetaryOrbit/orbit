@@ -36,6 +36,7 @@ import {
   IconTrophy,
   IconTrophyFilled,
   IconShieldFilled,
+  IconTarget,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -102,7 +103,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [noticesEnabled, setNoticesEnabled] = useState(false);
-  const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const router = useRouter()
@@ -129,13 +129,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
     { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled },
     { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
-	...(leaderboardEnabled ? [{
-      name: "Leaderboard",
-      href: `/workspace/${workspace.groupId}/leaderboard`,
-      icon: IconTrophy,
-      filledIcon: IconTrophyFilled,
-      accessible: workspace.yourPermission.includes("view_entire_groups_activity"),
-    }] : []),
+    { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
    ...(noticesEnabled ? [{
       name: "Notices",
       href: `/workspace/${workspace.groupId}/notices`,
@@ -206,7 +200,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 		setAlliesEnabled(data.value.allies?.enabled ?? false);
 		setSessionsEnabled(data.value.sessions?.enabled ?? false);
 		setNoticesEnabled(data.value.notices?.enabled ?? false);
-		setLeaderboardEnabled(data.value.leaderboard?.enabled ?? false);
 		setPoliciesEnabled(data.value.policies?.enabled ?? false);
       })
       .catch(() => setDocsEnabled(false));

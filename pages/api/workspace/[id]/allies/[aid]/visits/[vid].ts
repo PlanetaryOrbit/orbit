@@ -94,16 +94,22 @@ export async function handler(
 		try {
 			if(!req.body.name || !req.body.time) return res.status(400).json({ success: false, error: 'Missing data' })
 
+			const updateData: any = {
+				name: req.body.name,
+				time: new Date(req.body.time)
+			};
+
+			if (req.body.participants !== undefined) {
+				updateData.participants = req.body.participants.map((p: number) => BigInt(p));
+			}
+
 			// @ts-ignore
 			const visit = await prisma.allyVisit.update({
 				where: {
 					// @ts-ignore
 					id: req.query.vid
 				},
-				data: {
-					name: req.body.name,
-					time: new Date(req.body.time)
-				}
+				data: updateData
 			})
 			
 	

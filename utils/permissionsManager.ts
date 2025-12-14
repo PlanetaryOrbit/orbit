@@ -65,8 +65,6 @@ export function withPermissionCheck(
 ) {
   return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
     const uid = req.session.userid;
-    console.log("Session userid:", uid);
-
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (

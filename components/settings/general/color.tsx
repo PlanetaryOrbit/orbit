@@ -40,8 +40,11 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     if (workspace?.groupTheme) {
       setSelectedColor(workspace.groupTheme);
     }
+  }, [workspace?.groupTheme]);
+
+  useEffect(() => {
     loadSessionColors();
-  }, [workspace]);
+  }, [workspace?.groupId]);
 
   const loadSessionColors = async () => {
     if (!workspace?.groupId) return;

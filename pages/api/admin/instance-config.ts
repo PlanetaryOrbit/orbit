@@ -59,7 +59,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 					prisma.instanceConfig.upsert({
 						where: { key },
 						update: { value, updatedAt: new Date() },
-						create: { key, value }
+						create: { key, value, updatedAt: new Date() }
 					})
 				)
 			);

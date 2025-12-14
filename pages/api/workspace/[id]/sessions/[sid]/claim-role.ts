@@ -94,10 +94,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     }
 
     const userPermissions = currentUser.roles[0].permissions;
-    const isOwner = currentUser.roles[0].isOwnerRole;
-    const hasAssignPermission = isOwner || userPermissions.includes("sessions_assign");
-    const hasClaimPermission = isOwner || userPermissions.includes("sessions_claim");
-    const hasHostPermission = isOwner || userPermissions.includes("sessions_host");
+    const hasAssignPermission = userPermissions.includes("sessions_assign") || userPermissions.includes("admin"); 
+    const hasClaimPermission = userPermissions.includes("sessions_claim") || userPermissions.includes("admin")
+    const hasHostPermission = userPermissions.includes("sessions_host") || userPermissions.includes("admin")
     const isAssigningToSelf = userId && userId.toString() === currentUserId.toString();
 
     if (action === "unclaim") {

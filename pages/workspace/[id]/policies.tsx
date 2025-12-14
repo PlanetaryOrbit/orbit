@@ -185,6 +185,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       select: {
         id: true,
         name: true,
+        isOwnerRole: true,
       },
     });
 
@@ -1576,7 +1577,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               </p>
                             )}
                             {!newPolicy.assignToEveryone &&
-                              roles.map((role) => (
+                              roles.filter((role: any) => !role.isOwnerRole).map((role) => (
                                 <label
                                   key={role.id}
                                   className="flex items-center"
@@ -2227,7 +2228,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               Select Roles *
                             </label>
                             <div className="space-y-2 max-h-60 overflow-y-auto">
-                              {roles.map((role) => (
+                              {roles.filter((role: any) => !role.isOwnerRole).map((role) => (
                                 <label
                                   key={role.id}
                                   className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"

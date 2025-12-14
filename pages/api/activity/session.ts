@@ -117,6 +117,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
       await prisma.activitySession.create({
         data: {
+          id: crypto.randomUUID(),
           userId: BigInt(userid),
           active: true,
           startTime: sessionStartTime,
