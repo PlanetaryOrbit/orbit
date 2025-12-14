@@ -2,7 +2,7 @@ import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
 import { Toaster } from "react-hot-toast";
-import { InformationPanel } from "@/components/profile/info";
+import { InformationTab } from "@/components/profile/information";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
@@ -28,6 +28,10 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconCalendar,
+  IconSun,
+  IconMoon,
+  IconCloud,
+  IconStars,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -108,7 +112,11 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    const startDate = lastReset?.resetAt || new Date("2025-01-01");
+    // Use last reset date, or November 30th 2024, whichever is more recent
+    const nov30 = new Date("2024-11-30T00:00:00Z");
+    const startDate = lastReset?.resetAt 
+      ? (lastReset.resetAt > nov30 ? lastReset.resetAt : nov30)
+      : nov30;
 
     const quotas = userTakingAction.roles
       .flatMap((role) => role.quotaRoles)
@@ -337,6 +345,19 @@ export const getServerSideProps = withPermissionCheckSsr(
       }
     ).length;
 
+    const allianceVisits = await prisma.allyVisit.count({
+      where: {
+        OR: [
+          { hostId: BigInt(query?.uid as string) },
+          { participants: { has: BigInt(query?.uid as string) } },
+        ],
+        time: {
+          gte: startDate,
+          lte: currentDate,
+        },
+      },
+    });
+
     const user = await prisma.user.findUnique({
       where: { userid: BigInt(query.uid as string) },
       select: {
@@ -355,8 +376,54 @@ export const getServerSideProps = withPermissionCheckSsr(
           userId: BigInt(query.uid as string),
         },
       },
-      select: { joinDate: true },
+      select: { 
+        joinDate: true,
+        department: true,
+        lineManagerId: true,
+        timezone: true,
+        discordId: true,
+      },
     });
+
+    let lineManager = null;
+    if (membership?.lineManagerId) {
+      const manager = await prisma.user.findUnique({
+        where: { userid: membership.lineManagerId },
+        select: {
+          userid: true,
+          username: true,
+          picture: true,
+        },
+      });
+      if (manager) {
+        lineManager = {
+          userid: manager.userid.toString(),
+          username: manager.username,
+          picture: manager.picture || '',
+        };
+      }
+    }
+
+    const allMembersRaw = await prisma.workspaceMember.findMany({
+      where: {
+        workspaceGroupId: parseInt(query.id as string),
+      },
+      include: {
+        user: {
+          select: {
+            userid: true,
+            username: true,
+            picture: true,
+          },
+        },
+      },
+    });
+
+    const allMembers = allMembersRaw.map((member) => ({
+      userid: member.user.userid.toString(),
+      username: member.user.username,
+      picture: member.user.picture || '',
+    }));
 
     if (!user) {
       return { notFound: true };
@@ -392,6 +459,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         isAdmin,
         sessionsHosted: sessionsHosted,
         sessionsAttended: sessionsAttended,
+        allianceVisits: allianceVisits,
         quotas,
         userBook: JSON.parse(
           JSON.stringify(ubook, (_k, v) =>
@@ -409,6 +477,14 @@ export const getServerSideProps = withPermissionCheckSsr(
             ? membership.joinDate.toISOString()
             : null,
         },
+        workspaceMember: membership ? {
+          department: membership.department,
+          lineManagerId: membership.lineManagerId?.toString() || null,
+          timezone: membership.timezone,
+          discordId: membership.discordId,
+        } : null,
+        lineManager,
+        allMembers,
         noticesEnabled,
         canManageMembers: hasManageMembersPermission,
       },
@@ -437,6 +513,7 @@ type pageProps = {
   quotas: Quota[];
   sessionsHosted: number;
   sessionsAttended: number;
+  allianceVisits: number;
   isUser: boolean;
   isAdmin: boolean;
   user: {
@@ -448,6 +525,22 @@ type pageProps = {
     birthdayMonth: number;
     joinDate: string | null;
   };
+  workspaceMember: {
+    department: string | null;
+    lineManagerId: string | null;
+    timezone: string | null;
+    discordId: string | null;
+  } | null;
+  lineManager: {
+    userid: string;
+    username: string;
+    picture: string;
+  } | null;
+  allMembers: Array<{
+    userid: string;
+    username: string;
+    picture: string;
+  }>;
   noticesEnabled: boolean;
   canManageMembers: boolean;
 };
@@ -464,15 +557,20 @@ const Profile: pageWithLayout<pageProps> = ({
   info,
   sessionsHosted,
   sessionsAttended,
+  allianceVisits,
   quotas,
   user,
   isAdmin,
+  workspaceMember,
+  lineManager,
+  allMembers,
   noticesEnabled,
   canManageMembers,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [userBook, setUserBook] = useState(initialUserBook);
   const [selectedWeek, setSelectedWeek] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [availableHistory, setAvailableHistory] = useState<any[]>([]);
@@ -483,6 +581,7 @@ const Profile: pageWithLayout<pageProps> = ({
     quotas,
     sessionsHosted,
     sessionsAttended,
+    allianceVisits,
     sessions,
     adjustments,
     messages: sessions.reduce(
@@ -495,6 +594,13 @@ const Profile: pageWithLayout<pageProps> = ({
   };
 
   const router = useRouter();
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  
   useEffect(() => {
     async function fetchAvailableHistory() {
       try {
@@ -538,20 +644,10 @@ const Profile: pageWithLayout<pageProps> = ({
       try {
         const historyPeriod = availableHistory[selectedWeek - 1];
         if (historyPeriod) {
-          console.log(
-            "Fetching historical data for period:",
-            historyPeriod.period
-          );
           const response = await axios.get(
             `/api/workspace/${router.query.id}/activity/history/${router.query.uid}?periodEnd=${historyPeriod.period.end}`
           );
-          console.log("Historical data response:", response.data);
           if (response.data.success) {
-            console.log("Setting historical data:", response.data.data);
-            console.log(
-              "Activity minutes from API:",
-              response.data.data.activity?.minutes
-            );
             setHistoricalData(response.data.data);
           }
         }
@@ -566,9 +662,9 @@ const Profile: pageWithLayout<pageProps> = ({
   }, [selectedWeek, availableHistory, router.query.id, router.query.uid]);
 
   const getCurrentWeekLabel = () => {
-    if (selectedWeek === 0) return "Current Week";
-    if (selectedWeek === 1) return "Last Week";
-    return `${selectedWeek} Weeks Ago`;
+    if (selectedWeek === 0) return "Current Period";
+    if (selectedWeek === 1) return "Last Period";
+    return `${selectedWeek} Periods Ago`;
   };
 
   const canGoBack = selectedWeek < availableHistory.length;
@@ -605,6 +701,9 @@ const Profile: pageWithLayout<pageProps> = ({
                   type: qp.type || "",
                   value: qp.requirement || 0,
                   workspaceGroupId: parseInt(router.query.id as string),
+                  description: null,
+                  sessionType: null,
+                  sessionRole: null,
                   currentValue: qp.value || 0,
                   percentage: qp.percentage || 0,
                 })
@@ -612,16 +711,13 @@ const Profile: pageWithLayout<pageProps> = ({
             : [],
           sessionsHosted: historicalData.activity.sessionsHosted,
           sessionsAttended: historicalData.activity.sessionsAttended,
+          allianceVisits: historicalData.activity.allianceVisits || 0,
           sessions: historicalData.sessions || [],
           adjustments: historicalData.adjustments || [],
           messages: historicalData.activity.messages || 0,
           idleTime: historicalData.activity.idleTime || 0,
         }
       : currentData;
-
-  console.log("Display data for week", selectedWeek, ":", displayData);
-  console.log("Historical data object:", historicalData);
-  console.log("timeSpent value:", displayData.timeSpent);
 
   const refetchUserBook = async () => {
     try {
@@ -687,38 +783,103 @@ const Profile: pageWithLayout<pageProps> = ({
                 <IconUserCircle className="w-4 h-4 text-white" />
               </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-                {info.displayName}
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                @{info.username}
-              </p>
+            <div className="flex-1 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
+                  {info.displayName}
+                </h1>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  @{info.username}
+                </p>
+              </div>
+              {workspaceMember && workspaceMember.timezone && (() => {
+                const userHour = new Date().toLocaleString('en-US', {
+                  timeZone: workspaceMember.timezone,
+                  hour: 'numeric',
+                  hour12: false
+                });
+                const hour = parseInt(userHour);
+                const isDay = hour >= 6 && hour < 18;
+                
+                return (
+                  <div className={`relative overflow-hidden px-4 py-2.5 rounded-xl shadow-md ${
+                    isDay 
+                      ? 'bg-gradient-to-br from-sky-400 via-blue-400 to-blue-500' 
+                      : 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900'
+                  }`}>
+                    <div className="absolute inset-0 opacity-10">
+                      {isDay ? (
+                        <>
+                          <IconCloud className="absolute top-1 right-2 w-8 h-8 text-white" />
+                          <IconCloud className="absolute bottom-2 left-4 w-6 h-6 text-white" />
+                          <IconCloud className="absolute top-2 left-12 w-7 h-7 text-white" />
+                          <IconCloud className="absolute bottom-1 right-8 w-5 h-5 text-white" />
+                          <IconCloud className="absolute top-3 right-12 w-4 h-4 text-white" />
+                        </>
+                      ) : (
+                        <>
+                          <IconStars className="absolute top-1 right-2 w-5 h-5 text-white" />
+                          <IconStars className="absolute bottom-1 left-3 w-4 h-4 text-white" />
+                          <IconStars className="absolute top-2 left-8 w-3 h-3 text-white" />
+                          <IconStars className="absolute top-3 right-8 w-4 h-4 text-white" />
+                          <IconStars className="absolute bottom-2 right-4 w-3 h-3 text-white" />
+                          <IconStars className="absolute top-1 left-16 w-5 h-5 text-white" />
+                          <IconStars className="absolute bottom-3 left-12 w-3 h-3 text-white" />
+                          <IconStars className="absolute top-4 right-14 w-3 h-3 text-white" />
+                        </>
+                      )}
+                    </div>
+                    <div className="relative flex items-center gap-2.5 text-white">
+                      {isDay ? (
+                        <IconSun className="w-5 h-5 animate-pulse" />
+                      ) : (
+                        <IconMoon className="w-5 h-5" />
+                      )}
+                      <span className="text-sm font-semibold">
+                        {currentTime.toLocaleTimeString('en-US', {
+                          timeZone: workspaceMember.timezone,
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
           <Tab.Group>
-            <Tab.List className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-700 border-b dark:border-zinc-600">
+            <Tab.List className="flex gap-8 px-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
                     selected
-                      ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                      ? "text-primary"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  } ${
+                    selected
+                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                      : ""
                   }`
                 }
               >
                 <IconClipboard className="w-4 h-4" />
-                Information
+                Details
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
                     selected
-                      ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                      ? "text-primary"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  } ${
+                    selected
+                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                      : ""
                   }`
                 }
               >
@@ -727,34 +888,42 @@ const Profile: pageWithLayout<pageProps> = ({
               </Tab>
               <Tab
                 className={({ selected }) =>
-                  `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
                     selected
-                      ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                      ? "text-primary"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  } ${
+                    selected
+                      ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                      : ""
                   }`
                 }
               >
                 <IconBook className="w-4 h-4" />
-                Userbook
+                Logbook
               </Tab>
               {noticesEnabled && (
                 <Tab
                   className={({ selected }) =>
-                    `flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                    `flex items-center gap-2 px-1 py-4 text-sm font-medium transition-colors relative ${
                       selected
-                        ? "bg-white dark:bg-zinc-800 text-primary shadow-sm"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                        ? "text-primary"
+                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    } ${
+                      selected
+                        ? "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                        : ""
                     }`
                   }
                 >
-                  <IconBell className="w-4 h-4" />
-                  Notices
+                  <IconCalendar className="w-4 h-4" />
+                  Time off
                 </Tab>
               )}
             </Tab.List>
-            <Tab.Panels className="p-6 bg-white dark:bg-zinc-800 rounded-b-xl">
+            <Tab.Panels className="p-4 bg-white dark:bg-zinc-800 rounded-b-xl">
               <Tab.Panel>
-                <InformationPanel
+                <InformationTab
                   user={{
                     userid: String(user.userid),
                     username: user.username,
@@ -764,8 +933,12 @@ const Profile: pageWithLayout<pageProps> = ({
                     birthdayMonth: user.birthdayMonth,
                     joinDate: user.joinDate,
                   }}
+                  workspaceMember={workspaceMember || undefined}
+                  lineManager={lineManager}
+                  allMembers={allMembers}
                   isUser={isUser}
                   isAdmin={isAdmin}
+                  canEditMembers={canManageMembers}
                 />
               </Tab.Panel>
               <Tab.Panel>
@@ -776,6 +949,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   quotas={displayData.quotas}
                   sessionsHosted={displayData.sessionsHosted}
                   sessionsAttended={displayData.sessionsAttended}
+                  allianceVisits={displayData.allianceVisits}
                   avatar={info.avatar}
                   sessions={displayData.sessions}
                   adjustments={displayData.adjustments}
