@@ -123,7 +123,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       <Head>
         <title>Orbit</title>
         <script>
-          console.info( `%c %cOrbit -%c—The All In One Staff Management
+          console.info( `%c %cOrbit%c — The All In One Staff Management
           Solution%c\n\nUnder no circumstances should you paste anything into
           this console. 11/10 times you are asked will be scams.`,
           `padding-left: 2.5em; line-height: 4em; background-size: 2.5em;
