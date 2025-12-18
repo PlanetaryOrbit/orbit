@@ -15,7 +15,6 @@ async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number
   });
   if (!user || !user.roles.length) return false;
   const role = user.roles[0];
-  // Allow if owner OR has the manage_views permission
   return !!(role.isOwnerRole || (role.permissions || []).includes("manage_views"));
 }
 
@@ -27,19 +26,40 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     if (req.method === "DELETE") {
-      // require manage_views or owner
       const ok = await hasManageViewsPermission(req, workspaceId);
       if (!ok) return res.status(401).json({ success: false, error: "Unauthorized" });
-
-      // Ensure the view belongs to this workspace, then delete
       const deleted = await prisma.savedView.deleteMany({ where: { id: viewId, workspaceGroupId: workspaceId } });
       if (deleted.count === 0) return res.status(404).json({ success: false, error: "View not found" });
       return res.status(200).json({ success: true });
     }
 
+    if (req.method === "PATCH") {
+      const ok = await hasManageViewsPermission(req, workspaceId);
+      if (!ok) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const { filters, columnVisibility } = req.body;
+      if (!filters && !columnVisibility) {
+        return res.status(400).json({ success: false, error: "Missing filters or columnVisibility" });
+      }
+      const existingView = await prisma.savedView.findFirst({
+        where: { id: viewId, workspaceGroupId: workspaceId },
+      });
+      if (!existingView) {
+        return res.status(404).json({ success: false, error: "View not found" });
+      }
+      const updated = await prisma.savedView.update({
+        where: { id: viewId },
+        data: {
+          filters: filters || existingView.filters,
+          columnVisibility: columnVisibility || existingView.columnVisibility,
+        },
+      });
+
+      return res.status(200).json({ success: true, view: updated });
+    }
+
     return res.status(405).json({ success: false, error: "Method not allowed" });
   } catch (e) {
-    console.error("Saved view DELETE error:", e);
+    console.error("Saved view API error:", e);
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
 }

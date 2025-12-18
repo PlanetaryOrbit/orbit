@@ -26,7 +26,7 @@ export default async function handler(
 		if (req.method === 'PATCH') {
 			const workspaceId = parseInt(req.query.id as string);
 			const before = await getConfig('leaderboard', workspaceId);
-			const after = { enabled: req.body.enabled };
+			const after = { enabled: req.body.enabled, style: req.body.style || 'list' };
 			await setConfig('leaderboard', after, workspaceId);
 			try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.leaderboard.update', 'leaderboard', { before, after }); } catch (e) {}
 			return res.status(200).json({ success: true });

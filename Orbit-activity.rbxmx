@@ -12,31 +12,21 @@
 			<string name="ScriptGuid">{57280D02-3DDB-4992-BA62-09F779557E92}</string>
 			<ProtectedString name="Source"><![CDATA[
 
-if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
-	return warn("Orbit: Your activity does not track in private servers or Studio.")
-end
-
--- Define services
+-- Orbit Activity Tracking Module
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-
 local HttpQueue = require(script.Components.HttpQueue)
 local FastWait = require(script.Components.FastWait)
-
--- Set up Orbit events
 local TovyFolder = Instance.new("Folder", ReplicatedStorage)
 TovyFolder.Name = "Orbit Assets"
-
 local TovyEvent = Instance.new("RemoteEvent", TovyFolder)
 TovyEvent.Name = "Activity"
-
 local TovyClient = script:WaitForChild("Components"):WaitForChild("OrbitClient")
 TovyClient.Event.Value = TovyEvent
-
 local Close = Instance.new("BindableEvent")
 
--- Set up critical tables
+-- Set up tables
 local messageTable = {}
 local rankTable = {}
 local afkTable = {}
@@ -56,7 +46,7 @@ local Configuration = {
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
 }
 
-if Configuration.privateEnabled == false then
+if Configuration.privateEnabled == true then
 	if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
 		return warn("Orbit: Your activity does not track in private servers or Studio.")
 	end

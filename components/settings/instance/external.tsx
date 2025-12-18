@@ -58,8 +58,8 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
       return;
     }
 
-    if (rankingProvider === "bloxyservices" && !rankingToken.trim()) {
-      triggerToast.error("BloxyServices requires an API key");
+    if (rankingProvider === "upraiseranking" && !rankingToken.trim()) {
+      triggerToast.error("Upraise Ranking requires an API key");
       return;
     }
 
@@ -103,7 +103,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
 
   const rankingProviders = [
     { value: "", label: "None" },
-    { value: "bloxyservices", label: "BloxyServices" },
+    { value: "upraiseranking", label: "Upraise Ranking" },
     { value: "rankgun", label: "RankGun" },
   ];
 
@@ -215,7 +215,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
         Need a hand? Check our documentation at{' '}
-        <a href="https://docs.planetaryapp.us/workspace/externalservices" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+        <a href="https://docs.planetaryapp.us/workspace/external" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
           docs.planetaryapp.us
         </a>
       </p>

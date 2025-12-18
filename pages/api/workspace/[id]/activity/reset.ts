@@ -181,6 +181,46 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         }
       ).length;
 
+      const allUserSessionsIds = new Set([
+        ...ownedSessions.map(s => s.id),
+        ...allSessionParticipations.map(p => p.sessionid)
+      ]);
+      const sessionsLogged = allUserSessionsIds.size;
+      const sessionsByType: Record<string, number> = {};
+      const allUserSessions = [
+        ...ownedSessions.map(s => ({ id: s.id, type: s.type })),
+        ...allSessionParticipations.map(p => ({ 
+          id: p.sessionid, 
+          type: (p.session as any).type 
+        }))
+      ];
+      const uniqueSessionsMap = new Map(allUserSessions.map(s => [s.id, s.type]));
+      for (const [, sessionType] of uniqueSessionsMap) {
+        const type = sessionType || 'other';
+        sessionsByType[type] = (sessionsByType[type] || 0) + 1;
+      }
+      const cohostSessions = allSessionParticipations.filter((p) => {
+        const slots = p.session.sessionType.slots as any[];
+        const slotName = slots[p.slot]?.name || "";
+        return p.roleID.toLowerCase().includes("co-host") || slotName.toLowerCase().includes("co-host");
+      }).length;
+
+      const allianceVisits = await prisma.allyVisit.count({
+        where: {
+          ally: {
+            workspaceGroupId: workspaceGroupId,
+          },
+          time: {
+            gte: periodStart,
+            lte: periodEnd,
+          },
+          OR: [
+            { hostId: userId },
+            { participants: { has: userId } }
+          ]
+        }
+      });
+
       const wallPosts = await prisma.wallPost.findMany({
         where: {
           authorId: userId,
@@ -208,12 +248,28 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             percentage = (totalMinutes / quota.value) * 100;
             break;
           case "sessions_hosted":
-            currentValue = sessionsHosted;
-            percentage = (sessionsHosted / quota.value) * 100;
+            if (quota.sessionType && quota.sessionType !== 'all') {
+              currentValue = sessionsByType[quota.sessionType] || 0;
+            } else {
+              currentValue = sessionsHosted;
+            }
+            percentage = (currentValue / quota.value) * 100;
             break;
           case "sessions_attended":
             currentValue = sessionsAttended;
             percentage = (sessionsAttended / quota.value) * 100;
+            break;
+          case "sessions_logged":
+            if (quota.sessionType && quota.sessionType !== 'all') {
+              currentValue = sessionsByType[quota.sessionType] || 0;
+            } else {
+              currentValue = sessionsLogged;
+            }
+            percentage = (currentValue / quota.value) * 100;
+            break;
+          case "alliance_visits":
+            currentValue = allianceVisits;
+            percentage = (allianceVisits / quota.value) * 100;
             break;
         }
 

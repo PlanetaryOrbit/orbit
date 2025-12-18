@@ -27,6 +27,7 @@ import axios from "axios";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
+import PatternEditDialog from "@/components/sessionpatterns";
 import { Dialog, Transition } from "@headlessui/react";
 
 const BG_COLORS = [
@@ -548,6 +549,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
   const [visibilityFilters, setVisibilityFilters] = useState<any>({});
   const [workspaceRoles, setWorkspaceRoles] = useState<any[]>([]);
+  const [isPatternEditDialogOpen, setIsPatternEditDialogOpen] = useState(false);
+  const [sessionToEdit, setSessionToEdit] = useState<any>(null);
   const router = useRouter();
   const workspaceIdForColors = Array.isArray(router.query.id)
     ? router.query.id[0]
@@ -628,8 +631,23 @@ const Home: pageWithLayout<pageProps> = (props) => {
         new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-  const handleEditSession = (sessionId: string) => {
-    router.push(`/workspace/${router.query.id}/sessions/edit/${sessionId}`);
+  const handleEditSession = async (sessionId: string) => {
+    const session = allSessions.find(s => s.id === sessionId);
+    
+    if (session?.scheduleId) {
+      setSessionToEdit(session);
+      setIsPatternEditDialogOpen(true);
+    } else {
+      router.push(`/workspace/${router.query.id}/sessions/edit/${sessionId}`);
+    }
+  };
+
+  const handlePatternEditConfirm = (scope: "single" | "future" | "all") => {
+    if (!sessionToEdit) return;
+    router.push({
+      pathname: `/workspace/${router.query.id}/sessions/edit/${sessionToEdit.id}`,
+      query: { scope },
+    });
   };
 
   const handleSessionClick = (session: any) => {
@@ -930,24 +948,24 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 return (
                   <div className="px-2" key={session.id}>
                     <div
-                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border min-w-[260px] ${
+                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border w-[260px] ${
                         isActive
                           ? "border-emerald-200 dark:border-emerald-600/50"
                           : "bg-white border border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-800/60"
                       } backdrop-blur-sm`}
                       onClick={() => handleSessionClick(session)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-auto">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="flex items-center justify-between w-full">
                             <h4 className="flex-1 min-w-0 font-medium text-zinc-900 dark:text-white truncate mb-0">
                               {session.name || session.sessionType.name}
                             </h4>
 
-                            <div className="flex items-center gap-1 ml-2 z-10 flex-shrink-0 relative left-2 group-hover:left-0 transition-all">
+                            <div className="flex items-center gap-1 ml-2 z-10 flex-shrink-0">
                               {session.owner && (
                                 <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                                  className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
                                     session.owner.userid.toString()
                                   )}`}
                                 >
@@ -967,7 +985,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
 
                               {coHost && (
                                 <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                                  className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
                                     coHost.user.userid.toString()
                                   )} ${session.owner ? "-ml-2" : ""}`}
                                 >
@@ -987,9 +1005,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 min-h-[28px] flex-wrap">
                             {isActive && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse flex-shrink-0">
                                 • LIVE
                               </span>
                             )}
@@ -999,14 +1017,14 @@ const Home: pageWithLayout<pageProps> = (props) => {
                                   session.type
                                 )} ${getTextColorForBackground(
                                   getSessionTypeColor(session.type)
-                                )} px-2 py-1 rounded text-xs font-medium`}
+                                )} px-2 py-1 rounded text-xs font-medium flex-shrink-0`}
                               >
                                 {session.type.charAt(0).toUpperCase() +
                                   session.type.slice(1)}
                               </span>
                             )}
                             {isConcluded && (
-                              <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
+                              <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium flex-shrink-0">
                                 Concluded
                               </span>
                             )}
@@ -1223,6 +1241,18 @@ const Home: pageWithLayout<pageProps> = (props) => {
             </div>
           </Dialog>
         </Transition>
+
+        {sessionToEdit && (
+          <PatternEditDialog
+            isOpen={isPatternEditDialogOpen}
+            onClose={() => {
+              setIsPatternEditDialogOpen(false);
+              setSessionToEdit(null);
+            }}
+            onConfirm={handlePatternEditConfirm}
+            session={sessionToEdit}
+          />
+        )}
       </div>
     </div>
   );

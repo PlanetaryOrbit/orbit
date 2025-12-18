@@ -156,7 +156,7 @@ const Sessions: React.FC = () => {
                       )}
                     </div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Hosted by {session.owner?.username || "Unknown"}
+                      {session.owner?.username ? `Hosted by ${session.owner.username}` : "No Host"}
                     </p>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ const Sessions: React.FC = () => {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}
-                      • Hosted by {nextSession.owner?.username || "Unknown"}
+                      • {nextSession.owner?.username ? `Hosted by ${nextSession.owner.username}` : "No Host"}
                     </p>
                   </div>
                 </div>

@@ -291,13 +291,24 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-            Add New Note
-          </h2>
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <IconClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
+                Add New Note
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+                Log performance, rank changes, warnings, and other important updates.
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-4">
-            <div className="bg-white dark:bg-zinc-600 p-4 rounded-lg">
+            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
               <label
                 htmlFor="type"
                 className="block text-sm font-medium text-zinc-700 mb-1 dark:text-white"
@@ -347,7 +358,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
               )}
 
             {type === "rank_change" && (
-              <div className="bg-white dark:bg-zinc-600 p-4 rounded-lg">
+              <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
                 <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Target Rank
                 </label>
@@ -378,7 +389,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
               </div>
             )}
 
-            <div>
+            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
               <label
                 htmlFor="note"
                 className="block text-sm font-medium text-zinc-700 dark:text-white mb-1"
@@ -451,14 +462,25 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-            History
-          </h2>
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <IconClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
+                History
+              </h2>
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+                A timeline of all notes, rank changes, and terminations for this member.
+              </p>
+            </div>
+          </div>
+
           {localBook.length === 0 ? (
             <div className="text-center py-12">
-              <div className="bg-zinc-50 dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-8 max-w-md mx-auto">
                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <IconClipboardList className="w-8 h-8 text-primary" />
                 </div>
@@ -477,14 +499,14 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                 return (
                   <div
                     key={entry.id}
-                    className="flex gap-4 p-4 bg-zinc-50 dark:bg-zinc-500 rounded-lg"
+                    className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg"
                   >
                     <div className="flex-shrink-0">{getIcon(entry.type)}</div>
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
+                    <div className="flex-grow min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-1">
+                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
                           <span
-                            className={`text-sm font-medium ${
+                            className={`text-xs sm:text-sm font-medium ${
                               entry.redacted
                                 ? "line-through opacity-60 text-zinc-500 dark:text-zinc-300"
                                 : "text-zinc-900 dark:text-white"
@@ -493,12 +515,12 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                             {getEntryTitle(entry.type)}
                           </span>
                           {rankChangeText && (
-                            <span className="text-xs dark:bg-blue-100 bg-blue-900 dark:text-blue-800 text-blue-200 px-2 py-1 rounded-full">
+                            <span className="text-xs dark:bg-blue-100 bg-blue-900 dark:text-blue-800 text-blue-200 px-2 py-0.5 rounded-full whitespace-nowrap">
                               {rankChangeText}
                             </span>
                           )}
                         </div>
-                        <time className="text-xs text-zinc-500 dark:text-zinc-400">
+                        <time className="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
                           {moment(entry.createdAt).format("DD MMM YYYY")}
                         </time>
                       </div>

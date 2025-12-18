@@ -78,6 +78,7 @@ model user {
   info                 userInfo?
   wallPosts            wallPost[]
   workspaceMemberships workspaceMember[]
+  managedMembers       workspaceMember[]      @relation("LineManager")
   Ally                 Ally[]                 @relation("AllyTouser")
   roles                role[]                 @relation("roleTouser")
   policyAcknowledgments PolicyAcknowledgment[]
@@ -107,6 +108,7 @@ model role {
   workspaceGroupId Int
   name             String
   groupRoles       Int[]
+  color            String?
   quotaRoles       QuotaRole[]
   workspace        workspace     @relation(fields: [workspaceGroupId], references: [groupId])
   SessionType      SessionType[] @relation("SessionTypeTorole")
@@ -319,6 +321,8 @@ model Quota {
   value            Int
   workspaceGroupId Int
   name             String
+  description      String?
+  sessionType      String?
   workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
 }
@@ -338,26 +342,33 @@ model Ally {
 }
 
 model allyVisit {
-  id     String   @id @unique @default(uuid()) @db.Uuid
-  allyId String   @db.Uuid
-  hostId BigInt
-  time   DateTime
-  name   String
-  ally   Ally     @relation(fields: [allyId], references: [id])
-  host   user     @relation(fields: [hostId], references: [userid])
+  id           String   @id @unique @default(uuid()) @db.Uuid
+  allyId       String   @db.Uuid
+  hostId       BigInt
+  time         DateTime
+  name         String
+  participants BigInt[]
+  ally         Ally     @relation(fields: [allyId], references: [id])
+  host         user     @relation(fields: [hostId], references: [userid])
 }
 
 model workspaceMember {
   workspaceGroupId Int
   userId           BigInt
-  joinDate         DateTime? @default(now())
+  joinDate         DateTime?
   birthdayDay      Int?
   birthdayMonth    Int?
+  department       String?
+  lineManagerId    BigInt?
+  timezone         String?
+  discordId        String?
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  lineManager      user?     @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([workspaceGroupId, userId])
   @@index([userId])
+  @@index([lineManagerId])
 }
 
 model ActivityAdjustment {

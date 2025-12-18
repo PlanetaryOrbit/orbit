@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig, setConfig } from '@/utils/configEngine'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { withSessionRoute } from '@/lib/withSession'
 import * as noblox from 'noblox.js'
 type Data = {
 	success: boolean
@@ -10,15 +11,20 @@ type Data = {
 	roles?: any
 	currentRole?: any
 	leaderboardRole?: any
+	idleTimeEnabled?: boolean
 }
 
-export default withPermissionCheck(handler, 'admin');
+export default withSessionRoute(handler);
 
 export async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
+	
+	if (!req.session.userid) {
+		return res.status(401).json({ success: false, error: 'Unauthorized' });
+	}
 	const workspace = await prisma.workspace.findFirst({
 		where: {
 			groupId: parseInt(req.query.id as string),
@@ -33,6 +39,7 @@ export async function handler(
 		roles,
 		currentRole: activityconfig?.role,
 		leaderboardRole: activityconfig?.leaderboardRole,
+		idleTimeEnabled: activityconfig?.idleTimeEnabled ?? true,
 		success: true,
 	});
 }

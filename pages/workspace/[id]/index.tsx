@@ -145,6 +145,19 @@ const Home: pageWithLayout = () => {
     }
   }, [workspace?.groupId])
 
+  useEffect(() => {
+    if (workspace?.groupId && login?.userId) {
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      fetch(`/api/workspace/${workspace.groupId}/timezone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone: detectedTimezone }),
+      }).catch(() => {
+		// no errors its gonan work amazing trust - famous last words
+      });
+    }
+  }, [workspace?.groupId, login?.userId])
+
   const handleRefresh = () => {
     setRefreshing(true)
     setTimeout(() => {
@@ -208,14 +221,14 @@ const Home: pageWithLayout = () => {
             />
           </div>
         )}
-        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("birthdays") && (
-          <div className="mb-8 z-0 relative">
-            <Birthdays />
-          </div>
-        )}
         {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
           <div className="mb-8 z-0 relative">
             <NewToTeam />
+          </div>
+        )}
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("birthdays") && (
+          <div className="mb-8 z-0 relative">
+            <Birthdays />
           </div>
         )}
         <div className="mb-8 z-0 relative">

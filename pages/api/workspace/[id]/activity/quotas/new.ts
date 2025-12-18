@@ -24,20 +24,27 @@ export async function handler(
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
 
-	const { name, type, value, roles } = req.body;
+	const { name, type, value, roles, description, sessionType } = req.body;
 
 	if (!name || !type || !value || !roles || !Array.isArray(roles)) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
 	try {
-		const quota = await prisma.quota.create({
-		  data: {
+		const quotaData: any = {
 			name,
 			type,
 			value: parseInt(value),
-			workspaceGroupId: parseInt(req.query.id as string)
-		  }
+			workspaceGroupId: parseInt(req.query.id as string),
+			description: description || null,
+		};
+
+		if (sessionType) {
+			quotaData.sessionType = sessionType;
+		}
+
+		const quota = await prisma.quota.create({
+		  data: quotaData
 		});
 	  
 		if (Array.isArray(roles) && roles.length > 0) {

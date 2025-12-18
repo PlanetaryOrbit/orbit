@@ -49,7 +49,7 @@ DROP TABLE "_QuotaTorole";
 CREATE TABLE "workspaceMember" (
     "workspaceGroupId" INTEGER NOT NULL,
     "userId" BIGINT NOT NULL,
-    "joinDate" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "joinDate" TIMESTAMP(3),
     "birthdayDay" INTEGER,
     "birthdayMonth" INTEGER,
 

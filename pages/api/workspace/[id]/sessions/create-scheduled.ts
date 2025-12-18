@@ -93,6 +93,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     }
 
     const selectedDays = Array.isArray(days) ? days : [days];
+
+    // Create a schedule record for this specific time pattern
+    // This schedule record represents the pattern for all sessions at this hour:minute on the selected days
+    const patternSchedule = await prisma.schedule.create({
+      data: {
+        Days: selectedDays,
+        Hour: hours,
+        Minute: minutes,
+        sessionTypeId: sessionType.id,
+      },
+    });
+
     for (const dayOfWeek of selectedDays) {
       const today = new Date();
       const currentDay = today.getDay();
@@ -130,11 +142,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         const utcSessionDate = new Date(localDateTime.getTime() + (offsetMinutes * 60000));
 
         if (utcSessionDate >= currentDate && utcSessionDate <= endDate) {
-          const scheduleId = sessionType.schedule && sessionType.schedule.length > 0 ? sessionType.schedule[0].id : null;
           const sessionData: any = {
             date: utcSessionDate,
             sessionTypeId: sessionType.id,
-            scheduleId: scheduleId,
+            scheduleId: patternSchedule.id,
             name: name,
             type: type,
           };

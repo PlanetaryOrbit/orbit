@@ -32,7 +32,8 @@ export async function handler(
 		data: {
 			name: req.body.name || 'Untitled Role',
 			permissions: req.body.permissions || [],
-			groupRoles: req.body.groupRoles || []
+			groupRoles: req.body.groupRoles || [],
+			color: req.body.color || null
 		}
 	});
 

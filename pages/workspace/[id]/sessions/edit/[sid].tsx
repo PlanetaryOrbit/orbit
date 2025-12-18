@@ -205,6 +205,7 @@ const EditSession: pageWithLayout<
   };
 
   const router = useRouter();
+  const { scope } = router.query; // Get the scope from query params (single, future, all)
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
@@ -248,22 +249,46 @@ const EditSession: pageWithLayout<
 
       const [dateStr, timeStr] = localDateTime.split("T");
 
-      await axios.put(
-        `/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/manage`,
-        {
-          name: formData.name,
-          gameId: formData.gameId,
-          date: dateStr,
-          time: timeStr,
-          description: formData.description,
-          duration: formData.duration,
-          statues: statues,
-          updateAll: applyToAll,
-          timezoneOffset: new Date().getTimezoneOffset(),
-        }
-      );
+      // If we have a scope from the pattern dialog, use the pattern update API
+      if (scope && session.scheduleId) {
+        await axios.post(
+          `/api/workspace/${workspace.groupId}/sessions/${session.id}/update-pattern`,
+          {
+            updateScope: scope, // "single", "future", or "all"
+            newDate: dateStr,
+            newTime: timeStr,
+            newDuration: formData.duration,
+            newName: formData.name,
+          }
+        );
+        
+        toast.success(
+          scope === "single" 
+            ? "Session updated successfully"
+            : scope === "future"
+            ? "This and future sessions updated successfully"
+            : "All sessions in pattern updated successfully"
+        );
+      } else {
+        // Use the original update API for non-pattern sessions
+        await axios.put(
+          `/api/workspace/${workspace.groupId}/sessions/manage/${session.id}/manage`,
+          {
+            name: formData.name,
+            gameId: formData.gameId,
+            date: dateStr,
+            time: timeStr,
+            description: formData.description,
+            duration: formData.duration,
+            statues: statues,
+            updateAll: applyToAll,
+            timezoneOffset: new Date().getTimezoneOffset(),
+          }
+        );
 
-      toast.success("Session updated successfully");
+        toast.success("Session updated successfully");
+      }
+      
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
       setFormError(
@@ -279,28 +304,43 @@ const EditSession: pageWithLayout<
   };
 
   const handleSaveClick = () => {
-    const isSeriesSession = session.scheduleId !== null;
-    if (isSeriesSession) {
-      setShowUpdateModal(true);
-    } else {
+    // If scope is already provided from the pattern dialog, just save directly
+    if (scope) {
       updateSession(false);
+    } else {
+      // Check if this is a series session and show the modal
+      const isSeriesSession = session.scheduleId !== null;
+      if (isSeriesSession) {
+        setShowUpdateModal(true);
+      } else {
+        updateSession(false);
+      }
     }
   };
 
   const deleteSession = async () => {
     setIsSubmitting(true);
     try {
+      // If we have a scope from the pattern dialog, use it instead of asking again
+      const deleteScope = scope || (deleteAll ? "all" : "single");
+      
       await axios.delete(
         `/api/workspace/${workspace.groupId}/sessions/${session.id}/delete`,
         {
-          data: { deleteAll },
+          data: { 
+            deleteAll: deleteScope === "all",
+            deleteScope: deleteScope, // Pass the scope for future/single distinction
+          },
         }
       );
-      toast.success(
-        deleteAll
-          ? "All sessions in series deleted successfully"
-          : "Session deleted successfully"
-      );
+      
+      const successMessage = deleteScope === "single" 
+        ? "Session deleted successfully"
+        : deleteScope === "future"
+        ? "This and future sessions deleted successfully"
+        : "All sessions in series deleted successfully";
+      
+      toast.success(successMessage);
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
       toast.error(err?.response?.data?.error || "Failed to delete session");
@@ -335,7 +375,14 @@ const EditSession: pageWithLayout<
 
         <div className="flex items-center gap-2">
           <Button
-            onPress={() => setShowDeleteModal(true)}
+            onPress={() => {
+              // If scope is already set from pattern dialog, delete directly without asking
+              if (scope) {
+                deleteSession();
+              } else {
+                setShowDeleteModal(true);
+              }
+            }}
             disabled={isSubmitting}
             classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
           >
@@ -365,6 +412,25 @@ const EditSession: pageWithLayout<
             </h3>
             <p className="text-red-600 dark:text-red-300 text-sm">
               {formError}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {scope && session.scheduleId && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3 dark:bg-blue-900/20 dark:border-blue-800">
+          <IconInfoCircle
+            className="text-blue-500 mt-0.5 flex-shrink-0"
+            size={18}
+          />
+          <div>
+            <h3 className="font-medium text-blue-800 dark:text-blue-400">
+              Pattern Edit Mode
+            </h3>
+            <p className="text-blue-600 dark:text-blue-300 text-sm">
+              {scope === "single" && "Changes will only affect this session."}
+              {scope === "future" && "Changes will affect this and all future sessions on the same day of the week."}
+              {scope === "all" && "Changes will affect all sessions in this recurring pattern."}
             </p>
           </div>
         </div>

@@ -69,6 +69,14 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 		setRoles(rroles);
 	};
 
+	const updateRoleColor = async (color: string, id: string) => {
+		const index = roles.findIndex((role: any) => role.id === id);
+		if (index === null) return;
+		const rroles = Object.assign(([] as typeof roles), roles);
+		rroles[index].color = color;
+		setRoles(rroles);
+	};
+
 	const togglePermission = async (id: string, permission: string) => {
 		const index = roles.findIndex((role: any) => role.id === id);
 		if (index === null) return;
@@ -114,6 +122,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 			 name: roles[index].name,
 			 permissions: roles[index].permissions,
 			 groupRoles: roles[index].groupRoles,
+			 color: roles[index].color,
 		 };
 		 try {
 			 await axios.post(
@@ -236,6 +245,26 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 														Owner role name cannot be changed
 													</p>
 												)}
+											</div>
+
+											<div>
+												<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">Role Color</h4>
+												<div className="flex flex-wrap gap-2">
+													{["bg-blue-500", "bg-red-500", "bg-red-700", "bg-green-500", "bg-green-600", "bg-yellow-500", "bg-orange-500", "bg-purple-500", "bg-pink-500", "bg-zinc-500", "bg-orbit"].map((color) => (
+														<button
+															key={color}
+															onClick={() => updateRoleColor(color, role.id)}
+															className={clsx(
+																"w-8 h-8 rounded-full border-2 transition-all",
+																color,
+																role.color === color
+																	? "border-zinc-900 dark:border-white scale-110"
+																	: "border-transparent hover:scale-105"
+															)}
+															aria-label={`Select ${color}`}
+														/>
+													))}
+												</div>
 											</div>
 
 											<div>

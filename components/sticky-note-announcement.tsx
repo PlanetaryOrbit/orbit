@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { IconX, IconPin } from "@tabler/icons-react";
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_6b1";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v2_1_7b1";
 
 export default function StickyNoteAnnouncement() {
   const [isVisible, setIsVisible] = useState(false);
@@ -32,33 +32,34 @@ export default function StickyNoteAnnouncement() {
 
         <div className="text-zinc-800 dark:text-zinc-300 text-sm space-y-3">
           <h4 className="text-base font-semibold text-zinc-900 dark:text-white">
-            Update: v2.1.6 is now live!
+            Update: v2.1.7 is now live!
           </h4>
           <p>
             We're keeping this going with a well needed update. Here are a few
             highlights from this week's work and community feedback.
           </p>
           <div>
-            <p className="font-semibold mt-2">💼 Policies</p>
+            <p className="font-semibold mt-2">📖 Sessions</p>
             <p>
-              Require staff to digitally "sign" or acknowledge new group
-              policies or documents within Orbit. Automatically track who has
-              viewed and signed the updated policies for compliance purposes.
+              We have updated our session logic, so when editing recurring
+              sessions you have the option to edit the one session or all the
+              events in the series.
             </p>
           </div>
           <div>
-            <p className="font-semibold mt-2">📅 Inactivity Notices</p>
+            <p className="font-semibold mt-2">👤 Profiles</p>
             <p>
-              Notices has a nice easy to use layout allowing you to see who's
-              away at the moment. Admins can now directly create auto-approved
-              notices directly on your profile.
+              We have refreshed how all the staff profiles look and the
+              information that shows up. You can now see activity quotas,
+              session history, and activity overview all in one place! As well
+              as new information like Timezone, Department etc!
             </p>
           </div>
           <div>
-            <p className="font-semibold mt-2">🐛 Bug Fixes</p>
+            <p className="font-semibold mt-2">🎂 Birthdays</p>
             <p>
-              All known reported bugs have been fixed in this release, including
-              various UI issues across the board.
+              We have added the ability for you to add a webhook which announced
+              the birthdays of people on your workspace.
             </p>
           </div>
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">

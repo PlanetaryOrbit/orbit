@@ -17,17 +17,30 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
   }
 
   if (req.method === 'POST') {
-    const { day, month } = req.body || {};
+    const { day, month, timezone } = req.body || {};
     if (
       (day !== 0 && (typeof day !== 'number' || day < 1 || day > 31)) ||
       (month !== 0 && (typeof month !== 'number' || month < 1 || month > 12))
     ) {
       return res.status(400).json({ success: false, error: 'Invalid day or month' });
     }
+    const now = new Date();
     await prisma.workspaceMember.upsert({
       where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },
-      update: { birthdayDay: day, birthdayMonth: month },
-      create: { workspaceGroupId, userId: userid, birthdayDay: day, birthdayMonth: month },
+      update: { 
+        birthdayDay: day, 
+        birthdayMonth: month,
+        ...(timezone && { timezone }),
+        joinDate: now
+      },
+      create: { 
+        workspaceGroupId, 
+        userId: userid, 
+        birthdayDay: day, 
+        birthdayMonth: month,
+        timezone: timezone || 'UTC',
+        joinDate: now
+      },
     });
     return res.json({ success: true });
   }

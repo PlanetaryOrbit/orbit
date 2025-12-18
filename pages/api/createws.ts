@@ -100,6 +100,14 @@ export async function handler(
 			}
 		})
 
+		await tx.workspaceMember.create({
+			data: {
+				workspaceGroupId: groupId,
+				userId: BigInt(req.session.userid),
+				joinDate: new Date()
+			}
+		})
+
 		await tx.config.create({
 			data: {
 				key: 'customization',
