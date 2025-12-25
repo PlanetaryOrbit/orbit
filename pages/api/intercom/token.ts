@@ -6,7 +6,6 @@ type Data = {
   success: boolean;
   intercom_user_jwt?: string;
   error?: string;
-  debug?: any;
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -32,7 +31,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   try {
     const payload = { user_id: userId };
-    const token = jwt.sign(payload, intercomApiSecret, { expiresIn: "1h" });
+    const token = jwt.sign(payload, intercomApiSecret, { algorithm: "HS256" });
     return res.status(200).json({ success: true, intercom_user_jwt: token });
   } catch (e: any) {
     console.error("Error generating intercom JWT:", e);
