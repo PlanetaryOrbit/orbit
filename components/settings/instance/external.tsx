@@ -58,8 +58,8 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
       return;
     }
 
-    if (rankingProvider === "upraiseranking" && !rankingToken.trim()) {
-      triggerToast.error("Upraise Ranking requires an API key");
+    if (rankingProvider === "bloxyservices" && !rankingToken.trim()) {
+      triggerToast.error("BloxyServices requires an API key");
       return;
     }
 
@@ -103,7 +103,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
 
   const rankingProviders = [
     { value: "", label: "None" },
-    { value: "upraiseranking", label: "Upraise Ranking" },
+    { value: "bloxyservices", label: "BloxyServices" },
     { value: "rankgun", label: "RankGun" },
   ];
 
