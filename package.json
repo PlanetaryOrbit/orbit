@@ -1,11 +1,12 @@
 {
   "name": "orbit",
-  "version": "2.1.7beta9",
+  "version": "2.1.7beta10",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "prestart": "npm audit fix || pnpm audit fix || yarn audit fix || true",
     "lint": "next lint",
     "prisma:generate": "prisma generate"
   },
