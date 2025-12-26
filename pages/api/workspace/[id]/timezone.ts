@@ -33,7 +33,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timezone: true,
       },
     });
-    if (!existingMember?.timezone) {
+    if (!existingMember) {
+      return res.status(200).json({ success: true, updated: false, reason: 'Member not found' });
+    }
+    if (!existingMember.timezone) {
       await prisma.workspaceMember.update({
         where: {
           workspaceGroupId_userId: {
