@@ -93,8 +93,26 @@ type User = {
 };
 
 export const getServerSideProps = withPermissionCheckSsr(
-  async ({ params }: GetServerSidePropsContext) => {
+  async ({ params, req }: GetServerSidePropsContext) => {
     const workspaceGroupId = parseInt(params?.id as string);
+    const currentUserId = req.session?.userid;
+    const currentUser = await prisma.user.findFirst({
+      where: { userid: BigInt(currentUserId) },
+      include: {
+        workspaceMemberships: {
+          where: { workspaceGroupId },
+        },
+        roles: {
+          where: { workspaceGroupId },
+        },
+      },
+    });
+    
+    const membership = currentUser?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
+    const userRole = currentUser?.roles?.[0];
+    const hasManageViewsPerm = userRole?.permissions?.includes("manage_views") || false;
+    
     const lastReset = await prisma.activityReset.findFirst({
       where: {
         workspaceGroupId,
@@ -594,6 +612,8 @@ export const getServerSideProps = withPermissionCheckSsr(
           )
         ) as User[],
         ranks: ranks,
+        isAdmin: isAdmin,
+        hasManageViewsPerm: hasManageViewsPerm,
       },
     };
   },
@@ -633,8 +653,10 @@ type pageProps = {
     rank: number;
     name: string;
   }[];
+  isAdmin: boolean;
+  hasManageViewsPerm: boolean;
 };
-const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
+const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasManageViewsPerm }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
@@ -697,16 +719,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks }) => {
   };
 
   const hasManageViews = () => {
-    try {
-      const role = workspace?.roles?.find(
-        (r: any) => r.id === workspace?.yourRole
-      );
-      const isOwner = !!(role && role.isOwnerRole);
-      const hasPerm = !!workspace?.yourPermission?.includes("manage_views");
-      return isOwner || hasPerm;
-    } catch (e) {
-      return false;
-    }
+    return isAdmin || hasManageViewsPerm;
   };
 
   const columnHelper = createColumnHelper<User>();

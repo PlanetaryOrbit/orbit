@@ -19,7 +19,7 @@ async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number
   const role = user.roles[0];
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
-  return !!(isAdmin || (role.permissions || []).includes("manage_views"));
+  return isAdmin || (role.permissions || []).includes("manage_views");
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
