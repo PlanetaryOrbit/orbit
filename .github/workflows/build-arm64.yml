@@ -101,21 +101,6 @@ jobs:
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
 
-      - name: Trigger AMD64 build
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'build-amd64.yml',
-              ref: context.ref,
-              inputs: {
-                version_tag: '${{ steps.next_version.outputs.new_tag }}'
-              }
-            });
-
       - name: Create Git tag
         run: |
           NEW_TAG="${{ steps.next_version.outputs.new_tag }}"
@@ -159,7 +144,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🖥️ Platforms" >> $GITHUB_STEP_SUMMARY
           echo "- linux/arm64 (Apple Silicon, ARM) ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- linux/amd64 (Intel/AMD) ⏳ Building in parallel..." >> $GITHUB_STEP_SUMMARY
+          echo "- linux/amd64 (Intel/AMD) ⚠️ Run 'Build Orbit (AMD64)' workflow manually with version: \`${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔖 Version" >> $GITHUB_STEP_SUMMARY
           echo "Previous: \`${{ steps.get_version.outputs.latest_tag }}\`" >> $GITHUB_STEP_SUMMARY
