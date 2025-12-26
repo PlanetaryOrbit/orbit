@@ -1,0 +1,73 @@
+name: Build and Push Orbit Image (AMD64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Version tag to use"
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: planetaryorbit/orbit
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GH_USER }}
+          password: ${{ secrets.GH_PAT }}
+
+      # Build AMD64 (no cache to avoid hangs)
+      - name: Build and push AMD64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          no-cache: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }}-amd64
+
+      # Create multi-platform manifest after AMD64 is done
+      - name: Create and push multi-platform manifest
+        run: |
+          docker buildx imagetools create -t \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }}-arm64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }}-amd64
+
+          docker buildx imagetools create -t \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }}-arm64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version_tag }}-amd64
+
+      - name: Summary
+        run: |
+          echo "## 🎉 AMD64 Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Final Multi-Platform Image Tags" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:${{ github.event.inputs.version_tag }}\` (multi-arch)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:latest\` (multi-arch)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🖥️ Platforms" >> $GITHUB_STEP_SUMMARY
+          echo "- linux/arm64 (Apple Silicon, ARM) ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- linux/amd64 (Intel/AMD) ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Notes" >> $GITHUB_STEP_SUMMARY
+          echo "Both architecture-specific tags and multi-platform tags are now available." >> $GITHUB_STEP_SUMMARY
