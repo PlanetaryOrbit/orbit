@@ -492,7 +492,7 @@ const Login: NextPage = () => {
                           disabled={
                             loading ||
                             usernameCheckLoading ||
-                            usernameAvailable === false ||
+                            usernameAvailable !== true ||
                             !!signupMethods.formState.errors.username
                           }
                         >
