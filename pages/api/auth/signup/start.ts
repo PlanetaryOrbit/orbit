@@ -23,6 +23,19 @@ export async function handler(
 	if (!username) return res.status(400).json({ success: false, error: 'Missing username' })
 	const userid = await noblox.getIdFromUsername(username).catch(() => null) as number | undefined;
 	if (!userid) return res.status(404).json({ success: false, error: 'Username not found' })
+	
+	// Check if user is already registered
+	const existingUser = await prisma.user.findUnique({
+		where: { userid: BigInt(userid) },
+		select: { registered: true, info: { select: { passwordhash: true } } }
+	});
+	
+	if (existingUser?.registered || existingUser?.info?.passwordhash) {
+		return res.status(400).json({ 
+			success: false, 
+			error: `User ${username} is already registered. Please use the login form instead.` 
+		});
+	}
 	const array = ['📋', '🎉', '🎂', '📆', '✔️', '📃', '👍', '➕', '📢', '🐒', '🐴', '🐑', '🐘', '🐼', '🐧', '🐦', '🐤', '🐥', '🐣', '🐔', '🐍', '🐢', '🐛', '🐝', '🐜', '📕', '📗', '📘', '📙', '📓', '📔', '📒', '📚', '📖', '🔖', '🎯', '🏈', '🏀', '⚽', '⚾', '🎾', '🎱', '🏉', '🎳', '⛳', '🚵', '🚴', '🏁', '🏇']
 	const verificationCode = `🤖${Array.from({ length: 11 }, () => array[Math.floor(Math.random() * array.length)]).join('')}`;
 	
