@@ -15,7 +15,11 @@ import { IconX } from "@tabler/icons-react";
 import { OAuthAvailable } from "@/hooks/useOAuth";
 
 type LoginForm = { username: string; password: string };
-type SignupForm = { username: string; password: string; verifypassword: string };
+type SignupForm = {
+  username: string;
+  password: string;
+  verifypassword: string;
+};
 
 const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
@@ -24,18 +28,34 @@ const Login: NextPage = () => {
   const loginMethods = useForm<LoginForm>();
   const signupMethods = useForm<SignupForm>();
 
-  const { register: regLogin, handleSubmit: submitLogin, setError: setErrLogin } = loginMethods;
-  const { register: regSignup, handleSubmit: submitSignup, setError: setErrSignup, getValues: getSignupValues } = signupMethods;
+  const {
+    register: regLogin,
+    handleSubmit: submitLogin,
+    setError: setErrLogin,
+  } = loginMethods;
+  const {
+    register: regSignup,
+    handleSubmit: submitSignup,
+    setError: setErrSignup,
+    getValues: getSignupValues,
+  } = signupMethods;
 
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [signupStep, setSignupStep] = useState<0 | 1 | 2>(0);
   const [verificationCode, setVerificationCode] = useState("");
-  const [verificationError, setVerificationError] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
+  const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null
+  );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Background gradient animation
   useEffect(() => {
@@ -53,7 +73,9 @@ const Login: NextPage = () => {
       style.getPropertyValue("--gradient-color-4").trim() || "#822eff",
     ];
 
-    let width = window.innerWidth, height = window.innerHeight, angle = 0;
+    let width = window.innerWidth,
+      height = window.innerHeight,
+      angle = 0;
     canvas.width = width;
     canvas.height = height;
 
@@ -68,7 +90,9 @@ const Login: NextPage = () => {
       const y = Math.sin(angle) * height;
 
       const grad = ctx.createLinearGradient(0, 0, x, y);
-      colors.forEach((color, i) => grad.addColorStop(i / (colors.length - 1), color));
+      colors.forEach((color, i) =>
+        grad.addColorStop(i / (colors.length - 1), color)
+      );
 
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
@@ -76,7 +100,9 @@ const Login: NextPage = () => {
     };
 
     animate();
-    const resize = () => (canvas.width = window.innerWidth, canvas.height = window.innerHeight);
+    const resize = () => (
+      (canvas.width = window.innerWidth), (canvas.height = window.innerHeight)
+    );
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, []);
@@ -85,30 +111,94 @@ const Login: NextPage = () => {
   useEffect(() => {
     loginMethods.reset();
     signupMethods.reset();
-    setVerificationError(false);
+    setVerificationError(null);
     setSignupStep(0);
     setLoading(false);
+    setUsernameCheckLoading(false);
+    setUsernameAvailable(null);
+    if (usernameCheckTimeout.current) {
+      clearTimeout(usernameCheckTimeout.current);
+    }
   }, [mode]);
+
+  useEffect(() => {
+    return () => {
+      if (usernameCheckTimeout.current) {
+        clearTimeout(usernameCheckTimeout.current);
+      }
+    };
+  }, []);
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username || username.length < 2) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    setUsernameCheckLoading(true);
+    setUsernameAvailable(null);
+    try {
+      await axios.post("/api/auth/checkUsername", { username });
+      signupMethods.clearErrors("username");
+      setUsernameAvailable(true);
+    } catch (e: any) {
+      const errorMessage = e?.response?.data?.error;
+      if (errorMessage) {
+        setErrSignup("username", {
+          type: "custom",
+          message: errorMessage,
+        });
+        setUsernameAvailable(false);
+      }
+    } finally {
+      setUsernameCheckLoading(false);
+    }
+  };
+
+  const onUsernameChange = (username: string) => {
+    if (usernameCheckTimeout.current) {
+      clearTimeout(usernameCheckTimeout.current);
+    }
+
+    signupMethods.clearErrors("username");
+    setUsernameAvailable(null);
+
+    usernameCheckTimeout.current = setTimeout(() => {
+      checkUsernameAvailability(username);
+    }, 800);
+  };
 
   const onSubmitLogin: SubmitHandler<LoginForm> = async (data) => {
     setLoading(true);
     try {
       let req;
       try {
-        req = await axios.post('/api/auth/login', data)
+        req = await axios.post("/api/auth/login", data);
       } catch (e: any) {
         setLoading(false);
         if (e.response.status === 404) {
-          setErrLogin('username', { type: 'custom', message: e.response.data.error })
+          setErrLogin("username", {
+            type: "custom",
+            message: e.response.data.error,
+          });
           return;
         }
         if (e.response.status === 401) {
           // Only set error on password
-          setErrLogin('password', { type: 'custom', message: e.response.data.error })
+          setErrLogin("password", {
+            type: "custom",
+            message: e.response.data.error,
+          });
           return;
         }
-        setErrLogin('username', { type: 'custom', message: 'Something went wrong' })
-        setErrLogin('password', { type: 'custom', message: 'Something went wrong' })
+        setErrLogin("username", {
+          type: "custom",
+          message: "Something went wrong",
+        });
+        setErrLogin("password", {
+          type: "custom",
+          message: "Something went wrong",
+        });
         return;
       }
       const { data: res } = req;
@@ -120,7 +210,8 @@ const Login: NextPage = () => {
 
       if (status === 404 || status === 401) {
         setErrLogin("username", { type: "custom", message: msg });
-        if (status === 401) setErrLogin("password", { type: "custom", message: msg });
+        if (status === 401)
+          setErrLogin("password", { type: "custom", message: msg });
       } else {
         setErrLogin("username", { type: "custom", message: msg });
         setErrLogin("password", { type: "custom", message: msg });
@@ -130,13 +221,20 @@ const Login: NextPage = () => {
     }
   };
 
-  const onSubmitSignup: SubmitHandler<SignupForm> = async ({ username, password, verifypassword }) => {
+  const onSubmitSignup: SubmitHandler<SignupForm> = async ({
+    username,
+    password,
+    verifypassword,
+  }) => {
     if (password !== verifypassword) {
-      setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
+      setErrSignup("verifypassword", {
+        type: "validate",
+        message: "Passwords must match",
+      });
       return;
     }
     setLoading(true);
-    setVerificationError(false);
+    setVerificationError(null);
     try {
       // Start signup (get verification code)
       const { data } = await axios.post("/api/auth/signup/start", { username });
@@ -154,29 +252,53 @@ const Login: NextPage = () => {
 
   const onVerifyAgain = async () => {
     setLoading(true);
-    setVerificationError(false);
+    setVerificationError(null);
 
     const { password } = getSignupValues();
 
     try {
-      const { data } = await axios.post("/api/auth/signup/finish", { password, code: verificationCode });
+      const { data } = await axios.post("/api/auth/signup/finish", {
+        password,
+        code: verificationCode,
+      });
       if (data.success) Router.push("/");
-      else setVerificationError(true);
-    } catch {
-      setVerificationError(true);
+      else setVerificationError("Verification failed. Please try again.");
+    } catch (e: any) {
+      const errorMessage =
+        e?.response?.data?.error || "Verification not found. Please try again.";
+      setVerificationError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const StepButtons = ({ backStep, forwardLabel, onForward }: { backStep?: () => void, forwardLabel: string, onForward: () => void }) => (
+  const StepButtons = ({
+    backStep,
+    forwardLabel,
+    onForward,
+  }: {
+    backStep?: () => void;
+    forwardLabel: string;
+    onForward: () => void;
+  }) => (
     <div className="flex gap-4">
       {backStep && (
-        <Button onPress={backStep} type="button" classoverride="flex-1" loading={loading} disabled={loading}>
+        <Button
+          onPress={backStep}
+          type="button"
+          classoverride="flex-1"
+          loading={loading}
+          disabled={loading}
+        >
           Back
         </Button>
       )}
-      <Button onPress={onForward} classoverride="flex-1" loading={loading} disabled={loading}>
+      <Button
+        onPress={onForward}
+        classoverride="flex-1"
+        loading={loading}
+        disabled={loading}
+      >
         {forwardLabel}
       </Button>
     </div>
@@ -194,7 +316,7 @@ const Login: NextPage = () => {
           </div>
 
           <div className="mb-6 flex justify-center space-x-8">
-            {["login", "signup"].map(m => {
+            {["login", "signup"].map((m) => {
               const isActive = mode === m;
               const activeClass =
                 theme === "dark"
@@ -204,7 +326,9 @@ const Login: NextPage = () => {
                 <button
                   key={m}
                   onClick={() => setMode(m as any)}
-                  className={`pb-2 font-semibold text-lg ${isActive ? activeClass : "text-zinc-500"}`}
+                  className={`pb-2 font-semibold text-lg ${
+                    isActive ? activeClass : "text-zinc-500"
+                  }`}
                   type="button"
                   disabled={loading}
                 >
@@ -216,34 +340,57 @@ const Login: NextPage = () => {
 
           {mode === "login" && (
             <>
-              <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">👋 Welcome to Orbit</p>
-              <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">Login to your Orbit account to continue</p>
+              <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">
+                👋 Welcome to Orbit
+              </p>
+              <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">
+                Login to your Orbit account to continue
+              </p>
 
               <FormProvider {...loginMethods}>
-                <form onSubmit={submitLogin(onSubmitLogin)} className="space-y-5 mb-6" noValidate>
-                  <Input label="Username" placeholder="Username" id="username" {...regLogin("username", { required: "This field is required" })} />
+                <form
+                  onSubmit={submitLogin(onSubmitLogin)}
+                  className="space-y-5 mb-6"
+                  noValidate
+                >
+                  <Input
+                    label="Username"
+                    placeholder="Username"
+                    id="username"
+                    {...regLogin("username", {
+                      required: "This field is required",
+                    })}
+                  />
                   <Input
                     label="Password"
                     placeholder="Password"
                     type={showPassword ? "text" : "password"}
                     id="password"
-                    {...regLogin("password", { required: "This field is required" })}
+                    {...regLogin("password", {
+                      required: "This field is required",
+                    })}
                   />
                   <div className="flex items-center mb-2">
                     <input
                       id="show-password"
                       type="checkbox"
                       checked={showPassword}
-                      onChange={() => setShowPassword(v => !v)}
+                      onChange={() => setShowPassword((v) => !v)}
                       className="mr-2 rounded-md border-gray-300 focus:ring-primary focus:border-primary transition"
                     />
-                    <label htmlFor="show-password" className="text-sm text-zinc-600 dark:text-zinc-300 select-none">
+                    <label
+                      htmlFor="show-password"
+                      className="text-sm text-zinc-600 dark:text-zinc-300 select-none"
+                    >
                       Show password
                     </label>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
                         Forgot password?
                       </Link>
                       <Button
@@ -255,7 +402,7 @@ const Login: NextPage = () => {
                         Login
                       </Button>
                     </div>
-                    
+
                     {isOAuth && (
                       <>
                         <div className="text-center">
@@ -264,19 +411,27 @@ const Login: NextPage = () => {
                               <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                              <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                              <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">
+                                Or
+                              </span>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="w-full">
                           <button
                             type="button"
-                            onClick={() => window.location.href = '/api/auth/roblox/start'}
+                            onClick={() =>
+                              (window.location.href = "/api/auth/roblox/start")
+                            }
                             disabled={loading}
                             className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
-                            <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+                            <img
+                              src="/roblox.svg"
+                              alt="Roblox"
+                              className="w-5 h-5 mr-2 dark:invert-0 invert"
+                            />
                             Continue with Roblox
                           </button>
                         </div>
@@ -292,23 +447,61 @@ const Login: NextPage = () => {
             <>
               {signupStep === 0 && (
                 <>
-                  <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">🔨 Create an account</p>
-                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">Create a new account for Orbit</p>
+                  <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">
+                    🔨 Create an account
+                  </p>
+                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">
+                    Create a new account for Orbit
+                  </p>
 
                   <FormProvider {...signupMethods}>
-                    <form onSubmit={e => { e.preventDefault(); setSignupStep(1); }} className="space-y-5 mb-6" noValidate>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setSignupStep(1);
+                      }}
+                      className="space-y-5 mb-6"
+                      noValidate
+                    >
                       <Input
                         label="Username"
                         placeholder="Username"
                         id="signup-username"
-                        {...regSignup("username", { required: "This field is required" })}
+                        {...regSignup("username", {
+                          required: "This field is required",
+                          onChange: (e) => {
+                            regSignup("username").onChange(e);
+                            onUsernameChange(e.target.value);
+                          },
+                        })}
                       />
+                      {usernameCheckLoading && (
+                        <p className="text-sm text-blue-500 mt-1">
+                          Checking username...
+                        </p>
+                      )}
+                      {!usernameCheckLoading && usernameAvailable === true && (
+                        <p className="text-sm text-green-500 mt-1">
+                          ✓ User signup is available
+                        </p>
+                      )}
                       <div className="flex justify-end">
-                        <Button type="submit" loading={loading} disabled={loading}>Continue</Button>
+                        <Button
+                          type="submit"
+                          loading={loading}
+                          disabled={
+                            loading ||
+                            usernameCheckLoading ||
+                            usernameAvailable === false ||
+                            !!signupMethods.formState.errors.username
+                          }
+                        >
+                          Continue
+                        </Button>
                       </div>
                     </form>
                   </FormProvider>
-                  
+
                   {isOAuth && (
                     <>
                       <div className="mt-4">
@@ -317,19 +510,27 @@ const Login: NextPage = () => {
                             <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
                           </div>
                           <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                            <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">
+                              Or
+                            </span>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="mt-4">
                         <button
                           type="button"
-                          onClick={() => window.location.href = '/api/auth/roblox/start'}
+                          onClick={() =>
+                            (window.location.href = "/api/auth/roblox/start")
+                          }
                           disabled={loading}
                           className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+                          <img
+                            src="/roblox.svg"
+                            alt="Roblox"
+                            className="w-5 h-5 mr-2 dark:invert-0 invert"
+                          />
                           Sign up with Roblox
                         </button>
                       </div>
@@ -340,11 +541,19 @@ const Login: NextPage = () => {
 
               {signupStep === 1 && (
                 <>
-                  <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">🔒 Set a password</p>
-                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">Choose a password for your new account</p>
+                  <p className="font-bold text-3xl text-zinc-700 dark:text-white mb-2">
+                    🔒 Set a password
+                  </p>
+                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">
+                    Choose a password for your new account
+                  </p>
 
                   <FormProvider {...signupMethods}>
-                    <form onSubmit={submitSignup(onSubmitSignup)} className="space-y-5 mb-6" noValidate>
+                    <form
+                      onSubmit={submitSignup(onSubmitSignup)}
+                      className="space-y-5 mb-6"
+                      noValidate
+                    >
                       <Input
                         label="Password"
                         placeholder="Password"
@@ -358,7 +567,8 @@ const Login: NextPage = () => {
                           },
                           pattern: {
                             value: /^(?=.*[0-9!@#$%^&*])/,
-                            message: "Password must contain at least one number or special character",
+                            message:
+                              "Password must contain at least one number or special character",
                           },
                         })}
                       />
@@ -369,7 +579,9 @@ const Login: NextPage = () => {
                         id="signup-verify-password"
                         {...regSignup("verifypassword", {
                           required: "Please verify your password",
-                          validate: value => value === getSignupValues("password") || "Passwords must match",
+                          validate: (value) =>
+                            value === getSignupValues("password") ||
+                            "Passwords must match",
                         })}
                       />
                       <div className="flex gap-2 justify-between">
@@ -390,7 +602,7 @@ const Login: NextPage = () => {
                           Continue
                         </Button>
                       </div>
-                      
+
                       {isOAuth && (
                         <>
                           <div className="mt-4">
@@ -399,28 +611,40 @@ const Login: NextPage = () => {
                                 <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
                               </div>
                               <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">Or</span>
+                                <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">
+                                  Or
+                                </span>
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="mt-4">
                             <button
                               type="button"
-                              onClick={() => window.location.href = '/api/auth/roblox/start'}
+                              onClick={() =>
+                                (window.location.href =
+                                  "/api/auth/roblox/start")
+                              }
                               disabled={loading}
                               className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                              <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                              <img
+                                src="/roblox.svg"
+                                alt="Roblox"
+                                className="w-5 h-5 mr-2"
+                              />
                               Sign up with Roblox
                             </button>
                           </div>
                         </>
                       )}
-                      
+
                       <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                        <strong>Don't share your password.</strong><br />
-                        <span>Do not use the same password as your Roblox account.</span>
+                        <strong>Don't share your password.</strong>
+                        <br />
+                        <span>
+                          Do not use the same password as your Roblox account.
+                        </span>
                       </div>
                     </form>
                   </FormProvider>
@@ -429,10 +653,26 @@ const Login: NextPage = () => {
 
               {signupStep === 2 && (
                 <>
-                  <p className="font-bold text-3xl dark:text-white mb-2">Verify your account</p>
-                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">Paste this code into your Roblox profile bio:</p>
-                  <p className="text-center font-mono bg-zinc-700 text-white py-3 rounded mb-4 select-all">{verificationCode}</p>
-                  {verificationError && <p className="text-center text-red-500 mb-4 font-semibold">Verification not found. Please try again.</p>}
+                  <p className="font-bold text-3xl dark:text-white mb-2">
+                    Verify your account
+                  </p>
+                  <p className="text-md text-zinc-600 dark:text-zinc-300 mb-6">
+                    Paste this code into your Roblox profile bio:
+                  </p>
+                  <p className="text-center font-mono bg-zinc-700 text-white py-3 rounded mb-4 select-all">
+                    {verificationCode}
+                  </p>
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 space-y-1">
+                    <p>• Go to your Roblox profile</p>
+                    <p>• Click "Edit Profile"</p>
+                    <p>• Paste the code above into your Bio/About section</p>
+                    <p>• Save your profile and click "Verify" below</p>
+                  </div>
+                  {verificationError && (
+                    <p className="text-center text-red-500 mb-4 font-semibold">
+                      {verificationError}
+                    </p>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       type="button"
