@@ -26,7 +26,8 @@ const Home: NextPage = () => {
   const [robloxConfig, setRobloxConfig] = useState({
     clientId: '',
     clientSecret: '',
-    redirectUri: ''
+    redirectUri: '',
+    oauthOnlyLogin: false
   })
   const [configLoading, setConfigLoading] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
@@ -148,14 +149,15 @@ const Home: NextPage = () => {
   const loadRobloxConfig = async () => {
     try {
       const response = await axios.get('/api/admin/instance-config')
-      const { robloxClientId, robloxClientSecret } = response.data
+      const { robloxClientId, robloxClientSecret, oauthOnlyLogin } = response.data
       const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
       
       setRobloxConfig({
         clientId: robloxClientId || '',
         clientSecret: robloxClientSecret || '',
-        redirectUri: autoRedirectUri
+        redirectUri: autoRedirectUri,
+        oauthOnlyLogin: oauthOnlyLogin || false
       })
     } catch (error) {
       console.error('Failed to load OAuth config:', error)
@@ -169,7 +171,8 @@ const Home: NextPage = () => {
       await axios.post('/api/admin/instance-config', {
         robloxClientId: robloxConfig.clientId,
         robloxClientSecret: robloxConfig.clientSecret,
-        robloxRedirectUri: robloxConfig.redirectUri
+        robloxRedirectUri: robloxConfig.redirectUri,
+        oauthOnlyLogin: robloxConfig.oauthOnlyLogin
       })
       setSaveMessage('Settings saved successfully!')
       setTimeout(() => setSaveMessage(''), 3000)
@@ -416,6 +419,23 @@ const Home: NextPage = () => {
                             <a href="https://docs.planetaryapp.us/workspace/oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                               docs.planetaryapp.us
                             </a>
+                          </p>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={robloxConfig.oauthOnlyLogin}
+                              onChange={(e) => setRobloxConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
+                              className="w-4 h-4 text-blue-600 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                              Enforce OAuth login
+                            </span>
+                          </label>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
+                            When enabled, users will only see the Roblox OAuth login button.
                           </p>
                         </div>
                       </div>

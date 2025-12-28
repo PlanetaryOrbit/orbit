@@ -23,7 +23,7 @@ type SignupForm = {
 
 const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
-  const { isAvailable: isOAuth } = OAuthAvailable();
+  const { isAvailable: isOAuth, oauthOnly } = OAuthAvailable();
 
   const loginMethods = useForm<LoginForm>();
   const signupMethods = useForm<SignupForm>();
@@ -316,7 +316,7 @@ const Login: NextPage = () => {
           </div>
 
           <div className="mb-6 flex justify-center space-x-8">
-            {["login", "signup"].map((m) => {
+            {["login", ...(oauthOnly ? [] : ["signup"])].map((m) => {
               const isActive = mode === m;
               const activeClass =
                 theme === "dark"
@@ -347,27 +347,28 @@ const Login: NextPage = () => {
                 Login to your Orbit account to continue
               </p>
 
-              <FormProvider {...loginMethods}>
-                <form
-                  onSubmit={submitLogin(onSubmitLogin)}
-                  className="space-y-5 mb-6"
-                  noValidate
-                >
-                  <Input
-                    label="Username"
-                    placeholder="Username"
-                    id="username"
-                    {...regLogin("username", {
-                      required: "This field is required",
-                    })}
-                  />
-                  <Input
-                    label="Password"
-                    placeholder="Password"
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    {...regLogin("password", {
-                      required: "This field is required",
+              {!oauthOnly && (
+                <FormProvider {...loginMethods}>
+                  <form
+                    onSubmit={submitLogin(onSubmitLogin)}
+                    className="space-y-5 mb-6"
+                    noValidate
+                  >
+                    <Input
+                      label="Username"
+                      placeholder="Username"
+                      id="username"
+                      {...regLogin("username", {
+                        required: "This field is required",
+                      })}
+                    />
+                    <Input
+                      label="Password"
+                      placeholder="Password"
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      {...regLogin("password", {
+                        required: "This field is required",
                     })}
                   />
                   <div className="flex items-center mb-2">
@@ -440,6 +441,27 @@ const Login: NextPage = () => {
                   </div>
                 </form>
               </FormProvider>
+              )}
+
+              {isOAuth && oauthOnly && (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      (window.location.href = "/api/auth/roblox/start")
+                    }
+                    disabled={loading}
+                    className="w-full flex items-center justify-center px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-sm bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <img
+                      src="/roblox.svg"
+                      alt="Roblox"
+                      className="w-5 h-5 mr-2 dark:invert-0 invert"
+                    />
+                    Continue with Roblox
+                  </button>
+                </div>
+              )}
             </>
           )}
 
@@ -454,8 +476,9 @@ const Login: NextPage = () => {
                     Create a new account for Orbit
                   </p>
 
-                  <FormProvider {...signupMethods}>
-                    <form
+                  {!oauthOnly && (
+                    <FormProvider {...signupMethods}>
+                      <form
                       onSubmit={(e) => {
                         e.preventDefault();
                         setSignupStep(1);
@@ -501,21 +524,24 @@ const Login: NextPage = () => {
                       </div>
                     </form>
                   </FormProvider>
+                  )}
 
                   {isOAuth && (
                     <>
-                      <div className="mt-4">
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">
-                              Or
-                            </span>
+                      {!oauthOnly && (
+                        <div className="mt-4">
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <span className="w-full border-t border-zinc-300 dark:border-zinc-600" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                              <span className="bg-white dark:bg-zinc-700 px-2 text-zinc-500 dark:text-zinc-400">
+                                Or
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="mt-4">
                         <button

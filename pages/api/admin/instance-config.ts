@@ -23,7 +23,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
-					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri']
+					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin']
 				}
 			}
 		});
@@ -36,7 +36,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.json({
 			robloxClientId: configMap.robloxClientId || '',
 			robloxClientSecret: configMap.robloxClientSecret || '',
-			robloxRedirectUri: configMap.robloxRedirectUri || ''
+			robloxRedirectUri: configMap.robloxRedirectUri || '',
+			oauthOnlyLogin: configMap.oauthOnlyLogin || false
 		});
 		} catch (error) {
 		console.error('Failed to fetch instance config:', error);
@@ -45,13 +46,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	if (req.method === 'POST') {
-		const { robloxClientId, robloxClientSecret, robloxRedirectUri } = req.body;
+		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin } = req.body;
 
 		try {
 			const updates = [
 				{ key: 'robloxClientId', value: robloxClientId || '' },
 				{ key: 'robloxClientSecret', value: robloxClientSecret || '' },
-				{ key: 'robloxRedirectUri', value: robloxRedirectUri || '' }
+				{ key: 'robloxRedirectUri', value: robloxRedirectUri || '' },
+				{ key: 'oauthOnlyLogin', value: oauthOnlyLogin || false }
 			];
 
 			await Promise.all(

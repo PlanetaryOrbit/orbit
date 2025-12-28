@@ -13,7 +13,7 @@ export default async function handler(
     const configs = await prisma.instanceConfig.findMany({
       where: {
         key: {
-          in: ["robloxClientId", "robloxClientSecret", "robloxRedirectUri"],
+          in: ["robloxClientId", "robloxClientSecret", "robloxRedirectUri", "oauthOnlyLogin"],
         },
       },
     });
@@ -31,9 +31,11 @@ export default async function handler(
       process.env.PLANETARY_CLOUD_ROBLOX_REDIRECT_URI ||
       configMap.robloxRedirectUri;
     const available = !!(clientId && clientSecret && redirectUri);
+    const oauthOnly = configMap.oauthOnlyLogin || false;
 
     return res.json({
       available,
+      oauthOnly,
       configured: {
         clientId: !!clientId,
         clientSecret: !!clientSecret,
