@@ -111,13 +111,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           },
           data: {
             users: {
-              delete: {
-                userid_sessionid_roleID_slot: {
-                  userid: BigInt(req.session.userid),
-                  sessionid: findSession.id,
-                  roleID: slotId,
-                  slot: slotNum,
-                },
+              deleteMany: {
+                userid: BigInt(req.session.userid),
+                sessionid: findSession.id,
+                roleID: slotId,
+                slot: slotNum,
               },
             },
           },
