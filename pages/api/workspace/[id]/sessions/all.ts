@@ -9,10 +9,22 @@ export default withPermissionCheck(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { id } = req.query;
+    const { id, page, limit } = req.query;
     const userId = (req as any).session?.userid;
 
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = Math.min(parseInt(limit as string) || 50, 100);
+    const skip = (pageNum - 1) * limitNum;
+
     try {
+      const totalCount = await prisma.session.count({
+        where: {
+          sessionType: {
+            workspaceGroupId: parseInt(id as string),
+          },
+        },
+      });
+
       const sessions = await prisma.session.findMany({
         where: {
           sessionType: {
@@ -35,6 +47,8 @@ export default withPermissionCheck(
         orderBy: {
           date: "asc",
         },
+        skip: skip,
+        take: limitNum,
       });
 
       let userRole = null;
@@ -83,7 +97,21 @@ export default withPermissionCheck(
           typeof value === "bigint" ? value.toString() : value
         )
       );
-      res.status(200).json(serializedSessions);
+      const totalPages = Math.ceil(totalCount / limitNum);
+      const hasNextPage = pageNum < totalPages;
+      const hasPreviousPage = pageNum > 1;
+
+      res.status(200).json({
+        data: serializedSessions,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalCount,
+          totalPages: totalPages,
+          hasNextPage: hasNextPage,
+          hasPreviousPage: hasPreviousPage,
+        },
+      });
     } catch (error) {
       console.error("Error fetching all sessions:", error);
       res.status(500).json({ error: "Failed to fetch sessions" });

@@ -90,6 +90,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       orderBy: {
         date: "asc",
       },
+      take: 30,
     });
 
     let userSessionMetrics = null;
@@ -693,11 +694,27 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const loadAllSessions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `/api/workspace/${router.query.id}/sessions/all`
-      );
-      setAllSessions(response.data);
-      return response.data;
+      let allLoadedSessions: any[] = [];
+      let page = 1;
+      let hasMore = true;
+      const limit = 30;
+
+      while (hasMore) {
+        const response = await axios.get(
+          `/api/workspace/${router.query.id}/sessions/all?page=${page}&limit=${limit}`
+        );
+        if (Array.isArray(response.data)) {
+          allLoadedSessions = response.data;
+          hasMore = false;
+        } else {
+          allLoadedSessions = [...allLoadedSessions, ...response.data.data];
+          hasMore = response.data.pagination.hasNextPage;
+          page++;
+        }
+      }
+
+      setAllSessions(allLoadedSessions);
+      return allLoadedSessions;
     } catch (error) {
       console.error("Failed to load sessions:", error);
       return null;
