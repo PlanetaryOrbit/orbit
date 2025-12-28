@@ -23,8 +23,8 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
-	const { name, content, roles } = req.body;
-	if (!name || !roles) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	const { name, content, roles, departments } = req.body;
+	if (!name || (!roles && !departments)) return res.status(400).json({ success: false, error: 'Missing required fields' });
 	if (content && typeof content === 'object' && (content as any).external) {
 		const url = (content as any).url;
 		if (!url || typeof url !== 'string') return res.status(400).json({ success: false, error: 'External URL required' });
@@ -45,14 +45,15 @@ export async function handler(
 			ownerId: BigInt(req.session.userid),
 			content: saveContent,
 			roles: {
-				connect: [
-					...roles.map((role: string) => ({ id: role }))
-				]
+				connect: roles ? roles.map((role: string) => ({ id: role })) : []
+			},
+			departments: {
+				connect: departments ? departments.map((department: string) => ({ id: department })) : []
 			}
 		}
 	});
 	try {
-		await logAudit(parseInt(id as string), Number(req.session.userid), 'document.create', `document:${document.id}`, { id: document.id, name, roles });
+		await logAudit(parseInt(id as string), Number(req.session.userid), 'document.create', `document:${document.id}`, { id: document.id, name, roles, departments });
 	} catch (e) {
 		// ignore
 	}

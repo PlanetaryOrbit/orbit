@@ -24,8 +24,8 @@ export async function handler(
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
-	const { name, content, roles, assignToEveryone, requiresAcknowledgment, acknowledgmentDeadline, acknowledgmentMethod, acknowledgmentWord, isTrainingDocument } = req.body;
-	if (!name || (!assignToEveryone && !roles)) return res.status(400).json({ success: false, error: 'Missing required fields' });
+	const { name, content, roles, departments, assignToEveryone, requiresAcknowledgment, acknowledgmentDeadline, acknowledgmentMethod, acknowledgmentWord, isTrainingDocument } = req.body;
+	if (!name || (!assignToEveryone && !roles && !departments)) return res.status(400).json({ success: false, error: 'Missing required fields' });
 
 	const { id } = req.query;
 	const policiesConfig = await getConfig('policies', parseInt(id as string));
@@ -47,6 +47,7 @@ export async function handler(
  	}
 
 	let finalRoles = roles;
+	let finalDepartments = departments;
 	if (assignToEveryone) {
 		const allRoles = await prisma.role.findMany({
 			where: {
@@ -56,7 +57,16 @@ export async function handler(
 				id: true
 			}
 		});
+		const allDepartments = await prisma.department.findMany({
+			where: {
+				workspaceGroupId: parseInt(id as string)
+			},
+			select: {
+				id: true
+			}
+		});
 		finalRoles = allRoles.map(role => role.id);
+		finalDepartments = allDepartments.map(dept => dept.id);
 	}
 
 	const document = await prisma.document.create({
@@ -72,9 +82,10 @@ export async function handler(
 			assignToEveryone: assignToEveryone || false,
 			isTrainingDocument: isTrainingDocument || false,
 			roles: {
-				connect: [
-					...finalRoles.map((role: string) => ({ id: role }))
-				]
+				connect: finalRoles ? finalRoles.map((role: string) => ({ id: role })) : []
+			},
+			departments: {
+				connect: finalDepartments ? finalDepartments.map((department: string) => ({ id: department })) : []
 			}
 		}
 	});
@@ -85,6 +96,7 @@ export async function handler(
 			name,
 			assignToEveryone,
 			roles: finalRoles,
+			departments: finalDepartments,
 			requiresAcknowledgment,
 			isTrainingDocument
 		});

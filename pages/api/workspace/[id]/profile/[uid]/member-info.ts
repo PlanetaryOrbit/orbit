@@ -12,29 +12,77 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === "PATCH") {
     try {
-      const { department, lineManagerId, timezone, birthdayDay, birthdayMonth, discordId } = req.body;
-      await prisma.workspaceMember.upsert({
+      const { departmentIds, lineManagerId, timezone, birthdayDay, birthdayMonth, discordId } = req.body;
+      const existingMember = await prisma.workspaceMember.findUnique({
         where: {
           workspaceGroupId_userId: {
             workspaceGroupId: workspaceId,
             userId: BigInt(userId),
           },
         },
-        update: {
-          department,
-          lineManagerId: lineManagerId ? BigInt(lineManagerId) : null,
-          timezone,
-          discordId,
-        },
-        create: {
-          workspaceGroupId: workspaceId,
-          userId: BigInt(userId),
-          department,
-          lineManagerId: lineManagerId ? BigInt(lineManagerId) : null,
-          timezone,
-          discordId,
+        include: {
+          departmentMembers: {
+            include: {
+              department: true,
+            },
+          },
         },
       });
+
+      if (existingMember) {
+        await prisma.workspaceMember.update({
+          where: {
+            workspaceGroupId_userId: {
+              workspaceGroupId: workspaceId,
+              userId: BigInt(userId),
+            },
+          },
+          data: {
+            lineManagerId: lineManagerId ? BigInt(lineManagerId) : null,
+            timezone,
+            discordId,
+          },
+        });
+
+        if (departmentIds !== undefined) {
+          await prisma.departmentMember.deleteMany({
+            where: {
+              workspaceGroupId: workspaceId,
+              userId: BigInt(userId),
+            },
+          });
+
+          if (departmentIds.length > 0) {
+            await prisma.departmentMember.createMany({
+              data: departmentIds.map((departmentId: string) => ({
+                departmentId,
+                workspaceGroupId: workspaceId,
+                userId: BigInt(userId),
+              })),
+            });
+          }
+        }
+      } else {
+        await prisma.workspaceMember.create({
+          data: {
+            workspaceGroupId: workspaceId,
+            userId: BigInt(userId),
+            lineManagerId: lineManagerId ? BigInt(lineManagerId) : null,
+            timezone,
+            discordId,
+          },
+        });
+
+        if (departmentIds && departmentIds.length > 0) {
+          await prisma.departmentMember.createMany({
+            data: departmentIds.map((departmentId: string) => ({
+              departmentId,
+              workspaceGroupId: workspaceId,
+              userId: BigInt(userId),
+            })),
+          });
+        }
+      }
 
       await prisma.user.update({
         where: {

@@ -53,6 +53,12 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
     }
   })
 
+  const departments = await prisma.department.findMany({
+    where: {
+      workspaceGroupId: Number.parseInt(params.id as string),
+    }
+  })
+
   const usersWithInfo = await Promise.all(
     users.map(async (user) => {
       const username = user.username || (await getUsername(user.userid))
@@ -77,6 +83,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
     props: {
       users: usersWithInfo,
       roles,
+      departments,
       grouproles,
     },
   }
@@ -85,6 +92,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
 type Props = {
   roles: []
   users: []
+  departments: []
   grouproles: []
 }
 
@@ -147,7 +155,7 @@ const SECTIONS = {
   },
 }
 
-const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
+const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles }) => {
   const [activeSection, setActiveSection] = useState("general")
   const [isSidebarExpanded] = useState(true)
 
@@ -155,7 +163,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, grouproles }) => {
     if (activeSection === "permissions") {
       return (
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6">
-          <Permissions users={users} roles={roles} grouproles={grouproles} />
+          <Permissions users={users} roles={roles} departments={departments} grouproles={grouproles} />
         </div>
       )
     }

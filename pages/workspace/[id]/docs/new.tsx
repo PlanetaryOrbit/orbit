@@ -49,9 +49,19 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const departments = await prisma.department.findMany({
+      where: {
+        workspaceGroupId: Number(id),
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
     return {
       props: {
         roles,
+        departments,
       },
     };
   },
@@ -60,10 +70,12 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   roles,
+  departments,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const router = useRouter();
   const form = useForm();
 
@@ -114,6 +126,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         name: form.getValues().name,
         content,
         roles: selectedRoles,
+        departments: selectedDepartments,
       })
       .catch((err) => {
         form.setError("name", {
@@ -222,6 +235,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     });
   };
 
+  const toggleDepartment = async (departmentId: string) => {
+    setSelectedDepartments((prevDepartments) => {
+      if (prevDepartments.includes(departmentId)) {
+        return prevDepartments.filter((d) => d !== departmentId);
+      } else {
+        return [...prevDepartments, departmentId];
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <Toaster position="bottom-center" />
@@ -292,7 +315,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       </p>
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 mb-6">
+                    <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                      Roles
+                    </h3>
                     {roles.map((role: any) => (
                       <label
                         key={role.id}
@@ -309,6 +335,36 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         </span>
                       </label>
                     ))}
+                  </div>
+
+                  <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                    <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                      Departments
+                    </h3>
+                    <div className="space-y-2">
+                      {departments && departments.length > 0 ? (
+                        departments.map((department: any) => (
+                          <label
+                            key={department.id}
+                            className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-all group"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDepartments.includes(department.id)}
+                              onChange={() => toggleDepartment(department.id)}
+                              className="w-4 h-4 text-primary rounded border-zinc-300 dark:border-zinc-600 focus:ring-2 focus:ring-primary/50 focus:ring-offset-0"
+                            />
+                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+                              {department.name}
+                            </span>
+                          </label>
+                        ))
+                      ) : (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                          No departments available.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

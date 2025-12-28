@@ -45,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     const { id, gid } = context.query;
     if (!gid) return { notFound: true };
 
-    const [roles, document] = await Promise.all([
+    const [roles, departments, document] = await Promise.all([
       prisma.role.findMany({
         where: {
           workspaceGroupId: Number(id),
@@ -54,12 +54,23 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
           isOwnerRole: "desc",
         },
       }),
+      prisma.department.findMany({
+        where: {
+          workspaceGroupId: Number(id),
+        },
+        select: {
+          id: true,
+          name: true,
+          color: true,
+        },
+      }),
       prisma.document.findUnique({
         where: {
           id: gid as string,
         },
         include: {
           roles: true,
+          departments: true,
         },
       }),
     ]);
@@ -69,6 +80,11 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     return {
       props: {
         roles,
+        departments: JSON.parse(
+          JSON.stringify(departments, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ),
         document: JSON.parse(
           JSON.stringify(document, (key, value) =>
             typeof value === "bigint" ? value.toString() : value
@@ -80,12 +96,15 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   "manage_docs"
 );
 
-const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
+const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>(
     document.roles.map((role: any) => role.id)
+  );
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(
+    document.departments ? document.departments.map((dept: any) => dept.id) : []
   );
   const [mode, setMode] = useState<"internal" | "external">(() => {
     if (document.content && (document.content as any).external)
@@ -290,6 +309,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
           name: form.getValues().name,
           content,
           roles: selectedRoles,
+          departments: selectedDepartments,
         }
       )
       .catch((err) => {
@@ -315,6 +335,16 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
         return prevRoles.filter((r) => r !== role);
       } else {
         return [...prevRoles, role];
+      }
+    });
+  };
+
+  const toggleDepartment = async (deptId: string) => {
+    setSelectedDepartments((prevDepts) => {
+      if (prevDepts.includes(deptId)) {
+        return prevDepts.filter((d) => d !== deptId);
+      } else {
+        return [...prevDepts, deptId];
       }
     });
   };
@@ -543,6 +573,34 @@ const EditDoc: pageWithLayout<any> = ({ roles, document }) => {
                     </label>
                   ))}
                 </div>
+
+                {departments && departments.length > 0 && (
+                  <>
+                    <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+                      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-3">
+                        Departments
+                      </h3>
+                      <div className="space-y-2">
+                        {departments.map((dept: any) => (
+                          <label
+                            key={dept.id}
+                            className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-all group"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDepartments.includes(dept.id)}
+                              onChange={() => toggleDepartment(dept.id)}
+                              className="w-4 h-4 text-primary rounded border-zinc-300 dark:border-zinc-600 focus:ring-2 focus:ring-primary/50 focus:ring-offset-0"
+                            />
+                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+                              {dept.name}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

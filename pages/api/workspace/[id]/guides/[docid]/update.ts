@@ -21,7 +21,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(400)
       .json({ success: false, error: "Document ID not provided" });
-  const { name, content, roles } = req.body;
+  const { name, content, roles, departments } = req.body;
   if (!name || !roles)
     return res
       .status(400)
@@ -43,7 +43,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       const documentBefore = await prisma.document.findUnique({
         where: { id: req.query.docid as string },
-        include: { roles: { select: { id: true, name: true } } },
+        include: { 
+          roles: { select: { id: true, name: true } },
+          departments: { select: { id: true, name: true } }
+        },
       });
       if (!documentBefore || documentBefore.workspaceGroupId !== workspaceId) {
         return res.status(404).json({
@@ -70,8 +73,15 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             set: [],
             connect: roles.map((role: string) => ({ id: role })),
           },
+          departments: {
+            set: [],
+            connect: departments ? departments.map((dept: string) => ({ id: dept })) : [],
+          },
         },
-        include: { roles: { select: { id: true, name: true } } },
+        include: { 
+          roles: { select: { id: true, name: true } },
+          departments: { select: { id: true, name: true } }
+        },
       });
 
       try {
@@ -79,6 +89,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           id: documentBefore.id,
           name: documentBefore.name,
           roles: (documentBefore.roles || []).map((r: any) => r.name),
+          departments: (documentBefore.departments || []).map((d: any) => d.name),
         };
         if (
           documentBefore.content &&
@@ -92,6 +103,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           id: updated.id,
           name: updated.name,
           roles: (updated.roles || []).map((r: any) => r.name),
+          departments: (updated.departments || []).map((d: any) => d.name),
         };
         if (
           updated.content &&

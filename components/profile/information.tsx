@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import {
   IconUser,
   IconId,
@@ -11,11 +11,11 @@ import {
   IconCheck,
   IconX,
   IconPencil,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { Listbox, Transition } from "@headlessui/react";
-import { Fragment } from "react";
 import toast from "react-hot-toast";
 import moment from "moment-timezone";
 
@@ -60,7 +60,11 @@ type InformationTabProps = {
     joinDate?: string | null;
   };
   workspaceMember?: {
-    department?: string | null;
+    departments?: Array<{
+      id: string;
+      name: string;
+      color: string | null;
+    }>;
     lineManagerId?: string | null;
     timezone?: string | null;
     discordId?: string | null;
@@ -74,6 +78,11 @@ type InformationTabProps = {
     userid: string;
     username: string;
     picture: string;
+  }>;
+  availableDepartments?: Array<{
+    id: string;
+    name: string;
+    color: string | null;
   }>;
   isUser?: boolean;
   isAdmin?: boolean;
@@ -123,13 +132,14 @@ export function InformationTab({
   workspaceMember,
   lineManager: initialLineManager,
   allMembers = [],
+  availableDepartments = [],
   isUser,
   isAdmin,
   canEditMembers,
 }: InformationTabProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [department, setDepartment] = useState(workspaceMember?.department || "");
+  const [selectedDepartments, setSelectedDepartments] = useState(workspaceMember?.departments || []);
   const [selectedManager, setSelectedManager] = useState(initialLineManager);
   const [selectedTimezone, setSelectedTimezone] = useState(workspaceMember?.timezone || "");
   const [birthdayDay, setBirthdayDay] = useState(user.birthdayDay || "");
@@ -163,7 +173,7 @@ export function InformationTab({
       await axios.patch(
         `/api/workspace/${workspaceId}/profile/${user.userid}/member-info`,
         {
-          department,
+          departmentIds: selectedDepartments.map(d => d.id),
           lineManagerId: selectedManager?.userid || null,
           timezone: selectedTimezone || null,
           birthdayDay: birthdayDay ? parseInt(birthdayDay as string) : null,
@@ -183,7 +193,7 @@ export function InformationTab({
   };
 
   const handleCancel = () => {
-    setDepartment(workspaceMember?.department || "");
+    setSelectedDepartments(workspaceMember?.departments || []);
     setSelectedManager(initialLineManager);
     setSelectedTimezone(workspaceMember?.timezone || "");
     setBirthdayDay(user.birthdayDay || "");
@@ -399,20 +409,93 @@ export function InformationTab({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Department
+                  Department{selectedDepartments.length !== 1 ? 's' : ''}
                 </p>
                 {editing ? (
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="Enter department"
-                    className="w-full px-2 py-1 text-sm rounded-lg bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
-                  />
+                  <div className="space-y-2">
+                    {availableDepartments.length > 0 ? (
+                      <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple>
+                        <div className="relative">
+                          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50">
+                            <span className="block truncate text-zinc-900 dark:text-white">
+                              {selectedDepartments.length === 0
+                                ? "Select departments..."
+                                : selectedDepartments.length === 1
+                                ? selectedDepartments[0].name
+                                : `${selectedDepartments.length} departments selected`
+                              }
+                            </span>
+                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                              <IconChevronDown className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+                            </span>
+                          </Listbox.Button>
+                          <Transition
+                            as={Fragment}
+                            leave="transition ease-in duration-100"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                          >
+                            <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
+                              {availableDepartments.map((dept) => (
+                                <Listbox.Option
+                                  key={dept.id}
+                                  className={({ active }) =>
+                                    `relative cursor-pointer select-none py-2 pl-3 pr-9 ${
+                                      active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-900 dark:text-white"
+                                    }`
+                                  }
+                                  value={dept}
+                                >
+                                  {({ selected }) => (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 rounded-full border border-zinc-300 dark:border-zinc-600 flex-shrink-0" 
+                                          style={{ backgroundColor: dept.color || "#6b7280" }}
+                                        />
+                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                          {dept.name}
+                                        </span>
+                                      </div>
+                                      {selected && (
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#ff0099]">
+                                          <IconCheck className="h-5 w-5" aria-hidden="true" />
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                </Listbox.Option>
+                              ))}
+                            </Listbox.Options>
+                          </Transition>
+                        </div>
+                      </Listbox>
+                    ) : (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                        No departments available. Ask an admin to create some.
+                      </p>
+                    )}
+                  </div>
                 ) : (
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {workspaceMember?.department || "Not set"}
-                  </p>
+                  <div className="space-y-1">
+                    {selectedDepartments.length > 0 ? (
+                      selectedDepartments.map((dept) => (
+                        <div key={dept.id} className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full border border-zinc-300 dark:border-zinc-600" 
+                            style={{ backgroundColor: dept.color || "#6b7280" }}
+                          />
+                          <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                            {dept.name}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                        Not assigned
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

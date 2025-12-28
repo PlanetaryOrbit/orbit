@@ -20,36 +20,74 @@ export default withPermissionCheck(async function handler(
   const workspaceGroupId = parseInt(id as string);
 
   try {
-    const userRoles = await prisma.role.findMany({
+    const user = await prisma.user.findFirst({
       where: {
-        workspaceGroupId,
-        members: {
-          some: {
-            userid: BigInt(userId),
+        userid: BigInt(userId)
+      },
+      include: {
+        roles: {
+          where: {
+            workspaceGroupId
           },
+          select: {
+            id: true
+          }
         },
-      },
-      select: {
-        id: true,
-      },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId
+          },
+          include: {
+            departmentMembers: {
+              include: {
+                department: {
+                  select: {
+                    id: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     });
 
-    if (!userRoles.length) {
+    if (!user) {
       return res.status(200).json({ success: true, count: 0 });
     }
 
-    const roleIds = userRoles.map((r) => r.id);
+    const userRoleIds = user.roles ? user.roles.map(role => role.id) : [];
+    const userDepartmentIds = user.workspaceMemberships?.[0]?.departmentMembers?.map(dm => dm.department.id) || [];
+
+    const orConditions: any[] = [
+      { roles: { none: {} }, departments: { none: {} } }
+    ];
+
+    if (userRoleIds.length > 0) {
+      orConditions.push({
+        roles: {
+          some: {
+            id: { in: userRoleIds }
+          }
+        }
+      });
+    }
+
+    if (userDepartmentIds.length > 0) {
+      orConditions.push({
+        departments: {
+          some: {
+            id: { in: userDepartmentIds }
+          }
+        }
+      });
+    }
+
     const policies = await prisma.document.findMany({
       where: {
         workspaceGroupId,
         requiresAcknowledgment: true,
-        roles: {
-          some: {
-            id: {
-              in: roleIds,
-            },
-          },
-        },
+        OR: orConditions
       },
       select: {
         id: true,

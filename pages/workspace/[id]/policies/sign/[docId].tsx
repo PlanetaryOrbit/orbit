@@ -40,7 +40,7 @@ export const getServerSideProps = withSessionSsr(async (context: any): Promise<a
 		};
 	}
 
-	const document = await prisma.document.findFirst({
+	const document: any = await prisma.document.findFirst({
 		where: {
 			id: docId as string,
 			workspaceGroupId: parseInt(id as string),
@@ -67,6 +67,12 @@ export const getServerSideProps = withSessionSsr(async (context: any): Promise<a
 					id: true,
 					name: true
 				}
+			},
+			departments: {
+				select: {
+					id: true,
+					name: true
+				}
 			}
 		}
 	});
@@ -86,6 +92,18 @@ export const getServerSideProps = withSessionSsr(async (context: any): Promise<a
 				where: {
 					workspaceGroupId: parseInt(id as string)
 				}
+			},
+			workspaceMemberships: {
+				where: {
+					workspaceGroupId: parseInt(id as string)
+				},
+				include: {
+					departmentMembers: {
+						include: {
+							department: true
+						}
+					}
+				}
 			}
 		}
 	});
@@ -99,7 +117,11 @@ export const getServerSideProps = withSessionSsr(async (context: any): Promise<a
 	}
 
 	const userRoleIds = user.roles.map(r => r.id);
-	const hasAccess = document.roles.some(role => userRoleIds.includes(role.id));
+	const userDepartmentIds = user.workspaceMemberships?.[0]?.departmentMembers?.map(dm => dm.department.id) || [];
+	const hasRoleAccess = document.roles.length > 0 && document.roles.some((role: any) => userRoleIds.includes(role.id));
+	const hasDepartmentAccess = document.departments.length > 0 && document.departments.some((dept: any) => userDepartmentIds.includes(dept.id));
+	const noRestrictions = document.roles.length === 0 && document.departments.length === 0;
+	const hasAccess = hasRoleAccess || hasDepartmentAccess || noRestrictions;
 
 	if (!hasAccess) {
 		return {

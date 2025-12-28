@@ -36,6 +36,18 @@ export async function handler(
 				where: {
 					workspaceGroupId: parseInt(id as string)
 				}
+			},
+			workspaceMemberships: {
+				where: {
+					workspaceGroupId: parseInt(id as string)
+				},
+				include: {
+					departmentMembers: {
+						include: {
+							department: true
+						}
+					}
+				}
 			}
 		}
 	});
@@ -45,21 +57,37 @@ export async function handler(
 	}
 
 	const userRoleIds = user.roles ? user.roles.map(role => role.id) : [];
+	const userDepartmentIds = user.workspaceMemberships?.[0]?.departmentMembers?.map(dm => dm.department.id) || [];
+
+	const orConditions: any[] = [
+		{ roles: { none: {} }, departments: { none: {} } }
+	];
+
+	if (userRoleIds.length > 0) {
+		orConditions.push({
+			roles: {
+				some: {
+					id: { in: userRoleIds }
+				}
+			}
+		});
+	}
+
+	if (userDepartmentIds.length > 0) {
+		orConditions.push({
+			departments: {
+				some: {
+					id: { in: userDepartmentIds }
+				}
+			}
+		});
+	}
 
 	const policyDocuments = await prisma.document.findMany({
 		where: {
 			workspaceGroupId: parseInt(id as string),
 			requiresAcknowledgment: true,
-			OR: [
-				{ roles: { none: {} } },
-				...(userRoleIds.length > 0 ? [{
-					roles: {
-						some: {
-							id: { in: userRoleIds }
-						}
-					}
-				}] : [])
-			]
+			OR: orConditions
 		},
 		include: {
 			acknowledgments: {

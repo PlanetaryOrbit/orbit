@@ -401,10 +401,34 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
       select: {
         joinDate: true,
-        department: true,
         lineManagerId: true,
         timezone: true,
         discordId: true,
+        departmentMembers: {
+          select: {
+            department: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const availableDepartments = await prisma.department.findMany({
+      where: {
+        workspaceGroupId: parseInt(query.id as string),
+      },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+      orderBy: {
+        name: 'asc',
       },
     });
 
@@ -542,13 +566,18 @@ export const getServerSideProps = withPermissionCheckSsr(
         memberRoleName,
         workspaceMember: targetUserMembership
           ? {
-              department: targetUserMembership.department,
+              departments: targetUserMembership.departmentMembers.map(dm => ({
+                id: dm.department.id,
+                name: dm.department.name,
+                color: dm.department.color,
+              })),
               lineManagerId:
                 targetUserMembership.lineManagerId?.toString() || null,
               timezone: targetUserMembership.timezone,
               discordId: targetUserMembership.discordId,
             }
           : null,
+        availableDepartments,
         lineManager,
         allMembers,
         noticesEnabled,
@@ -594,11 +623,20 @@ type pageProps = {
     joinDate: string | null;
   };
   workspaceMember: {
-    department: string | null;
+    departments: Array<{
+      id: string;
+      name: string;
+      color: string | null;
+    }>;
     lineManagerId: string | null;
     timezone: string | null;
     discordId: string | null;
   } | null;
+  availableDepartments: Array<{
+    id: string;
+    name: string;
+    color: string | null;
+  }>;
   lineManager: {
     userid: string;
     username: string;
@@ -632,6 +670,7 @@ const Profile: pageWithLayout<pageProps> = ({
   user,
   isAdmin,
   workspaceMember,
+  availableDepartments,
   lineManager,
   allMembers,
   noticesEnabled,
@@ -980,6 +1019,7 @@ const Profile: pageWithLayout<pageProps> = ({
                     joinDate: user.joinDate,
                   }}
                   workspaceMember={workspaceMember || undefined}
+                  availableDepartments={availableDepartments}
                   lineManager={lineManager}
                   allMembers={allMembers}
                   isUser={isUser}

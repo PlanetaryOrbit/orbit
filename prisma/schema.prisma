@@ -25,6 +25,7 @@ model workspace {
   inactivityNotices inactivityNotice[]
   ranks             rank[]
   roles             role[]
+  departments       department[]
   userBook          userBook[]
   wallposts         wallPost[]
   externalServices  workspaceExternalServices?
@@ -116,6 +117,39 @@ model role {
   members          user[]        @relation("roleTouser")
 }
 
+model department {
+  id                 String               @id @unique @default(uuid()) @db.Uuid
+  name               String
+  color              String?
+  workspaceGroupId   Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  workspace          workspace            @relation(fields: [workspaceGroupId], references: [groupId])
+  departmentMembers  DepartmentMember[]
+  quotaDepartments   QuotaDepartment[]
+  SessionType        SessionType[]        @relation("SessionTypeTodepartment")
+  documents          document[]           @relation("documentTodepartment")
+}
+
+model DepartmentMember {
+  departmentId     String        @db.Uuid
+  workspaceGroupId Int
+  userId           BigInt
+  department       department    @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  workspaceMember  workspaceMember @relation(fields: [workspaceGroupId, userId], references: [workspaceGroupId, userId], onDelete: Cascade)
+
+  @@id([departmentId, workspaceGroupId, userId])
+}
+
+model QuotaDepartment {
+  quotaId      String     @db.Uuid
+  departmentId String     @db.Uuid
+  quota        Quota      @relation(fields: [quotaId], references: [id])
+  department   department @relation(fields: [departmentId], references: [id])
+
+  @@unique([quotaId, departmentId])
+}
+
 model wallPost {
   id               Int       @id @default(autoincrement())
   content          String
@@ -142,18 +176,19 @@ model AuditLog {
 }
 
 model SessionType {
-  id               String     @id @unique @default(uuid()) @db.Uuid
-  name             String
-  gameId           BigInt?
-  allowUnscheduled Boolean
-  workspaceGroupId Int
-  statues          Json[]
-  slots            Json[]
-  description      String?
-  sessions         Session[]
-  workspace        workspace  @relation(fields: [workspaceGroupId], references: [groupId])
-  schedule         schedule[]
-  hostingRoles     role[]     @relation("SessionTypeTorole")
+  id                 String       @id @unique @default(uuid()) @db.Uuid
+  name               String
+  gameId             BigInt?
+  allowUnscheduled   Boolean
+  workspaceGroupId   Int
+  statues            Json[]
+  slots              Json[]
+  description        String?
+  sessions           Session[]
+  workspace          workspace    @relation(fields: [workspaceGroupId], references: [groupId])
+  schedule           schedule[]
+  hostingRoles       role[]       @relation("SessionTypeTorole")
+  hostingDepartments department[] @relation("SessionTypeTodepartment")
 }
 
 model schedule {
@@ -280,6 +315,7 @@ model document {
   owner                  user                   @relation(fields: [ownerId], references: [userid])
   workspace              workspace              @relation(fields: [workspaceGroupId], references: [groupId])
   roles                  role[]                 @relation("documentTorole")
+  departments            department[]           @relation("documentTodepartment")
   acknowledgments        PolicyAcknowledgment[]
   shareableLinks         PolicyShareableLink[]
 }
@@ -316,15 +352,16 @@ model rank {
 }
 
 model Quota {
-  id               String      @id @default(uuid()) @db.Uuid
+  id               String            @id @default(uuid()) @db.Uuid
   type             String
   value            Int
   workspaceGroupId Int
   name             String
   description      String?
   sessionType      String?
-  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
+  workspace        workspace         @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
+  quotaDepartments QuotaDepartment[]
 }
 
 model Ally {
@@ -353,19 +390,19 @@ model allyVisit {
 }
 
 model workspaceMember {
-  workspaceGroupId Int
-  userId           BigInt
-  joinDate         DateTime?
-  birthdayDay      Int?
-  birthdayMonth    Int?
-  department       String?
-  lineManagerId    BigInt?
-  timezone         String?
-  discordId        String?
-  isAdmin          Boolean?  @default(false)
-  user             user      @relation(fields: [userId], references: [userid])
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
-  lineManager      user?     @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  workspaceGroupId    Int
+  userId              BigInt
+  joinDate            DateTime?
+  birthdayDay         Int?
+  birthdayMonth       Int?
+  lineManagerId       BigInt?
+  timezone            String?
+  discordId           String?
+  isAdmin             Boolean?            @default(false)
+  user                user                @relation(fields: [userId], references: [userid])
+  workspace           workspace           @relation(fields: [workspaceGroupId], references: [groupId])
+  lineManager         user?               @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  departmentMembers   DepartmentMember[]
 
   @@id([workspaceGroupId, userId])
   @@index([userId])

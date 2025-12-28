@@ -29,15 +29,7 @@ export async function handler(
 		where: {
 			id: docId as string,
 			workspaceGroupId: parseInt(id as string),
-			roles: {
-				some: {
-					members: {
-						some: {
-							userid: BigInt(req.session.userid)
-						}
-					}
-				}
-			}
+			requiresAcknowledgment: true
 		},
 		select: {
 			id: true,
@@ -48,12 +40,32 @@ export async function handler(
 				include: {
 					members: true
 				}
+			},
+			departments: {
+				include: {
+					departmentMembers: true
+				}
 			}
 		}
 	});
 
 	if (!document) {
-		return res.status(404).json({ success: false, error: 'Document not found or access denied' });
+		return res.status(404).json({ success: false, error: 'Document not found' });
+	}
+
+	const userHasRoleAccess = document.roles.some(role => 
+		role.members.some(member => member.userid.toString() === req.session.userid.toString())
+	);
+	const userHasDepartmentAccess = document.departments.some(dept =>
+		dept.departmentMembers.some(dm => 
+			dm.userId.toString() === req.session.userid.toString() &&
+			dm.workspaceGroupId === parseInt(id as string)
+		)
+	);
+	const noRestrictions = document.roles.length === 0 && document.departments.length === 0;
+	
+	if (!userHasRoleAccess && !userHasDepartmentAccess && !noRestrictions) {
+		return res.status(403).json({ success: false, error: 'Access denied' });
 	}
 
 	// Check if already acknowledged

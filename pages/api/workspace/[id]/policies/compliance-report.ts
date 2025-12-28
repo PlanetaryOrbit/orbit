@@ -53,6 +53,25 @@ export async function handler(
 					}
 				}
 			},
+			departments: {
+				include: {
+					departmentMembers: {
+						include: {
+							workspaceMember: {
+								include: {
+									user: {
+										select: {
+											userid: true,
+											username: true,
+											picture: true
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
 			owner: {
 				select: {
 					username: true,
@@ -69,6 +88,13 @@ export async function handler(
 			doc.roles.forEach(role => {
 				role.members.forEach(member => {
 					requiredUsers.set(member.userid.toString(), member);
+				});
+			});
+
+			doc.departments.forEach(department => {
+				department.departmentMembers.forEach(departmentMember => {
+					const user = departmentMember.workspaceMember.user;
+					requiredUsers.set(user.userid.toString(), user);
 				});
 			});
 

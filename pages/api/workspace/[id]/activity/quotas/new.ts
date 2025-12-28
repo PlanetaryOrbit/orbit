@@ -24,9 +24,9 @@ export async function handler(
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
 
-	const { name, type, value, roles, description, sessionType } = req.body;
+	const { name, type, value, roles, departments, description, sessionType } = req.body;
 
-	if (!name || !type || !value || !roles || !Array.isArray(roles)) {
+	if (!name || !type || !value || (!roles && !departments) || (roles && !Array.isArray(roles)) || (departments && !Array.isArray(departments))) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
@@ -55,6 +55,15 @@ export async function handler(
 			}))
 		  });
 		}
+
+		if (Array.isArray(departments) && departments.length > 0) {
+		  await prisma.quotaDepartment.createMany({
+			data: departments.map((departmentId: string) => ({
+			  quotaId: quota.id,
+			  departmentId: departmentId
+			}))
+		  });
+		}
 	  
 		const fullQuota = await prisma.quota.findUnique({
 		  where: { id: quota.id },
@@ -62,6 +71,11 @@ export async function handler(
 			quotaRoles: {
 			  include: {
 				role: true
+			  }
+			},
+			quotaDepartments: {
+			  include: {
+				department: true
 			  }
 			}
 		  }

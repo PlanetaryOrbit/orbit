@@ -22,6 +22,7 @@ export async function handler(
 		name,
 		content,
 		roles,
+		departments,
 		assignToEveryone,
 		requiresAcknowledgment,
 		acknowledgmentDeadline,
@@ -57,6 +58,7 @@ export async function handler(
 	}
 
 	let finalRoles = roles;
+	let finalDepartments = departments;
 	if (assignToEveryone !== undefined) {
 		if (assignToEveryone) {
 			const allRoles = await prisma.role.findMany({
@@ -67,9 +69,19 @@ export async function handler(
 					id: true
 				}
 			});
+			const allDepartments = await prisma.department.findMany({
+				where: {
+					workspaceGroupId: parseInt(id as string)
+				},
+				select: {
+					id: true
+				}
+			});
 			finalRoles = allRoles.map(role => role.id);
+			finalDepartments = allDepartments.map(dept => dept.id);
 		} else {
 			finalRoles = roles || [];
+			finalDepartments = departments || [];
 		}
 	}
 
@@ -93,10 +105,16 @@ export async function handler(
 				roles: {
 					set: finalRoles.map((roleId: string) => ({ id: roleId }))
 				}
+			}),
+			...(finalDepartments && {
+				departments: {
+					set: finalDepartments.map((deptId: string) => ({ id: deptId }))
+				}
 			})
 		},
 		include: {
 			roles: true,
+			departments: true,
 			owner: {
 				select: {
 					username: true,

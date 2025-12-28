@@ -271,33 +271,20 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                         <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
                           Role Color
                         </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            "bg-blue-500",
-                            "bg-red-500",
-                            "bg-red-700",
-                            "bg-green-500",
-                            "bg-green-600",
-                            "bg-yellow-500",
-                            "bg-orange-500",
-                            "bg-purple-500",
-                            "bg-pink-500",
-                            "bg-zinc-500",
-                            "bg-orbit",
-                          ].map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => updateRoleColor(color, role.id)}
-                              className={clsx(
-                                "w-8 h-8 rounded-full border-2 transition-all",
-                                color,
-                                role.color === color
-                                  ? "border-zinc-900 dark:border-white scale-110"
-                                  : "border-transparent hover:scale-105"
-                              )}
-                              aria-label={`Select ${color}`}
-                            />
-                          ))}
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="color"
+                            className="w-12 h-8 rounded border border-zinc-300 dark:border-zinc-700 cursor-pointer"
+                            value={role.color || "#6b7280"}
+                            onChange={(e) => updateRoleColor(e.target.value, role.id)}
+                          />
+                          <input
+                            type="text"
+                            className="flex-1 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                            value={role.color || "#6b7280"}
+                            onChange={(e) => updateRoleColor(e.target.value, role.id)}
+                            placeholder="#6b7280"
+                          />
                         </div>
                       </div>
 

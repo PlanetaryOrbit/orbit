@@ -34,7 +34,7 @@ const randomText = (name: string) => {
 		`A productive & peppermint-fueled afternoon to you, ${name} 🍬`,
 		`Let’s sleigh this block of hours, ${name} 🛷`,
 		`Still dashing like Dasher, ${name}? 🦌`,
-		`Orbit stable—holiday spirit nominal, ${name} 🌑`,
+		`Orbit stable-holiday spirit nominal, ${name} 🌑`,
 		`Cookie break time yet, ${name}? 🍪`,
 		`On track & jingling, ${name}! 🔔`,
 		`Turn that wish list into a done list, ${name} ✅`,

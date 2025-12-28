@@ -79,7 +79,20 @@ export async function handler(
 						}
 					}
 				},
-				roles: true
+				roles: true,
+				departments: {
+					include: {
+						departmentMembers: {
+							include: {
+								workspaceMember: {
+									select: {
+										userId: true
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		});
 
@@ -97,6 +110,15 @@ export async function handler(
 						roles: {
 							where: {
 								workspaceGroupId: workspaceId
+							}
+						}
+					}
+				},
+				departmentMembers: {
+					include: {
+						department: {
+							select: {
+								id: true
 							}
 						}
 					}
@@ -141,17 +163,33 @@ export async function handler(
 		const policyBreakdown = policies.map(policy => {
 			const policyAcknowledgments = policy.acknowledgments;
 
-			// Calculate how many members need to acknowledge this policy based on role assignments
+			// Calculate how many members need to acknowledge this policy based on role and department assignments
 			let totalRequired = 0;
-			if (policy.roles.length === 0) {
-				// If no roles assigned, all members need to acknowledge
+			const hasRoleAssignments = policy.roles.length > 0;
+			const hasDepartmentAssignments = policy.departments.length > 0;
+			
+			if (!hasRoleAssignments && !hasDepartmentAssignments) {
 				totalRequired = totalMembers;
 			} else {
-				// Count members who have at least one of the assigned roles
+				// Count members who have at least one of the assigned roles OR are in one of the assigned departments
 				const policyRoleIds = policy.roles.map(role => role.id);
-				totalRequired = members.filter(member =>
-					member.user.roles.some(userRole => policyRoleIds.includes(userRole.id))
-				).length;
+				
+				const departmentUserIds = new Set<string>();
+				policy.departments.forEach(department => {
+					department.departmentMembers.forEach(dm => {
+						departmentUserIds.add(dm.workspaceMember.userId.toString());
+					});
+				});
+				
+				totalRequired = members.filter(member => {
+					const hasRequiredRole = hasRoleAssignments && 
+						member.user.roles.some(userRole => policyRoleIds.includes(userRole.id));
+					
+					const hasRequiredDepartment = hasDepartmentAssignments &&
+						departmentUserIds.has(member.userId.toString());
+					
+					return hasRequiredRole || hasRequiredDepartment;
+				}).length;
 			}
 			const totalAcknowledged = policyAcknowledgments.length;
 			const complianceRate = totalRequired > 0 ? (totalAcknowledged / totalRequired) * 100 : 0;
@@ -191,22 +229,34 @@ export async function handler(
 			const acknowledgedPolicyIds = new Set(memberAcknowledgments.map(ack => ack.document.id));
 			const acknowledgedPolicies = acknowledgedPolicyIds.size;
 
-			// Calculate how many policies this member needs to acknowledge based on their roles
+			// Calculate how many policies this member needs to acknowledge based on their roles and departments
 			const memberRoleIds = member.user.roles.map(role => role.id);
+			const memberDepartmentIds = member.departmentMembers.map(dm => dm.department.id);
+			
 			const applicablePolicies = policies.filter(policy => {
-				if (policy.roles.length === 0) return true; // No roles = applies to everyone
-				return policy.roles.some(policyRole => memberRoleIds.includes(policyRole.id));
+				const hasRoleAssignments = policy.roles.length > 0;
+				const hasDepartmentAssignments = policy.departments.length > 0;
+				
+				if (!hasRoleAssignments && !hasDepartmentAssignments) {
+					return true;
+				}
+				
+				const hasRequiredRole = hasRoleAssignments && 
+					policy.roles.some(policyRole => memberRoleIds.includes(policyRole.id));
+				
+				const hasRequiredDepartment = hasDepartmentAssignments &&
+					policy.departments.some(department => memberDepartmentIds.includes(department.id));
+				
+				return hasRequiredRole || hasRequiredDepartment;
 			});
 			const totalApplicablePolicies = applicablePolicies.length;
 
-			// Count acknowledged policies that are applicable to this member
 			const relevantAcknowledgedPolicies = applicablePolicies.filter(policy =>
 				acknowledgedPolicyIds.has(policy.id)
 			).length;
 
 			const pendingPolicies = totalApplicablePolicies - relevantAcknowledgedPolicies;
 
-			// Calculate overdue policies for this member (only applicable ones)
 			const overduePolicies = applicablePolicies.filter(policy => {
 				const hasAcknowledged = acknowledgedPolicyIds.has(policy.id);
 				const isOverdue = policy.acknowledgmentDeadline && new Date() > new Date(policy.acknowledgmentDeadline);
@@ -229,7 +279,6 @@ export async function handler(
 			};
 		});
 
-		// Calculate overall compliance rate based on role-specific requirements
 		const totalRequiredAcknowledgments = policyBreakdown.reduce((sum, policy) => sum + policy.totalRequired, 0);
 		const totalCompletedAcknowledgments = policyBreakdown.reduce((sum, policy) => sum + policy.totalAcknowledged, 0);
 		const overallComplianceRate = totalRequiredAcknowledgments > 0

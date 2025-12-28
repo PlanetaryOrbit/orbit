@@ -22,6 +22,7 @@ import {
   IconCheck,
   IconX,
   IconTrophy,
+  IconBriefcase,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -82,6 +83,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           myQuotas: [],
           allQuotas: [],
           roles: [],
+          departments: [],
           canManageQuotas: false,
         },
       };
@@ -103,6 +105,21 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
         workspaceMemberships: {
           where: { workspaceGroupId: workspaceId },
+          include: {
+            departmentMembers: {
+              include: {
+                department: {
+                  include: {
+                    quotaDepartments: {
+                      include: {
+                        quota: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
@@ -261,21 +278,41 @@ export const getServerSideProps = withPermissionCheckSsr(
     });
 
     const userRoleIds = (profileData?.roles || []).map((r: any) => r.id);
+    const userDepartmentIds = (profileData?.workspaceMemberships?.[0]?.departmentMembers || []).map((dm: any) => dm.department.id);
+    
     const myQuotas = await prisma.quota.findMany({
       where: {
         workspaceGroupId: workspaceId,
-        quotaRoles: {
-          some: {
-            roleId: {
-              in: userRoleIds,
+        OR: [
+          {
+            quotaRoles: {
+              some: {
+                roleId: {
+                  in: userRoleIds,
+                },
+              },
             },
           },
-        },
+          {
+            quotaDepartments: {
+              some: {
+                departmentId: {
+                  in: userDepartmentIds,
+                },
+              },
+            },
+          },
+        ],
       },
       include: {
         quotaRoles: {
           include: {
             role: true,
+          },
+        },
+        quotaDepartments: {
+          include: {
+            department: true,
           },
         },
       },
@@ -334,6 +371,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     let allQuotas: any[] = [];
     let roles: any[] = [];
+    let departments: any[] = [];
 
     if (hasManagePermission) {
       allQuotas = await prisma.quota.findMany({
@@ -346,10 +384,21 @@ export const getServerSideProps = withPermissionCheckSsr(
               role: true,
             },
           },
+          quotaDepartments: {
+            include: {
+              department: true,
+            },
+          },
         },
       });
 
       roles = await prisma.role.findMany({
+        where: {
+          workspaceGroupId: workspaceId,
+        },
+      });
+
+      departments = await prisma.department.findMany({
         where: {
           workspaceGroupId: workspaceId,
         },
@@ -373,6 +422,11 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
+        departments: JSON.parse(
+          JSON.stringify(departments, (_key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ),
         canManageQuotas: hasManagePermission,
       },
     };
@@ -385,6 +439,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   myQuotas: initialMyQuotas,
   allQuotas: initialAllQuotas,
   roles: initialRoles,
+  departments: initialDepartments,
   canManageQuotas: canManageQuotasProp,
 }) => {
   const router = useRouter();
@@ -400,9 +455,11 @@ const Quotas: pageWithLayout<pageProps> = ({
   const text = useMemo(() => randomText(login.displayname), []);
   const canManageQuotas: boolean = !!canManageQuotasProp;
   const roles: any = initialRoles;
+  const departments: any = initialDepartments;
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>("all");
 
   const form = useForm<Form>();
@@ -444,6 +501,15 @@ const Quotas: pageWithLayout<pageProps> = ({
     }
   };
 
+  const toggleDepartment = async (departmentId: string) => {
+    const updatedDepartments = [...selectedDepartments];
+    if (updatedDepartments.includes(departmentId)) {
+      setSelectedDepartments(updatedDepartments.filter((d) => d !== departmentId));
+    } else {
+      setSelectedDepartments([...updatedDepartments, departmentId]);
+    }
+  };
+
   const onSubmit: SubmitHandler<Form> = async ({
     type,
     requirement,
@@ -454,6 +520,7 @@ const Quotas: pageWithLayout<pageProps> = ({
       value: Number(requirement),
       type,
       roles: selectedRoles,
+      departments: selectedDepartments,
       name,
       description: description || null,
     };
@@ -469,6 +536,7 @@ const Quotas: pageWithLayout<pageProps> = ({
       .then((req) => {
         setAllQuotas([...allQuotas, req.data.quota]);
         setSelectedRoles([]);
+        setSelectedDepartments([]);
         setSessionTypeFilter("all");
       });
     toast.promise(axiosPromise, {
@@ -631,9 +699,20 @@ const Quotas: pageWithLayout<pageProps> = ({
                             <div
                               key={qr.role.id}
                               className={`${qr.role.color || getRandomColor()} text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1`}
+                              style={{ backgroundColor: qr.role.color || undefined }}
                             >
                               <IconUsers className="w-3 h-3" />
                               {qr.role.name}
+                            </div>
+                          ))}
+                          {quota.quotaDepartments?.map((qd: any) => (
+                            <div
+                              key={qd.department.id}
+                              className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
+                              style={{ backgroundColor: qd.department.color || "#6b7280" }}
+                            >
+                              <IconBriefcase className="w-3 h-3" />
+                              {qd.department.name}
                             </div>
                           ))}
                         </div>
@@ -721,9 +800,20 @@ const Quotas: pageWithLayout<pageProps> = ({
                           <div
                             key={qr.role.id}
                             className={`${qr.role.color || getRandomColor()} text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1`}
+                            style={{ backgroundColor: qr.role.color || undefined }}
                           >
                             <IconUsers className="w-3 h-3" />
                             {qr.role.name}
+                          </div>
+                        ))}
+                        {quota.quotaDepartments?.map((qd: any) => (
+                          <div
+                            key={qd.department.id}
+                            className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
+                            style={{ backgroundColor: qd.department.color || "#6b7280" }}
+                          >
+                            <IconBriefcase className="w-3 h-3" />
+                            {qd.department.name}
                           </div>
                         ))}
                       </div>
@@ -800,6 +890,36 @@ const Quotas: pageWithLayout<pageProps> = ({
                                     </span>
                                   </label>
                                 ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium dark:text-white text-zinc-700 mb-2">
+                              Assigned Departments
+                            </label>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {departments.length > 0 ? (
+                                departments.map((department: any) => (
+                                  <label
+                                    key={department.id}
+                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedDepartments.includes(department.id)}
+                                      onChange={() => toggleDepartment(department.id)}
+                                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <span className="text-sm text-zinc-900 dark:text-white">
+                                      {department.name}
+                                    </span>
+                                  </label>
+                                ))
+                              ) : (
+                                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                                  No departments available. Create some in settings first.
+                                </p>
+                              )}
                             </div>
                           </div>
 

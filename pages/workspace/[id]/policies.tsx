@@ -171,6 +171,13 @@ export const getServerSideProps = withPermissionCheckSsr(
             name: true,
           },
         },
+        departments: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
         acknowledgments: {
           include: {
             user: {
@@ -196,6 +203,17 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const departments = await prisma.department.findMany({
+      where: {
+        workspaceGroupId: parseInt(id as string),
+      },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+    });
+
     return {
       props: {
         isUserView: false,
@@ -209,6 +227,11 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
+        departments: JSON.parse(
+          JSON.stringify(departments, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ),
       },
     };
   }
@@ -219,18 +242,21 @@ type pageProps = {
   documents?: (document & {
     owner: { username: string; picture: string };
     roles: Array<{ id: string; name: string }>;
+    departments: Array<{ id: string; name: string; color: string }>;
     acknowledgments: Array<{
       user: { userid: string; username: string; picture: string };
       acknowledgedAt: string;
     }>;
   })[];
   roles?: Array<{ id: string; name: string }>;
+  departments?: Array<{ id: string; name: string; color: string }>;
 };
 
 const PoliciesPage: pageWithLayout<pageProps> = ({
   isUserView: initialUserView,
   documents = [],
   roles = [],
+  departments = [],
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const router = useRouter();
@@ -277,6 +303,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
     isTrainingDocument: false,
     assignToEveryone: false,
     roles: [] as string[],
+    departments: [] as string[],
   });
   const [editPolicy, setEditPolicy] = useState({
     id: "",
@@ -294,6 +321,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
     isTrainingDocument: false,
     assignToEveryone: false,
     roles: [] as string[],
+    departments: [] as string[],
   });
   const [memberRoleCounts, setMemberRoleCounts] = useState<{
     [roleId: string]: number;
@@ -352,9 +380,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
   const createPolicy = async () => {
     if (
       !newPolicy.name.trim() ||
-      (!newPolicy.assignToEveryone && newPolicy.roles.length === 0)
+      (!newPolicy.assignToEveryone && newPolicy.roles.length === 0 && newPolicy.departments.length === 0)
     ) {
-      toast.error("Please fill in policy name and assign to roles or everyone");
+      toast.error("Please fill in policy name and assign to roles, departments, or everyone");
       return;
     }
 
@@ -411,6 +439,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         isTrainingDocument: false,
         assignToEveryone: false,
         roles: [],
+        departments: [],
       });
       setPolicyMode("internal");
       setCurrentStep(1);
@@ -468,6 +497,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
       isTrainingDocument: document.isTrainingDocument,
       assignToEveryone: document.assignToEveryone,
       roles: document.roles ? document.roles.map((role: any) => role.id) : [],
+      departments: document.departments ? document.departments.map((department: any) => department.id) : [],
     });
 
     setPolicyMode(isExternal ? "external" : "internal");
@@ -478,9 +508,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
   const updatePolicy = async () => {
     if (
       !editPolicy.name.trim() ||
-      (!editPolicy.assignToEveryone && editPolicy.roles.length === 0)
+      (!editPolicy.assignToEveryone && editPolicy.roles.length === 0 && editPolicy.departments.length === 0)
     ) {
-      toast.error("Please fill in policy name and assign to roles or everyone");
+      toast.error("Please fill in policy name and assign to roles, departments, or everyone");
       return;
     }
 
@@ -536,6 +566,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         isTrainingDocument: false,
         assignToEveryone: false,
         roles: [],
+        departments: [],
       });
       setCurrentStep(1);
       setSelectedView("overview");
@@ -580,7 +611,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         }
         return true;
       case 4: // Assignment
-        return currentPolicy.assignToEveryone || currentPolicy.roles.length > 0;
+        return currentPolicy.assignToEveryone || currentPolicy.roles.length > 0 || currentPolicy.departments.length > 0;
       case 5: // Review - can't proceed beyond this
         return true;
       default:
@@ -805,9 +836,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     <span>
                                       {(document as any).assignToEveryone
                                         ? "Everyone"
-                                        : document.roles
-                                            .map((r) => r.name)
-                                            .join(", ")}
+                                        : [
+                                            ...document.roles.map((r: any) => r.name),
+                                            ...(document.departments || []).map((d: any) => d.name)
+                                          ].join(", ") || "No assignments"}
                                     </span>
                                     {document.acknowledgmentDeadline && (
                                       <>
@@ -1123,6 +1155,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           isTrainingDocument: false,
                           assignToEveryone: false,
                           roles: [],
+                          departments: [],
                         });
                       }}
                       className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
@@ -1550,7 +1583,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         </h4>
                         <div className="mb-6">
                           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                            Assign to Roles *
+                            Assignment Settings
                           </label>
                           <div className="space-y-2 max-h-48 overflow-y-auto">
                             <label className="flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800">
@@ -1564,6 +1597,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     roles: e.target.checked
                                       ? []
                                       : newPolicy.roles,
+                                    departments: e.target.checked
+                                      ? []
+                                      : newPolicy.departments,
                                   });
                                 }}
                                 className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
@@ -1575,43 +1611,97 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                             {newPolicy.assignToEveryone && (
                               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                This policy will be assigned to all current
-                                roles in the workspace.
+                                This policy will be assigned to all current roles and departments in the workspace.
                               </p>
                             )}
-                            {!newPolicy.assignToEveryone &&
-                              roles.filter((role: any) => !role.isOwnerRole).map((role) => (
-                                <label
-                                  key={role.id}
-                                  className="flex items-center"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={newPolicy.roles.includes(role.id)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setNewPolicy({
-                                          ...newPolicy,
-                                          roles: [...newPolicy.roles, role.id],
-                                        });
-                                      } else {
-                                        setNewPolicy({
-                                          ...newPolicy,
-                                          roles: newPolicy.roles.filter(
-                                            (r) => r !== role.id
-                                          ),
-                                        });
-                                      }
-                                    }}
-                                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
-                                  />
-                                  <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                    {role.name}
-                                  </span>
-                                </label>
-                              ))}
                           </div>
                         </div>
+
+                        {!newPolicy.assignToEveryone && (
+                          <>
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                                Assign to Roles
+                              </label>
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {roles.filter((role: any) => !role.isOwnerRole).map((role) => (
+                                  <label
+                                    key={role.id}
+                                    className="flex items-center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={newPolicy.roles.includes(role.id)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setNewPolicy({
+                                            ...newPolicy,
+                                            roles: [...newPolicy.roles, role.id],
+                                          });
+                                        } else {
+                                          setNewPolicy({
+                                            ...newPolicy,
+                                            roles: newPolicy.roles.filter(
+                                              (r) => r !== role.id
+                                            ),
+                                          });
+                                        }
+                                      }}
+                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                    />
+                                    <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                      {role.name}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                                Assign to Departments
+                              </label>
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {departments.length > 0 ? (
+                                  departments.map((department: any) => (
+                                    <label
+                                      key={department.id}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={newPolicy.departments.includes(department.id)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setNewPolicy({
+                                              ...newPolicy,
+                                              departments: [...newPolicy.departments, department.id],
+                                            });
+                                          } else {
+                                            setNewPolicy({
+                                              ...newPolicy,
+                                              departments: newPolicy.departments.filter(
+                                                (d) => d !== department.id
+                                              ),
+                                            });
+                                          }
+                                        }}
+                                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                      />
+                                      <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                                        {department.name}
+                                      </span>
+                                    </label>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                                    No departments available. Create some in settings first.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                         <div>
                           <label className="flex items-center">
                             <input
@@ -1626,11 +1716,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
                             />
                             <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
-                              Create Document
+                              Post Document
                             </span>
                           </label>
                           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                            Create a Document but require an acknowledgment
+                            Also create this Policy as a viewable document
                           </p>
                         </div>
                       </div>
@@ -1717,20 +1807,36 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   📢 <strong>Everyone</strong> (Entire
                                   Workspace)
                                 </p>
-                              ) : newPolicy.roles.length > 0 ? (
-                                <p>
-                                  <strong>Roles:</strong>{" "}
-                                  {roles
-                                    .filter((r) =>
-                                      newPolicy.roles.includes(r.id)
-                                    )
-                                    .map((r) => r.name)
-                                    .join(", ")}
-                                </p>
                               ) : (
-                                <p className="text-red-500">
-                                  No roles assigned
-                                </p>
+                                <>
+                                  {newPolicy.roles.length > 0 && (
+                                    <p>
+                                      <strong>Roles:</strong>{" "}
+                                      {roles
+                                        .filter((r) =>
+                                          newPolicy.roles.includes(r.id)
+                                        )
+                                        .map((r) => r.name)
+                                        .join(", ")}
+                                    </p>
+                                  )}
+                                  {newPolicy.departments.length > 0 && (
+                                    <p>
+                                      <strong>Departments:</strong>{" "}
+                                      {departments
+                                        .filter((d) =>
+                                          newPolicy.departments.includes(d.id)
+                                        )
+                                        .map((d) => d.name)
+                                        .join(", ")}
+                                    </p>
+                                  )}
+                                  {newPolicy.roles.length === 0 && newPolicy.departments.length === 0 && (
+                                    <p className="text-red-500">
+                                      No roles or departments assigned
+                                    </p>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
@@ -1815,6 +1921,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           isTrainingDocument: false,
                           assignToEveryone: false,
                           roles: [],
+                          departments: [],
                         });
                       }}
                       className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
@@ -2207,62 +2314,118 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         </h4>
 
                         <div className="mb-6">
-                          <label className="flex items-center p-4 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={editPolicy.assignToEveryone}
-                              onChange={(e) =>
-                                setEditPolicy({
-                                  ...editPolicy,
-                                  assignToEveryone: e.target.checked,
-                                })
-                              }
-                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
-                            />
-                            <span className="ml-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                              Assign to everyone in the workspace
-                            </span>
-                          </label>
+                          <div>
+                            <label className="flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800">
+                              <input
+                                type="checkbox"
+                                checked={editPolicy.assignToEveryone}
+                                onChange={(e) =>
+                                  setEditPolicy({
+                                    ...editPolicy,
+                                    assignToEveryone: e.target.checked,
+                                    roles: e.target.checked ? [] : editPolicy.roles,
+                                    departments: e.target.checked ? [] : editPolicy.departments,
+                                  })
+                                }
+                                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                              />
+                              <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
+                                📢 Everyone
+                              </span>
+                            </label>
+
+                            {editPolicy.assignToEveryone && (
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                This policy will be assigned to all current roles and departments in the workspace.
+                              </p>
+                            )}
+                          </div>
                         </div>
 
                         {!editPolicy.assignToEveryone && (
-                          <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
-                              Select Roles *
-                            </label>
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
-                              {roles.filter((role: any) => !role.isOwnerRole).map((role) => (
-                                <label
-                                  key={role.id}
-                                  className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={editPolicy.roles.includes(role.id)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setEditPolicy({
-                                          ...editPolicy,
-                                          roles: [...editPolicy.roles, role.id],
-                                        });
-                                      } else {
-                                        setEditPolicy({
-                                          ...editPolicy,
-                                          roles: editPolicy.roles.filter(
-                                            (r) => r !== role.id
-                                          ),
-                                        });
-                                      }
-                                    }}
-                                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
-                                  />
-                                  <span className="ml-3 text-sm text-zinc-700 dark:text-zinc-300">
-                                    {role.name}
-                                  </span>
-                                </label>
-                              ))}
+                          <>
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                                Assign to Roles
+                              </label>
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {roles.filter((role: any) => !role.isOwnerRole).map((role) => (
+                                  <label
+                                    key={role.id}
+                                    className="flex items-center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={editPolicy.roles.includes(role.id)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setEditPolicy({
+                                            ...editPolicy,
+                                            roles: [...editPolicy.roles, role.id],
+                                          });
+                                        } else {
+                                          setEditPolicy({
+                                            ...editPolicy,
+                                            roles: editPolicy.roles.filter(
+                                              (r) => r !== role.id
+                                            ),
+                                          });
+                                        }
+                                      }}
+                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                    />
+                                    <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                      {role.name}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+
+                            <div className="mb-6">
+                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                                Select Departments
+                              </label>
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {departments.length > 0 ? (
+                                  departments.map((department: any) => (
+                                    <label
+                                      key={department.id}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={editPolicy.departments.includes(department.id)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setEditPolicy({
+                                              ...editPolicy,
+                                              departments: [...editPolicy.departments, department.id],
+                                            });
+                                          } else {
+                                            setEditPolicy({
+                                              ...editPolicy,
+                                              departments: editPolicy.departments.filter(
+                                                (d) => d !== department.id
+                                              ),
+                                            });
+                                          }
+                                        }}
+                                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                      />
+                                      <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                                        {department.name}
+                                      </span>
+                                    </label>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                                    No departments available. Create some in settings first.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </>
                         )}
                       </div>
                     </div>
@@ -2322,7 +2485,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
                               {editPolicy.assignToEveryone
                                 ? "Everyone in workspace"
-                                : `${editPolicy.roles.length} selected roles`}
+                                : `${editPolicy.roles.length} selected roles, ${editPolicy.departments.length} selected departments`}
                             </p>
                           </div>
 
