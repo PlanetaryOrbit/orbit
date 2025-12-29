@@ -90,7 +90,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       orderBy: {
         date: "asc",
       },
-      take: 30,
     });
 
     let userSessionMetrics = null;
