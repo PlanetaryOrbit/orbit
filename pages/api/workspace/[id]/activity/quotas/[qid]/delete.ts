@@ -31,6 +31,12 @@ export async function handler(
 			}
 		});
 
+		await prisma.quotaDepartment.deleteMany({
+			where: {
+				quotaId: req.query.qid
+			}
+		});
+
 		await prisma.quota.delete({
 			where: {
 				id: req.query.qid
