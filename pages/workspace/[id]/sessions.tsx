@@ -62,20 +62,21 @@ function getRandomBg(userid: string, username?: string) {
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
     const currentDate = new Date();
-    const monday = new Date(currentDate);
-    const day = monday.getDay();
-    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
-    monday.setDate(diff);
-    monday.setHours(0, 0, 0, 0);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
+    const startOfToday = new Date(currentDate);
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(currentDate);
+    endOfToday.setHours(23, 59, 59, 999);
+    const oneHourAgo = new Date();
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
     const allSessions = await prisma.session.findMany({
       where: {
         sessionType: {
           workspaceGroupId: parseInt(query.id as string),
+        },
+        date: {
+          gte: oneHourAgo < startOfToday ? startOfToday : oneHourAgo,
+          lte: endOfToday,
         },
       },
       include: {
@@ -558,6 +559,8 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [workspaceRoles, setWorkspaceRoles] = useState<any[]>([]);
   const [isPatternEditDialogOpen, setIsPatternEditDialogOpen] = useState(false);
   const [sessionToEdit, setSessionToEdit] = useState<any>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
   const router = useRouter();
   const workspaceIdForColors = Array.isArray(router.query.id)
     ? router.query.id[0]
@@ -690,12 +693,13 @@ const Home: pageWithLayout<pageProps> = (props) => {
     }
   };
 
-  const loadSessionsForDate = async (date: Date) => {
+  const loadSessionsForDate = async (date: Date, includeHistory = showHistory) => {
     setLoading(true);
     try {
       const dateStr = date.toISOString().split('T')[0];
+      const endpoint = includeHistory ? 'all' : 'upcoming';
       const response = await axios.get(
-        `/api/workspace/${router.query.id}/sessions/all?date=${dateStr}`
+        `/api/workspace/${router.query.id}/sessions/${endpoint}?date=${dateStr}`
       );
       const sessions = Array.isArray(response.data) ? response.data : [];
       setAllSessions((prevSessions) => {
@@ -715,10 +719,17 @@ const Home: pageWithLayout<pageProps> = (props) => {
   };
 
   useEffect(() => {
-    if (router.query.id && selectedDate) {
-      loadSessionsForDate(selectedDate);
+    const today = new Date().toDateString();
+    if (!hasInitialLoad && selectedDate.toDateString() === today && props.allSessions.length > 0) {
+      setHasInitialLoad(true);
+      return;
     }
-  }, [router.query.id, selectedDate]);
+    
+    if (router.query.id && selectedDate && !loading) {
+      loadSessionsForDate(selectedDate);
+      setHasInitialLoad(true);
+    }
+  }, [router.query.id, selectedDate, showHistory]);
   
   useEffect(() => {
     const newWeekDates = getWeekDates(getMonday(currentWeek));
@@ -727,9 +738,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
       (date) => date.toDateString() === today.toDateString()
     );
 
-    if (todayInNewWeek) {
+    if (todayInNewWeek && todayInNewWeek.toDateString() !== selectedDate.toDateString()) {
       setSelectedDate(todayInNewWeek);
-    } else {
+    } else if (!todayInNewWeek && newWeekDates[0].toDateString() !== selectedDate.toDateString()) {
       setSelectedDate(newWeekDates[0]);
     }
   }, [currentWeek]);
@@ -913,14 +924,27 @@ const Home: pageWithLayout<pageProps> = (props) => {
 
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
-            <div className="text-2xl sm:text-3xl font-semibold text-zinc-900 dark:text-white text-left">
-              {isTodaySelected
-                ? "Today"
-                : selectedDate.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}
+            <div className="flex items-center gap-4">
+              <div className="text-2xl sm:text-3xl font-semibold text-zinc-900 dark:text-white text-left">
+                {isTodaySelected
+                  ? "Today"
+                  : selectedDate.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })}
+              </div>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  showHistory
+                    ? "bg-primary text-white"
+                    : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                }`}
+                title={showHistory ? "Showing all sessions" : "Showing recent and upcoming sessions"}
+              >
+                {showHistory ? "Hide History" : "Show History"}
+              </button>
             </div>
 
             <div>
