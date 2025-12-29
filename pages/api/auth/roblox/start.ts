@@ -23,8 +23,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 		});
 		const configMap = configs.reduce((acc, config) => {
-		acc[config.key] = config.value;
-		return acc;
+			acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
+			return acc;
 		}, {} as Record<string, any>);
 		clientId = configMap.robloxClientId || process.env.ROBLOX_CLIENT_ID;
 		redirectUri = configMap.robloxRedirectUri || process.env.ROBLOX_REDIRECT_URI;

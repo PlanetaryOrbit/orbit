@@ -19,7 +19,7 @@ export default async function handler(
     });
 
     const configMap = configs.reduce((acc, config) => {
-      acc[config.key] = config.value;
+      acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
       return acc;
     }, {} as Record<string, any>);
     const clientId =

@@ -50,9 +50,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 		try {
 			const updates = [
-				{ key: 'robloxClientId', value: robloxClientId || '' },
-				{ key: 'robloxClientSecret', value: robloxClientSecret || '' },
-				{ key: 'robloxRedirectUri', value: robloxRedirectUri || '' },
+				{ key: 'robloxClientId', value: typeof robloxClientId === 'string' ? robloxClientId.trim() : (robloxClientId || '') },
+				{ key: 'robloxClientSecret', value: typeof robloxClientSecret === 'string' ? robloxClientSecret.trim() : (robloxClientSecret || '') },
+				{ key: 'robloxRedirectUri', value: typeof robloxRedirectUri === 'string' ? robloxRedirectUri.trim() : (robloxRedirectUri || '') },
 				{ key: 'oauthOnlyLogin', value: oauthOnlyLogin || false }
 			];
 
