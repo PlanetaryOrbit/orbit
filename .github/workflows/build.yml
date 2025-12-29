@@ -1,0 +1,161 @@
+name: Build and Push Orbit Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: planetaryorbit/orbit
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GH_USER }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Get current version
+        id: get_version
+        run: |
+          # Try to get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.0.0beta0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "📦 Latest tag: $LATEST_TAG"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          LATEST_TAG="${{ steps.get_version.outputs.latest_tag }}"
+          
+          # Extract version components (e.g., 2.0.9beta8.7 -> 2 0 9 8 7)
+          if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            BETA="${BASH_REMATCH[4]}"
+            BUILD="${BASH_REMATCH[5]}"
+          else
+            # If no valid tag found, start fresh
+            MAJOR=2
+            MINOR=0
+            PATCH=9
+            BETA=8
+            BUILD=7
+          fi
+          
+          # Auto-increment based on manual input or default to build
+          BUMP_TYPE="${{ github.event.inputs.version_bump || 'auto' }}"
+          
+          if [ "$BUMP_TYPE" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BETA=0
+            BUILD=0
+          elif [ "$BUMP_TYPE" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BETA=0
+            BUILD=0
+          elif [ "$BUMP_TYPE" = "patch" ]; then
+            PATCH=$((PATCH + 1))
+            BETA=0
+            BUILD=0
+          else
+            # Auto mode: just increment build number
+            BUILD=$((BUILD + 1))
+          fi
+          
+          NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}.${BUILD}"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
+
+      - name: Build and push multi-platform image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create Git tag
+        run: |
+          NEW_TAG="${{ steps.next_version.outputs.new_tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+          git push origin "$NEW_TAG"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.next_version.outputs.new_tag }}
+          release_name: Orbit ${{ steps.next_version.outputs.new_tag }}
+          body: |
+            ## Orbit Release ${{ steps.next_version.outputs.new_tag }}
+            
+            ### Docker Images
+            ```bash
+            docker pull ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}
+            ```
+            
+            ### Platforms
+            - `linux/amd64` (Intel/AMD x86_64)
+            - `linux/arm64` (Apple Silicon, ARM servers)
+            
+            ### Changes
+            - Auto-deployed from commit ${{ github.sha }}
+          draft: false
+          prerelease: true
+
+      - name: Summary
+        run: |
+          echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Image Tags" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🖥️ Platforms" >> $GITHUB_STEP_SUMMARY
+          echo "- linux/amd64 (Intel/AMD)" >> $GITHUB_STEP_SUMMARY
+          echo "- linux/arm64 (Apple Silicon, ARM)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔖 Version" >> $GITHUB_STEP_SUMMARY
+          echo "Previous: \`${{ steps.get_version.outputs.latest_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "New: \`${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
