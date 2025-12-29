@@ -112,506 +112,9 @@ export const getServerSideProps = withPermissionCheckSsr(
     const isAdmin = membership?.isAdmin || false;
     const userRole = currentUser?.roles?.[0];
     const hasManageViewsPerm = userRole?.permissions?.includes("manage_views") || false;
-    
-    const lastReset = await prisma.activityReset.findFirst({
-      where: {
-        workspaceGroupId,
-      },
-      orderBy: {
-        resetAt: "desc",
-      },
-    });
-
-    const startDate = lastReset?.resetAt || new Date("2025-01-01");
-    const currentDate = new Date();
-
-    const activityConfig = await getConfig("activity", workspaceGroupId);
-    const idleTimeEnabled = activityConfig?.idleTimeEnabled ?? true;
-
-    const allUsers = await prisma.user.findMany({
-      where: {
-        roles: {
-          some: {
-            workspaceGroupId,
-          },
-        },
-      },
-      include: {
-        book: true,
-        wallPosts: true,
-        inactivityNotices: true,
-        sessions: true,
-        ranks: true,
-        roles: {
-          where: {
-            workspaceGroupId,
-          },
-          include: {
-            quotaRoles: {
-              include: {
-                quota: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const allActivity = await prisma.activitySession.findMany({
-      where: {
-        workspaceGroupId,
-        startTime: {
-          gte: startDate,
-          lte: currentDate,
-        },
-      },
-      include: {
-        user: {
-          include: {
-            writtenBooks: true,
-            wallPosts: true,
-            inactivityNotices: true,
-            sessions: true,
-            ranks: true,
-          },
-        },
-      },
-    });
-
-    const computedUsers: any[] = [];
-    const ranks = await noblox.getRoles(workspaceGroupId);
-
-    for (const user of allUsers) {
-      const ms: number[] = [];
-      allActivity
-        .filter((x) => BigInt(x.userId) == user.userid && !x.active)
-        .forEach((session) => {
-          const sessionDuration =
-            (session.endTime?.getTime() as number) -
-            session.startTime.getTime();
-          const idleTimeMs =
-            idleTimeEnabled && session.idleTime
-              ? Number(session.idleTime) * 60000
-              : 0;
-          ms.push(sessionDuration - idleTimeMs);
-        });
-
-      const ims: number[] = [];
-      if (idleTimeEnabled) {
-        allActivity
-          .filter((x: any) => BigInt(x.userId) == user.userid)
-          .forEach((s: any) => {
-            ims.push(Number(s.idleTime));
-          });
-      }
-
-      const messages: number[] = [];
-      allActivity
-        .filter((x: any) => BigInt(x.userId) == user.userid)
-        .forEach((s: any) => {
-          messages.push(s.messages);
-        });
-
-      const userId = user.userid;
-      const userAdjustments = await prisma.activityAdjustment.findMany({
-        where: {
-          userId: user.userid,
-          workspaceGroupId,
-          createdAt: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const ownedSessions = await prisma.session.findMany({
-        where: {
-          ownerId: userId,
-          sessionType: { workspaceGroupId },
-          date: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const allSessionParticipations = await prisma.sessionUser.findMany({
-        where: {
-          userid: userId,
-          session: {
-            sessionType: { workspaceGroupId },
-            date: {
-              gte: startDate,
-              lte: currentDate,
-            },
-          },
-        },
-        include: {
-          session: {
-            select: {
-              id: true,
-              sessionType: {
-                select: {
-                  slots: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const roleBasedHostedSessions = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-          return (
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host")
-          );
-        }
-      ).length;
-
-      const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
-
-      const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
-      const sessionsAttended = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-          const isCoHost =
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host");
-          return !isCoHost && !ownedSessionIds.has(participation.sessionid);
-        }
-      ).length;
-
-      const allUserSessionsIds = new Set([
-        ...ownedSessions.map((s) => s.id),
-        ...allSessionParticipations.map((p) => p.sessionid),
-      ]);
-      const sessionsLogged = allUserSessionsIds.size;
-
-      const sessionsByType: Record<string, number> = {};
-      const allUserSessions = [
-        ...ownedSessions.map((s) => ({ id: s.id, type: s.type })),
-        ...allSessionParticipations.map((p) => ({
-          id: p.sessionid,
-          type: (p.session as any).type,
-        })),
-      ];
-      const uniqueSessionsMap = new Map(
-        allUserSessions.map((s) => [s.id, s.type])
-      );
-      for (const [, sessionType] of uniqueSessionsMap) {
-        const type = sessionType || "other";
-        sessionsByType[type] = (sessionsByType[type] || 0) + 1;
-      }
-
-      const cohostSessions = allSessionParticipations.filter((p) => {
-        const slots = p.session.sessionType.slots as any[];
-        const slotName = slots[p.slot]?.name || "";
-        return (
-          p.roleID.toLowerCase().includes("co-host") ||
-          slotName.toLowerCase().includes("co-host")
-        );
-      }).length;
-
-      const allianceVisits = await prisma.allyVisit.count({
-        where: {
-          ally: {
-            workspaceGroupId: workspaceGroupId,
-          },
-          time: {
-            gte: startDate,
-            lte: currentDate,
-          },
-          OR: [{ hostId: userId }, { participants: { has: userId } }],
-        },
-      });
-
-      const currentWallPosts = await prisma.wallPost.findMany({
-        where: {
-          authorId: userId,
-          workspaceGroupId,
-          createdAt: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const userQuotas = user.roles
-        .flatMap((role) => role.quotaRoles)
-        .map((qr) => qr.quota);
-
-      let quota = true;
-      if (userQuotas.length > 0) {
-        for (const userQuota of userQuotas) {
-          let currentValue = 0;
-
-          switch (userQuota.type) {
-            case "mins":
-              const totalAdjustmentMinutes = userAdjustments.reduce(
-                (sum, adj) => sum + adj.minutes,
-                0
-              );
-              const totalActiveMinutes = ms.length
-                ? Math.round(ms.reduce((p, c) => p + c) / 60000)
-                : 0;
-              currentValue = totalActiveMinutes + totalAdjustmentMinutes;
-              break;
-            case "sessions_hosted":
-              if (userQuota.sessionType && userQuota.sessionType !== "all") {
-                currentValue = sessionsByType[userQuota.sessionType] || 0;
-              } else {
-                currentValue = sessionsHosted;
-              }
-              break;
-            case "sessions_attended":
-              currentValue = sessionsAttended;
-              break;
-            case "sessions_logged":
-              if (userQuota.sessionType && userQuota.sessionType !== "all") {
-                currentValue = sessionsByType[userQuota.sessionType] || 0;
-              } else {
-                currentValue = sessionsLogged;
-              }
-              break;
-            case "alliance_visits":
-              currentValue = allianceVisits;
-              break;
-          }
-
-          if (currentValue < userQuota.value) {
-            quota = false;
-            break;
-          }
-        }
-      } else {
-        quota = false;
-      }
-
-      const totalAdjustmentMs = userAdjustments.reduce(
-        (sum, adj) => sum + adj.minutes * 60000,
-        0
-      );
-
-      const totalActiveMs =
-        (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
-
-      computedUsers.push({
-        info: {
-          userId: Number(user.userid),
-          picture: getThumbnail(user.userid),
-          username: user.username,
-        },
-        book: user.book,
-        wallPosts: currentWallPosts,
-        inactivityNotices: user.inactivityNotices,
-        sessions: allSessionParticipations,
-        rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
-        minutes: Math.round(totalActiveMs / 60000),
-        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c)) : 0,
-        hostedSessions: { length: sessionsHosted },
-        sessionsAttended: sessionsAttended,
-        allianceVisits: allianceVisits,
-        messages: messages.length
-          ? Math.round(messages.reduce((p, c) => p + c))
-          : 0,
-        registered: user.registered || false,
-        quota: quota,
-      });
-    }
-
-    const usersNotInComputedUsers = allActivity.filter(
-      (x: any) =>
-        !computedUsers.find(
-          (y: any) => BigInt(y.info.userId) == BigInt(x.userId)
-        )
-    );
-    for (const x of usersNotInComputedUsers) {
-      if (
-        computedUsers.find(
-          (y: any) => BigInt(y.info.userId) == BigInt(x.userId)
-        )
-      )
-        continue;
-
-      const ms: number[] = [];
-      allActivity
-        .filter((y: any) => BigInt(y.userId) == BigInt(x.userId) && !y.active)
-        .forEach((session) => {
-          const sessionDuration =
-            (session.endTime?.getTime() as number) -
-            session.startTime.getTime();
-          const idleTimeMs =
-            idleTimeEnabled && session.idleTime
-              ? Number(session.idleTime) * 60000
-              : 0;
-          ms.push(sessionDuration - idleTimeMs);
-        });
-
-      const ims: number[] = [];
-      if (idleTimeEnabled) {
-        allActivity
-          .filter((y: any) => BigInt(y.userId) == BigInt(x.userId))
-          .forEach((s: any) => {
-            ims.push(Number(s.idleTime));
-          });
-      }
-
-      const messages: number[] = [];
-      allActivity
-        .filter((y: any) => BigInt(y.userId) == BigInt(x.userId))
-        .forEach((s: any) => {
-          messages.push(s.messages);
-        });
-
-      const userId = BigInt(x.userId);
-      const ownedSessions = await prisma.session.findMany({
-        where: {
-          ownerId: userId,
-          sessionType: { workspaceGroupId },
-          date: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const allSessionParticipations = await prisma.sessionUser.findMany({
-        where: {
-          userid: userId,
-          session: {
-            sessionType: { workspaceGroupId },
-            date: {
-              gte: startDate,
-              lte: currentDate,
-            },
-          },
-        },
-        include: {
-          session: {
-            select: {
-              id: true,
-              sessionType: {
-                select: {
-                  slots: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const roleBasedHostedSessions = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-
-          return (
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host")
-          );
-        }
-      ).length;
-
-      const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
-
-      const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
-      const sessionsAttended = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-
-          const isCoHost =
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host");
-
-          return !isCoHost && !ownedSessionIds.has(participation.sessionid);
-        }
-      ).length;
-      const currentWallPosts = await prisma.wallPost.findMany({
-        where: {
-          authorId: userId,
-          workspaceGroupId,
-          createdAt: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const userAdjustments = await prisma.activityAdjustment.findMany({
-        where: {
-          userId: BigInt(x.userId),
-          workspaceGroupId,
-          createdAt: {
-            gte: startDate,
-            lte: currentDate,
-          },
-        },
-      });
-
-      const totalAdjustmentMs = userAdjustments.reduce(
-        (sum, adj) => sum + adj.minutes * 60000,
-        0
-      );
-      const totalActiveMs =
-        (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
-
-      const allianceVisits = await prisma.allyVisit.count({
-        where: {
-          ally: {
-            workspaceGroupId: workspaceGroupId,
-          },
-          time: {
-            gte: startDate,
-            lte: currentDate,
-          },
-          OR: [{ hostId: userId }, { participants: { has: userId } }],
-        },
-      });
-
-      const quota = false;
-      computedUsers.push({
-        info: {
-          userId: Number(x.userId),
-          picture: x.user.picture || null,
-          username: x.user.username,
-        },
-        book: [],
-        wallPosts: currentWallPosts,
-        inactivityNotices: [],
-        sessions: allSessionParticipations,
-        rankID: x.user.ranks[0]?.rankId ? Number(x.user.ranks[0]?.rankId) : 0,
-        minutes: Math.round(totalActiveMs / 60000),
-        idleMinutes: ims.length ? Math.round(ims.reduce((p, c) => p + c)) : 0,
-        hostedSessions: { length: sessionsHosted },
-        sessionsAttended: sessionsAttended,
-        allianceVisits: allianceVisits,
-        messages: messages.length
-          ? Math.round(messages.reduce((p, c) => p + c))
-          : 0,
-        registered: x.user.registered || false,
-        quota: quota,
-      });
-    }
 
     return {
       props: {
-        usersInGroup: JSON.parse(
-          JSON.stringify(computedUsers, (_key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
-        ) as User[],
-        ranks: ranks,
         isAdmin: isAdmin,
         hasManageViewsPerm: hasManageViewsPerm,
       },
@@ -647,16 +150,10 @@ const filterNames: {
 };
 
 type pageProps = {
-  usersInGroup: User[];
-  ranks: {
-    id: number;
-    rank: number;
-    name: string;
-  }[];
   isAdmin: boolean;
   hasManageViewsPerm: boolean;
 };
-const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasManageViewsPerm }) => {
+const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
@@ -669,8 +166,9 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
   const [message, setMessage] = useState("");
   const [type, setType] = useState("");
   const [minutes, setMinutes] = useState(0);
-  const [users, setUsers] = useState(usersInGroup);
-  const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [ranks, setRanks] = useState<{ id: number; rank: number; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -689,6 +187,8 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
   const [saveIcon, setSaveIcon] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalViewConfig, setOriginalViewConfig] = useState<any>(null);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [totalUsers, setTotalUsers] = useState(0);
 
   const ICON_OPTIONS: { key: string; Icon: any; title?: string }[] = [
     { key: "star", Icon: IconStar, title: "Star" },
@@ -884,14 +384,17 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
       rowSelection,
       // @ts-ignore
       columnVisibility,
+      pagination,
     },
     // @ts-ignore
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    pageCount: Math.ceil(totalUsers / pagination.pageSize),
   });
 
   const newfilter = () => {
@@ -927,6 +430,37 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
   useEffect(() => {
     if (router.query.id) loadSavedViews();
   }, [router.query.id]);
+  useEffect(() => {
+    const fetchStaffData = async () => {
+      if (!router.query.id) return;
+      
+      setIsLoading(true);
+      try {
+        const res = await axios.get(
+          `/api/workspace/${router.query.id}/views/staff`,
+          {
+            params: {
+              page: pagination.pageIndex,
+              pageSize: pagination.pageSize,
+            },
+          }
+        );
+        
+        if (res.data) {
+          setUsers(res.data.users || []);
+          setRanks(res.data.ranks || []);
+          setTotalUsers(res.data.pagination?.totalUsers || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch staff data:", error);
+        toast.error("Failed to load staff data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStaffData();
+  }, [router.query.id, pagination.pageIndex, pagination.pageSize]);
 
   const applySavedView = (view: any) => {
     if (!view) return;
@@ -1125,194 +659,6 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
   };
 
   useEffect(() => {
-    const filteredUsers = usersInGroup.filter((user) => {
-      let valid = true;
-
-      for (const filter of colFilters) {
-        if (!filter.value) continue;
-
-        if (filter.column === "username") {
-          if (filter.filter === "equal") {
-            if (user.info.username !== filter.value) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "notEqual") {
-            if (user.info.username === filter.value) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "contains") {
-            if (!user.info.username?.includes(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "minutes") {
-          if (filter.filter === "equal") {
-            if (user.minutes !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.minutes <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.minutes >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "idle") {
-          if (filter.filter === "equal") {
-            if (user.idleMinutes !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.idleMinutes <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.idleMinutes >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "rank") {
-          if (filter.filter === "equal") {
-            if (user.rankID !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.rankID <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.rankID >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "hosted") {
-          if (filter.filter === "equal") {
-            if (user.hostedSessions.length !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.hostedSessions.length <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.hostedSessions.length >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "sessions") {
-          if (filter.filter === "equal") {
-            if (user.sessions.length !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.sessions.length <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.sessions.length >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "warnings") {
-          if (filter.filter === "equal") {
-            if (
-              user.book.filter((x) => x.type == "warning").length !==
-              parseInt(filter.value)
-            ) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (
-              user.book.filter((x) => x.type == "warning").length <=
-              parseInt(filter.value)
-            ) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (
-              user.book.filter((x) => x.type == "warning").length >=
-              parseInt(filter.value)
-            ) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "messages") {
-          if (filter.filter === "equal") {
-            if (user.messages !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.messages <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.messages >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "notices") {
-          if (filter.filter === "equal") {
-            if (user.inactivityNotices.length !== parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "greaterThan") {
-            if (user.inactivityNotices.length <= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          } else if (filter.filter === "lessThan") {
-            if (user.inactivityNotices.length >= parseInt(filter.value)) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "registered") {
-          if (filter.filter === "equal") {
-            if (user.registered.toString() !== filter.value.toLowerCase()) {
-              valid = false;
-              break;
-            }
-          }
-        } else if (filter.column === "quota") {
-          if (filter.filter === "equal") {
-            if (user.quota.toString() !== filter.value.toLowerCase()) {
-              valid = false;
-              break;
-            }
-          }
-        }
-      }
-
-      return valid;
-    });
-    setUsers(filteredUsers);
   }, [colFilters]);
 
   const massAction = () => {
@@ -1832,6 +1178,14 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
               )}
             </div>
 
+            {isLoading ? (
+              <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading staff data...</p>
+                </div>
+              </div>
+            ) : (
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full table-auto md:table-fixed divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -1945,6 +1299,7 @@ const Views: pageWithLayout<pageProps> = ({ usersInGroup, ranks, isAdmin, hasMan
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
 
