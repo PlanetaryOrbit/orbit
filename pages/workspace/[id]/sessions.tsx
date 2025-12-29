@@ -606,7 +606,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
       });
       toast.success("Filters saved successfully!");
       setIsVisibilityModalOpen(false);
-      loadAllSessions();
+      loadSessionsForDate(selectedDate);
     } catch (error) {
       console.error("Failed to save filters:", error);
       toast.error("Failed to save filters");
@@ -684,37 +684,29 @@ const Home: pageWithLayout<pageProps> = (props) => {
         toast.success("Session deleted successfully");
         setAllSessions(allSessions.filter((s) => s.id !== sessionId));
       }
-      await loadAllSessions();
+      await loadSessionsForDate(selectedDate);
     } catch (error: any) {
       console.error("Delete session error:", error);
       toast.error(error?.response?.data?.error || "Failed to delete session");
     }
   };
 
-  const loadAllSessions = async () => {
+  const loadSessionsForDate = async (date: Date) => {
     setLoading(true);
     try {
-      let allLoadedSessions: any[] = [];
-      let page = 1;
-      let hasMore = true;
-      const limit = 30;
-
-      while (hasMore) {
-        const response = await axios.get(
-          `/api/workspace/${router.query.id}/sessions/all?page=${page}&limit=${limit}`
+      const dateStr = date.toISOString().split('T')[0];
+      const response = await axios.get(
+        `/api/workspace/${router.query.id}/sessions/all?date=${dateStr}`
+      );
+      const sessions = Array.isArray(response.data) ? response.data : [];
+      setAllSessions((prevSessions) => {
+        const otherDateSessions = prevSessions.filter(
+          (s: any) => new Date(s.date).toDateString() !== date.toDateString()
         );
-        if (Array.isArray(response.data)) {
-          allLoadedSessions = response.data;
-          hasMore = false;
-        } else {
-          allLoadedSessions = [...allLoadedSessions, ...response.data.data];
-          hasMore = response.data.pagination.hasNextPage;
-          page++;
-        }
-      }
-
-      setAllSessions(allLoadedSessions);
-      return allLoadedSessions;
+        return [...otherDateSessions, ...sessions];
+      });
+      
+      return sessions;
     } catch (error) {
       console.error("Failed to load sessions:", error);
       return null;
@@ -724,8 +716,11 @@ const Home: pageWithLayout<pageProps> = (props) => {
   };
 
   useEffect(() => {
-    loadAllSessions();
-  }, [router.query.id]);
+    if (router.query.id && selectedDate) {
+      loadSessionsForDate(selectedDate);
+    }
+  }, [router.query.id, selectedDate]);
+  
   useEffect(() => {
     const newWeekDates = getWeekDates(getMonday(currentWeek));
     const today = new Date();
@@ -739,9 +734,10 @@ const Home: pageWithLayout<pageProps> = (props) => {
       setSelectedDate(newWeekDates[0]);
     }
   }, [currentWeek]);
+  
   useEffect(() => {
-    if (router.query.refresh === "true") {
-      loadAllSessions();
+    if (router.query.refresh === "true" && selectedDate) {
+      loadSessionsForDate(selectedDate);
       router.replace(`/workspace/${router.query.id}/sessions`, undefined, {
         shallow: true,
       });
@@ -749,7 +745,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
   }, [router.query.refresh]);
 
   const refreshAllSessions = () => {
-    loadAllSessions();
+    loadSessionsForDate(selectedDate);
   };
 
   const loadWorkspaceMembers = async () => {
@@ -782,7 +778,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
     toast.promise(axiosPromise, {
       loading: "Ending session...",
       success: () => {
-        loadAllSessions();
+        loadSessionsForDate(selectedDate);
         return "Session ended successfully";
       },
       error: "Failed to end session",
@@ -1137,7 +1133,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
             onEdit={handleEditSession}
             onDelete={handleDeleteSession}
             onUpdate={async () => {
-              const freshSessions = await loadAllSessions();
+              const freshSessions = await loadSessionsForDate(selectedDate);
               if (freshSessions && selectedSession) {
                 const updatedSession = freshSessions.find(
                   (s: any) => s.id === selectedSession.id

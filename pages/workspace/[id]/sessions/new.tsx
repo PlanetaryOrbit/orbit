@@ -134,24 +134,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   const checkOverlaps = async (sessionDate: Date, duration: number) => {
     try {
-      let allSessions: any[] = [];
-      let page = 1;
-      let hasMore = true;
-      const limit = 50;
-
-      while (hasMore) {
-        const response = await axios.get(
-          `/api/workspace/${workspace.groupId}/sessions/all?page=${page}&limit=${limit}`
-        );
-        if (Array.isArray(response.data)) {
-          allSessions = response.data;
-          hasMore = false;
-        } else {
-          allSessions = [...allSessions, ...response.data.data];
-          hasMore = response.data.pagination.hasNextPage;
-          page++;
-        }
-      }
+      const dateStr = sessionDate.toISOString().split('T')[0];
+      const response = await axios.get(
+        `/api/workspace/${workspace.groupId}/sessions/all?date=${dateStr}`
+      );
+      const allSessions = Array.isArray(response.data) ? response.data : [];
 
       const sessionStart = sessionDate.getTime();
       const sessionEnd = sessionStart + duration * 60 * 1000;

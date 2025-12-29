@@ -9,28 +9,31 @@ export default withPermissionCheck(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { id, page, limit } = req.query;
+    const { id, date } = req.query;
     const userId = (req as any).session?.userid;
 
-    const pageNum = parseInt(page as string) || 1;
-    const limitNum = Math.min(parseInt(limit as string) || 50, 100);
-    const skip = (pageNum - 1) * limitNum;
-
     try {
-      const totalCount = await prisma.session.count({
-        where: {
-          sessionType: {
-            workspaceGroupId: parseInt(id as string),
-          },
+      const whereClause: any = {
+        sessionType: {
+          workspaceGroupId: parseInt(id as string),
         },
-      });
+      };
+
+      if (date) {
+        const targetDate = new Date(date as string);
+        const startOfDay = new Date(targetDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(targetDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        whereClause.date = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
 
       const sessions = await prisma.session.findMany({
-        where: {
-          sessionType: {
-            workspaceGroupId: parseInt(id as string),
-          },
-        },
+        where: whereClause,
         include: {
           owner: true,
           sessionType: {
@@ -47,8 +50,6 @@ export default withPermissionCheck(
         orderBy: {
           date: "asc",
         },
-        skip: skip,
-        take: limitNum,
       });
 
       let userRole = null;
@@ -97,21 +98,8 @@ export default withPermissionCheck(
           typeof value === "bigint" ? value.toString() : value
         )
       );
-      const totalPages = Math.ceil(totalCount / limitNum);
-      const hasNextPage = pageNum < totalPages;
-      const hasPreviousPage = pageNum > 1;
 
-      res.status(200).json({
-        data: serializedSessions,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages: totalPages,
-          hasNextPage: hasNextPage,
-          hasPreviousPage: hasPreviousPage,
-        },
-      });
+      res.status(200).json(serializedSessions);
     } catch (error) {
       console.error("Error fetching all sessions:", error);
       res.status(500).json({ error: "Failed to fetch sessions" });
