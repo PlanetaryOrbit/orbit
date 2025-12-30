@@ -20,6 +20,22 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	if (req.method === 'GET') {
 		try {
+		const envClientId = process.env.ROBLOX_CLIENT_ID;
+		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
+		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
+		const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
+		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
+
+		if (usingEnvVars) {
+			return res.json({
+				robloxClientId: '••••••••',
+				robloxClientSecret: '••••••••',
+				robloxRedirectUri: envRedirectUri,
+				oauthOnlyLogin: envOAuthOnly,
+				usingEnvVars: true
+			});
+		}
+
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
@@ -37,7 +53,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			robloxClientId: configMap.robloxClientId || '',
 			robloxClientSecret: configMap.robloxClientSecret || '',
 			robloxRedirectUri: configMap.robloxRedirectUri || '',
-			oauthOnlyLogin: configMap.oauthOnlyLogin || false
+			oauthOnlyLogin: configMap.oauthOnlyLogin || false,
+			usingEnvVars: false
 		});
 		} catch (error) {
 		console.error('Failed to fetch instance config:', error);
@@ -46,6 +63,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	if (req.method === 'POST') {
+		const envClientId = process.env.ROBLOX_CLIENT_ID;
+		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
+		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
+		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
+
+		if (usingEnvVars) {
+			return res.status(403).json({ 
+				error: 'Cannot modify OAuth configuration when environment variables are set',
+				usingEnvVars: true 
+			});
+		}
+
 		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin } = req.body;
 
 		try {

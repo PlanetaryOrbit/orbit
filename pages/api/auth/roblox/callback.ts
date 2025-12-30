@@ -47,34 +47,42 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 	let clientSecret: string | undefined;
 	let redirectUri: string | undefined;
 
-	try {
-		const configs = await prisma.instanceConfig.findMany({
-			where: {
-				key: { in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri'] }
-			}
-		});
+	clientId = process.env.ROBLOX_CLIENT_ID;
+	clientSecret = process.env.ROBLOX_CLIENT_SECRET;
+	redirectUri = process.env.ROBLOX_REDIRECT_URI;
+	const usingEnvVars = !!(clientId && clientSecret && redirectUri);
 
-		const configMap = configs.reduce((acc, config) => {
-			acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
-			return acc;
-		}, {} as Record<string, any>);
+	if (!clientId || !clientSecret || !redirectUri) {
+		try {
+			const configs = await prisma.instanceConfig.findMany({
+				where: {
+					key: { in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri'] }
+				}
+			});
 
-		clientId = configMap.robloxClientId;
-		clientSecret = configMap.robloxClientSecret;
-		redirectUri = configMap.robloxRedirectUri;
-		
-		console.log('OAuth config loaded from database:', {
-			clientIdPresent: !!clientId,
-			clientIdLength: clientId?.length || 0,
-			clientSecretPresent: !!clientSecret,
-			clientSecretLength: clientSecret?.length || 0,
-			redirectUri: redirectUri
-		});
-	} catch (error) {
-		console.error('Failed to fetch OAuth config from database:', error);
-		clientId = process.env.ROBLOX_CLIENT_ID;
-		clientSecret = process.env.ROBLOX_CLIENT_SECRET;
-		redirectUri = process.env.ROBLOX_REDIRECT_URI;
+			const configMap = configs.reduce((acc, config) => {
+				acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
+				return acc;
+			}, {} as Record<string, any>);
+
+			clientId = clientId || configMap.robloxClientId;
+			clientSecret = clientSecret || configMap.robloxClientSecret;
+			redirectUri = redirectUri || configMap.robloxRedirectUri;
+			
+			console.log('OAuth config loaded from database:', {
+				clientIdPresent: !!clientId,
+				clientIdLength: clientId?.length || 0,
+				clientSecretPresent: !!clientSecret,
+				clientSecretLength: clientSecret?.length || 0,
+				redirectUri: redirectUri
+			});
+		} catch (error) {
+			console.error('Failed to fetch OAuth config from database:', error);
+		}
+	}
+
+	if (usingEnvVars) {
+		console.log('Using OAuth credentials from environment variables');
 	}
 
 	if (!clientId || !clientSecret || !redirectUri) {

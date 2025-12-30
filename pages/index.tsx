@@ -31,6 +31,7 @@ const Home: NextPage = () => {
   })
   const [configLoading, setConfigLoading] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [usingEnvVars, setUsingEnvVars] = useState(false)
 
   const gotoWorkspace = (id: number) => {
     router.push(`/workspace/${id}`)
@@ -149,16 +150,17 @@ const Home: NextPage = () => {
   const loadRobloxConfig = async () => {
     try {
       const response = await axios.get('/api/admin/instance-config')
-      const { robloxClientId, robloxClientSecret, oauthOnlyLogin } = response.data
+      const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars } = response.data
       const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
       
       setRobloxConfig({
         clientId: robloxClientId || '',
         clientSecret: robloxClientSecret || '',
-        redirectUri: autoRedirectUri,
+        redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
         oauthOnlyLogin: oauthOnlyLogin || false
       })
+      setUsingEnvVars(envVars || false)
     } catch (error) {
       console.error('Failed to load OAuth config:', error)
     }
@@ -372,6 +374,17 @@ const Home: NextPage = () => {
                             Roblox OAuth Configuration
                           </h3>
                           
+                          {usingEnvVars && (
+                            <div className="mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                              <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                                🔒 Using Environment Variables
+                              </p>
+                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                Database configuration is disabled.
+                              </p>
+                            </div>
+                          )}
+                          
                           <div className="space-y-3">
                             <div>
                               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -382,7 +395,12 @@ const Home: NextPage = () => {
                                 value={robloxConfig.clientId}
                                 onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
                                 placeholder="e.g. 23748326747865334"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={usingEnvVars}
+                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  usingEnvVars 
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed' 
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                }`}
                               />
                             </div>
                             
@@ -395,7 +413,12 @@ const Home: NextPage = () => {
                                 value={robloxConfig.clientSecret}
                                 onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
                                 placeholder="e.g. JHJD_NMIRHNSD$ER$6dj38"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={usingEnvVars}
+                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  usingEnvVars 
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed' 
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                }`}
                               />
                             </div>
                             
@@ -428,9 +451,12 @@ const Home: NextPage = () => {
                               type="checkbox"
                               checked={robloxConfig.oauthOnlyLogin}
                               onChange={(e) => setRobloxConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
-                              className="w-4 h-4 text-blue-600 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2"
+                              disabled={usingEnvVars}
+                              className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${
+                                usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
+                              }`}
                             />
-                            <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                            <span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
                               Enforce OAuth login
                             </span>
                           </label>
@@ -461,9 +487,10 @@ const Home: NextPage = () => {
                         <Button
                           onClick={saveRobloxConfig}
                           loading={configLoading}
-                          disabled={configLoading}
+                          disabled={configLoading || usingEnvVars}
+                          classoverride={usingEnvVars ? "bg-zinc-300 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed" : ""}
                         >
-                          Save Settings
+                          {usingEnvVars ? 'Using Env Vars' : 'Save Settings'}
                         </Button>
                       </div>
                     </Dialog.Panel>

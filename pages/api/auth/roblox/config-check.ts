@@ -10,6 +10,25 @@ export default async function handler(
   }
 
   try {
+    const envClientId = process.env.ROBLOX_CLIENT_ID;
+    const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
+    const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
+    const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
+    const hasEnvCredentials = !!(envClientId && envClientSecret && envRedirectUri);
+
+    if (hasEnvCredentials) {
+      return res.json({
+        available: true,
+        oauthOnly: envOAuthOnly,
+        configured: {
+          clientId: true,
+          clientSecret: true,
+          redirectUri: true,
+        },
+        usingEnvVars: true,
+      });
+    }
+
     const configs = await prisma.instanceConfig.findMany({
       where: {
         key: {
@@ -22,14 +41,10 @@ export default async function handler(
       acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
       return acc;
     }, {} as Record<string, any>);
-    const clientId =
-      process.env.PLANETARY_CLOUD_ROBLOX_CLIENT_ID || configMap.robloxClientId;
-    const clientSecret =
-      process.env.PLANETARY_CLOUD_ROBLOX_CLIENT_SECRET ||
-      configMap.robloxClientSecret;
-    const redirectUri =
-      process.env.PLANETARY_CLOUD_ROBLOX_REDIRECT_URI ||
-      configMap.robloxRedirectUri;
+    
+    const clientId = configMap.robloxClientId;
+    const clientSecret = configMap.robloxClientSecret;
+    const redirectUri = configMap.robloxRedirectUri;
     const available = !!(clientId && clientSecret && redirectUri);
     const oauthOnly = configMap.oauthOnlyLogin || false;
 
@@ -41,9 +56,10 @@ export default async function handler(
         clientSecret: !!clientSecret,
         redirectUri: !!redirectUri,
       },
+      usingEnvVars: false,
     });
   } catch (error) {
     console.error("Failed to check OAuth configuration:", error);
-    return res.json({ available: false });
+    return res.json({ available: false, usingEnvVars: false });
   }
 }
