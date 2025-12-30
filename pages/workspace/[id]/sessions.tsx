@@ -729,10 +729,15 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const loadSessionsForDate = async (date: Date, includeHistory = showHistory) => {
     setLoading(true);
     try {
-      const dateStr = date.toISOString().split('T')[0];
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      const startISO = startOfDay.toISOString();
+      const endISO = endOfDay.toISOString();
       const endpoint = includeHistory ? 'all' : 'upcoming';
       const response = await axios.get(
-        `/api/workspace/${router.query.id}/sessions/${endpoint}?date=${dateStr}`
+        `/api/workspace/${router.query.id}/sessions/${endpoint}?startDate=${startISO}&endDate=${endISO}`
       );
       const sessions = Array.isArray(response.data) ? response.data : [];
       setAllSessions((prevSessions) => {

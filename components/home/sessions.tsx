@@ -58,8 +58,16 @@ const Sessions: React.FC = () => {
     router.query.id as string
   );
   React.useEffect(() => {
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+    const startISO = startOfDay.toISOString();
+    const endISO = endOfDay.toISOString();
+    
     axios
-      .get(`/api/workspace/${router.query.id}/home/activeSessions`)
+      .get(`/api/workspace/${router.query.id}/home/activeSessions?startDate=${startISO}&endDate=${endISO}`)
       .then((res) => {
         if (res.status === 200) {
           setActiveSessions(res.data.sessions || []);

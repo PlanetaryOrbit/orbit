@@ -22,11 +22,24 @@ export async function handler(
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 	
+	// Accept optional startDate and endDate query params for timezone-aware queries
+	const { startDate, endDate } = req.query;
+	
 	const now = new Date();
-	const todayStart = new Date(now);
-	todayStart.setHours(0, 0, 0, 0);
-	const todayEnd = new Date(now);
-	todayEnd.setHours(23, 59, 59, 999);
+	let todayStart: Date;
+	let todayEnd: Date;
+	
+	if (startDate && endDate) {
+		// Use provided boundaries (already in UTC from client's local timezone)
+		todayStart = new Date(startDate as string);
+		todayEnd = new Date(endDate as string);
+	} else {
+		// Fallback to server timezone (for backwards compatibility)
+		todayStart = new Date(now);
+		todayStart.setHours(0, 0, 0, 0);
+		todayEnd = new Date(now);
+		todayEnd.setHours(23, 59, 59, 999);
+	}
 	
 	const allSessions = await prisma.session.findMany({
 		where: {

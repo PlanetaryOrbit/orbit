@@ -9,7 +9,7 @@ export default withPermissionCheck(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { id, date } = req.query;
+    const { id, date, timezoneOffset, startDate, endDate } = req.query;
     const userId = (req as any).session?.userid;
 
     try {
@@ -19,18 +19,29 @@ export default withPermissionCheck(
         },
       };
 
-      if (date) {
-        const targetDate = new Date(date as string);
-        const startOfDay = new Date(targetDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(targetDate);
-        endOfDay.setHours(23, 59, 59, 999);
+      if (startDate && endDate) {
+        const startUTC = new Date(startDate as string);
+        const endUTC = new Date(endDate as string);
         const oneHourAgo = new Date();
         oneHourAgo.setHours(oneHourAgo.getHours() - 1);
         
         whereClause.date = {
-          gte: oneHourAgo < startOfDay ? startOfDay : oneHourAgo,
-          lte: endOfDay,
+          gte: oneHourAgo < startUTC ? startUTC : oneHourAgo,
+          lte: endUTC,
+        };
+      } else if (date) {
+        const [year, month, day] = (date as string).split('-').map(Number);
+        const offset = timezoneOffset ? -parseInt(timezoneOffset as string) : 0;
+        const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+        const startUTC = new Date(startOfDay.getTime() - offset * 60000);
+        const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
+        const endUTC = new Date(endOfDay.getTime() - offset * 60000);
+        const oneHourAgo = new Date();
+        oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+        
+        whereClause.date = {
+          gte: oneHourAgo < startUTC ? startUTC : oneHourAgo,
+          lte: endUTC,
         };
       }
 
