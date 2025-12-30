@@ -29,6 +29,7 @@ import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
 import { Dialog, Transition } from "@headlessui/react";
+import { getConfig } from "@/utils/configEngine";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -92,6 +93,38 @@ export const getServerSideProps = withPermissionCheckSsr(
         date: "asc",
       },
     });
+
+    // Apply visibility filters to initial sessions
+    let filteredSessions = allSessions;
+    if (req.session?.userid) {
+      const userId = BigInt(req.session.userid);
+      const user = await prisma.user.findFirst({
+        where: { userid: userId },
+        include: {
+          roles: {
+            where: { workspaceGroupId: parseInt(query.id as string) },
+          },
+        },
+      });
+
+      if (user && user.roles?.[0]) {
+        const visibilityFilters = await getConfig(
+          "session_filters",
+          parseInt(query.id as string)
+        );
+
+        if (visibilityFilters) {
+          const roleId = user.roles[0].id;
+          const allowedTypes = visibilityFilters[roleId];
+
+          if (allowedTypes !== undefined && Array.isArray(allowedTypes) && allowedTypes.length > 0) {
+            filteredSessions = allSessions.filter((session) =>
+              allowedTypes.includes(session.type)
+            );
+          }
+        }
+      }
+    }
 
     let userSessionMetrics = null;
     if (req.session?.userid) {
@@ -187,7 +220,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     return {
       props: {
         allSessions: JSON.parse(
-          JSON.stringify(allSessions, (key, value) =>
+          JSON.stringify(filteredSessions, (key, value) =>
             typeof value === "bigint" ? value.toString() : value
           )
         ) as typeof allSessions,

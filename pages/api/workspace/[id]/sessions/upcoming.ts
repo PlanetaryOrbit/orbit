@@ -79,16 +79,11 @@ export default withPermissionCheck(
       );
 
       let filteredSessions = sessions;
-      if (
-        visibilityFilters &&
-        userRole &&
-        !isAdmin &&
-        !userRole.permissions?.includes("admin")
-      ) {
+      if (visibilityFilters && userRole) {
         const roleId = userRole.id;
         const allowedTypes = visibilityFilters[roleId];
 
-        if (allowedTypes && Array.isArray(allowedTypes)) {
+        if (allowedTypes !== undefined && Array.isArray(allowedTypes) && allowedTypes.length > 0) {
           filteredSessions = sessions.filter((session) =>
             allowedTypes.includes(session.type)
           );
