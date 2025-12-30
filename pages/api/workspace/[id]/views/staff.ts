@@ -14,7 +14,15 @@ export default withPermissionCheck(
     const workspaceGroupId = parseInt(req.query.id as string);
     const page = parseInt(req.query.page as string) || 0;
     const pageSize = parseInt(req.query.pageSize as string) || 10;
-    const skip = page * pageSize;
+
+    let filters: any[] = [];
+    if (req.query.filters && typeof req.query.filters === "string") {
+      try {
+        filters = JSON.parse(req.query.filters);
+      } catch (e) {
+        console.error("Failed to parse filters:", e);
+      }
+    }
 
     try {
       const lastReset = await prisma.activityReset.findFirst({
@@ -31,24 +39,36 @@ export default withPermissionCheck(
 
       const activityConfig = await getConfig("activity", workspaceGroupId);
       const idleTimeEnabled = activityConfig?.idleTimeEnabled ?? true;
-      const totalUsers = await prisma.user.count({
-        where: {
-          roles: {
-            some: {
-              workspaceGroupId,
-            },
+      const whereClause: any = {
+        roles: {
+          some: {
+            workspaceGroupId,
           },
         },
-      });
+      };
 
+      const usernameFilters = filters.filter((f) => f.column === "username");
+      if (usernameFilters.length > 0) {
+        const usernameConditions = usernameFilters.map((filter) => {
+          if (filter.filter === "equal") {
+            return { username: filter.value };
+          } else if (filter.filter === "notEqual") {
+            return { username: { not: filter.value } };
+          } else if (filter.filter === "contains") {
+            return { username: { contains: filter.value, mode: "insensitive" } };
+          }
+          return {};
+        });
+        
+        if (usernameConditions.length > 0) {
+          whereClause.AND = usernameConditions;
+        }
+      }
+
+      // Fetch all users matching database-level filters (username)
+      // We'll apply pagination after computing and filtering
       const allUsers = await prisma.user.findMany({
-        where: {
-          roles: {
-            some: {
-              workspaceGroupId,
-            },
-          },
-        },
+        where: whereClause,
         include: {
           book: true,
           wallPosts: true,
@@ -68,8 +88,6 @@ export default withPermissionCheck(
             },
           },
         },
-        skip,
-        take: pageSize,
       });
 
       const allActivity = await prisma.activitySession.findMany({
@@ -337,9 +355,89 @@ export default withPermissionCheck(
       }
 
       const ranks = await noblox.getRoles(workspaceGroupId);
+      
+      // Apply post-computation filters (for computed fields like minutes, rank, etc.)
+      let filteredUsers = computedUsers;
+      
+      for (const filter of filters) {
+        if (filter.column === "username") {
+          // Already handled in database query
+          continue;
+        }
+
+        filteredUsers = filteredUsers.filter((user) => {
+          let value: any;
+          
+          switch (filter.column) {
+            case "minutes":
+              value = user.minutes;
+              break;
+            case "idle":
+              value = user.idleMinutes;
+              break;
+            case "rank":
+              value = user.rankID;
+              break;
+            case "sessions":
+              value = user.sessions.length;
+              break;
+            case "hosted":
+              value = user.hostedSessions.length;
+              break;
+            case "warnings":
+              value = Array.isArray(user.book)
+                ? user.book.filter((b: any) => b.type === "warning").length
+                : 0;
+              break;
+            case "messages":
+              value = user.messages;
+              break;
+            case "notices":
+              value = user.inactivityNotices.length;
+              break;
+            case "registered":
+              value = user.registered;
+              break;
+            case "quota":
+              value = user.quota;
+              break;
+            default:
+              return true;
+          }
+
+          // Apply filter operation
+          switch (filter.filter) {
+            case "equal":
+              if (typeof value === "boolean") {
+                return value === (filter.value === "true");
+              }
+              return value == filter.value;
+            case "notEqual":
+              if (typeof value === "boolean") {
+                return value !== (filter.value === "true");
+              }
+              return value != filter.value;
+            case "greaterThan":
+              return value > parseFloat(filter.value);
+            case "lessThan":
+              return value < parseFloat(filter.value);
+            case "contains":
+              return String(value).toLowerCase().includes(filter.value.toLowerCase());
+            default:
+              return true;
+          }
+        });
+      }
+
+      // Apply pagination after filtering
+      const totalFilteredUsers = filteredUsers.length;
+      const paginatedUsers = filteredUsers.slice(
+        page * pageSize,
+        (page + 1) * pageSize
+      );
 
       const serializedUsers = JSON.parse(
-        JSON.stringify(computedUsers, (_key, value) =>
+        JSON.stringify(paginatedUsers, (_key, value) =>
           typeof value === "bigint" ? value.toString() : value
         )
       );
@@ -350,8 +448,8 @@ export default withPermissionCheck(
         pagination: {
           page,
           pageSize,
-          totalUsers,
-          totalPages: Math.ceil(totalUsers / pageSize),
+          totalUsers: totalFilteredUsers,
+          totalPages: Math.ceil(totalFilteredUsers / pageSize),
         },
       });
     } catch (error) {

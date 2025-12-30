@@ -430,6 +430,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
   useEffect(() => {
     if (router.query.id) loadSavedViews();
   }, [router.query.id]);
+  
+  // Reset to page 0 when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [colFilters]);
+
   useEffect(() => {
     const fetchStaffData = async () => {
       if (!router.query.id) return;
@@ -442,6 +448,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
             params: {
               page: pagination.pageIndex,
               pageSize: pagination.pageSize,
+              filters: JSON.stringify(colFilters),
             },
           }
         );
@@ -460,7 +467,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
     };
 
     fetchStaffData();
-  }, [router.query.id, pagination.pageIndex, pagination.pageSize]);
+  }, [router.query.id, pagination.pageIndex, pagination.pageSize, colFilters]);
 
   const applySavedView = (view: any) => {
     if (!view) return;
