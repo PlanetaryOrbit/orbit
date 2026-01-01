@@ -42,12 +42,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           .status(400)
           .json({ message: "RankGun requires both API key and workspace ID" });
       }
-    } else if (rankingProvider === "bloxyservices") {
-      if (!rankingToken) {
-        return res
-          .status(400)
-          .json({ message: "BloxyServices requires an API key" });
-      }
     }
 
     try {
