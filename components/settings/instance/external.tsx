@@ -58,11 +58,6 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
       return;
     }
 
-    if (rankingProvider === "bloxyservices" && !rankingToken.trim()) {
-      triggerToast.error("BloxyServices requires an API key");
-      return;
-    }
-
     setIsSaving(true);
     try {
       const response = await fetch(
@@ -103,7 +98,6 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
 
   const rankingProviders = [
     { value: "", label: "None" },
-    { value: "bloxyservices", label: "BloxyServices" },
     { value: "rankgun", label: "RankGun" },
   ];
 
