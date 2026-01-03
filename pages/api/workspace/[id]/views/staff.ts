@@ -65,31 +65,71 @@ export default withPermissionCheck(
         }
       }
 
-      // Fetch all users matching database-level filters (username)
-      // We'll apply pagination after computing and filtering
-      const allUsers = await prisma.user.findMany({
-        where: whereClause,
-        include: {
-          book: true,
-          wallPosts: true,
-          inactivityNotices: true,
-          sessions: true,
-          ranks: true,
-          roles: {
-            where: {
-              workspaceGroupId,
-            },
-            include: {
-              quotaRoles: {
-                include: {
-                  quota: true,
+      const computedFilters = filters.filter(
+        (f) => !["username"].includes(f.column)
+      );
+      const needsFullComputation = computedFilters.length > 0;
+
+      let allUsers: any[] = [];
+      let paginatedUsers: any[] = [];
+      let totalFilteredUsers = 0;
+
+      if (needsFullComputation) {
+        allUsers = await prisma.user.findMany({
+          where: whereClause,
+          include: {
+            book: true,
+            wallPosts: true,
+            inactivityNotices: true,
+            sessions: true,
+            ranks: true,
+            roles: {
+              where: {
+                workspaceGroupId,
+              },
+              include: {
+                quotaRoles: {
+                  include: {
+                    quota: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
+        });
+      } else {
+        const totalCount = await prisma.user.count({
+          where: whereClause,
+        });
+        totalFilteredUsers = totalCount;
 
+        allUsers = await prisma.user.findMany({
+          where: whereClause,
+          skip: page * pageSize,
+          take: pageSize,
+          include: {
+            book: true,
+            wallPosts: true,
+            inactivityNotices: true,
+            sessions: true,
+            ranks: true,
+            roles: {
+              where: {
+                workspaceGroupId,
+              },
+              include: {
+                quotaRoles: {
+                  include: {
+                    quota: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const userIdsToProcess = allUsers.map((u) => u.userid);
       const allActivity = await prisma.activitySession.findMany({
         where: {
           workspaceGroupId,
@@ -98,81 +138,45 @@ export default withPermissionCheck(
             lte: currentDate,
           },
           userId: {
-            in: allUsers.map((u) => u.userid),
+            in: userIdsToProcess,
           },
         },
-        include: {
-          user: {
-            include: {
-              writtenBooks: true,
-              wallPosts: true,
-              inactivityNotices: true,
-              sessions: true,
-              ranks: true,
-            },
-          },
+        select: {
+          userId: true,
+          startTime: true,
+          endTime: true,
+          active: true,
+          idleTime: true,
+          messages: true,
         },
       });
 
-      const computedUsers: any[] = [];
-
-      for (const user of allUsers) {
-        const ms: number[] = [];
-        allActivity
-          .filter((x) => BigInt(x.userId) == user.userid && !x.active)
-          .forEach((session) => {
-            const sessionDuration =
-              (session.endTime?.getTime() as number) -
-              session.startTime.getTime();
-            const idleTimeMs =
-              idleTimeEnabled && session.idleTime
-                ? Number(session.idleTime) * 60000
-                : 0;
-            ms.push(sessionDuration - idleTimeMs);
-          });
-
-        const ims: number[] = [];
-        if (idleTimeEnabled) {
-          allActivity
-            .filter((x: any) => BigInt(x.userId) == user.userid)
-            .forEach((s: any) => {
-              ims.push(Number(s.idleTime));
-            });
-        }
-
-        const messages: number[] = [];
-        allActivity
-          .filter((x: any) => BigInt(x.userId) == user.userid)
-          .forEach((s: any) => {
-            messages.push(s.messages);
-          });
-
-        const userId = user.userid;
-        const userAdjustments = await prisma.activityAdjustment.findMany({
+      const userIds = allUsers.map(u => u.userid);
+      
+      const [allAdjustments, allOwnedSessions, allParticipations, allAllyVisits, allCurrentWallPosts] = await Promise.all([
+        prisma.activityAdjustment.findMany({
           where: {
-            userId: user.userid,
+            userId: { in: userIds },
             workspaceGroupId,
             createdAt: {
               gte: startDate,
               lte: currentDate,
             },
           },
-        });
-
-        const ownedSessions = await prisma.session.findMany({
+        }),
+        prisma.session.findMany({
           where: {
-            ownerId: userId,
+            ownerId: { in: userIds },
             sessionType: { workspaceGroupId },
             date: {
               gte: startDate,
               lte: currentDate,
             },
           },
-        });
-
-        const allSessionParticipations = await prisma.sessionUser.findMany({
+        }),
+        prisma.sessionUser.findMany({
           where: {
-            userid: userId,
+            userid: { in: userIds },
             session: {
               sessionType: { workspaceGroupId },
               date: {
@@ -194,7 +198,105 @@ export default withPermissionCheck(
               },
             },
           },
-        });
+        }),
+        prisma.allyVisit.findMany({
+          where: {
+            ally: {
+              workspaceGroupId: workspaceGroupId,
+            },
+            time: {
+              gte: startDate,
+              lte: currentDate,
+            },
+            OR: [
+              { hostId: { in: userIds } },
+              { participants: { hasSome: userIds.map(id => id.toString()) } },
+            ],
+          },
+          select: {
+            hostId: true,
+            participants: true,
+          },
+        }),
+        prisma.wallPost.findMany({
+          where: {
+            authorId: { in: userIds },
+            workspaceGroupId,
+            createdAt: {
+              gte: startDate,
+              lte: currentDate,
+            },
+          },
+        }),
+      ]);
+
+      const adjustmentsByUser = new Map<string, any[]>();
+      allAdjustments.forEach(adj => {
+        const key = adj.userId.toString();
+        if (!adjustmentsByUser.has(key)) adjustmentsByUser.set(key, []);
+        adjustmentsByUser.get(key)!.push(adj);
+      });
+
+      const ownedSessionsByUser = new Map<string, any[]>();
+      allOwnedSessions.forEach(sess => {
+        if (!sess.ownerId) return;
+        const key = sess.ownerId.toString();
+        if (!ownedSessionsByUser.has(key)) ownedSessionsByUser.set(key, []);
+        ownedSessionsByUser.get(key)!.push(sess);
+      });
+
+      const participationsByUser = new Map<string, any[]>();
+      allParticipations.forEach(part => {
+        const key = part.userid.toString();
+        if (!participationsByUser.has(key)) participationsByUser.set(key, []);
+        participationsByUser.get(key)!.push(part);
+      });
+
+      const wallPostsByUser = new Map<string, any[]>();
+      allCurrentWallPosts.forEach(post => {
+        const key = post.authorId.toString();
+        if (!wallPostsByUser.has(key)) wallPostsByUser.set(key, []);
+        wallPostsByUser.get(key)!.push(post);
+      });
+
+      const computedUsers: any[] = [];
+
+      for (const user of allUsers) {
+        const userId = user.userid;
+        const userKey = userId.toString();
+        const ms: number[] = [];
+        allActivity
+          .filter((x) => BigInt(x.userId) == userId && !x.active)
+          .forEach((session) => {
+            const sessionDuration =
+              (session.endTime?.getTime() as number) -
+              session.startTime.getTime();
+            const idleTimeMs =
+              idleTimeEnabled && session.idleTime
+                ? Number(session.idleTime) * 60000
+                : 0;
+            ms.push(sessionDuration - idleTimeMs);
+          });
+
+        const ims: number[] = [];
+        if (idleTimeEnabled) {
+          allActivity
+            .filter((x: any) => BigInt(x.userId) == userId)
+            .forEach((s: any) => {
+              ims.push(Number(s.idleTime));
+            });
+        }
+
+        const messages: number[] = [];
+        allActivity
+          .filter((x: any) => BigInt(x.userId) == userId)
+          .forEach((s: any) => {
+            messages.push(s.messages);
+          });
+
+        const userAdjustments = adjustmentsByUser.get(userKey) || [];
+        const ownedSessions = ownedSessionsByUser.get(userKey) || [];
+        const allSessionParticipations = participationsByUser.get(userKey) || [];
 
         const roleBasedHostedSessions = allSessionParticipations.filter(
           (participation) => {
@@ -231,10 +333,10 @@ export default withPermissionCheck(
 
         const sessionsByType: Record<string, number> = {};
         const allUserSessions = [
-          ...ownedSessions.map((s) => ({ id: s.id, type: s.type })),
+          ...ownedSessions.map((s) => ({ id: s.id, type: s.type || "other" })),
           ...allSessionParticipations.map((p) => ({
             id: p.sessionid,
-            type: (p.session as any).type,
+            type: "other",
           })),
         ];
         const uniqueSessionsMap = new Map(
@@ -245,33 +347,16 @@ export default withPermissionCheck(
           sessionsByType[type] = (sessionsByType[type] || 0) + 1;
         }
 
-        const allianceVisits = await prisma.allyVisit.count({
-          where: {
-            ally: {
-              workspaceGroupId: workspaceGroupId,
-            },
-            time: {
-              gte: startDate,
-              lte: currentDate,
-            },
-            OR: [{ hostId: userId }, { participants: { has: userId } }],
-          },
-        });
+        const userIdStr = userId.toString();
+        const allianceVisits = allAllyVisits.filter(
+          visit => visit.hostId.toString() === userIdStr || visit.participants.includes(userIdStr)
+        ).length;
 
-        const currentWallPosts = await prisma.wallPost.findMany({
-          where: {
-            authorId: userId,
-            workspaceGroupId,
-            createdAt: {
-              gte: startDate,
-              lte: currentDate,
-            },
-          },
-        });
+        const currentWallPosts = wallPostsByUser.get(userKey) || [];
 
         const userQuotas = user.roles
-          .flatMap((role) => role.quotaRoles)
-          .map((qr) => qr.quota);
+          .flatMap((role: any) => role.quotaRoles)
+          .map((qr: any) => qr.quota);
 
         let quota = true;
         if (userQuotas.length > 0) {
@@ -359,82 +444,81 @@ export default withPermissionCheck(
       // Apply post-computation filters (for computed fields like minutes, rank, etc.)
       let filteredUsers = computedUsers;
       
-      for (const filter of filters) {
-        if (filter.column === "username") {
-          // Already handled in database query
-          continue;
+      if (needsFullComputation) {
+        for (const filter of computedFilters) {
+          filteredUsers = filteredUsers.filter((user) => {
+            let value: any;
+            
+            switch (filter.column) {
+              case "minutes":
+                value = user.minutes;
+                break;
+              case "idle":
+                value = user.idleMinutes;
+                break;
+              case "rank":
+                value = user.rankID;
+                break;
+              case "sessions":
+                value = user.sessions.length;
+                break;
+              case "hosted":
+                value = user.hostedSessions.length;
+                break;
+              case "warnings":
+                value = Array.isArray(user.book)
+                  ? user.book.filter((b: any) => b.type === "warning").length
+                  : 0;
+                break;
+              case "messages":
+                value = user.messages;
+                break;
+              case "notices":
+                value = user.inactivityNotices.length;
+                break;
+              case "registered":
+                value = user.registered;
+                break;
+              case "quota":
+                value = user.quota;
+                break;
+              default:
+                return true;
+            }
+
+            // Apply filter operation
+            switch (filter.filter) {
+              case "equal":
+                if (typeof value === "boolean") {
+                  return value === (filter.value === "true");
+                }
+                return value == filter.value;
+              case "notEqual":
+                if (typeof value === "boolean") {
+                  return value !== (filter.value === "true");
+                }
+                return value != filter.value;
+              case "greaterThan":
+                return value > parseFloat(filter.value);
+              case "lessThan":
+                return value < parseFloat(filter.value);
+              case "contains":
+                return String(value).toLowerCase().includes(filter.value.toLowerCase());
+              default:
+                return true;
+            }
+          });
         }
 
-        filteredUsers = filteredUsers.filter((user) => {
-          let value: any;
-          
-          switch (filter.column) {
-            case "minutes":
-              value = user.minutes;
-              break;
-            case "idle":
-              value = user.idleMinutes;
-              break;
-            case "rank":
-              value = user.rankID;
-              break;
-            case "sessions":
-              value = user.sessions.length;
-              break;
-            case "hosted":
-              value = user.hostedSessions.length;
-              break;
-            case "warnings":
-              value = Array.isArray(user.book)
-                ? user.book.filter((b: any) => b.type === "warning").length
-                : 0;
-              break;
-            case "messages":
-              value = user.messages;
-              break;
-            case "notices":
-              value = user.inactivityNotices.length;
-              break;
-            case "registered":
-              value = user.registered;
-              break;
-            case "quota":
-              value = user.quota;
-              break;
-            default:
-              return true;
-          }
-
-          // Apply filter operation
-          switch (filter.filter) {
-            case "equal":
-              if (typeof value === "boolean") {
-                return value === (filter.value === "true");
-              }
-              return value == filter.value;
-            case "notEqual":
-              if (typeof value === "boolean") {
-                return value !== (filter.value === "true");
-              }
-              return value != filter.value;
-            case "greaterThan":
-              return value > parseFloat(filter.value);
-            case "lessThan":
-              return value < parseFloat(filter.value);
-            case "contains":
-              return String(value).toLowerCase().includes(filter.value.toLowerCase());
-            default:
-              return true;
-          }
-        });
+        // Apply pagination after filtering
+        totalFilteredUsers = filteredUsers.length;
+        paginatedUsers = filteredUsers.slice(
+          page * pageSize,
+          (page + 1) * pageSize
+        );
+      } else {
+        paginatedUsers = filteredUsers;
       }
-
-      // Apply pagination after filtering
-      const totalFilteredUsers = filteredUsers.length;
-      const paginatedUsers = filteredUsers.slice(
-        page * pageSize,
-        (page + 1) * pageSize
-      );
 
       const serializedUsers = JSON.parse(
         JSON.stringify(paginatedUsers, (_key, value) =>
