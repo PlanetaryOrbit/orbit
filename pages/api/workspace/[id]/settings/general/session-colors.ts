@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { setConfig, getConfig } from "@/utils/configEngine";
 import { logAudit } from '@/utils/logs';
 import { getUsername } from '@/utils/userinfoEngine';
+import { withSessionRoute } from '@/lib/withSession';
 import prisma from "@/utils/database";
 
 type SessionColors = {
@@ -18,7 +19,7 @@ type Data = {
   colors?: SessionColors;
 };
 
-export default handler;
+export default withSessionRoute(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const workspaceId = parseInt(req.query.id as string);
@@ -30,6 +31,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   if (req.method === "GET") {
+    const userId = (req as any).session?.userid;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
     try {
       const sessionColors = await getConfig("sessionColors", workspaceId);
       const defaultColors: SessionColors = {
