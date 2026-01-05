@@ -36,5 +36,5 @@ export default async function handler(
 		await setConfig('allies', after, workspaceId);
 		try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.allies.update', 'allies', { before, after }); } catch (e) {}
 		res.status(200).json({ success: true })
-	}, 'admin')(req, res);
+	}, 'manage_features')(req, res);
 }

@@ -414,7 +414,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       const isAuthor =
                         String(post.authorId) === String(login.userId);
                       const hasManageWall =
-                        userPermissions.includes("manage_wall");
+                        userPermissions.includes("delete_wall_posts");
                       const canDelete = isAuthor || hasManageWall;
 
                       return canDelete ? (

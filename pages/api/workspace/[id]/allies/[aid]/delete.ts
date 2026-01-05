@@ -12,7 +12,7 @@ type Data = {
 	quota?: any
 }
 
-export default withPermissionCheck(handler, 'manage_alliances');
+export default withPermissionCheck(handler, 'delete_alliances');
 
 export async function handler(
 	req: NextApiRequest,

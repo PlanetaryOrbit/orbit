@@ -134,25 +134,27 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     const membership = user?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
+    const hasApprovePermission = isAdmin || user?.roles.some(
+      (role) => role.permissions.includes("approve_notices")
+    );
     const hasManagePermission = isAdmin || user?.roles.some(
       (role) => role.permissions.includes("manage_notices")
     );
     const hasCreatePermission = isAdmin || user?.roles.some(
       (role) => role.permissions.includes("create_notices")
     );
-    if (hasManagePermission) {
-      allNotices = await prisma.inactivityNotice.findMany({
-        where: {
-          workspaceGroupId: workspaceId,
-        },
-        orderBy: {
-          startTime: "desc",
-        },
-        include: {
-          user: true,
-        },
-      });
-    }
+    
+    allNotices = await prisma.inactivityNotice.findMany({
+      where: {
+        workspaceGroupId: workspaceId,
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+      include: {
+        user: true,
+      },
+    });
 
     return {
       props: {
@@ -166,6 +168,7 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ) as NoticeWithUser[],
+        canApproveNotices: hasApprovePermission,
         canManageNotices: hasManagePermission,
         canCreateNotices: !!hasCreatePermission,
       },
@@ -179,6 +182,7 @@ type pageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 interface NoticesPageProps {
   userNotices: NoticeWithUser[];
   allNotices: NoticeWithUser[];
+  canApproveNotices: boolean;
   canManageNotices: boolean;
   canCreateNotices: boolean;
 }
@@ -186,6 +190,7 @@ interface NoticesPageProps {
 const Notices: pageWithLayout<NoticesPageProps> = ({
   userNotices: initialUserNotices,
   allNotices: initialAllNotices,
+  canApproveNotices,
   canManageNotices: canManageNoticesProp,
   canCreateNotices,
 }) => {
@@ -204,7 +209,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   );
 
   const text = useMemo(() => randomText(login.displayname), []);
-  const canManageNotices: boolean = canManageNoticesProp || false;
+  const hasApproveAccess =
+    canApproveNotices ||
+    workspace.yourPermission?.includes("approve_notices") ||
+    false;
+  const hasManageAccess = canManageNoticesProp || workspace.yourPermission?.includes("manage_notices") || false;
   const [reason, setReason] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -257,12 +266,12 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         );
         setUserNotices(updatedUserNotices.data.notices || []);
 
-        if (canManageNotices) {
+        if (hasApproveAccess) {
           window.location.reload();
         }
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create notice");
+      toast.error(error.response?.data?.error || "Failed to create notice");
     } finally {
       setIsCreating(false);
     }
@@ -426,7 +435,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
               </p>
             </div>
           </div>
-          {canManageNotices && (
+          {(hasApproveAccess || hasManageAccess) && (
             <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mb-6">
               <button
                 onClick={() => setActiveTab("my-notices")}
@@ -449,12 +458,17 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
               >
                 <IconUsers className="w-4 h-4" />
                 <span>Manage Notices</span>
+                {pendingNotices.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500 text-white">
+                    {pendingNotices.length}
+                  </span>
+                )}
               </button>
             </div>
           )}
-          {(!canManageNotices || activeTab === "my-notices") && (
+          {(!(hasApproveAccess || hasManageAccess) || activeTab === "my-notices") && (
             <>
-              {myActiveNotices.length > 0 && (
+              {activeNotices.length > 0 && (
                 <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="bg-primary/10 p-2 rounded-lg">
@@ -470,7 +484,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    {myActiveNotices.map((notice) => (
+                    {activeNotices.map((notice) => (
                       <div
                         key={notice.id}
                         className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-4 shadow-sm"
@@ -720,7 +734,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
               )}
             </>
           )}
-          {canManageNotices && activeTab === "manage-notices" && (
+          {(hasApproveAccess || hasManageAccess) && activeTab === "manage-notices" && (
             <>
               {activeNotices.length > 0 && (
                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 shadow-sm mb-8">
@@ -773,14 +787,16 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           </p>
                         </div>
 
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => updateNotice(notice.id, "cancel")}
-                            className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
-                          >
-                            Revoke
-                          </button>
-                        </div>
+                        {hasManageAccess && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateNotice(notice.id, "cancel")}
+                              className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
+                            >
+                              Revoke
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -901,14 +917,16 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           </p>
                         </div>
 
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => updateNotice(notice.id, "cancel")}
-                            className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
-                          >
-                            Revoke
-                          </button>
-                        </div>
+                        {hasManageAccess && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateNotice(notice.id, "cancel")}
+                              className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                            >
+                              Revoke
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

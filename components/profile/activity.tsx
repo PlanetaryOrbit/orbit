@@ -65,6 +65,7 @@ type Props = {
   canGoForward?: boolean;
   goToPreviousWeek?: () => void;
   goToNextWeek?: () => void;
+  canAdjustActivity?: boolean;
 };
 
 type TimelineItem =
@@ -107,6 +108,7 @@ const Activity: FC<Props> = ({
   canGoForward = false,
   goToPreviousWeek,
   goToNextWeek,
+  canAdjustActivity = false,
 }) => {
   const router = useRouter();
   const { id } = router.query;
@@ -310,8 +312,7 @@ const Activity: FC<Props> = ({
 
             <Tab.Panels className="min-h-[400px]">
               <Tab.Panel>
-                {!isHistorical &&
-                  workspace.yourPermission?.includes("manage_activity") && (
+                {!isHistorical && canAdjustActivity && (
                     <div className="flex justify-end mb-4">
                       <button
                         onClick={() => setAdjustModal(true)}

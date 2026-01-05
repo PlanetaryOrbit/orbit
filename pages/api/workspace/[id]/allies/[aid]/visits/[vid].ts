@@ -48,7 +48,8 @@ const withAllyPermissionCheck = (handler: any) => {
 		
 		// Check if user has management permissions
 		if (isAdmin) return handler(req, res);
-		if (userrole.permissions?.includes('manage_alliances')) return handler(req, res);
+		if (req.method === 'DELETE' && userrole.permissions?.includes('delete_alliance_visits')) return handler(req, res);
+		if (req.method === 'PATCH' && userrole.permissions?.includes('edit_alliance_visits')) return handler(req, res);
 		
 		// Check if user is a representative of this specific ally
 		const ally = await prisma.ally.findFirst({

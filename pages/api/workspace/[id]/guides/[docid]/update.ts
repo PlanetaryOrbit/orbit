@@ -10,7 +10,7 @@ type Data = {
   document?: any;
 };
 
-export default withPermissionCheck(handler, "manage_docs");
+export default withPermissionCheck(handler, 'edit_docs');
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")

@@ -42,9 +42,9 @@ export default withSessionRoute(async function handler(
 
   const membership = currentUser?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
-  const canManageAlliances = isAdmin ||
+  const canEditAllianceDetails = isAdmin ||
     (currentUser?.roles?.some((role) =>
-      role.permissions?.includes("manage_alliances")
+      role.permissions?.includes("edit_alliance_details")
     ) ?? false);
 
   const alliance = await prisma.ally.findFirst({
@@ -63,7 +63,7 @@ export default withSessionRoute(async function handler(
 
   const isRep = alliance.reps.some(rep => rep.userid === BigInt(currentUserId));
 
-  if (!canManageAlliances && !isRep) {
+  if (!canEditAllianceDetails && !isRep) {
     return res.status(403).json({ success: false, error: 'Insufficient permissions' });
   }
 

@@ -16,7 +16,7 @@ type Data = {
   error?: string;
 };
 
-export default withPermissionCheck(handler, "manage_activity");
+export default withPermissionCheck(handler, "reset_activity");
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")

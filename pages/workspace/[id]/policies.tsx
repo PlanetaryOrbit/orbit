@@ -140,15 +140,28 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     const membership = user.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
-    const canManagePolicies = isAdmin || (user.roles || []).some(
-      (r: any) =>
-        (r.permissions || []).includes("manage_policies")
+    const canCreatePolicies = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("create_policies")
     );
+    const canEditPolicies = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("edit_policies")
+    );
+    const canDeletePolicies = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("delete_policies")
+    );
+    const canViewCompliance = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("view_compliance")
+    );
+    const canManagePolicies = canCreatePolicies || canEditPolicies || canDeletePolicies || canViewCompliance;
 
     if (!canManagePolicies) {
       return {
         props: {
           isUserView: true,
+          canCreatePolicies: false,
+          canEditPolicies: false,
+          canDeletePolicies: false,
+          canViewCompliance: false,
         },
       };
     }
@@ -217,6 +230,10 @@ export const getServerSideProps = withPermissionCheckSsr(
     return {
       props: {
         isUserView: false,
+        canCreatePolicies,
+        canEditPolicies,
+        canDeletePolicies,
+        canViewCompliance,
         documents: JSON.parse(
           JSON.stringify(documents, (key, value) =>
             typeof value === "bigint" ? value.toString() : value
@@ -239,6 +256,10 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 type pageProps = {
   isUserView?: boolean;
+  canCreatePolicies?: boolean;
+  canEditPolicies?: boolean;
+  canDeletePolicies?: boolean;
+  canViewCompliance?: boolean;
   documents?: (document & {
     owner: { username: string; picture: string };
     roles: Array<{ id: string; name: string }>;
@@ -254,6 +275,10 @@ type pageProps = {
 
 const PoliciesPage: pageWithLayout<pageProps> = ({
   isUserView: initialUserView,
+  canCreatePolicies: hasCreatePermission = false,
+  canEditPolicies: hasEditPermission = false,
+  canDeletePolicies: hasDeletePermission = false,
+  canViewCompliance: hasViewCompliancePermission = false,
   documents = [],
   roles = [],
   departments = [],
@@ -334,8 +359,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         `/api/workspace/${router.query.id}/policies/compliance-report`
       );
       setComplianceData(response.data.report);
-    } catch (error) {
-      toast.error("Failed to load compliance data");
+    } catch (error: any) {
+      console.error("Compliance data error:", error.response?.data || error);
+      toast.error(error.response?.data?.error || "Failed to load compliance data");
     }
   };
 
@@ -372,10 +398,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
       fetchRoleCounts();
     }
   }, [router.query.id]);
-  const canManagePolicies = 
-    workspace.yourPermission?.includes("manage_policies") || 
-    workspace.yourPermission?.includes("admin") || 
-    false;
+  const canViewPolicyManagement = 
+    ["create_policies", "edit_policies", "delete_policies", "view_compliance", "admin"].some(perm => 
+      workspace.yourPermission?.includes(perm)
+    );
 
   const createPolicy = async () => {
     if (
@@ -660,7 +686,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
               <IconUser className="w-4 h-4" />
               <span>My Policies</span>
             </button>
-            {canManagePolicies && (
+            {canViewPolicyManagement && (
               <button
                 onClick={() => setViewMode("admin")}
                 className={clsx(
@@ -683,7 +709,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             currentUsername={login.username}
           />
         )}
-        {viewMode === "admin" && canManagePolicies && (
+        {viewMode === "admin" && canViewPolicyManagement && (
           <>
             <div className="flex items-center mb-6">
               <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
@@ -698,28 +724,32 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 >
                   Overview
                 </button>
-                <button
-                  onClick={() => setSelectedView("compliance")}
-                  className={clsx(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                    selectedView === "compliance"
-                      ? "bg-primary text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                  )}
-                >
-                  Compliance
-                </button>
-                <button
-                  onClick={() => setSelectedView("create")}
-                  className={clsx(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                    selectedView === "create"
-                      ? "bg-primary text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                  )}
-                >
-                  Create Policy
-                </button>
+                {hasViewCompliancePermission && (
+                  <button
+                    onClick={() => setSelectedView("compliance")}
+                    className={clsx(
+                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                      selectedView === "compliance"
+                        ? "bg-primary text-white"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    )}
+                  >
+                    Compliance
+                  </button>
+                )}
+                {hasCreatePermission && (
+                  <button
+                    onClick={() => setSelectedView("create")}
+                    className={clsx(
+                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                      selectedView === "create"
+                        ? "bg-primary text-white"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    )}
+                  >
+                    Create Policy
+                  </button>
+                )}
               </div>
             </div>
             {selectedView === "overview" && (
@@ -890,32 +920,36 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 >
                                   <IconShare className="w-4 h-4" />
                                 </button>
-                                <button
-                                  onClick={() => startEditPolicy(document)}
-                                  className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
-                                  title="Edit Policy"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-4 h-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
+                                {hasEditPermission && (
+                                  <button
+                                    onClick={() => startEditPolicy(document)}
+                                    className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
+                                    title="Edit Policy"
                                   >
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDeletePolicy(document.id, document.name)
-                                  }
-                                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
-                                  title="Delete Policy"
-                                >
-                                  <IconTrash className="w-4 h-4" />
-                                </button>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="w-4 h-4"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="1.5"
+                                    >
+                                      <path d="M12 20h9" />
+                                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                                    </svg>
+                                  </button>
+                                )}
+                                {hasDeletePermission && (
+                                  <button
+                                    onClick={() =>
+                                      handleDeletePolicy(document.id, document.name)
+                                    }
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
+                                    title="Delete Policy"
+                                  >
+                                    <IconTrash className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -933,13 +967,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
                             Create your first policy to get started
                           </p>
-                          <button
-                            onClick={() => setSelectedView("create")}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-colors"
-                          >
-                            <IconPlus className="w-4 h-4" />
-                            Create Policy
-                          </button>
+                          {hasCreatePermission && (
+                            <button
+                              onClick={() => setSelectedView("create")}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-colors"
+                            >
+                              <IconPlus className="w-4 h-4" />
+                              Create Policy
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2008,7 +2044,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 })
                               }
                               placeholder="Enter policy name"
-                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                              disabled={!hasEditPermission}
+                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
 
@@ -2028,7 +2065,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       e.target.value as "internal" | "external"
                                     )
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  disabled={!hasEditPermission}
+                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                                 <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                   Internal Document
@@ -2045,7 +2083,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       e.target.value as "internal" | "external"
                                     )
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  disabled={!hasEditPermission}
+                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                                 <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                   External Link
@@ -2082,7 +2121,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               }
                               placeholder="Enter policy content"
                               rows={12}
-                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                              disabled={!hasEditPermission}
+                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                               Write the policy content that users need to
@@ -2104,7 +2144,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 })
                               }
                               placeholder="https://example.com/policy-document"
-                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                              disabled={!hasEditPermission}
+                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                               URL must use HTTPS. Users will be required to
@@ -2134,7 +2175,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   requiresAcknowledgment: e.target.checked,
                                 })
                               }
-                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                              disabled={!hasEditPermission}
+                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                               Require user acknowledgment
@@ -2165,7 +2207,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           .value as any,
                                       })
                                     }
-                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                    disabled={!hasEditPermission}
+                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   />
                                   <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                     Digital Signature
@@ -2187,7 +2230,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           .value as any,
                                       })
                                     }
-                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                    disabled={!hasEditPermission}
+                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   />
                                   <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                     Checkbox
@@ -2209,7 +2253,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           .value as any,
                                       })
                                     }
-                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                    disabled={!hasEditPermission}
+                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   />
                                   <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                     Type Username
@@ -2231,7 +2276,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           .value as any,
                                       })
                                     }
-                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                    disabled={!hasEditPermission}
+                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                   />
                                   <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                     Type Word
@@ -2256,7 +2302,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     })
                                   }
                                   placeholder="Enter word users must type"
-                                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                  disabled={!hasEditPermission}
+                                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                               </div>
                             )}
@@ -2274,7 +2321,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     acknowledgmentDeadline: e.target.value,
                                   })
                                 }
-                                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                disabled={!hasEditPermission}
+                                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                                 Set a deadline by when users must acknowledge
@@ -2295,7 +2343,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   isTrainingDocument: e.target.checked,
                                 })
                               }
-                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                              disabled={!hasEditPermission}
+                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                               Mark as training document
@@ -2327,7 +2376,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     departments: e.target.checked ? [] : editPolicy.departments,
                                   })
                                 }
-                                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                disabled={!hasEditPermission}
+                                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                               <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
                                 📢 Everyone
@@ -2372,7 +2422,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           });
                                         }
                                       }}
-                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                      disabled={!hasEditPermission}
+                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                     <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
                                       {role.name}
@@ -2411,7 +2462,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                             });
                                           }
                                         }}
-                                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                        disabled={!hasEditPermission}
+                                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
                                       />
                                       <span className="text-sm text-zinc-700 dark:text-zinc-300">
                                         {department.name}
@@ -2535,28 +2587,30 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           <IconChevronRight className="w-4 h-4 ml-1" />
                         </button>
                       ) : (
-                        <button
-                          onClick={updatePolicy}
-                          disabled={isCreatingPolicy || !canProceedToNextStep()}
-                          className={clsx(
-                            "flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors",
-                            canProceedToNextStep() && !isCreatingPolicy
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
-                          )}
-                        >
-                          {isCreatingPolicy ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                              Updating...
-                            </>
-                          ) : (
-                            <>
-                              <IconCheck className="w-4 h-4 mr-2" />
-                              Update Policy
-                            </>
-                          )}
-                        </button>
+                        hasEditPermission && (
+                          <button
+                            onClick={updatePolicy}
+                            disabled={isCreatingPolicy || !canProceedToNextStep()}
+                            className={clsx(
+                              "flex items-center px-6 py-2 text-sm font-medium rounded-md transition-colors",
+                              canProceedToNextStep() && !isCreatingPolicy
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
+                            )}
+                          >
+                            {isCreatingPolicy ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                                Updating...
+                              </>
+                            ) : (
+                              <>
+                                <IconCheck className="w-4 h-4 mr-2" />
+                                Update Policy
+                              </>
+                            )}
+                          </button>
+                        )
                       )}
                     </div>
                   </div>

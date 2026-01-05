@@ -43,7 +43,10 @@ export async function handler(
 	const membership = user.workspaceMemberships[0];
 	const isAdmin = membership?.isAdmin || false;
 	
-	if (user.roles[0].permissions.includes('manage_docs') || isAdmin) {
+	if (user.roles[0].permissions.includes('create_docs') || 
+	    user.roles[0].permissions.includes('edit_docs') || 
+	    user.roles[0].permissions.includes('delete_docs') || 
+	    isAdmin) {
 		const docs = await prisma.document.findMany({
 			where: {
 				workspaceGroupId: id,

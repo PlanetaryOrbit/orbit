@@ -2,7 +2,7 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation } from "@tabler/icons-react"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation, IconHourglassHigh } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
@@ -18,11 +18,29 @@ import { getUsername, getDisplayName } from "@/utils/userinfoEngine"
 import { useState, useEffect } from "react"
 import clsx from "clsx"
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ params, res }) => {
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ params, res, req }) => {
   if (!params?.id) {
     res.statusCode = 404
     return { props: {} }
   }
+
+  const workspaceGroupId = Number.parseInt(params.id as string);
+  const currentUserId = req.session?.userid;
+  const currentUser = await prisma.user.findFirst({
+    where: { userid: BigInt(currentUserId) },
+    include: {
+      workspaceMemberships: {
+        where: { workspaceGroupId },
+      },
+      roles: {
+        where: { workspaceGroupId },
+      },
+    },
+  });
+  
+  const membership = currentUser?.workspaceMemberships?.[0];
+  const isAdmin = membership?.isAdmin || false;
+  const userPermissions = currentUser?.roles?.[0]?.permissions || [];
 
   const grouproles = await noblox.getRoles(Number(params.id))
   const users = await prisma.user.findMany({
@@ -85,15 +103,19 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       roles,
       departments,
       grouproles,
+      isAdmin,
+      userPermissions,
     },
   }
-}, "admin")
+}, ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"])
 
 type Props = {
   roles: []
   users: []
   departments: []
   grouproles: []
+  isAdmin: boolean
+  userPermissions: string[]
 }
 
 const SECTIONS = {
@@ -102,7 +124,24 @@ const SECTIONS = {
     icon: IconHome,
     description: "Basic workspace settings and preferences",
     components: Object.entries(All)
-      .filter(([key]) => key === "Color" || key === "home" || key === "Activity")
+      .filter(([key]) => key === "Color" || key === "home")
+      .sort(([keyA], [keyB]) => {
+        if (keyA === "home") return -1;
+        if (keyB === "home") return 1;
+        return 0;
+      })
+      .map(([key, Component]) => ({
+        key,
+        component: Component,
+        title: Component.title,
+      })),
+  },
+  activity: {
+    name: "Activity",
+    icon: IconHourglassHigh,
+    description: "Manage activity tracking and reset",
+    components: Object.entries(All)
+      .filter(([key]) => key === "Activity")
       .map(([key, Component]) => ({
         key,
         component: Component,
@@ -155,9 +194,38 @@ const SECTIONS = {
   },
 }
 
-const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles }) => {
+const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles, isAdmin, userPermissions }) => {
   const [activeSection, setActiveSection] = useState("general")
   const [isSidebarExpanded] = useState(true)
+
+  const hasPermission = (permission: string) => {
+    return isAdmin || userPermissions.includes(permission);
+  };
+
+  const canAccessGeneral = hasPermission('workspace_customisation');
+  const canAccessActivity = hasPermission('reset_activity');
+  const canAccessFeatures = hasPermission('manage_features');
+  const canAccessApi = hasPermission('manage_apikeys');
+  const canAccessPermissions = isAdmin || hasPermission('admin'); // Admins or admin permission
+  const canAccessAudit = hasPermission('view_audit_logs');
+  const canAccessInstance = isAdmin || hasPermission('admin'); // Admins or admin permission
+
+  const availableSections = Object.entries(SECTIONS).filter(([key]) => {
+    if (key === 'general') return canAccessGeneral;
+    if (key === 'activity') return canAccessActivity;
+    if (key === 'features') return canAccessFeatures;
+    if (key === 'api') return canAccessApi;
+    if (key === 'permissions') return canAccessPermissions;
+    if (key === 'audit') return canAccessAudit;
+    if (key === 'instance') return canAccessInstance;
+    return false;
+  });
+
+  useEffect(() => {
+    if (availableSections.length > 0 && !availableSections.find(([key]) => key === activeSection)) {
+      setActiveSection(availableSections[0][0]);
+    }
+  }, []);
 
   const renderContent = () => {
     if (activeSection === "permissions") {
@@ -196,7 +264,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
       <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">{title}</h3>
-          <Component triggerToast={toast} isSidebarExpanded={isSidebarExpanded} />
+          <Component triggerToast={toast} isSidebarExpanded={isSidebarExpanded} hasResetActivityOnly={activeSection === 'activity' && !isAdmin && !userPermissions.includes('workspace_customisation')} />
         </div>
       </div>
     ))
@@ -218,7 +286,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-3">
               <nav className="space-y-1">
-                {Object.entries(SECTIONS).map(([key, section]) => {
+                {availableSections.map(([key, section]) => {
                   const Icon = section.icon
                   return (
                     <button
@@ -251,10 +319,10 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
           <div className="flex-1">
             <div className="mb-4">
               <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                {SECTIONS[activeSection as keyof typeof SECTIONS].name}
+                {SECTIONS[activeSection as keyof typeof SECTIONS]?.name || 'Settings'}
               </h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {SECTIONS[activeSection as keyof typeof SECTIONS].description}
+                {SECTIONS[activeSection as keyof typeof SECTIONS]?.description || 'Manage your settings'}
               </p>
             </div>
 

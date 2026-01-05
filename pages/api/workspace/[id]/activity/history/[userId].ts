@@ -56,7 +56,7 @@ export default withSessionRoute(async function handler(
 
     if (
       !isAdmin &&
-      !userRole.permissions?.includes("manage_activity")
+      !userRole.permissions?.includes("view_member_profiles")
     ) {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }

@@ -16,7 +16,7 @@ type Data = {
 	document?: document
 }
 
-export default withPermissionCheck(handler, 'manage_policies');
+export default withPermissionCheck(handler, 'create_policies');
 
 export async function handler(
 	req: NextApiRequest,

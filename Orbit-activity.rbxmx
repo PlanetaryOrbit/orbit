@@ -46,7 +46,7 @@ local Configuration = {
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
 }
 
-if Configuration.privateEnabled == true then
+if Configuration.privateEnabled == false then
 	if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
 		return warn("Orbit: Your activity does not track in private servers or Studio.")
 	end
@@ -183,8 +183,38 @@ Players.PlayerRemoving:Connect(function(Player)
 end)
 
 game:BindToClose(function()
-	task.wait(10)
-		Close.Event:Connect()
+	local sessions = {}
+	for _, Player in pairs(Players:GetPlayers()) do
+		if isUserTracked(Player) then
+			table.insert(sessions, {
+				userid = Player.UserId,
+				idleTime = Player["Orbit AFK Timer"].Value,
+				messages = messageTable[Player.UserId]
+			})
+		end
+	end
+
+	if #sessions > 0 then
+		local success, response = pcall(function()
+			return HttpService:RequestAsync({
+				Url = Configuration.url .. "/api/activity/bulk-end",
+				Method = "POST",
+				Headers = {
+					["Content-Type"] = "application/json",
+					["authorization"] = Configuration.auth
+				},
+				Body = HttpService:JSONEncode({ sessions = sessions })
+			})
+		end)
+		
+		if success then
+			warn(string.format("Orbit: Ended %d sessions on shutdown", #sessions))
+		else
+			warn("Orbit: Failed to send shutdown session - " .. tostring(response))
+		end
+	end
+	
+	task.wait(5)
 end)
 
 for _,Player in pairs(Players:GetPlayers()) do

@@ -111,12 +111,20 @@ export const getServerSideProps = withPermissionCheckSsr(
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
     const userRole = currentUser?.roles?.[0];
-    const hasManageViewsPerm = userRole?.permissions?.includes("manage_views") || false;
+    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false;
+    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false;
+    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false;
+    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false;
+    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false;
 
     return {
       props: {
         isAdmin: isAdmin,
         hasManageViewsPerm: hasManageViewsPerm,
+        hasCreateViewsPerm: hasCreateViewsPerm,
+        hasDeleteViewsPerm: hasDeleteViewsPerm,
+        hasUseSavedViewsPerm: hasUseSavedViewsPerm,
+        hasViewMemberProfiles: hasViewMemberProfiles,
       },
     };
   },
@@ -152,8 +160,12 @@ const filterNames: {
 type pageProps = {
   isAdmin: boolean;
   hasManageViewsPerm: boolean;
+  hasCreateViewsPerm: boolean;
+  hasDeleteViewsPerm: boolean;
+  hasUseSavedViewsPerm: boolean;
+  hasViewMemberProfiles: boolean;
 };
-const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
+const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCreateViewsPerm, hasDeleteViewsPerm, hasUseSavedViewsPerm, hasViewMemberProfiles }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
@@ -222,6 +234,18 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
     return isAdmin || hasManageViewsPerm;
   };
 
+  const hasCreateViews = () => {
+    return isAdmin || hasCreateViewsPerm;
+  };
+
+  const hasDeleteViews = () => {
+    return isAdmin || hasDeleteViewsPerm;
+  };
+
+  const hasUseSavedViews = () => {
+    return isAdmin || hasUseSavedViewsPerm;
+  };
+
   const columnHelper = createColumnHelper<User>();
 
   const updateUsers = async (query: string) => {};
@@ -253,12 +277,14 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
       cell: (row) => {
         return (
           <div
-            className="flex flex-row cursor-pointer"
-            onClick={() =>
-              router.push(
-                `/workspace/${router.query.id}/profile/${row.getValue().userId}`
-              )
-            }
+            className={`flex flex-row ${hasViewMemberProfiles ? 'cursor-pointer' : 'cursor-default'}`}
+            onClick={() => {
+              if (hasViewMemberProfiles) {
+                router.push(
+                  `/workspace/${router.query.id}/profile/${row.getValue().userId}`
+                );
+              }
+            }}
           >
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
@@ -428,7 +454,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
   };
 
   useEffect(() => {
-    if (router.query.id) loadSavedViews();
+    if (router.query.id && hasUseSavedViews()) loadSavedViews();
   }, [router.query.id]);
   
   // Reset to page 0 when filters change
@@ -780,30 +806,31 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
         </div>
 
         <div className="flex gap-6">
-          <aside className="w-64 hidden md:block">
-            <div className="sticky top-8">
-              <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    Views
-                  </h4>
-                  {hasManageViews() && (
-                    <button
-                      onClick={openSaveDialog}
-                      className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                    >
-                      <IconPlus className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+          {hasUseSavedViews() && (
+            <aside className="w-64 hidden md:block">
+              <div className="sticky top-8">
+                <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                      Saved Views
+                    </h4>
+                    {hasCreateViews() && (
+                      <button
+                        onClick={openSaveDialog}
+                        className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
+                      >
+                        <IconPlus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  {savedViews.length === 0 && (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      No saved views
-                    </p>
-                  )}
-                  {savedViews.map((v) => (
+                  <div className="space-y-2">
+                    {savedViews.length === 0 && (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        No saved views
+                      </p>
+                    )}
+                    {savedViews.map((v) => (
                     <div
                       key={v.id}
                       className={`flex items-center justify-between gap-2 px-3 py-2 rounded-md ${
@@ -846,7 +873,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
                       </button>
 
                       <div className="flex items-center gap-1">
-                        {hasManageViews() && (
+                        {hasDeleteViews() && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -865,10 +892,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
                 </div>
               </div>
             </div>
-          </aside>
+            </aside>
+          )}
 
-          <div className="md:hidden w-full mb-4">
-            <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3">
+          {hasUseSavedViews() && (
+            <div className="md:hidden w-full mb-4">
+              <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="w-7 h-7 rounded-md flex items-center justify-center bg-zinc-100 dark:bg-zinc-700/30 text-zinc-700 dark:text-zinc-200">
@@ -880,7 +909,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
                   </span>
                 </div>
 
-                {hasManageViews() && (
+                {hasCreateViews() && (
                   <button
                     onClick={openSaveDialog}
                     title="Create View"
@@ -939,7 +968,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
                     </button>
 
                     <div className="flex items-center gap-1">
-                      {hasManageViews() && (
+                      {hasDeleteViews() && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -957,7 +986,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm }) => {
                 ))}
               </div>
             </div>
-          </div>
+            </div>
+          )}
 
           <div className="flex-1">
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-4 mb-6 relative z-10 overflow-visible">

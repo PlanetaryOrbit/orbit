@@ -21,9 +21,19 @@ import moment from "moment";
 interface Props {
   userBook: any[];
   onRefetch?: () => void;
+  logbookPermissions?: {
+    view: boolean;
+    rank: boolean;
+    note: boolean;
+    warning: boolean;
+    promotion: boolean;
+    demotion: boolean;
+    termination: boolean;
+    redact: boolean;
+  };
 }
 
-const Book: FC<Props> = ({ userBook, onRefetch }) => {
+const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
   const router = useRouter();
   const { id } = router.query;
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
@@ -299,7 +309,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
-                Add New Note
+                Add Entry
               </h2>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
                 Log performance, rank changes, warnings, and other important updates.
@@ -321,18 +331,19 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                 onChange={(e) => setType(e.target.value)}
                 className="block w-full rounded-lg border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               >
-                <option value="note">Note</option>
-                <option value="warning">Warning</option>
-                <option value="promotion">Promotion</option>
-                <option value="demotion">Demotion</option>
-                {rankGunEnabled && (
+                {logbookPermissions?.note && <option value="note">Note</option>}
+                {logbookPermissions?.warning && <option value="warning">Warning</option>}
+                {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
+                {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
+                {logbookPermissions?.promotion && (
                   <option value="rank_change">Rank Change</option>
                 )}
-                <option value="termination">Termination</option>
+                {logbookPermissions?.termination && <option value="termination">Termination</option>}
               </select>
             </div>
 
             {rankGunEnabled &&
+              logbookPermissions?.rank &&
               (type === "promotion" ||
                 type === "demotion" ||
                 type === "rank_change" ||
@@ -353,6 +364,25 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                       "This will automatically change the user's rank to the specified rank."}
                     {type === "termination" &&
                       "This will automatically terminate the user and remove them from the workspace."}
+                  </p>
+                </div>
+              )}
+
+            {rankGunEnabled &&
+              !logbookPermissions?.rank &&
+              (type === "promotion" ||
+                type === "demotion" ||
+                type === "rank_change" ||
+                type === "termination") && (
+                <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                      Entry Only - No Automatic Rank Action
+                    </h3>
+                  </div>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    This will create a logbook entry but will not automatically change the user's rank. You need the "Logbook - Use Ranking" permission to execute automatic rank changes.
                   </p>
                 </div>
               )}
@@ -441,6 +471,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                     : "Adding..."}
                 </>
               ) : rankGunEnabled &&
+                logbookPermissions?.rank &&
                 (type === "promotion" ||
                   type === "demotion" ||
                   type === "rank_change" ||
@@ -462,8 +493,9 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-6 space-y-4">
+      {logbookPermissions?.view && (
+        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
               <IconClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -552,7 +584,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
                       )}
                     </div>
                     <div className="flex-shrink-0 flex flex-col items-end justify-start gap-2">
-                      {canRedact(workspace) && (
+                      {logbookPermissions?.redact && (
                         <button
                           onClick={() => redactEntry(entry)}
                           className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-zinc-700 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 transition-colors"
@@ -578,6 +610,7 @@ const Book: FC<Props> = ({ userBook, onRefetch }) => {
           )}
         </div>
       </div>
+      )}
       {showRedactModal && redactTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">

@@ -46,7 +46,7 @@ export default withSessionRoute(async function handler(
   const isAdmin = membership?.isAdmin || false;
   const hasManageMembersPermission =
     isAdmin ||
-    (user?.roles?.some((role) => role.permissions?.includes("manage_notices")) ??
+    (user?.roles?.some((role) => role.permissions?.includes("record_notices")) ??
     false);
 
   if (!hasManageMembersPermission) {

@@ -9,7 +9,7 @@ type Data = {
 	error?: string
 }
 
-export default withPermissionCheck(handler, 'manage_policies');
+export default withPermissionCheck(handler, 'delete_policies');
 
 export async function handler(
 	req: NextApiRequest,

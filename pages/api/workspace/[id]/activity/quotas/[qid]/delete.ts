@@ -13,7 +13,7 @@ type Data = {
 	quota?: any
 }
 
-export default withPermissionCheck(handler, 'manage_activity');
+export default withPermissionCheck(handler, 'delete_quotas');
 
 export async function handler(
 	req: NextApiRequest,

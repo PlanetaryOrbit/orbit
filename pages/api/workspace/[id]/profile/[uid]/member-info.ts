@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withSessionRoute } from "@/lib/withSession";
+import { withPermissionCheck } from "@/utils/permissionsManager";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function editHandler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);
   const userId = String(req.query.uid as string);
 
@@ -104,6 +105,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   return res.status(405).json({ success: false, error: "Method not allowed" });
+}
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === "PATCH") {
+    return withPermissionCheck(editHandler, 'edit_member_details')(req, res);
+  }
+  return editHandler(req, res);
 }
 
 export default withSessionRoute(handler);

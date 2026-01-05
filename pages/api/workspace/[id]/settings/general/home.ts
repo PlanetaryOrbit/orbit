@@ -14,7 +14,7 @@ type Data = {
 	widgets?: string[]
 }
 
-export default withPermissionCheck(handler, 'admin');
+export default withPermissionCheck(handler, 'workspace_customisation');
 
 export async function handler(
 	req: NextApiRequest,

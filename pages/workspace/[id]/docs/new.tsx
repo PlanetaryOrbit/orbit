@@ -65,7 +65,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     };
   },
-  "manage_docs"
+  "create_docs"
 );
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({

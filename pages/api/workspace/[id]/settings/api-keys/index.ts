@@ -8,7 +8,7 @@ type Data = {
   apiKeys?: any[]
 }
 
-export default withPermissionCheck(handler, "admin")
+export default withPermissionCheck(handler, "manage_apikeys")
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!req.session.userid) return res.status(401).json({ success: false, error: "Not authenticated" })

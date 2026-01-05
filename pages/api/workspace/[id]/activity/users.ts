@@ -29,7 +29,7 @@ type TopStaff = {
   picture: string;
 };
 
-export default withPermissionCheck(handler, "view_entire_groups_activity");
+export default handler;
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")

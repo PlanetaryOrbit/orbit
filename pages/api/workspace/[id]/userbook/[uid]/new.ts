@@ -20,9 +20,53 @@ type Data = {
   terminated?: boolean;
 };
 
-export default withPermissionCheck(handler, "manage_activity");
+async function checkPermissionForType(req: NextApiRequest, type: string, workspaceGroupId: number) {
+  const permissionMap: Record<string, string> = {
+    note: "logbook_note",
+    warning: "logbook_warning",
+    promotion: "logbook_promotion",
+    demotion: "logbook_demotion",
+    termination: "logbook_termination",
+    rank_change: "logbook_promotion",
+  };
+  
+  const requiredPermission = permissionMap[type];
+  if (!requiredPermission) return false;
+  
+  const user = await prisma.user.findFirst({
+    where: { userid: BigInt(req.session.userid) },
+    include: {
+      roles: { where: { workspaceGroupId } },
+      workspaceMemberships: { where: { workspaceGroupId } },
+    },
+  });
+  
+  if (!user || !user.roles.length) return false;
+  const membership = user.workspaceMemberships[0];
+  const isAdmin = membership?.isAdmin || false;
+  if (isAdmin) return true;
+  
+  return user.roles[0].permissions.includes(requiredPermission);
+}
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function hasRankUsersPermission(req: NextApiRequest, workspaceGroupId: number): Promise<boolean> {
+  const user = await prisma.user.findFirst({
+    where: { userid: BigInt(req.session.userid) },
+    include: {
+      roles: { where: { workspaceGroupId } },
+      workspaceMemberships: { where: { workspaceGroupId } },
+    },
+  });
+  
+  if (!user) return false;
+  const membership = user.workspaceMemberships[0];
+  const isAdmin = membership?.isAdmin || false;
+  if (isAdmin) return true;
+  
+  return user.roles.some(role => role.permissions.includes("rank_users"));
+}
+
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
@@ -49,6 +93,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .json({ success: false, error: "Missing required fields" });
 
   const workspaceGroupId = parseInt(id as string);
+  const hasPermission = await checkPermissionForType(req, type, workspaceGroupId);
+  if (!hasPermission) {
+    return res.status(403).json({ success: false, error: "Insufficient permissions" });
+  }
   const userId = parseInt(uid as string);
 
   if (BigInt(userId) === req.session.userid) {
@@ -59,13 +107,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   const rankGun = await getRankGun(workspaceGroupId);
+  const canUseRankGun = await hasRankUsersPermission(req, workspaceGroupId);
   let rankBefore: number | null = null;
   let rankAfter: number | null = null;
   let rankNameBefore: string | null = null;
   let rankNameAfter: string | null = null;
 
   if (
-    (rankGun) &&
+    (rankGun && canUseRankGun) &&
     (type === "promotion" ||
       type === "demotion" ||
       type === "rank_change" ||
@@ -129,6 +178,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   if (
     rankGun &&
+    canUseRankGun &&
     (type === "promotion" ||
       type === "demotion" ||
       type === "rank_change" ||
@@ -474,3 +524,5 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     ),
   });
 }
+
+export default withSessionRoute(handler);

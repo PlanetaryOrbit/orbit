@@ -118,19 +118,21 @@ export function withPermissionCheck(
     });
     if (!user)
       return res.status(401).json({ success: false, error: "Unauthorized" });
-    const userrole = user.roles[0];
-    if (!userrole)
-      return res.status(401).json({ success: false, error: "Unauthorized" });
     
     const membership = user.workspaceMemberships[0];
-    const isAdmin = membership?.isAdmin || false;
+    if (!membership)
+      return res.status(401).json({ success: false, error: "Unauthorized" });
     
-    permissionsCache.set(cacheKey, { data: { permissions: userrole.permissions, isAdmin }, timestamp: now });
+    const isAdmin = membership?.isAdmin || false;
+    const userrole = user.roles[0];
+    
+    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
     
     if (isAdmin) return handler(req, res);
     if (!permission) return handler(req, res);
+    if (!userrole && !isAdmin) return res.status(401).json({ success: false, error: "Unauthorized" });
     const permissions = Array.isArray(permission) ? permission : [permission];
-    const hasPermission = permissions.some(perm => userrole.permissions?.includes(perm));
+    const hasPermission = permissions.some(perm => userrole?.permissions?.includes(perm));
     if (hasPermission) return handler(req, res);
     return res.status(401).json({ success: false, error: "Unauthorized" });
   });
@@ -217,8 +219,11 @@ export function withPermissionCheckSsr(
       };
     }
 
+    const membership = user.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
+    
     const userrole = user.roles[0];
-    if (!userrole) {
+    if (!userrole && permission) {
       return {
         redirect: {
           destination: "/",
@@ -227,10 +232,7 @@ export function withPermissionCheckSsr(
       };
     }
     
-    const membership = user.workspaceMemberships[0];
-    const isAdmin = membership?.isAdmin || false;
-    
-    permissionsCache.set(cacheKey, { data: { permissions: userrole.permissions, isAdmin }, timestamp: now });
+    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
     const permissions = Array.isArray(permission) ? permission : (permission ? [permission] : []);
     const hasPermission =
       !permission ||

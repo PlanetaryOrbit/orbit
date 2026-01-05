@@ -366,14 +366,18 @@ export const getServerSideProps = withPermissionCheckSsr(
     const isAdmin = membership?.isAdmin || false;
     const hasManagePermission = isAdmin || profileData?.roles.some(
       (role: any) =>
-        role.permissions.includes("manage_quotas")
+        role.permissions.includes("create_quotas")
+    );
+    const hasDeletePermission = isAdmin || profileData?.roles.some(
+      (role: any) =>
+        role.permissions.includes("delete_quotas")
     );
 
     let allQuotas: any[] = [];
     let roles: any[] = [];
     let departments: any[] = [];
 
-    if (hasManagePermission) {
+    if (hasManagePermission || hasDeletePermission) {
       allQuotas = await prisma.quota.findMany({
         where: {
           workspaceGroupId: workspaceId,
@@ -391,7 +395,9 @@ export const getServerSideProps = withPermissionCheckSsr(
           },
         },
       });
+    }
 
+    if (hasManagePermission) {
       roles = await prisma.role.findMany({
         where: {
           workspaceGroupId: workspaceId,
@@ -428,6 +434,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           )
         ),
         canManageQuotas: hasManagePermission,
+        canDeleteQuotas: hasDeletePermission,
       },
     };
   }
@@ -441,6 +448,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   roles: initialRoles,
   departments: initialDepartments,
   canManageQuotas: canManageQuotasProp,
+  canDeleteQuotas,
 }) => {
   const router = useRouter();
   const { id } = router.query;
@@ -458,6 +466,8 @@ const Quotas: pageWithLayout<pageProps> = ({
   const departments: any = initialDepartments;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [quotaToDelete, setQuotaToDelete] = useState<any>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>("all");
@@ -545,15 +555,22 @@ const Quotas: pageWithLayout<pageProps> = ({
         setIsOpen(false);
         return "Quota created!";
       },
-      error: "Quota was not created due to an unknown error.",
+      error: (err) => {
+        console.error("Quota creation error:", err);
+        return err.response?.data?.error || "Quota was not created due to an unknown error.";
+      },
     });
   };
 
-  const deleteQuota = (quotaId: string) => {
+  const deleteQuota = () => {
+    if (!quotaToDelete) return;
+    
     const axiosPromise = axios
-      .delete(`/api/workspace/${id}/activity/quotas/${quotaId}/delete`)
+      .delete(`/api/workspace/${id}/activity/quotas/${quotaToDelete.id}/delete`)
       .then(() => {
-        setAllQuotas(allQuotas.filter((q: any) => q.id !== quotaId));
+        setAllQuotas(allQuotas.filter((q: any) => q.id !== quotaToDelete.id));
+        setIsDeleteModalOpen(false);
+        setQuotaToDelete(null);
       });
     toast.promise(axiosPromise, {
       loading: "Deleting quota...",
@@ -579,7 +596,7 @@ const Quotas: pageWithLayout<pageProps> = ({
             </div>
           </div>
 
-          {canManageQuotas && (
+          {(canManageQuotas || (canDeleteQuotas as boolean)) && (
             <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mb-6">
               <button
                 onClick={() => setActiveTab("my-quotas")}
@@ -606,7 +623,7 @@ const Quotas: pageWithLayout<pageProps> = ({
             </div>
           )}
 
-          {(!canManageQuotas || activeTab === "my-quotas") && (
+          {(!(canManageQuotas || (canDeleteQuotas as boolean)) || activeTab === "my-quotas") && (
             <div>
               {myQuotas.length === 0 ? (
                 <div className="text-center py-12">
@@ -724,19 +741,21 @@ const Quotas: pageWithLayout<pageProps> = ({
             </div>
           )}
 
-          {activeTab === "manage-quotas" && canManageQuotas && (
+          {activeTab === "manage-quotas" && (canManageQuotas || (canDeleteQuotas as boolean)) && (
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
                   All Quotas
                 </h2>
-                <button
-                  onClick={() => setIsOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  <IconPlus className="w-4 h-4" />
-                  <span className="text-sm font-medium">Create Quota</span>
-                </button>
+                {canManageQuotas && (
+                  <button
+                    onClick={() => setIsOpen(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    <IconPlus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Create Quota</span>
+                  </button>
+                )}
               </div>
 
               {allQuotas.length === 0 ? (
@@ -749,15 +768,17 @@ const Quotas: pageWithLayout<pageProps> = ({
                       No Quotas
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                      You haven't set up any activity quotas yet
+                      {canManageQuotas ? "You haven't set up any activity quotas yet" : "No activity quotas have been set up yet"}
                     </p>
-                    <button
-                      onClick={() => setIsOpen(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      <IconPlus className="w-4 h-4" />
-                      <span className="text-sm font-medium">Create Quota</span>
-                    </button>
+                    {canManageQuotas && (
+                      <button
+                        onClick={() => setIsOpen(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <IconPlus className="w-4 h-4" />
+                        <span className="text-sm font-medium">Create Quota</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -788,12 +809,17 @@ const Quotas: pageWithLayout<pageProps> = ({
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={() => deleteQuota(quota.id)}
-                          className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                        >
-                          <IconTrash className="w-4 h-4" />
-                        </button>
+                        {(canDeleteQuotas as boolean) && (
+                          <button
+                            onClick={() => {
+                              setQuotaToDelete(quota);
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                          >
+                            <IconTrash className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {quota.quotaRoles?.map((qr: any) => (
@@ -1026,6 +1052,82 @@ const Quotas: pageWithLayout<pageProps> = ({
                       onClick={handleSubmit(onSubmit)}
                     >
                       Create
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      <Transition appear show={isDeleteModalOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setIsDeleteModalOpen(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/70" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
+                      <IconTrash className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium text-zinc-900 dark:text-white"
+                    >
+                      Delete Quota
+                    </Dialog.Title>
+                  </div>
+
+                  <div className="mt-2">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      Are you sure you want to delete the quota{" "}
+                      <span className="font-semibold">{quotaToDelete?.name}</span>?
+                      This action cannot be undone.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      type="button"
+                      className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      onClick={() => {
+                        setIsDeleteModalOpen(false);
+                        setQuotaToDelete(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                      onClick={deleteQuota}
+                    >
+                      Delete
                     </button>
                   </div>
                 </Dialog.Panel>

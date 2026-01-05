@@ -33,5 +33,5 @@ export default async function handler(
     }
 
     return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }, 'admin')(req, res);
+  }, 'manage_features')(req, res);
 }

@@ -20,7 +20,7 @@ async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number
   const role = user.roles[0];
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
-  return isAdmin || (role.permissions || []).includes("manage_views");
+  return isAdmin || (role.permissions || []).includes("create_views") || (role.permissions || []).includes("edit_views") || (role.permissions || []).includes("delete_views");
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,9 +34,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (req.method === "POST") {
-      // require manage_views or owner
-      const ok = await hasManageViewsPermission(req, workspaceId);
-      if (!ok) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const user = await prisma.user.findFirst({
+        where: { userid: BigInt(req.session.userid) },
+        include: {
+          roles: { where: { workspaceGroupId: workspaceId } },
+          workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
+        },
+      });
+      if (!user || !user.roles.length) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const membership = user.workspaceMemberships[0];
+      const isAdmin = membership?.isAdmin || false;
+      const hasCreatePermission = isAdmin || user.roles[0].permissions.includes("create_views");
+      if (!hasCreatePermission) return res.status(401).json({ success: false, error: "Unauthorized" });
 
       const { name, color, icon, filters, columnVisibility } = req.body;
       if (!name) return res.status(400).json({ success: false, error: "Missing name" });

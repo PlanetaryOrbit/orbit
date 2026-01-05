@@ -25,28 +25,124 @@ type Props = {
 const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   const [workspace] = useRecoilState(workspacestate);
   const router = useRouter();
-  const permissions = {
-    "View wall": "view_wall",
-    "View members": "view_members",
-    "View Activity History": "view_entire_groups_activity",
-    "Create notices": "create_notices",
-    "Post on wall": "post_on_wall",
-    "Represent alliance": "represent_alliance",
-    "Assign users to Sessions": "sessions_assign",
-    "Assign Self to Sessions": "sessions_claim",
-    "Host/Co-Host Sessions": "sessions_host",
-    "Create Unscheduled Sessions": "sessions_unscheduled",
-    "Create Scheduled Sessions": "sessions_scheduled",
-    "Manage sessions": "manage_sessions",
-    "Manage activity": "manage_activity",
-    "Manage notices": "manage_notices",
-    "Manage quotas": "manage_quotas",
-    "Manage members": "manage_members",
-    "Manage docs": "manage_docs",
-    "Manage policies": "manage_policies",
-    "Manage views": "manage_views",
-    "Manage alliances": "manage_alliances",
-    "Admin (Manage workspace)": "admin",
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(
+    new Set()
+  );
+
+  const permissionCategories = {
+    Wall: {
+      "View wall": "view_wall",
+      "Post on wall": "post_on_wall",
+      "Delete wall posts": "delete_wall_posts",
+    },
+    Sessions: {
+      "Assign users to Sessions": "sessions_assign",
+      "Assign Self to Sessions": "sessions_claim",
+      "Host/Co-Host Sessions": "sessions_host",
+      "Create Unscheduled Sessions": "sessions_unscheduled",
+      "Create Scheduled Sessions": "sessions_scheduled",
+      "Manage sessions": "manage_sessions",
+    },
+    Views: {
+      "View members": "view_members",
+      "Use saved views": "use_views",
+      "Create views": "create_views",
+      "Edit views": "edit_views",
+      "Delete views": "delete_views",
+    },
+    Docs: {
+      "Create docs": "create_docs",
+      "Edit docs": "edit_docs",
+      "Delete docs": "delete_docs",
+    },
+    Policies: {
+      "Create policies": "create_policies",
+      "Edit policies": "edit_policies",
+      "Delete policies": "delete_policies",
+      "View compliance": "view_compliance",
+    },
+    Notices: {
+      "Create notices": "create_notices",
+      "Approve notices": "approve_notices",
+      "Manage notices": "manage_notices",
+    },
+    Quotas: {
+      "Create quotas": "create_quotas",
+      "Delete quotas": "delete_quotas",
+    },
+    Members: {
+      "Profiles - View": "view_member_profiles",
+      "Info - Edit details": "edit_member_details",
+      "Notices - Record approved": "record_notices",
+      "Activity - Adjustments": "activity_adjustments",
+      "Logbook - See Entries": "view_logbook",
+      "Logbook - Redact Entries": "logbook_redact",
+      "Logbook - Note": "logbook_note",
+      "Logbook - Warning": "logbook_warning",
+      "Logbook - Promotion": "logbook_promotion",
+      "Logbook - Demotion": "logbook_demotion",
+      "Logbook - Termination": "logbook_termination",
+      "Logbook - Use Ranking Integration": "rank_users",
+    },
+    Alliances: {
+      "Create alliances": "create_alliances",
+      "Delete alliances": "delete_alliances",
+      "Represent alliance": "represent_alliance",
+      "Edit alliance details": "edit_alliance_details",
+      "Add notes": "add_alliance_notes",
+      "Edit notes": "edit_alliance_notes",
+      "Delete notes": "delete_alliance_notes",
+      "Add visits": "add_alliance_visits",
+      "Edit visits": "edit_alliance_visits",
+      "Delete visits": "delete_alliance_visits",
+    },
+    Settings: {
+      "Admin (Manage workspace)": "admin",
+      "Reset activity": "reset_activity",
+      "View audit logs": "view_audit_logs",
+      "Create API keys": "manage_apikeys",
+      "Manage features": "manage_features",
+      "Workspace customisation": "workspace_customisation",
+    },
+  };
+
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const toggleCategoryPermissions = (roleId: string, category: string) => {
+    const index = roles.findIndex((role: any) => role.id === roleId);
+    if (index === -1) return;
+    
+    const rroles = Object.assign([] as typeof roles, roles);
+    if (rroles[index].isOwnerRole) {
+      toast.error("Owner role permissions cannot be modified");
+      return;
+    }
+
+    const categoryPerms = Object.values(permissionCategories[category as keyof typeof permissionCategories]);
+    const allChecked = categoryPerms.every((perm) =>
+      rroles[index].permissions.includes(perm)
+    );
+
+    if (allChecked) {
+      rroles[index].permissions = rroles[index].permissions.filter(
+        (perm: any) => !categoryPerms.includes(perm)
+      );
+    } else {
+      categoryPerms.forEach((perm) => {
+        if (!rroles[index].permissions.includes(perm)) {
+          rroles[index].permissions.push(perm);
+        }
+      });
+    }
+    setRoles(rroles);
   };
 
   const newRole = async () => {
@@ -292,29 +388,81 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                         <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
                           Permissions
                         </h4>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
                           Manage the permissions assigned to this role
                         </p>
                         <div className="space-y-2">
-                          {Object.entries(permissions).map(([label, value]) => (
-                            <label
-                              key={value}
-                              className="flex items-center space-x-2"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={role.permissions.includes(value)}
-                                onChange={() =>
-                                  togglePermission(role.id, value)
-                                }
-                                disabled={role.isOwnerRole === true}
-                                className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              />
-                              <span className="text-sm text-zinc-700 dark:text-zinc-200">
-                                {label}
-                              </span>
-                            </label>
-                          ))}
+                          {Object.entries(permissionCategories).map(([category, perms]) => {
+                            const isExpanded = expandedCategories.has(category);
+                            const categoryPerms = Object.values(perms);
+                            const allChecked = categoryPerms.every((perm) =>
+                              role.permissions.includes(perm)
+                            );
+                            const someChecked = categoryPerms.some((perm) =>
+                              role.permissions.includes(perm)
+                            );
+
+                            return (
+                              <div
+                                key={category}
+                                className="border border-zinc-200 dark:border-zinc-700 rounded-md overflow-hidden"
+                              >
+                                <div className="bg-zinc-50 dark:bg-zinc-900/50 px-3 py-2 flex items-center justify-between">
+                                  <div className="flex items-center space-x-2 flex-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={allChecked}
+                                      ref={(el) => {
+                                        if (el) el.indeterminate = someChecked && !allChecked;
+                                      }}
+                                      onChange={() =>
+                                        toggleCategoryPermissions(role.id, category)
+                                      }
+                                      disabled={role.isOwnerRole === true}
+                                      className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <button
+                                      onClick={() => toggleCategory(category)}
+                                      className="flex-1 flex items-center justify-between text-left focus:outline-none"
+                                    >
+                                      <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                                        {category}
+                                      </span>
+                                      <IconChevronDown
+                                        className={clsx(
+                                          "w-4 h-4 text-zinc-500 transition-transform",
+                                          isExpanded ? "transform rotate-180" : ""
+                                        )}
+                                      />
+                                    </button>
+                                  </div>
+                                </div>
+                                {isExpanded && (
+                                  <div className="px-3 py-2 space-y-2 bg-white dark:bg-zinc-800">
+                                    {Object.entries(perms).map(([label, value]) => (
+                                      <label
+                                        key={value}
+                                        className="flex items-center space-x-2 pl-6"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={role.permissions.includes(value)}
+                                          onChange={() =>
+                                            togglePermission(role.id, value)
+                                          }
+                                          disabled={role.isOwnerRole === true}
+                                          className="w-4 h-4 rounded text-primary border-gray-300 dark:border-zinc-600 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        />
+                                        <span className="text-sm text-zinc-700 dark:text-zinc-200">
+                                          {label}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                         {role.isOwnerRole === true && (
                           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">

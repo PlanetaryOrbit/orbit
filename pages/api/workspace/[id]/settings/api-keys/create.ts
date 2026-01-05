@@ -14,7 +14,7 @@ type Data = {
 	}
 }
 
-export default withPermissionCheck(handler, "admin")
+export default withPermissionCheck(handler, "manage_apikeys")
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" })

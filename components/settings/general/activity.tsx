@@ -21,10 +21,12 @@ import { FC } from "@/types/settingsComponent";
 
 type props = {
   triggerToast: typeof toast;
+  hasResetActivityOnly?: boolean;
 };
 
 const Activity: FC<props> = (props) => {
   const triggerToast = props.triggerToast;
+  const hasResetActivityOnly = props.hasResetActivityOnly ?? false;
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [roles, setRoles] = React.useState([]);
   const [selectedRole, setSelectedRole] = React.useState<number>();
@@ -205,10 +207,12 @@ const Activity: FC<props> = (props) => {
 
   return (
     <div className="relative z-15">
-      <p className="mb-4 z-15 dark:text-zinc-400">
-        Configure activity tracking settings for your workspace
-      </p>
-      <div className="mb-8 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
+      {!hasResetActivityOnly && (
+        <>
+          <p className="mb-4 z-15 dark:text-zinc-400">
+            Configure activity tracking settings for your workspace
+          </p>
+          <div className="mb-8 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
         <div className="mb-6">
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
             Activity Role
@@ -638,6 +642,8 @@ const Activity: FC<props> = (props) => {
               </Listbox>
             </div>
           </div>
+        </>
+      )}
         </>
       )}
 

@@ -10,7 +10,7 @@ type Data = {
   total?: number
 }
 
-export default withPermissionCheck(handler, 'admin');
+export default withPermissionCheck(handler, 'view_audit_logs');
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });

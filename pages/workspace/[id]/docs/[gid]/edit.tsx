@@ -45,6 +45,19 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     const { id, gid } = context.query;
     if (!gid) return { notFound: true };
 
+    const user = await prisma.user.findFirst({
+      where: { userid: BigInt(context.req.session.userid) },
+      include: {
+        roles: { where: { workspaceGroupId: Number(id) } },
+        workspaceMemberships: { where: { workspaceGroupId: Number(id) } },
+      },
+    });
+
+    const membership = user?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
+    const canEdit = isAdmin || (user?.roles || []).some((r: any) => r.permissions?.includes("edit_docs"));
+    const canDelete = isAdmin || (user?.roles || []).some((r: any) => r.permissions?.includes("delete_docs"));
+
     const [roles, departments, document] = await Promise.all([
       prisma.role.findMany({
         where: {
@@ -90,13 +103,15 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
+        canEdit,
+        canDelete,
       },
     };
   },
-  "manage_docs"
+  ["edit_docs", "delete_docs"]
 );
 
-const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
+const EditDoc: pageWithLayout<any> = ({ roles, departments, document, canEdit, canDelete }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -536,6 +551,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
                     },
                   })}
                   label="Document Name"
+                  disabled={!canEdit}
                 />
               </div>
             </div>
@@ -566,6 +582,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
                         checked={selectedRoles.includes(role.id)}
                         onChange={() => toggleRole(role.id)}
                         className="w-4 h-4 text-primary rounded border-zinc-300 dark:border-zinc-600 focus:ring-2 focus:ring-primary/50 focus:ring-offset-0"
+                        disabled={!canEdit}
                       />
                       <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
                         {role.name}
@@ -591,6 +608,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
                               checked={selectedDepartments.includes(dept.id)}
                               onChange={() => toggleDepartment(dept.id)}
                               className="w-4 h-4 text-primary rounded border-zinc-300 dark:border-zinc-600 focus:ring-2 focus:ring-primary/50 focus:ring-offset-0"
+                              disabled={!canEdit}
                             />
                             <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
                               {dept.name}
@@ -608,7 +626,7 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
           {mode === "internal" && (
             <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                {!showPreview && (
+                {!showPreview && canEdit && (
                   <div className="flex items-center gap-2 p-2 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
                     <button
                       onClick={() => insertMarkdown("**", "**")}
@@ -761,6 +779,8 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
                   onChange={(e) => setMarkdownContent(e.target.value)}
                   placeholder="Start writing your document in markdown..."
                   className="w-full h-80 p-4 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none font-mono text-sm"
+                  readOnly={!canEdit}
+                  disabled={!canEdit}
                 />
               )}
             </div>
@@ -790,6 +810,8 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
                   placeholder="https://docs.example.com"
                   value={externalUrl}
                   onChange={(e) => setExternalUrl(e.target.value)}
+                  readOnly={!canEdit}
+                  disabled={!canEdit}
                 />
                 <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                   Enter a valid HTTPS URL that will redirect users to the external document
@@ -798,20 +820,24 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document }) => {
             </div>
           )}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            >
-              <IconTrash className="w-4 h-4" />
-              Delete
-            </button>
-            <button
-              onClick={form.handleSubmit(updateDoc)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#ff0099] hover:bg-[#ff0099]/95 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
-            >
-              <IconCheck className="w-4 h-4" />
-              Save Changes
-            </button>
+            {canDelete && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <IconTrash className="w-4 h-4" />
+                Delete
+              </button>
+            )}
+            {canEdit && (
+              <button
+                onClick={form.handleSubmit(updateDoc)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#ff0099] hover:bg-[#ff0099]/95 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
+              >
+                <IconCheck className="w-4 h-4" />
+                Save Changes
+              </button>
+            )}
           </div>
         </FormProvider>
       </div>

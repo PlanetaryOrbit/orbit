@@ -47,7 +47,7 @@ type ComplianceStats = {
 	}
 }
 
-export default withPermissionCheck(handler, 'manage_policies');
+export default withPermissionCheck(handler, 'view_compliance');
 
 export async function handler(
 	req: NextApiRequest,

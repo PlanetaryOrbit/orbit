@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const membership = user?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const isOwner = post.authorId === BigInt(userId);
-  const hasPermission = user?.roles[0]?.permissions.includes("manage_wall");
+  const hasPermission = user?.roles[0]?.permissions.includes("delete_wall_posts");
   const isInstanceOwner = user?.isOwner === true;
 
   if (!isOwner && !hasPermission && !isInstanceOwner && !isAdmin) {

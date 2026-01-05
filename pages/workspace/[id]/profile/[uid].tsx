@@ -70,12 +70,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     });
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
-    const hasManagePermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("manage_activity")
-      ) ??
-        false);
+    const hasManagePermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_member_profiles")) ?? false);
 
     const hasManageMembersPermission =
       isAdmin ||
@@ -90,6 +85,40 @@ export const getServerSideProps = withPermissionCheckSsr(
         role.permissions?.includes("manage_notices")
       ) ??
         false);
+
+    const hasApproveNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("approve_notices")
+      ) ??
+        false);
+
+    const hasRecordNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("record_notices")
+      ) ??
+        false);
+
+    const hasActivityAdjustmentsPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("activity_adjustments")
+      ) ??
+        false);
+
+    const logbookPermissions = {
+      view: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_logbook")) ?? false),
+      rank: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("rank_users")) ?? false),
+      note: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_note")) ?? false),
+      warning: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_warning")) ?? false),
+      promotion: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_promotion")) ?? false),
+      demotion: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_demotion")) ?? false),
+      termination: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_termination")) ?? false),
+      redact: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_redact")) ?? false),
+    };
+
+    const hasAnyLogbookPermission = Object.values(logbookPermissions).some(p => p);
 
     if (!hasManagePermission) {
       return { notFound: true };
@@ -583,6 +612,11 @@ export const getServerSideProps = withPermissionCheckSsr(
         noticesEnabled,
         canManageMembers: hasManageMembersPermission,
         canManageNotices: hasManageNoticesPermission,
+        canApproveNotices: hasApproveNoticesPermission,
+        canRecordNotices: hasRecordNoticesPermission,
+        canAdjustActivity: hasActivityAdjustmentsPermission,
+        logbookEnabled: hasAnyLogbookPermission,
+        logbookPermissions,
       },
     };
   }
@@ -650,6 +684,20 @@ type pageProps = {
   noticesEnabled: boolean;
   canManageMembers: boolean;
   canManageNotices: boolean;
+  canApproveNotices: boolean;
+  canRecordNotices: boolean;
+  canAdjustActivity: boolean;
+  logbookEnabled: boolean;
+  logbookPermissions: {
+    view: boolean;
+    rank: boolean;
+    note: boolean;
+    warning: boolean;
+    promotion: boolean;
+    demotion: boolean;
+    termination: boolean;
+    redact: boolean;
+  };
 };
 const Profile: pageWithLayout<pageProps> = ({
   notices,
@@ -676,6 +724,11 @@ const Profile: pageWithLayout<pageProps> = ({
   noticesEnabled,
   canManageMembers,
   canManageNotices,
+  canApproveNotices,
+  canRecordNotices,
+  canAdjustActivity,
+  logbookEnabled,
+  logbookPermissions,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [userBook, setUserBook] = useState(initialUserBook);
@@ -979,18 +1032,20 @@ const Profile: pageWithLayout<pageProps> = ({
                 <IconHistory className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Activity
               </Tab>
-              <Tab
-                className={({ selected }) =>
-                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                    selected
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                  }`
-                }
-              >
-                <IconBook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Logbook
-              </Tab>
+              {logbookEnabled && (
+                <Tab
+                  className={({ selected }) =>
+                    `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
+                      selected
+                        ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    }`
+                  }
+                >
+                  <IconBook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Logbook
+                </Tab>
+              )}
               {noticesEnabled && (
                 <Tab
                   className={({ selected }) =>
@@ -1059,16 +1114,25 @@ const Profile: pageWithLayout<pageProps> = ({
                   canGoForward={canGoForward}
                   goToPreviousWeek={goToPreviousWeek}
                   goToNextWeek={goToNextWeek}
+                  canAdjustActivity={canAdjustActivity}
                 />
               </Tab.Panel>
-              <Tab.Panel>
-                <Book userBook={userBook} onRefetch={refetchUserBook} />
-              </Tab.Panel>
+              {logbookEnabled && (
+                <Tab.Panel>
+                  <Book
+                    userBook={userBook}
+                    onRefetch={refetchUserBook}
+                    logbookPermissions={logbookPermissions}
+                  />
+                </Tab.Panel>
+              )}
               {noticesEnabled && (
                 <Tab.Panel>
                   <Notices
                     notices={notices}
                     canManageNotices={canManageNotices}
+                    canApproveNotices={canApproveNotices}
+                    canRecordNotices={canRecordNotices}
                     userId={user.userid}
                   />
                 </Tab.Panel>

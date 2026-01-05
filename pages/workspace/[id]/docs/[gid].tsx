@@ -57,6 +57,8 @@ function getRandomBg(userid: string, username?: string) {
 
 type Props = {
   document: any;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
@@ -93,10 +95,17 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       .catch(() => null);
     if (!guide) return { notFound: true };
     const userRoles = user?.roles || [];
+    const membership = await prisma.workspaceMember.findFirst({
+      where: {
+        workspaceGroupId: parseInt(context.query.id as string),
+        userId: BigInt(context.req.session.userid),
+      },
+    });
+    const isAdmin = membership?.isAdmin || false;
     const isOwner = userRoles.some((r: any) => r.isOwnerRole);
-    const canManageDocs = userRoles.some((r: any) =>
-      r.permissions?.includes("manage_docs")
-    );
+    const canEdit = isAdmin || userRoles.some((r: any) => r.permissions?.includes("edit_docs"));
+    const canDelete = isAdmin || userRoles.some((r: any) => r.permissions?.includes("delete_docs"));
+    const canManageDocs = canEdit || canDelete || userRoles.some((r: any) => r.permissions?.includes("create_docs"));
     const hasRoleAccess = guide.roles.some((gr: any) =>
       userRoles.some((ur: any) => ur.id === gr.id)
     );
@@ -110,12 +119,14 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
+        canEdit,
+        canDelete,
       },
     };
   }
 );
 
-const Settings: pageWithLayout<Props> = ({ document }) => {
+const Settings: pageWithLayout<Props> = ({ document, canEdit, canDelete }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();

@@ -11,10 +11,12 @@ import { workspacestate, loginState } from "@/state";
 interface Props {
   notices: any[];
   canManageNotices?: boolean;
+  canApproveNotices?: boolean;
+  canRecordNotices?: boolean;
   userId?: string;
 }
 
-const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
+const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotices = false, canRecordNotices = false, userId }) => {
   const router = useRouter();
   const [workspace] = useRecoilState(workspacestate);
   const [login] = useRecoilState(loginState);
@@ -127,7 +129,7 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
               </p>
             </div>
           </div>
-          {canManageNotices && !showCreateForm && (
+          {canRecordNotices && !showCreateForm && (
             <button
               onClick={() => setShowCreateForm(true)}
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-primary text-white text-xs sm:text-sm rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap flex-shrink-0"
@@ -138,7 +140,7 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
           )}
         </div>
 
-        {canManageNotices && showCreateForm && (
+        {canRecordNotices && showCreateForm && (
           <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-3 sm:p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -313,7 +315,7 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
           </div>
         )}
 
-        {localNotices.filter((n) => !n.reviewed).length > 0 && (
+        {(canApproveNotices || canManageNotices) && localNotices.filter((n) => !n.reviewed).length > 0 && (
           <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md flex items-center justify-between">
             <div className="text-sm text-yellow-800 dark:text-yellow-300">
               {localNotices.filter((n) => !n.reviewed).length} pending notice(s)
@@ -376,7 +378,7 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, userId }) => {
                       </p>
                     </div>
                   </div>
-                  {isActive && (
+                  {isActive && canManageNotices && (
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={async () => {

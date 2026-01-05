@@ -36,7 +36,7 @@ export async function handler(
 
 		return res.status(200).json({ success: true, notice: JSON.parse(JSON.stringify(session, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ success: false, error: "Something went wrong" });
+		console.error("Notice creation error:", error);
+		return res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Something went wrong" });
 	}
 }

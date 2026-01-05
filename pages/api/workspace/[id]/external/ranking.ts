@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { getRankGun } from "@/utils/rankgun";
 
-export default withPermissionCheck(handler, "manage_activity");
+export default withPermissionCheck(handler, "rank_users");
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {

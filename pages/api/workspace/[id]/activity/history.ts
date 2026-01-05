@@ -103,5 +103,4 @@ export default withPermissionCheck(async function handler(
       .status(500)
       .json({ success: false, error: "Failed to fetch activity history" });
   }
-},
-"view_entire_groups_activity");
+});

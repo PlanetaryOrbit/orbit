@@ -14,7 +14,7 @@ type Data = {
   error?: string;
 };
 
-export default withSessionRoute(withPermissionCheck(handler, "manage_activity"));
+export default withSessionRoute(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET") {

@@ -71,10 +71,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const membership = user?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
     const userRole = user?.roles?.[0];
-    const hasAdminPermission = isAdmin || (userRole?.permissions?.includes('admin') ?? false);
+    const hasCustomisationPermission = isAdmin || (userRole?.permissions?.includes('workspace_customisation') ?? false);
     
-    if (!hasAdminPermission) {
-      return res.status(403).json({ success: false, error: "Admin access required." });
+    if (!hasCustomisationPermission) {
+      return res.status(403).json({ success: false, error: "Workspace customisation access required." });
     }
 
     const colors = req.body.colors as SessionColors;

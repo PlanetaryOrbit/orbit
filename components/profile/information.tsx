@@ -150,7 +150,7 @@ export function InformationTab({
   const [isNight, setIsNight] = useState(false);
 
   const workspaceId = router.query.id as string;
-  const canEdit = canEditMembers && (isUser || isAdmin);
+  const canEdit = isUser || isAdmin || canEditMembers;
 
   useEffect(() => {
     const updateTime = () => {

@@ -10,9 +10,9 @@ type Data = {
 	quota?: any
 }
 
-export default withPermissionCheck(handler, 'manage_activity');
+export default withPermissionCheck(handler, 'create_quotas');
 
-export async function handler(
+async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {

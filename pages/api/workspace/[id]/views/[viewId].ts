@@ -19,7 +19,7 @@ async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number
   const role = user.roles[0];
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
-  return isAdmin || (role.permissions || []).includes("manage_views");
+  return isAdmin || (role.permissions || []).includes("edit_views");
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,16 +30,38 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     if (req.method === "DELETE") {
-      const ok = await hasManageViewsPermission(req, workspaceId);
-      if (!ok) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const user = await prisma.user.findFirst({
+        where: { userid: BigInt(req.session.userid) },
+        include: {
+          roles: { where: { workspaceGroupId: workspaceId } },
+          workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
+        },
+      });
+      if (!user || !user.roles.length) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const membership = user.workspaceMemberships[0];
+      const isAdmin = membership?.isAdmin || false;
+      const hasDeletePermission = isAdmin || user.roles[0].permissions.includes("delete_views");
+      if (!hasDeletePermission) return res.status(401).json({ success: false, error: "Unauthorized" });
       const deleted = await prisma.savedView.deleteMany({ where: { id: viewId, workspaceGroupId: workspaceId } });
       if (deleted.count === 0) return res.status(404).json({ success: false, error: "View not found" });
       return res.status(200).json({ success: true });
     }
 
     if (req.method === "PATCH") {
-      const ok = await hasManageViewsPermission(req, workspaceId);
-      if (!ok) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const user = await prisma.user.findFirst({
+        where: { userid: BigInt(req.session.userid) },
+        include: {
+          roles: { where: { workspaceGroupId: workspaceId } },
+          workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
+        },
+      });
+      if (!user || !user.roles.length) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const membership = user.workspaceMemberships[0];
+      const isAdmin = membership?.isAdmin || false;
+      const hasEditPermission = isAdmin || user.roles[0].permissions.includes("edit_views");
+      if (!hasEditPermission) return res.status(401).json({ success: false, error: "Unauthorized" });
       const { filters, columnVisibility } = req.body;
       if (!filters && !columnVisibility) {
         return res.status(400).json({ success: false, error: "Missing filters or columnVisibility" });

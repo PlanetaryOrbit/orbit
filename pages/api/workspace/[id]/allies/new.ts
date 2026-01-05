@@ -9,7 +9,7 @@ type Data = {
 	error?: string
 }
 
-export default withPermissionCheck(handler, 'manage_alliances');
+export default withPermissionCheck(handler, 'create_alliances');
 
 export async function handler(
 	req: NextApiRequest,

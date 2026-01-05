@@ -11,7 +11,7 @@ type Data = {
 	error?: string
 }
 
-export default withPermissionCheck(handler, 'manage_docs');
+export default withPermissionCheck(handler, 'delete_docs');
 
 export async function handler(
 	req: NextApiRequest,

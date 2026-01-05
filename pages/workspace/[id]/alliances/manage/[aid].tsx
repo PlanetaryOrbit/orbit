@@ -38,38 +38,14 @@ export const getServerSideProps = withPermissionCheckSsr(
   async ({ req, res, params }) => {
     let users = await prisma.user.findMany({
       where: {
-        OR: [
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "admin",
-                },
-              },
+        roles: {
+          some: {
+            workspaceGroupId: parseInt(params?.id as string),
+            permissions: {
+              has: "represent_alliance",
             },
           },
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "represent_alliance",
-                },
-              },
-            },
-          },
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "manage_alliances",
-                },
-              },
-            },
-          },
-        ],
+        },
       },
     });
     const infoUsers: any = await Promise.all(
@@ -171,7 +147,42 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     const hasManagePermissions =
       currentUser?.roles[0]?.isOwnerRole ||
-      currentUser?.roles[0]?.permissions?.includes("manage_alliances") ||
+      currentUser?.roles[0]?.permissions?.includes("create_alliances") ||
+      false;
+
+    const hasEditAllianceDetails =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("edit_alliance_details") ||
+      false;
+
+    const hasAddNotes =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("add_alliance_notes") ||
+      false;
+
+    const hasEditNotes =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("edit_alliance_notes") ||
+      false;
+
+    const hasDeleteNotes =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("delete_alliance_notes") ||
+      false;
+
+    const hasAddVisits =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("add_alliance_visits") ||
+      false;
+
+    const hasEditVisits =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("edit_alliance_visits") ||
+      false;
+
+    const hasDeleteVisits =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("delete_alliance_visits") ||
       false;
 
     if (!isAllyRep && !hasManagePermissions) {
@@ -188,7 +199,13 @@ export const getServerSideProps = withPermissionCheckSsr(
         infoAlly,
         infoVisits,
         missingReps,
-        canEdit: true,
+        canEditAllianceDetails: hasEditAllianceDetails,
+        canAddNotes: hasAddNotes,
+        canEditNotes: hasEditNotes,
+        canDeleteNotes: hasDeleteNotes,
+        canAddVisits: hasAddVisits,
+        canEditVisits: hasEditVisits,
+        canDeleteVisits: hasDeleteVisits,
       },
     };
   }
@@ -223,7 +240,13 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const ally: any = props.infoAlly;
   const users: any = props.infoUsers;
   const visits: any = props.infoVisits;
-  const canEdit: boolean = Boolean(props.canEdit);
+  const canEditAllianceDetails: boolean = Boolean(props.canEditAllianceDetails);
+  const canAddNotes: boolean = Boolean(props.canAddNotes);
+  const canEditNotes: boolean = Boolean(props.canEditNotes);
+  const canDeleteNotes: boolean = Boolean(props.canDeleteNotes);
+  const canAddVisits: boolean = Boolean(props.canAddVisits);
+  const canEditVisits: boolean = Boolean(props.canEditVisits);
+  const canDeleteVisits: boolean = Boolean(props.canDeleteVisits);
 
   const BG_COLORS = [
     "bg-rose-300",
@@ -278,6 +301,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       .patch(`/api/workspace/${id}/allies/${ally.id}/notes`, { notes: notes })
       .then((req) => {
         setEditNotes([]);
+        setNewNotes([]);
       });
     toast.promise(axiosPromise, {
       loading: "Updating notes...",
@@ -324,6 +348,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   };
   const [notes, setNotes] = useState(ally.notes || [""]);
   const [editNotes, setEditNotes] = useState<any[]>([]);
+  const [newNotes, setNewNotes] = useState<number[]>([]);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [discordServer, setDiscordServer] = useState(ally.discordServer || "");
   const [theirReps, setTheirReps] = useState<string[]>(ally.theirReps || [""]);
@@ -399,13 +424,30 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   };
 
   const createNote = () => {
-    setNotes([...notes, "This note is empty!"]);
+    const newNoteIndex = notes.length;
+    setNotes([...notes, ""]);
+    setEditNotes([...editNotes, newNoteIndex]);
+    setNewNotes([...newNotes, newNoteIndex]); // Track this as a new note
   };
 
-  const deleteNote = (index: any) => {
+  const deleteNote = async (index: any) => {
     const noteClone = [...notes];
     noteClone.splice(index, 1);
     setNotes(noteClone);
+    setNewNotes(newNotes.filter(i => i !== index).map(i => i > index ? i - 1 : i));
+
+    const axiosPromise = axios
+      .patch(`/api/workspace/${id}/allies/${ally.id}/notes`, { notes: noteClone })
+      .then((req) => {
+        setEditNotes([]);
+      });
+    toast.promise(axiosPromise, {
+      loading: "Deleting note...",
+      success: () => {
+        return "Note deleted!";
+      },
+      error: "Note was not deleted due to an unknown error.",
+    });
   };
 
   const noteEdit = (index: any) => {
@@ -836,7 +878,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     </p>
                   </div>
                 </div>
-                {canEdit && (
+                {canEditAllianceDetails && (
                   <button
                     onClick={() => setIsEditingInfo(!isEditingInfo)}
                     className="p-2 text-zinc-400 hover:text-primary transition-colors"
@@ -1099,7 +1141,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     </p>
                   </div>
                 </div>
-                {canEdit && (
+                {canAddNotes && (
                   <button
                     onClick={() => createNote()}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -1116,7 +1158,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                       <IconClipboardList className="w-6 h-6 text-primary" />
                     </div>
-                    <h3 className="text-sm font-medium text-zinc-900 mb-1">
+                    <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
                       No Notes
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -1139,20 +1181,24 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         >
                           {notes[index]}
                         </p>
-                        {canEdit && (
+                        {((canEditNotes || (canAddNotes && newNotes.includes(index))) || canDeleteNotes) && (
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => noteEdit(index)}
-                              className="p-1 text-zinc-400 hover:text-primary transition-colors"
-                            >
-                              <IconPencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteNote(index)}
-                              className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                            >
-                              <IconTrash className="w-4 h-4" />
-                            </button>
+                            {(canEditNotes || (canAddNotes && newNotes.includes(index))) && (
+                              <button
+                                onClick={() => noteEdit(index)}
+                                className="p-1 text-zinc-400 hover:text-primary transition-colors"
+                              >
+                                <IconPencil className="w-4 h-4" />
+                              </button>
+                            )}
+                            {canDeleteNotes && (
+                              <button
+                                onClick={() => deleteNote(index)}
+                                className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                              >
+                                <IconTrash className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1170,7 +1216,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                       </div>
                     </div>
                   ))}
-                  {canEdit && (
+                  {(canAddNotes || canEditNotes) && (
                     <button
                       onClick={() => saveNotes()}
                       className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
@@ -1200,7 +1246,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     </p>
                   </div>
                 </div>
-                {canEdit && (
+                {canAddVisits && (
                   <button
                     onClick={() => setIsOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -1298,27 +1344,31 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                               </div>
                             )}
                         </div>
-                        {canEdit && (
+                        {(canEditVisits || canDeleteVisits) && (
                           <div className="flex items-center gap-1">
-                            <button
-                              onClick={() =>
-                                editVisit(
-                                  visit.id,
-                                  visit.name,
-                                  visit.time,
-                                  visit.participants
-                                )
-                              }
-                              className="p-1 text-zinc-400 hover:text-primary transition-colors"
-                            >
-                              <IconPencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteVisit(visit.id)}
-                              className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                            >
-                              <IconTrash className="w-4 h-4" />
-                            </button>
+                            {canEditVisits && (
+                              <button
+                                onClick={() =>
+                                  editVisit(
+                                    visit.id,
+                                    visit.name,
+                                    visit.time,
+                                    visit.participants
+                                  )
+                                }
+                                className="p-1 text-zinc-400 hover:text-primary transition-colors"
+                              >
+                                <IconPencil className="w-4 h-4" />
+                              </button>
+                            )}
+                            {canDeleteVisits && (
+                              <button
+                                onClick={() => deleteVisit(visit.id)}
+                                className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                              >
+                                <IconTrash className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 
-export default withPermissionCheck(async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
   const { id } = req.query;
   const { userId, minutes, reason, action } = req.body as { userId?: number; minutes?: number; reason?: string; action?: 'award' | 'remove' };
@@ -41,4 +41,6 @@ export default withPermissionCheck(async function handler(req: NextApiRequest, r
 
   const safe = JSON.parse(JSON.stringify(adjustment, (_k, v) => typeof v === 'bigint' ? v.toString() : v));
   return res.status(200).json({ success: true, adjustment: safe });
-}, 'manage_activity');
+}
+
+export default withPermissionCheck(handler, 'activity_adjustments');

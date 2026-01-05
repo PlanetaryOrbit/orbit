@@ -123,9 +123,16 @@ export const getServerSideProps = withPermissionCheckSsr(
     const membership = user.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
     const userRoleIds = (user.roles || []).map((r: any) => r.id);
-    const canManage = isAdmin || (user.roles || []).some(
-      (r: any) => (r.permissions || []).includes("manage_docs")
+    const canCreate = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("create_docs")
     );
+    const canEdit = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("edit_docs")
+    );
+    const canDelete = isAdmin || (user.roles || []).some(
+      (r: any) => (r.permissions || []).includes("delete_docs")
+    );
+    const canManage = canCreate || canEdit || canDelete;
     if (canManage) {
       const docs = await prisma.document.findMany({
         where: {
@@ -148,7 +155,9 @@ export const getServerSideProps = withPermissionCheckSsr(
               typeof value === "bigint" ? value.toString() : value
             )
           ) as typeof docs,
-          canManage,
+          canCreate,
+          canEdit,
+          canDelete,
         },
       };
     }
@@ -178,7 +187,9 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
-        canManage: false,
+        canCreate: false,
+        canEdit: false,
+        canDelete: false,
       },
     };
   }
@@ -186,9 +197,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 
 type pageProps = {
   documents: (document & { owner: { username: string; picture: string } })[];
-  canManage: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 };
-const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
+const Home: pageWithLayout<pageProps> = ({ documents, canCreate, canEdit, canDelete }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const text = useMemo(
     () => randomText(login.displayname),
@@ -246,7 +259,7 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
         </div>
 
         {/* New Document Button */}
-        {canManage ? (
+        {canCreate ? (
           <button
             onClick={() =>
               router.push(`/workspace/${router.query.id}/docs/new`)
@@ -282,7 +295,7 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
                 onClick={() => goToGuide(document)}
                 className="relative bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 hover:shadow-md transition-all text-left group cursor-pointer"
               >
-                {canManage && (
+                {(canEdit || canDelete) && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -361,7 +374,7 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
             <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
               No documents yet
             </h3>
-            {canManage && (
+            {canCreate && (
               <>
                 <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
                   Get started by creating your first document
@@ -377,7 +390,7 @@ const Home: pageWithLayout<pageProps> = ({ documents, canManage }) => {
                 </button>
               </>
             )}
-            {!canManage && (
+            {!canCreate && (
               <>
                 <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
                   Contact your workspace admin to create a document.

@@ -34,38 +34,14 @@ export const getServerSideProps = withPermissionCheckSsr(
   async ({ req, res, params }) => {
     let users = await prisma.user.findMany({
       where: {
-        OR: [
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "admin",
-                },
-              },
+        roles: {
+          some: {
+            workspaceGroupId: parseInt(params?.id as string),
+            permissions: {
+              has: "represent_alliance",
             },
           },
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "represent_alliance",
-                },
-              },
-            },
-          },
-          {
-            roles: {
-              some: {
-                workspaceGroupId: parseInt(params?.id as string),
-                permissions: {
-                  has: "manage_alliances",
-                },
-              },
-            },
-          },
-        ],
+        },
       },
     });
     const infoUsers: any = await Promise.all(
@@ -125,7 +101,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
   const [workspace] = useRecoilState(workspacestate);
   const text = useMemo(() => randomText(login.displayname), []);
   const canManageAlliances =
-    workspace.yourPermission?.includes("manage_alliances") || false;
+    workspace.yourPermission?.includes("create_alliances") || false;
 
   const isUserRep = (ally: any) => {
     if (!login.userId) return false;

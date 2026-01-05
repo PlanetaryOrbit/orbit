@@ -12,7 +12,7 @@ type Data = {
 	ally?: any
 }
 
-export default withPermissionCheck(handler, 'manage_alliances');
+export default withPermissionCheck(handler, 'assign_alliance_representatives');
 
 export async function handler(
 	req: NextApiRequest,

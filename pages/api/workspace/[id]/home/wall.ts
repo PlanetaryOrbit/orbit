@@ -13,7 +13,7 @@ type Data = {
 	posts?: wallPost[]
 }
 
-export default withPermissionCheck(handler);
+export default withPermissionCheck(handler, 'view_wall');
 
 export async function handler(
 	req: NextApiRequest,
