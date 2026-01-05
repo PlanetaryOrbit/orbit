@@ -335,7 +335,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                 {logbookPermissions?.warning && <option value="warning">Warning</option>}
                 {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
                 {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
-                {logbookPermissions?.promotion && (
+                {rankGunEnabled && logbookPermissions?.rank && (
                   <option value="rank_change">Rank Change</option>
                 )}
                 {logbookPermissions?.termination && <option value="termination">Termination</option>}
