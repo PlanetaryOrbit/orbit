@@ -90,6 +90,7 @@ type User = {
   messages: number;
   registered: boolean;
   quota: boolean;
+  departments?: string[];
 };
 
 export const getServerSideProps = withPermissionCheckSsr(
@@ -117,6 +118,18 @@ export const getServerSideProps = withPermissionCheckSsr(
     const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false;
     const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false;
 
+    const departments = await prisma.department.findMany({
+      where: { workspaceGroupId },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
     return {
       props: {
         isAdmin: isAdmin,
@@ -125,6 +138,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         hasDeleteViewsPerm: hasDeleteViewsPerm,
         hasUseSavedViewsPerm: hasUseSavedViewsPerm,
         hasViewMemberProfiles: hasViewMemberProfiles,
+        departments: JSON.parse(JSON.stringify(departments)),
       },
     };
   },
@@ -137,14 +151,15 @@ const filters: {
   username: ["equal", "notEqual", "contains"],
   minutes: ["equal", "greaterThan", "lessThan"],
   idle: ["equal", "greaterThan", "lessThan"],
-  rank: ["equal", "greaterThan", "lessThan"],
-  sessions: ["equal", "greaterThan", "lessThan"],
-  hosted: ["equal", "greaterThan", "lessThan"],
-  warnings: ["equal", "greaterThan", "lessThan"],
-  messages: ["equal", "greaterThan", "lessThan"],
+  rank: ["equal", "notEqual", "greaterThan", "lessThan"],
+  sessions: ["equal", "notEqual", "greaterThan", "lessThan"],
+  hosted: ["equal", "notEqual", "greaterThan", "lessThan"],
+  warnings: ["equal", "notEqual", "greaterThan", "lessThan"],
+  messages: ["equal", "notEqual", "greaterThan", "lessThan"],
   notices: ["equal", "greaterThan", "lessThan"],
-  registered: ["equal"],
-  quota: ["equal"],
+  registered: ["equal", "notEqual"],
+  quota: ["equal", "notEqual"],
+  department: ["equal", "notEqual"],
 };
 
 const filterNames: {
@@ -164,8 +179,9 @@ type pageProps = {
   hasDeleteViewsPerm: boolean;
   hasUseSavedViewsPerm: boolean;
   hasViewMemberProfiles: boolean;
+  departments: Array<{ id: string; name: string; color: string | null }>;
 };
-const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCreateViewsPerm, hasDeleteViewsPerm, hasUseSavedViewsPerm, hasViewMemberProfiles }) => {
+const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCreateViewsPerm, hasDeleteViewsPerm, hasUseSavedViewsPerm, hasViewMemberProfiles, departments }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
@@ -1036,6 +1052,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                                 >
                                   <Filter
                                     ranks={ranks}
+                                    departments={departments}
                                     updateFilter={(col, op, value) =>
                                       updateFilter(filter.id, col, op, value)
                                     }
@@ -1658,7 +1675,8 @@ const Filter: React.FC<{
     name: string;
     rank: number;
   }[];
-}> = ({ updateFilter, deleteFilter, data, ranks }) => {
+  departments: Array<{ id: string; name: string; color: string | null }>;
+}> = ({ updateFilter, deleteFilter, data, ranks, departments }) => {
   const methods = useForm<{
     col: string;
     op: string;
@@ -1726,7 +1744,7 @@ const Filter: React.FC<{
           </select>
         </div>
 
-        {getValues("col") !== "rank" && (
+        {getValues("col") !== "rank" && getValues("col") !== "registered" && getValues("col") !== "quota" && getValues("col") !== "department" && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-zinc-700 dark:text-white">
               Value
@@ -1779,6 +1797,24 @@ const Filter: React.FC<{
             >
               <option value="true">✅</option>
               <option value="false">❌</option>
+            </select>
+          </div>
+        )}
+
+        {getValues("col") === "department" && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
+              Value
+            </label>
+            <select
+              {...register("value")}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+            >
+              {departments.map((dept) => (
+                <option value={dept.id} key={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
             </select>
           </div>
         )}

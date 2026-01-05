@@ -95,6 +95,18 @@ export default withPermissionCheck(
                 },
               },
             },
+            workspaceMemberships: {
+              where: {
+                workspaceGroupId,
+              },
+              include: {
+                departmentMembers: {
+                  include: {
+                    department: true,
+                  },
+                },
+              },
+            },
           },
         });
       } else {
@@ -121,6 +133,18 @@ export default withPermissionCheck(
                 quotaRoles: {
                   include: {
                     quota: true,
+                  },
+                },
+              },
+            },
+            workspaceMemberships: {
+              where: {
+                workspaceGroupId,
+              },
+              include: {
+                departmentMembers: {
+                  include: {
+                    department: true,
                   },
                 },
               },
@@ -413,6 +437,10 @@ export default withPermissionCheck(
         const totalActiveMs =
           (ms.length ? ms.reduce((p, c) => p + c) : 0) + totalAdjustmentMs;
 
+        const userDepartments = user.workspaceMemberships?.[0]?.departmentMembers?.map(
+          (dm: any) => dm.department.id
+        ) || [];
+
         computedUsers.push({
           info: {
             userId: Number(user.userid),
@@ -436,6 +464,7 @@ export default withPermissionCheck(
             : 0,
           registered: user.registered || false,
           quota: quota,
+          departments: userDepartments,
         });
       }
 
@@ -482,6 +511,9 @@ export default withPermissionCheck(
               case "quota":
                 value = user.quota;
                 break;
+              case "department":
+                value = user.departments || [];
+                break;
               default:
                 return true;
             }
@@ -489,11 +521,17 @@ export default withPermissionCheck(
             // Apply filter operation
             switch (filter.filter) {
               case "equal":
+                if (filter.column === "department") {
+                  return Array.isArray(value) && value.includes(filter.value);
+                }
                 if (typeof value === "boolean") {
                   return value === (filter.value === "true");
                 }
                 return value == filter.value;
               case "notEqual":
+                if (filter.column === "department") {
+                  return Array.isArray(value) && !value.includes(filter.value);
+                }
                 if (typeof value === "boolean") {
                   return value !== (filter.value === "true");
                 }
