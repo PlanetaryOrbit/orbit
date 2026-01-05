@@ -141,8 +141,8 @@ importers:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       noblox.js:
-        specifier: ^6.2.0
-        version: 6.2.0
+        specifier: ^7.3.1
+        version: 7.3.1
       node-cache:
         specifier: ^5.1.2
         version: 5.1.2
@@ -3622,8 +3622,8 @@ packages:
       sass:
         optional: true
 
-  noblox.js@6.2.0:
-    resolution: {integrity: sha512-LJZctENpuS3/iNQI/c1kPvmPdRhfZbiQLvMM0mXXwnApEO/6NXGlvYiBpMknBtHeDbTbrTaWa0BD6SeMn/z7Xw==}
+  noblox.js@7.3.1:
+    resolution: {integrity: sha512-UowG2caVIjT9VUuXYLak9PRUsh24nIG5MHb6vRSxbuTkM7g/jbsctBLQCutj76FLkpVewlUR7Zv2A0xlo3rN3g==}
     engines: {node: '>=18.18'}
 
   node-addon-api@7.1.1:
@@ -4948,6 +4948,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -8945,7 +8946,7 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
-  noblox.js@6.2.0:
+  noblox.js@7.3.1:
     dependencies:
       '@microsoft/signalr': 8.0.17
       chalk: 5.6.2
