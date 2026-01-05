@@ -414,7 +414,7 @@ export function InformationTab({
                 {editing ? (
                   <div className="space-y-2">
                     {availableDepartments.length > 0 ? (
-                      <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple>
+                      <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple by="id">
                         <div className="relative">
                           <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50">
                             <span className="block truncate text-zinc-900 dark:text-white">
