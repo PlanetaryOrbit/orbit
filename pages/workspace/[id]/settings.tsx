@@ -92,6 +92,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
           ...m,
           userId: Number(m.userId),
           lineManagerId: m.lineManagerId ? Number(m.lineManagerId) : null,
+          joinDate: m.joinDate ? m.joinDate.toISOString() : null,
         })),
       }
     }),
