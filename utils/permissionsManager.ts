@@ -8,6 +8,7 @@ import type {
 import { withSessionRoute, withSessionSsr } from "@/lib/withSession";
 import * as noblox from "noblox.js";
 import { getConfig } from "./configEngine";
+import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
 
 const permissionsCache = new Map<string, { data: any; timestamp: number }>();
@@ -64,15 +65,23 @@ export function withPermissionCheck(
   permission?: string | string[]
 ) {
   return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+    if (!validateCsrf(req, res)) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "CSRF validation failed. Invalid origin or referer." 
+      });
+    }
+
     const uid = req.session.userid;
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (
       PLANETARY_CLOUD_URL !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY !== undefined
+      PLANETARY_CLOUD_SERVICE_KEY !== undefined &&
+      PLANETARY_CLOUD_SERVICE_KEY.length > 0
     ) {
       if (
-        req.headers["x-planetary-cloud-service-key"] ==
+        req.headers["x-planetary-cloud-service-key"] ===
         PLANETARY_CLOUD_SERVICE_KEY
       ) {
         return handler(req, res);
@@ -149,10 +158,11 @@ export function withPermissionCheckSsr(
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (
       PLANETARY_CLOUD_URL !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY !== undefined
+      PLANETARY_CLOUD_SERVICE_KEY !== undefined &&
+      PLANETARY_CLOUD_SERVICE_KEY.length > 0
     ) {
       if (
-        req.headers["x-planetary-cloud-service-key"] ==
+        req.headers["x-planetary-cloud-service-key"] ===
         PLANETARY_CLOUD_SERVICE_KEY
       ) {
         return handler(context);

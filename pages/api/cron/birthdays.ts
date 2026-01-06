@@ -10,8 +10,14 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const cronSecret = req.headers["x-cron-secret"];
-  if (cronSecret !== process.env.CRON_SECRET) {
+  const cronSecret = req.headers["x-cron-secret"] || req.headers.authorization;
+  const expectedSecret = process.env.CRON_SECRET;
+
+  if (!expectedSecret) {
+    return res.status(500).json({ error: "CRON_SECRET not configured" });
+  }
+
+  if (!cronSecret || String(cronSecret) !== expectedSecret) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -27,13 +33,16 @@ export default async function handler(
 
     for (const workspace of workspaces) {
       try {
-        const webhookConfig = await getConfig("birthday_webhook", workspace.groupId);
-        
+        const webhookConfig = await getConfig(
+          "birthday_webhook",
+          workspace.groupId
+        );
+
         if (!webhookConfig || !webhookConfig.enabled || !webhookConfig.url) {
           continue;
         }
 
-        const embedColor = 0xFF0099;
+        const embedColor = 0xff0099;
 
         const today = new Date();
         const todayDay = today.getDate();
@@ -67,8 +76,11 @@ export default async function handler(
 
         for (const member of membersWithBirthdays) {
           const user = member.user;
-          const colorHex = embedColor.toString(16).toUpperCase().padStart(6, '0');
-          
+          const colorHex = embedColor
+            .toString(16)
+            .toUpperCase()
+            .padStart(6, "0");
+
           const embed: any = {
             title: "🎉 Birthday Celebration! 🎉",
             description: `It's **${user.username}**'s birthday today!\n\nWish them a happy birthday!`,
@@ -118,7 +130,10 @@ export default async function handler(
           }
         }
       } catch (error) {
-        console.error(`Error processing birthdays for workspace ${workspace.groupId}:`, error);
+        console.error(
+          `Error processing birthdays for workspace ${workspace.groupId}:`,
+          error
+        );
         results.push({
           workspace: workspace.groupName,
           error: error instanceof Error ? error.message : "Unknown error",

@@ -24,6 +24,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .status(405)
       .json({ success: false, error: "Method not allowed" });
 
+  const secretKey = process.env.SECRET_KEY;
+  if (!secretKey) {
+    console.error("SECURITY ERROR: SECRET_KEY environment variable is not set");
+    return res
+      .status(500)
+      .json({
+        success: false,
+        error: "Server configuration error: SECRET_KEY not configured",
+      });
+  }
+
   const { id, docId } = req.query;
   const { expiresInHours = 24, requiresAuth = true } = req.body;
 
@@ -55,7 +66,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (expiresInHours && expiresInHours > 0) {
     expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
     secureToken = crypto
-      .createHmac("sha256", process.env.SECRET_KEY || "default-secret")
+      .createHmac("sha256", secretKey)
       .update(`${docId}:${id}:${expiresAt.getTime()}`)
       .digest("hex");
   }
