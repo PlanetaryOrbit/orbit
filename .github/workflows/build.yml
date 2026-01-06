@@ -3,16 +3,10 @@ name: Build and Push Orbit Image
 on:
   workflow_dispatch:
     inputs:
-      version_bump:
-        description: "Version bump type"
+      tag:
+        description: "Docker / Git tag to release (e.g. 2.1.4beta1)"
         required: true
-        default: "auto"
-        type: choice
-        options:
-          - auto
-          - patch
-          - minor
-          - major
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -41,51 +35,14 @@ jobs:
           username: ${{ secrets.GH_USER }}
           password: ${{ secrets.GH_PAT }}
 
-      - name: Get current version
-        id: get_version
+      - name: Validate tag
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "2.1.3beta0")
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "📦 Latest tag: $LATEST_TAG"
-
-      - name: Calculate next version
-        id: next_version
-        run: |
-          LATEST_TAG="${{ steps.get_version.outputs.latest_tag }}"
-
-          if [[ $LATEST_TAG =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)beta([0-9]+)$ ]]; then
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            PATCH="${BASH_REMATCH[3]}"
-            BETA="${BASH_REMATCH[4]}"
-          else
-            MAJOR=2
-            MINOR=1
-            PATCH=3
-            BETA=0
+          TAG="${{ github.event.inputs.tag }}"
+          if [[ -z "$TAG" ]]; then
+            echo "❌ Tag is required"
+            exit 1
           fi
-
-          BUMP_TYPE="${{ github.event.inputs.version_bump || 'auto' }}"
-
-          if [ "$BUMP_TYPE" = "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-            BETA=1
-          elif [ "$BUMP_TYPE" = "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            BETA=1
-          elif [ "$BUMP_TYPE" = "patch" ]; then
-            PATCH=$((PATCH + 1))
-            BETA=1
-          else
-            BETA=$((BETA + 1))
-          fi
-
-          NEW_TAG="${MAJOR}.${MINOR}.${PATCH}beta${BETA}"
-          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "🚀 New tag: $NEW_TAG (from $LATEST_TAG)"
+          echo "🚀 Releasing tag: $TAG"
 
       # Build ARM64
       - name: Build and push ARM64 image
@@ -95,58 +52,19 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}-arm64
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.next_version.outputs.new_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}-arm64
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
 
-      - name: Create Git tag
-        run: |
-          cd $GITHUB_WORKSPACE
-          NEW_TAG="${{ steps.next_version.outputs.new_tag }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
-          git push origin "$NEW_TAG"
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.next_version.outputs.new_tag }}
-          release_name: Orbit ${{ steps.next_version.outputs.new_tag }}
-          body: |
-            ## Orbit Release ${{ steps.next_version.outputs.new_tag }}
-
-            ### Docker Images
-            ```bash
-            docker pull ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}
-            ```
-
-            ### Platforms
-            - `linux/amd64` (Intel/AMD x86_64)
-            - `linux/arm64` (Apple Silicon, ARM servers)
-
-            ### Changes
-            - Auto-deployed from commit ${{ github.sha }}
-          draft: false
-          prerelease: true
 
       - name: Summary
         run: |
-          echo "## 🎉 ARM64 Build Successful!" >> $GITHUB_STEP_SUMMARY
+          TAG="${{ github.event.inputs.tag }}"
+          echo "## 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Image Tags" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}-arm64\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/planetaryorbit/orbit:${{ steps.next_version.outputs.new_tag }}\` (ARM64 for now)" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/planetaryorbit/orbit:latest\` (ARM64 for now)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🖥️ Platforms" >> $GITHUB_STEP_SUMMARY
-          echo "- linux/arm64 (Apple Silicon, ARM) ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- linux/amd64 (Intel/AMD) ⚠️ Run 'Build Orbit (AMD64)' workflow manually with version: \`${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔖 Version" >> $GITHUB_STEP_SUMMARY
-          echo "Previous: \`${{ steps.get_version.outputs.latest_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "New: \`${{ steps.next_version.outputs.new_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:${TAG}-arm64\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:${TAG}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/planetaryorbit/orbit:latest\`" >> $GITHUB_STEP_SUMMARY
