@@ -26,6 +26,10 @@ export function validateOrigin(req: NextApiRequest): boolean {
     }
   }
 
+  if (host?.endsWith(".planetaryapp.cloud")) {
+    return true;
+  }
+
   const allowedOrigins = getAllowedOrigins();
 
   if (origin) {
@@ -82,7 +86,7 @@ export function validateOrigin(req: NextApiRequest): boolean {
     }
   }
 
-  // No origin or referer
+  console.warn("[CSRF] Request missing origin, referer, and host headers");
   return false;
 }
 
@@ -129,13 +133,6 @@ export function generateCsrfToken(sessionId: string | number): string {
   return `${token}:${timestamp}`;
 }
 
-/**
- * Validate a CSRF token
- * @param token - The CSRF token to validate
- * @param sessionId - The session identifier
- * @param maxAge - Maximum age of the token in milliseconds (default: 1 hour)
- * @returns true if the token is valid, false otherwise
- */
 export function validateCsrfToken(
   token: string,
   sessionId: string | number,
