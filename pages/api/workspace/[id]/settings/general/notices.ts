@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig, setConfig } from '@/utils/configEngine'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { withSessionRoute } from '@/lib/withSession'
 
 type Data = {
   success: boolean
@@ -9,10 +10,17 @@ type Data = {
   value?: any
 }
 
-export default async function handler(
+export default withSessionRoute(handler);
+
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  const userId = (req as any).session?.userid;
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
   if (req.method === 'GET') {
     const config = await getConfig('notices', parseInt(req.query.id as string));
     if (!config) {
@@ -21,8 +29,8 @@ export default async function handler(
     return res.status(200).json({ success: true, value: config });
   }
 
-  return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
-    if (req.method === 'PATCH') {
+  if (req.method === 'PATCH') {
+    return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
       await setConfig('notices', {
         enabled: req.body.enabled
       }, parseInt(req.query.id as string));
@@ -31,8 +39,8 @@ export default async function handler(
         await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.update', 'notices', { enabled: req.body.enabled });
       } catch (e) {}
       return res.status(200).json({ success: true });
-    }
+    }, 'manage_features')(req, res);
+  }
 
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }, 'manage_features')(req, res);
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }

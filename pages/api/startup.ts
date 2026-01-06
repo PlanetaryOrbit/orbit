@@ -19,6 +19,14 @@ export default async function handler(
       .json({ success: false, error: "Method not allowed" });
   }
 
+  const cronSecret = req.headers["x-cron-secret"];
+  if (!process.env.CRON_SECRET || cronSecret !== process.env.CRON_SECRET) {
+    return res.status(401).json({
+      success: false,
+      error: "Unauthorized",
+    });
+  }
+
   // Prevent running multiple times
   if (hasRunStartupTasks) {
     return res.status(200).json({
