@@ -19,7 +19,10 @@ function getAllowedOrigins(): string[] {
 export function validateOrigin(req: NextApiRequest): boolean {
   const origin = req.headers.origin as string | undefined;
   const referer = req.headers.referer as string | undefined;
-  const host = req.headers.host as string | undefined;
+  const forwardedHost = req.headers["x-forwarded-host"] as string | undefined;
+  const forwardedProto = req.headers["x-forwarded-proto"] as string | undefined;
+  const host = forwardedHost || (req.headers.host as string | undefined);
+  
   if (process.env.NODE_ENV === "development") {
     if (host?.includes("localhost") || host?.includes("127.0.0.1")) {
       return true;
@@ -38,7 +41,7 @@ export function validateOrigin(req: NextApiRequest): boolean {
     }
 
     if (host) {
-      const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+      const protocol = forwardedProto || (process.env.NODE_ENV === "production" ? "https" : "http");
       const expectedOrigin = `${protocol}://${host}`;
       if (origin === expectedOrigin) {
         return true;
