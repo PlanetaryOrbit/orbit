@@ -55,6 +55,22 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
+  useEffect(() => {
+    if (isOpen && signatureCanvasRef.current) {
+      const canvas = signatureCanvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+      }
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const isExternalDocument =
@@ -182,6 +198,21 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
   };
 
   // Canvas drawing functions for signature pad
+  const getCanvasCoordinates = (
+    canvas: HTMLCanvasElement,
+    clientX: number,
+    clientY: number
+  ) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  };
+
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
     const canvas = signatureCanvasRef.current;
@@ -190,12 +221,9 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const coords = getCanvasCoordinates(canvas, e.clientX, e.clientY);
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(coords.x, coords.y);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -207,11 +235,8 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    ctx.lineTo(x, y);
+    const coords = getCanvasCoordinates(canvas, e.clientX, e.clientY);
+    ctx.lineTo(coords.x, coords.y);
     ctx.stroke();
   };
 
@@ -246,6 +271,13 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Reconfigure context after clearing
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
     setSignature("");
   };
 
@@ -269,13 +301,31 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
                 <div className="border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                   <canvas
                     ref={signatureCanvasRef}
-                    width={400}
-                    height={100}
-                    className="w-full cursor-crosshair bg-white dark:bg-zinc-800"
+                    className="w-full h-24 cursor-crosshair bg-white dark:bg-zinc-800 touch-none"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      startDrawing({
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                      } as any);
+                    }}
+                    onTouchMove={(e) => {
+                      e.preventDefault();
+                      const touch = e.touches[0];
+                      draw({
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                      } as any);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      stopDrawing();
+                    }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -365,7 +415,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  Policy Acknowledgment Required
+                  Acknowledgement required
                 </h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {document.isTrainingDocument
