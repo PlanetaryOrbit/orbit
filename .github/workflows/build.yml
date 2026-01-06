@@ -103,6 +103,7 @@ jobs:
 
       - name: Create Git tag
         run: |
+          cd $GITHUB_WORKSPACE
           NEW_TAG="${{ steps.next_version.outputs.new_tag }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
