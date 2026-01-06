@@ -81,9 +81,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 	}
 
-	if (usingEnvVars) {
-		console.log('Using OAuth credentials from environment variables');
-	}
+
 
 	if (!clientId || !clientSecret || !redirectUri) {
 		console.error('Missing Roblox OAuth configuration:', {
@@ -102,13 +100,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		console.log('Attempting token exchange with:', {
-			clientIdLength: clientId.length,
-			clientSecretLength: clientSecret.length,
-			redirectUri,
-			codePresent: !!code
-		});
-		
+
 		const tokenResponse = await axios.post<RobloxTokenResponse>(
 		'https://apis.roblox.com/oauth/v1/token',
 		new URLSearchParams({
