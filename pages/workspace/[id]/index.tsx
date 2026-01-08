@@ -31,6 +31,16 @@ import {
   IconAlertTriangle,
 } from "@tabler/icons-react"
 import clsx from "clsx"
+import { withPermissionCheckSsr } from "@/utils/permissionsManager"
+import { GetServerSideProps } from "next"
+
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
+  async ({ query }) => {
+    return {
+      props: {},
+    }
+  }
+)
 
 interface WidgetConfig {
   component: React.FC
