@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import prisma from "@/utils/database"
 import { withPermissionCheck } from "@/utils/permissionsManager"
 
-export default handler
+export default withPermissionCheck(handler)
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id: workspaceId, sessionId, startTime, endTime } = req.query
