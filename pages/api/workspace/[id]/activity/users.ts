@@ -29,7 +29,7 @@ type TopStaff = {
   picture: string;
 };
 
-export default handler;
+export default withPermissionCheck(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")
