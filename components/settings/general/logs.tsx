@@ -26,6 +26,71 @@ const ACTION_LABELS: Record<string, string> = {
   'wall.post.create': 'Wall Create',
 };
 
+const PERMISSION_LABELS: Record<string, string> = {
+  'view_wall': 'View wall',
+  'post_on_wall': 'Post on wall',
+  'delete_wall_posts': 'Delete wall posts',
+  'sessions_assign': 'Assign users to Sessions',
+  'sessions_claim': 'Assign Self to Sessions',
+  'sessions_host': 'Host/Co-Host Sessions',
+  'sessions_unscheduled': 'Create Unscheduled Sessions',
+  'sessions_scheduled': 'Create Scheduled Sessions',
+  'manage_sessions': 'Manage sessions',
+  'view_members': 'View members',
+  'use_views': 'Use saved views',
+  'create_views': 'Create views',
+  'edit_views': 'Edit views',
+  'delete_views': 'Delete views',
+  'create_docs': 'Create docs',
+  'edit_docs': 'Edit docs',
+  'delete_docs': 'Delete docs',
+  'create_policies': 'Create policies',
+  'edit_policies': 'Edit policies',
+  'delete_policies': 'Delete policies',
+  'view_compliance': 'View compliance',
+  'create_notices': 'Create notices',
+  'approve_notices': 'Approve notices',
+  'manage_notices': 'Manage notices',
+  'create_quotas': 'Create quotas',
+  'delete_quotas': 'Delete quotas',
+  'view_member_profiles': 'Profiles - View',
+  'edit_member_details': 'Info - Edit details',
+  'record_notices': 'Notices - Record approved',
+  'activity_adjustments': 'Activity - Adjustments',
+  'view_logbook': 'Logbook - See Entries',
+  'logbook_redact': 'Logbook - Redact Entries',
+  'logbook_note': 'Logbook - Note',
+  'logbook_warning': 'Logbook - Warning',
+  'logbook_promotion': 'Logbook - Promotion',
+  'logbook_demotion': 'Logbook - Demotion',
+  'logbook_termination': 'Logbook - Termination',
+  'rank_users': 'Logbook - Use Ranking Integration',
+  'create_alliances': 'Create alliances',
+  'delete_alliances': 'Delete alliances',
+  'represent_alliance': 'Represent alliance',
+  'edit_alliance_details': 'Edit alliance details',
+  'add_alliance_notes': 'Add notes',
+  'edit_alliance_notes': 'Edit notes',
+  'delete_alliance_notes': 'Delete notes',
+  'add_alliance_visits': 'Add visits',
+  'edit_alliance_visits': 'Edit visits',
+  'delete_alliance_visits': 'Delete visits',
+  'admin': 'Admin (Manage workspace)',
+  'reset_activity': 'Reset activity',
+  'view_audit_logs': 'View audit logs',
+  'manage_apikeys': 'Create API keys',
+  'manage_features': 'Manage features',
+  'workspace_customisation': 'Workspace customisation',
+};
+
+const SESSION_TYPE_LABELS: Record<string, string> = {
+  'recurring': 'Recurring',
+  'shift': 'Shift',
+  'training': 'Training',
+  'event': 'Event',
+  'other': 'Other',
+};
+
 const getActionLabel = (action: string) => {
   if (!action) return '';
   if (ACTION_LABELS[action]) return ACTION_LABELS[action];
@@ -35,10 +100,26 @@ const getActionLabel = (action: string) => {
     .join(' ');
 };
 
-const formatValue = (v: any) => {
-  if (v === null || v === undefined) return String(v);
-  if (typeof v === 'object') return JSON.stringify(v, null, 2);
-  return String(v);
+const formatValue = (v: any, maxLength: number = 100) => {
+  if (v === null) return <span className="text-zinc-400 dark:text-zinc-500 italic">null</span>;
+  if (v === undefined) return <span className="text-zinc-400 dark:text-zinc-500 italic">undefined</span>;
+  if (typeof v === 'boolean') return <span className="font-medium">{v ? 'true' : 'false'}</span>;
+  if (typeof v === 'number') return <span className="font-medium">{v}</span>;
+  if (typeof v === 'string') {
+    if (v.length === 0) return <span className="text-zinc-400 dark:text-zinc-500 italic">(empty)</span>;
+    const truncated = v.length > maxLength ? v.slice(0, maxLength) + '...' : v;
+    return <span>{truncated}</span>;
+  }
+  if (Array.isArray(v)) {
+    if (v.length === 0) return <span className="text-zinc-400 dark:text-zinc-500 italic">[]</span>;
+    return <span className="font-mono">[{v.length} items]</span>;
+  }
+  if (typeof v === 'object') {
+    const keys = Object.keys(v);
+    if (keys.length === 0) return <span className="text-zinc-400 dark:text-zinc-500 italic">{'{}'}</span>;
+    return <span className="font-mono">{'{'}{keys.slice(0, 3).join(', ')}{keys.length > 3 ? '...' : ''}{'}'}</span>;
+  }
+  return <span className="font-mono">{String(v)}</span>;
 };
 
 const itemKey = (x: any) => {
@@ -53,129 +134,245 @@ const itemKey = (x: any) => {
 };
 
 const renderDetails = (details: any, action?: string) => {
-  if (!details) return <span className="text-xs text-zinc-500">—</span>;
+  if (!details) return <span className="text-xs text-zinc-500 dark:text-zinc-400">—</span>;
   if (typeof details === 'string' || typeof details === 'number') {
-    return <div className="text-xs font-mono whitespace-pre-wrap">{String(details)}</div>;
+    return <div className="text-sm">{formatValue(details, 200)}</div>;
   }
 
   const hasBefore = Object.prototype.hasOwnProperty.call(details, 'before');
   const hasAfter = Object.prototype.hasOwnProperty.call(details, 'after');
+  
   if (hasBefore || hasAfter) {
-    try {
-      const before = details.before || {};
-      const after = details.after || {};
-      if (Array.isArray(before.widgets) || Array.isArray(after.widgets)) {
-        const b = Array.isArray(before.widgets) ? before.widgets : [];
-        const a = Array.isArray(after.widgets) ? after.widgets : [];
-        const bKeys = b.map(itemKey);
-        const aKeys = a.map(itemKey);
-        const added = a.filter((x: any) => !bKeys.includes(itemKey(x)));
-        const removed = b.filter((x: any) => !aKeys.includes(itemKey(x)));
-        return (
-          <div className="text-xs">
-            {added.length > 0 && (
-              <div className="mb-1">
-                <div className="text-[10px] text-zinc-500">Widgets added</div>
-                <div className="text-xs bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 p-2 rounded-md overflow-x-auto font-mono">{added.map(itemKey).join(', ')}</div>
-              </div>
-            )}
-            {removed.length > 0 && (
-              <div>
-                <div className="text-[10px] text-zinc-500">Widgets removed</div>
-                <div className="text-xs bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-2 rounded-md overflow-x-auto font-mono">{removed.map(itemKey).join(', ')}</div>
-              </div>
-            )}
-            {added.length === 0 && removed.length === 0 && (
-              <div className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 p-2 rounded-md overflow-x-auto font-mono">{formatValue({ before: before.widgets, after: after.widgets })}</div>
-            )}
-          </div>
-        );
-      }
-    } catch (e) {
-      // maybe console logs
+    const before = details.before || {};
+    const after = details.after || {};
+    const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
+    const changes: any[] = [];
+    
+    if (details.roleName) {
+      changes.push({
+        key: 'roleName',
+        type: 'roleName',
+        value: details.roleName
+      });
     }
-    if (action && action.startsWith('document.update')) {
-      const before = details.before || {};
-      const after = details.after || {};
-      const changes: any[] = [];
-      const keys = Array.from(new Set([...Object.keys(before || {}), ...Object.keys(after || {})]));
-      for (const k of keys) {
-        const bv = before[k];
-        const av = after[k];
-        if (JSON.stringify(bv) === JSON.stringify(av)) continue;
-        if (k === 'name' || k === 'title') {
-          changes.push({ key: k, before: String(bv || ''), after: String(av || '') });
-        } else if (k === 'content' || k === 'body') {
-          changes.push({ key: k, before: String(bv || '').slice(0, 300), after: String(av || '').slice(0, 300), isContent: true });
-        } else if (Array.isArray(bv) || Array.isArray(av)) {
-          const bArr = Array.isArray(bv) ? bv : [];
-          const aArr = Array.isArray(av) ? av : [];
-          changes.push({ key: k, before: bArr.length ? bArr.join(', ') : 'None', after: aArr.length ? aArr.join(', ') : 'None' });
-        } else {
-          changes.push({ key: k, before: formatValue(bv), after: formatValue(av) });
+    
+    for (const key of allKeys) {
+      const beforeVal = before[key];
+      const afterVal = after[key];
+      if (JSON.stringify(beforeVal) === JSON.stringify(afterVal)) continue;
+      if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === '__v') continue;
+      if (key === 'permissions' && Array.isArray(beforeVal) && Array.isArray(afterVal)) {
+        const beforeSet = new Set(beforeVal);
+        const afterSet = new Set(afterVal);
+        const added = afterVal.filter((p: string) => !beforeSet.has(p));
+        const removed = beforeVal.filter((p: string) => !afterSet.has(p));
+        
+        if (added.length > 0 || removed.length > 0) {
+          changes.push({
+            key: 'permissions',
+            type: 'permissions',
+            added: added.map((p: string) => PERMISSION_LABELS[p] || p),
+            removed: removed.map((p: string) => PERMISSION_LABELS[p] || p)
+          });
         }
+        continue;
       }
-
-      if (changes.length > 0) {
-        return (
-          <div className="text-xs">
-            {changes.map((c) => (
-              <div key={c.key} className="mb-2">
-                <div className="text-[10px] text-zinc-500">{c.key}</div>
-                {c.isContent ? (
-                  <>
-                    <div className="text-[10px] text-zinc-500">After (preview)</div>
-                    <pre className="text-xs bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 p-2 rounded-md overflow-x-auto font-mono">{c.after}</pre>
-                    <div className="text-[10px] text-zinc-500">Before (preview)</div>
-                    <pre className="text-xs bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-2 rounded-md overflow-x-auto font-mono">{c.before}</pre>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-[10px] text-zinc-500">After</div>
-                    <div className="text-xs bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 p-2 rounded-md overflow-x-auto font-mono">{c.after}</div>
-                    <div className="text-[10px] text-zinc-500">Before</div>
-                    <div className="text-xs bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-2 rounded-md overflow-x-auto font-mono">{c.before}</div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        );
+      
+      if (key === 'sessionColors' && typeof beforeVal === 'object' && typeof afterVal === 'object' && beforeVal !== null && afterVal !== null) {
+        const allSessionKeys = Array.from(new Set([...Object.keys(beforeVal), ...Object.keys(afterVal)]));
+        const colorChanges: any[] = [];
+        
+        for (const sessionKey of allSessionKeys) {
+          if (beforeVal[sessionKey] !== afterVal[sessionKey]) {
+            colorChanges.push({
+              type: sessionKey,
+              label: SESSION_TYPE_LABELS[sessionKey] || sessionKey,
+              before: beforeVal[sessionKey],
+              after: afterVal[sessionKey]
+            });
+          }
+        }
+        
+        if (colorChanges.length > 0) {
+          changes.push({
+            key: 'sessionColors',
+            type: 'sessionColors',
+            colorChanges
+          });
+        }
+        continue;
+      }
+      
+      if (Array.isArray(beforeVal) && Array.isArray(afterVal)) {
+        const maxLength = Math.max(beforeVal.length, afterVal.length);
+        for (let i = 0; i < maxLength; i++) {
+          if (JSON.stringify(beforeVal[i]) !== JSON.stringify(afterVal[i])) {
+            if (typeof beforeVal[i] === 'object' && typeof afterVal[i] === 'object') {
+              const nestedKeys = Array.from(new Set([
+                ...Object.keys(beforeVal[i] || {}),
+                ...Object.keys(afterVal[i] || {})
+              ]));
+              for (const nestedKey of nestedKeys) {
+                if (JSON.stringify(beforeVal[i]?.[nestedKey]) !== JSON.stringify(afterVal[i]?.[nestedKey])) {
+                  changes.push({
+                    key: `${key}[${i}].${nestedKey}`,
+                    before: beforeVal[i]?.[nestedKey],
+                    after: afterVal[i]?.[nestedKey]
+                  });
+                }
+              }
+            } else {
+              changes.push({
+                key: `${key}[${i}]`,
+                before: beforeVal[i],
+                after: afterVal[i]
+              });
+            }
+          }
+        }
+      } else if (typeof beforeVal === 'object' && typeof afterVal === 'object' && beforeVal !== null && afterVal !== null) {
+        const nestedKeys = Array.from(new Set([...Object.keys(beforeVal), ...Object.keys(afterVal)]));
+        let hasNestedChange = false;
+        for (const nestedKey of nestedKeys) {
+          if (JSON.stringify(beforeVal[nestedKey]) !== JSON.stringify(afterVal[nestedKey])) {
+            hasNestedChange = true;
+            changes.push({
+              key: `${key}.${nestedKey}`,
+              before: beforeVal[nestedKey],
+              after: afterVal[nestedKey]
+            });
+          }
+        }
+        if (!hasNestedChange) {
+          changes.push({ key, before: beforeVal, after: afterVal });
+        }
+      } else {
+        changes.push({ key, before: beforeVal, after: afterVal });
       }
     }
-
+    
+    if (changes.length === 0) {
+      return <span className="text-xs text-zinc-500 dark:text-zinc-400 italic">No changes detected</span>;
+    }
+    
     return (
-      <div className="text-xs">
-        {hasAfter && (
-          <div className="mb-1">
-            <div className="text-[10px] text-zinc-500">After</div>
-            <pre className="text-xs bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 p-2 rounded-md overflow-x-auto font-mono">{formatValue(details.after)}</pre>
-          </div>
-        )}
-        {hasBefore && (
-          <div>
-            <div className="text-[10px] text-zinc-500">Before</div>
-            <pre className="text-xs bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 p-2 rounded-md overflow-x-auto font-mono">{formatValue(details.before)}</pre>
-          </div>
-        )}
+      <div className="space-y-2">
+        {changes.map((change, idx) => {
+          if (change.type === 'roleName') {
+            return (
+              <div key={change.key} className="text-sm mb-2">
+                <div className="font-semibold text-zinc-800 dark:text-zinc-200">
+                  Role: {change.value}
+                </div>
+              </div>
+            );
+          }
+          
+          if (change.type === 'permissions') {
+            return (
+              <div key={change.key} className="text-sm">
+                <div className="font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  Permissions
+                </div>
+                <div className="space-y-2">
+                  {change.removed && change.removed.length > 0 && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1.5">
+                      <div className="text-[10px] text-red-700 dark:text-red-400 mb-1">Removed</div>
+                      <div className="text-xs text-red-900 dark:text-red-200">
+                        {change.removed.join(', ')}
+                      </div>
+                    </div>
+                  )}
+                  {change.added && change.added.length > 0 && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1.5">
+                      <div className="text-[10px] text-green-700 dark:text-green-400 mb-1">Added</div>
+                      <div className="text-xs text-green-900 dark:text-green-200">
+                        {change.added.join(', ')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          
+          if (change.type === 'sessionColors') {
+            return (
+              <div key={change.key} className="text-sm">
+                <div className="font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Session Colors
+                </div>
+                <div className="space-y-2">
+                  {change.colorChanges.map((colorChange: any) => (
+                    <div key={colorChange.type} className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 w-20">
+                        {colorChange.label}:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1">
+                          <div className={`w-4 h-4 rounded ${colorChange.before}`}></div>
+                          <span className="text-[10px] text-red-700 dark:text-red-300">{colorChange.before}</span>
+                        </div>
+                        <span className="text-zinc-400 dark:text-zinc-500">→</span>
+                        <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1">
+                          <div className={`w-4 h-4 rounded ${colorChange.after}`}></div>
+                          <span className="text-[10px] text-green-700 dark:text-green-300">{colorChange.after}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          
+          return (
+            <div key={change.key + idx} className="text-sm">
+              <div className="font-medium text-zinc-700 dark:text-zinc-300 mb-1 capitalize">
+                {change.key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="flex-1 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1">
+                  <div className="text-[10px] text-red-700 dark:text-red-400 mb-0.5">Before</div>
+                  <div className="text-xs text-red-900 dark:text-red-200">{formatValue(change.before, 150)}</div>
+                </div>
+                <div className="text-zinc-400 dark:text-zinc-500 self-center">→</div>
+                <div className="flex-1 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1">
+                  <div className="text-[10px] text-green-700 dark:text-green-400 mb-0.5">After</div>
+                  <div className="text-xs text-green-900 dark:text-green-200">{formatValue(change.after, 150)}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
 
   if (typeof details === 'object') {
+    const entries = Object.entries(details).filter(([key]) => 
+      key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt'
+    );
+    
+    if (entries.length === 0) {
+      return <span className="text-xs text-zinc-500 dark:text-zinc-400 italic">No details</span>;
+    }
+    
     return (
-      <div className="text-xs">
-        {Object.keys(details).map((k) => (
-          <div key={k} className="mb-1">
-            <div className="text-[10px] text-zinc-500">{k}</div>
-            <pre className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 p-2 rounded-md overflow-x-auto font-mono">{formatValue(details[k])}</pre>
+      <div className="space-y-1.5">
+        {entries.map(([key, value]) => (
+          <div key={key} className="text-sm">
+            <span className="font-medium text-zinc-700 dark:text-zinc-300 capitalize">
+              {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}:
+            </span>{' '}
+            <span className="text-zinc-600 dark:text-zinc-400">{formatValue(value, 150)}</span>
           </div>
         ))}
       </div>
     );
   }
 
-  return <pre className="text-xs font-mono bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 p-2 rounded-md">{String(details)}</pre>;
+  return <span className="text-sm text-zinc-600 dark:text-zinc-400">{String(details)}</span>;
 };
 const AuditLogs: FC<{ triggerToast?: any }> = () => {
   const [workspace] = useRecoilState(workspacestate);
