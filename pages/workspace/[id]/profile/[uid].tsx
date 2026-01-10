@@ -490,13 +490,21 @@ export const getServerSideProps = withPermissionCheckSsr(
         ) || user?.ranks?.[0];
 
       if (userRankRecord) {
-        const rankId = Number(userRankRecord.rankId);
-        const groupRole = roles.find((r: any) => r.rank === rankId);
-        if (groupRole?.name) {
-          memberRoleName = groupRole.name;
+        const storedValue = Number(userRankRecord.rankId);
+        if (storedValue > 255) {
+          const groupRole = roles.find((r: any) => r.id === storedValue);
+          if (groupRole?.name) {
+            memberRoleName = groupRole.name;
+          }
+        } else {
+          const groupRole = roles.find((r: any) => r.rank === storedValue);
+          if (groupRole?.name) {
+            memberRoleName = groupRole.name;
+          }
         }
       }
     } catch (e) {
+      console.error('Error fetching member role name:', e);
       memberRoleName = null;
     }
 
