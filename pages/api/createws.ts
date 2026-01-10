@@ -36,7 +36,7 @@ export async function handler(
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
 	// Accept groupId as number or numeric string; optional color (currently unused beyond default)
-	let { groupId, color } = req.body || {}
+	let { groupId } = req.body || {}
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 	const dbuser = await prisma.user.findUnique({
 		where: {
@@ -73,8 +73,6 @@ export async function handler(
 		create: { userid: req.session.userid }
 	})
 
-	// Default color fallback (kept for backward compatibility)
-	color = 'bg-orbit'
 	let groupName = `Group ${groupId}`;
 	let groupLogo = '';
 	
@@ -129,9 +127,17 @@ export async function handler(
 
 		await tx.config.create({
 			data: {
+				key: 'theme',
+				workspaceGroupId: groupId,
+				value: 'bg-orbit'
+			}
+		})
+
+		await tx.config.create({
+			data: {
 				key: 'customization',
 				workspaceGroupId: groupId,
-				value: { color }
+				value: 'bg-orbit'
 			}
 		})
 
@@ -140,22 +146,22 @@ export async function handler(
 				{
 					key: 'guides',
 					workspaceGroupId: groupId,
-					value: { enabled: false }
+					value: { enabled: true }
 				},
 				{
 					key: 'allies',
 					workspaceGroupId: groupId,
-					value: { enabled: false }
+					value: { enabled: true }
 				},
 				{
 					key: 'sessions',
 					workspaceGroupId: groupId,
-					value: { enabled: false }
+					value: { enabled: true }
 				},
 				{
 					key: 'notices',
 					workspaceGroupId: groupId,
-					value: { enabled: false }
+					value: { enabled: true }
 				},
 				{
 					key: 'policies',
@@ -165,7 +171,7 @@ export async function handler(
 				{
 					key: 'leaderboard',
 					workspaceGroupId: groupId,
-					value: { enabled: false }
+					value: { enabled: true }
 				}
 			]
 		})
