@@ -82,7 +82,11 @@ export default withPermissionCheck(
             wallPosts: true,
             inactivityNotices: true,
             sessions: true,
-            ranks: true,
+            ranks: {
+              where: {
+                workspaceGroupId,
+              },
+            },
             roles: {
               where: {
                 workspaceGroupId,
@@ -124,7 +128,11 @@ export default withPermissionCheck(
             wallPosts: true,
             inactivityNotices: true,
             sessions: true,
-            ranks: true,
+            ranks: {
+              where: {
+                workspaceGroupId,
+              },
+            },
             roles: {
               where: {
                 workspaceGroupId,
@@ -152,6 +160,12 @@ export default withPermissionCheck(
           },
         });
       }
+
+      const robloxRoles = await noblox.getRoles(workspaceGroupId).catch(() => []);
+      const roleIdToInfoMap = new Map<number, { rank: number; name: string }>();
+      robloxRoles.forEach(role => {
+        roleIdToInfoMap.set(role.id, { rank: role.rank, name: role.name });
+      });
 
       const userIdsToProcess = allUsers.map((u) => u.userid);
       const allActivity = await prisma.activitySession.findMany({
@@ -451,7 +465,25 @@ export default withPermissionCheck(
           wallPosts: currentWallPosts,
           inactivityNotices: user.inactivityNotices,
           sessions: allSessionParticipations,
-          rankID: user.ranks[0]?.rankId ? Number(user.ranks[0]?.rankId) : 0,
+          rankID: (() => {
+            if (!user.ranks[0]?.rankId) return 0;
+            const storedValue = Number(user.ranks[0].rankId);
+            if (storedValue > 255) {
+              return roleIdToInfoMap.get(storedValue)?.rank || 0;
+            } else {
+              return storedValue;
+            }
+          })(),
+          rankName: (() => {
+            if (!user.ranks[0]?.rankId) return 'Guest';
+            const storedValue = Number(user.ranks[0].rankId);
+            if (storedValue > 255) {
+              return roleIdToInfoMap.get(storedValue)?.name || 'Guest';
+            } else {
+              const role = robloxRoles.find(r => r.rank === storedValue);
+              return role?.name || 'Guest';
+            }
+          })(),
           minutes: Math.round(totalActiveMs / 60000),
           idleMinutes: ims.length
             ? Math.round(ims.reduce((p, c) => p + c))
@@ -468,7 +500,13 @@ export default withPermissionCheck(
         });
       }
 
-      const ranks = await noblox.getRoles(workspaceGroupId);
+      let ranks: any[] = [];
+      try {
+        ranks = await noblox.getRoles(workspaceGroupId);
+      } catch (error) {
+        console.error('Error fetching ranks from Roblox:', error);
+        ranks = [];
+      }
       
       // Apply post-computation filters (for computed fields like minutes, rank, etc.)
       let filteredUsers = computedUsers;
