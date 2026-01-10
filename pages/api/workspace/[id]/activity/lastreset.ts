@@ -8,7 +8,7 @@ type Data = {
   error?: string;
 };
 
-export default handler;
+export default withPermissionCheck(handler);
 
 export async function handler(
   req: NextApiRequest,

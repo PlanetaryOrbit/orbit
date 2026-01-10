@@ -452,11 +452,11 @@ model ActivityHistory {
 model ActivityReset {
   id                  String    @id @default(uuid()) @db.Uuid
   workspaceGroupId    Int
-  resetById           BigInt
+  resetById           BigInt?
   resetAt             DateTime  @default(now())
   previousPeriodStart DateTime?
   previousPeriodEnd   DateTime?
-  resetBy             user      @relation(fields: [resetById], references: [userid])
+  resetBy             user?     @relation(fields: [resetById], references: [userid])
   workspace           workspace @relation(fields: [workspaceGroupId], references: [groupId])
 
   @@index([workspaceGroupId])

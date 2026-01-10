@@ -39,7 +39,17 @@ const Activity: FC<props> = (props) => {
   const [leaderboardStyle, setLeaderboardStyle] = useState<"list" | "podium">(
     "list"
   );
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleDay, setScheduleDay] = useState<string>("monday");
+  const [scheduleFrequency, setScheduleFrequency] = useState<string>("weekly");
+  const [isCloudUser, setIsCloudUser] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsCloudUser(window.location.hostname.endsWith(".planetaryapp.cloud"));
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -101,6 +111,26 @@ const Activity: FC<props> = (props) => {
           setLeaderboardStyle("list");
         });
     }
+  }, [router.query.id]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get(
+          `/api/workspace/${router.query.id}/settings/activity/schedule`
+        );
+        if (res.status === 200 && res.data.success) {
+          const schedule = res.data.schedule;
+          if (schedule) {
+            setScheduleEnabled(schedule.enabled || false);
+            setScheduleDay(schedule.day || "monday");
+            setScheduleFrequency(schedule.frequency || "weekly");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching schedule:", error);
+      }
+    })();
   }, [router.query.id]);
 
   const downloadLoader = async () => {
@@ -202,6 +232,24 @@ const Activity: FC<props> = (props) => {
       triggerToast.error("Failed to reset activity.");
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const saveSchedule = async () => {
+    try {
+      const res = await axios.post(
+        `/api/workspace/${router.query.id}/settings/activity/schedule`,
+        {
+          enabled: scheduleEnabled,
+          day: scheduleDay,
+          frequency: scheduleFrequency,
+        }
+      );
+      if (res.status === 200) {
+        triggerToast.success("Schedule saved successfully!");
+      }
+    } catch (error) {
+      triggerToast.error("Failed to save schedule.");
     }
   };
 
@@ -672,7 +720,7 @@ const Activity: FC<props> = (props) => {
                   )}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                  by {lastReset.resetBy?.username || "Unknown User"}
+                  by {lastReset.resetBy?.username || (lastReset.resetById === null ? "Automation" : "Unknown User")}
                 </p>
               </div>
             </div>
@@ -688,6 +736,172 @@ const Activity: FC<props> = (props) => {
               </h4>
             </div>
           </div>
+        </div>
+
+        <div className={`mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700 relative ${isCloudUser ? "opacity-50 pointer-events-none" : ""}`}>
+          {isCloudUser && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-xl">
+              <div className="bg-white dark:bg-zinc-700 px-4 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600">
+                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  🚢 Shipping soon!
+                </p>
+              </div>
+            </div>
+          )}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Automatic Reset
+              </label>
+              <SwitchComponenet
+                checked={scheduleEnabled}
+                onChange={() => !isCloudUser && setScheduleEnabled(!scheduleEnabled)}
+                label=""
+              />
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Automatically schedule an activity reset
+            </p>
+          </div>
+
+          {scheduleEnabled && (
+            <>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Reset Day
+                </label>
+                <Listbox
+                  value={scheduleDay}
+                  onChange={setScheduleDay}
+                  as="div"
+                  className="relative inline-block w-full text-left"
+                >
+                  <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
+                    <p className="z-10 my-auto text-lg pl-2 dark:text-white capitalize">
+                      {scheduleDay}
+                    </p>
+                    <IconChevronDown
+                      size={18}
+                      color="#AAAAAA"
+                      className="my-auto ml-auto"
+                    />
+                  </Listbox.Button>
+                  <Listbox.Options className="absolute left-0 z-20 mt-2 w-full origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
+                    {["monday", "sunday"].map((day) => (
+                      <Listbox.Option
+                        className={({ active }) =>
+                          `${
+                            active
+                              ? "text-white bg-primary"
+                              : "text-zinc-900 dark:text-white"
+                          } relative cursor-pointer select-none py-2 pl-3 pr-9`
+                        }
+                        key={day}
+                        value={day}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span
+                              className={`${
+                                selected ? "font-semibold" : "font-normal"
+                              } block truncate text-lg capitalize`}
+                            >
+                              {day}
+                            </span>
+                            {selected && (
+                              <span
+                                className={`${
+                                  active ? "text-white" : "text-primary"
+                                } absolute inset-y-0 right-0 flex items-center pr-4`}
+                              >
+                                <IconCheck
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Listbox>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Frequency
+                </label>
+                <Listbox
+                  value={scheduleFrequency}
+                  onChange={setScheduleFrequency}
+                  as="div"
+                  className="relative inline-block w-full text-left"
+                >
+                  <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
+                    <p className="z-10 my-auto text-lg pl-2 dark:text-white capitalize">
+                      {scheduleFrequency}
+                    </p>
+                    <IconChevronDown
+                      size={18}
+                      color="#AAAAAA"
+                      className="my-auto ml-auto"
+                    />
+                  </Listbox.Button>
+                  <Listbox.Options className="absolute left-0 z-20 mt-2 w-full origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
+                    {[
+                      { value: "weekly", label: "Weekly" },
+                      { value: "biweekly", label: "Bi-weekly" },
+                      { value: "monthly", label: "Monthly" },
+                    ].map((freq) => (
+                      <Listbox.Option
+                        className={({ active }) =>
+                          `${
+                            active
+                              ? "text-white bg-primary"
+                              : "text-zinc-900 dark:text-white"
+                          } relative cursor-pointer select-none py-2 pl-3 pr-9`
+                        }
+                        key={freq.value}
+                        value={freq.value}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span
+                              className={`${
+                                selected ? "font-semibold" : "font-normal"
+                              } block truncate text-lg`}
+                            >
+                              {freq.label}
+                            </span>
+                            {selected && (
+                              <span
+                                className={`${
+                                  active ? "text-white" : "text-primary"
+                                } absolute inset-y-0 right-0 flex items-center pr-4`}
+                              >
+                                <IconCheck
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Listbox>
+              </div>
+
+              <button
+                onClick={saveSchedule}
+                className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"
+              >
+                Save Schedule
+              </button>
+            </>
+          )}
         </div>
 
         <button
