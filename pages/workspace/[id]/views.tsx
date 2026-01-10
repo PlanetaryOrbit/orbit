@@ -82,6 +82,7 @@ type User = {
   inactivityNotices: inactivityNotice[];
   sessions: any[];
   rankID: number;
+  rankName: string | null;
   minutes: number;
   idleMinutes: number;
   hostedSessions: { length: number };
@@ -323,12 +324,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         );
       },
     }),
-    columnHelper.accessor("rankID", {
+    columnHelper.accessor("rankName", {
       header: "Rank",
       cell: (row) => {
         return (
           <p className="dark:text-white">
-            {ranks.find((x) => x.rank == row.getValue())?.name || "N/A"}
+            {row.getValue() || "Guest"}
           </p>
         );
       },
