@@ -45,6 +45,7 @@ export default function NewToTeam() {
   const [members, setMembers] = useState<NewMember[]>([]);
   const [loading, setLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [maxVisible, setMaxVisible] = useState(10);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -56,8 +57,25 @@ export default function NewToTeam() {
     }).finally(() => setLoading(false));
   }, [workspaceId]);
 
+  useEffect(() => {
+    const calculateMaxVisible = () => {
+      if (!cardRef.current) return;
+      const containerWidth = cardRef.current.offsetWidth;
+      const padding = 32;
+      const availableWidth = containerWidth - padding;
+      const memberWidth = 80 + 24;
+      const maxFit = Math.floor(availableWidth / memberWidth);
+      setMaxVisible(Math.max(1, maxFit));
+    };
+
+    calculateMaxVisible();
+    window.addEventListener('resize', calculateMaxVisible);
+    return () => window.removeEventListener('resize', calculateMaxVisible);
+  }, []);
+
   if (loading) return null;
   if (!members.length) return null;
+  const visibleMembers = members.slice(0, maxVisible);
 
   return (
     <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
@@ -67,24 +85,22 @@ export default function NewToTeam() {
         </div>
         <span className="text-lg font-medium text-zinc-900 dark:text-white">New to the Team</span>
       </div>
-      <div className="overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-6 pb-2 min-w-max">
-          {members.map(m => (
-            <div key={m.userid} className="flex flex-col items-center shrink-0 w-20">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}>
-                <img
-                  src={m.picture || '/default-avatar.jpg'}
-                  alt={m.username}
-                  className="w-16 h-16 object-cover rounded-full border-2 border-white"
-                  loading="lazy"
-                />
-              </div>
-              <div className="mt-2 text-xs font-medium text-center text-zinc-700 dark:text-zinc-300 truncate w-full" title={m.username}>
-                {m.username}
-              </div>
+      <div className="flex gap-6">
+        {visibleMembers.map(m => (
+          <div key={m.userid} className="flex flex-col items-center shrink-0 w-20">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}>
+              <img
+                src={m.picture || '/default-avatar.jpg'}
+                alt={m.username}
+                className="w-16 h-16 object-cover rounded-full border-2 border-white"
+                loading="lazy"
+              />
             </div>
-          ))}
-        </div>
+            <div className="mt-2 text-xs font-medium text-center text-zinc-700 dark:text-zinc-300 truncate w-full" title={m.username}>
+              {m.username}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

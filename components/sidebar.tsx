@@ -300,7 +300,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               
                 <Listbox.Options
                   className={clsx(
-                    "absolute top-0 z-50 w-64 mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-64 overflow-auto"
+                    "absolute top-0 left-0 z-50 w-[calc(100%-0.5rem)] mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-60 overflow-y-auto"
                   )}
                 >
                   {login?.workspaces && login.workspaces.length > 1 ? (
