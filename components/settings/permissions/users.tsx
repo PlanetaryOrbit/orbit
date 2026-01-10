@@ -1,4 +1,4 @@
-import React, { FC, Fragment } from "react";
+import React, { FC, Fragment, useMemo } from "react";
 import { Disclosure, Transition, Listbox, Dialog } from "@headlessui/react";
 import {
   IconCheck,
@@ -7,6 +7,9 @@ import {
   IconUser,
   IconCircleMinus,
   IconAlertCircle,
+  IconSearch,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons-react";
 import { loginState, workspacestate } from "@/state";
 
@@ -28,15 +31,47 @@ type form = {
   username: string;
 };
 
+const USERS_PER_PAGE = 25;
+
 const Button: FC<Props> = (props) => {
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [users, setUsers] = React.useState(props.users);
   const [login, setLogin] = useRecoilState(loginState);
   const [showRemoveModal, setShowRemoveModal] = React.useState(false);
   const [userToRemove, setUserToRemove] = React.useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [currentPages, setCurrentPages] = React.useState<Record<string, number>>({});
 
   const userForm = useForm<form>();
   const { roles } = props;
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    const query = searchQuery.toLowerCase();
+    return users.filter(
+      (user: any) =>
+        user.username?.toLowerCase().includes(query) ||
+        user.displayName?.toLowerCase().includes(query)
+    );
+  }, [users, searchQuery]);
+
+  const getPageForRole = (roleId: string) => currentPages[roleId] || 1;
+  
+  const setPageForRole = (roleId: string, page: number) => {
+    setCurrentPages((prev) => ({ ...prev, [roleId]: page }));
+  };
+
+  const getUsersForRole = (roleId: string) => {
+    const roleUsers = filteredUsers.filter((user: any) => user.roles[0]?.id === roleId);
+    const page = getPageForRole(roleId);
+    const start = (page - 1) * USERS_PER_PAGE;
+    const end = start + USERS_PER_PAGE;
+    return {
+      users: roleUsers.slice(start, end),
+      total: roleUsers.length,
+      totalPages: Math.ceil(roleUsers.length / USERS_PER_PAGE),
+      currentPage: page,
+    };
+  };
 
   const updateRole = async (id: number, roleid: string) => {
     const userIndex = users.findIndex((user: any) => user.userid === id);
@@ -97,15 +132,26 @@ const Button: FC<Props> = (props) => {
         <div className="flex items-center space-x-3">
           <FormProvider {...userForm}>
             <div className="flex items-center space-x-2">
-              <Input
-                {...userForm.register("username")}
-                label=""
-                placeholder="Enter username"
-                classoverride="w-48 py-1.5 text-sm"
-              />
+              <div className="relative">
+                <input
+                  {...userForm.register("username")}
+                  placeholder="Enter username"
+                  className={clsx(
+                    "w-48 px-3 py-2 text-sm rounded-lg border bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-white focus:ring-primary focus:border-primary transition focus-visible:outline-none",
+                    userForm.formState.errors.username
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-zinc-600"
+                  )}
+                />
+                {userForm.formState.errors.username && (
+                  <p className="absolute top-full left-0 mt-1 text-xs text-red-500 whitespace-nowrap">
+                    {userForm.formState.errors.username.message as string}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={addUser}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors"
               >
                 <IconPlus size={16} className="mr-1.5" />
                 Add User
@@ -115,59 +161,71 @@ const Button: FC<Props> = (props) => {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {roles.map((role) => (
-          <Disclosure
-            as="div"
-            key={role.id}
-            className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm"
-          >
-            {({ open }) => (
-              <>
-                <Disclosure.Button className="w-full px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                        {role.name}
-                      </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        (
-                        {
-                          users.filter(
-                            (user: any) => user.roles[0].id === role.id
-                          ).length
-                        }{" "}
-                        users)
-                      </span>
-                    </div>
-                    <IconChevronDown
-                      className={clsx(
-                        "w-5 h-5 text-zinc-500 transition-transform",
-                        open ? "transform rotate-180" : ""
-                      )}
-                    />
-                  </div>
-                </Disclosure.Button>
+      {/* Search box */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <IconSearch size={18} className="text-zinc-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search users by username or display name..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPages({});
+          }}
+          className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-white focus:ring-primary focus:border-primary transition focus-visible:outline-none"
+        />
+      </div>
 
-                <Transition
-                  enter="transition duration-100 ease-out"
-                  enterFrom="transform scale-95 opacity-0"
-                  enterTo="transform scale-100 opacity-100"
-                  leave="transition duration-75 ease-out"
-                  leaveFrom="transform scale-100 opacity-100"
-                  leaveTo="transform scale-95 opacity-0"
-                >
-                  <Disclosure.Panel className="px-4 pb-4">
-                    {users.filter((user: any) => user.roles[0].id === role.id)
-                      .length > 100 ? (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Too many users to display (max 100)
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {users
-                          .filter((user: any) => user.roles[0].id === role.id)
-                          .map((user: any) => (
+      <div className="space-y-3">
+        {roles.map((role) => {
+          const { users: roleUsers, total, totalPages, currentPage } = getUsersForRole(role.id);
+          const allRoleUsers = filteredUsers.filter((user: any) => user.roles[0]?.id === role.id);
+          
+          return (
+            <Disclosure
+              as="div"
+              key={role.id}
+              className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 shadow-sm"
+            >
+              {({ open }) => (
+                <>
+                  <Disclosure.Button className="w-full px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                          {role.name}
+                        </span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          ({total} user{total !== 1 ? "s" : ""})
+                        </span>
+                      </div>
+                      <IconChevronDown
+                        className={clsx(
+                          "w-5 h-5 text-zinc-500 transition-transform",
+                          open ? "transform rotate-180" : ""
+                        )}
+                      />
+                    </div>
+                  </Disclosure.Button>
+
+                  <Transition
+                    enter="transition duration-100 ease-out"
+                    enterFrom="transform scale-95 opacity-0"
+                    enterTo="transform scale-100 opacity-100"
+                    leave="transition duration-75 ease-out"
+                    leaveFrom="transform scale-100 opacity-100"
+                    leaveTo="transform scale-95 opacity-0"
+                  >
+                    <Disclosure.Panel className="px-4 pb-4">
+                      {total === 0 ? (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          {searchQuery ? "No users match your search" : "No users in this role"}
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {roleUsers.map((user: any) => (
                             <div
                               key={user.userid}
                               className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-700"
@@ -275,14 +333,58 @@ const Button: FC<Props> = (props) => {
                               </div>
                             </div>
                           ))}
-                      </div>
-                    )}
-                  </Disclosure.Panel>
-                </Transition>
-              </>
-            )}
-          </Disclosure>
-        ))}
+                          
+                          {totalPages > 1 && (
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-zinc-700 mt-4">
+                              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                                Showing {((currentPage - 1) * USERS_PER_PAGE) + 1}-{Math.min(currentPage * USERS_PER_PAGE, total)} of {total} users
+                              </p>
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPageForRole(role.id, currentPage - 1);
+                                  }}
+                                  disabled={currentPage === 1}
+                                  className={clsx(
+                                    "p-1.5 rounded-md transition-colors",
+                                    currentPage === 1
+                                      ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
+                                      : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                                  )}
+                                >
+                                  <IconChevronLeft size={18} />
+                                </button>
+                                <span className="text-sm text-zinc-600 dark:text-zinc-300">
+                                  Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPageForRole(role.id, currentPage + 1);
+                                  }}
+                                  disabled={currentPage === totalPages}
+                                  className={clsx(
+                                    "p-1.5 rounded-md transition-colors",
+                                    currentPage === totalPages
+                                      ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
+                                      : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                                  )}
+                                >
+                                  <IconChevronRight size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Disclosure.Panel>
+                  </Transition>
+                </>
+              )}
+            </Disclosure>
+          );
+        })}
       </div>
 
       <Transition appear show={showRemoveModal} as={Fragment}>

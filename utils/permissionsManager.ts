@@ -566,254 +566,171 @@ export async function checkGroupRoles(groupID: number) {
       ranks.push(role);
     }
     console.log(
-      `[update-group] Processing ${ranks.length} ranks for group ${groupID}`
+      `[update-group] Processing ${ranks.length} tracked ranks for group ${groupID}`
     );
-
+    const userRoleMap = new Map<number, { roleId: number; username: string }>();
+    
     if (ranks && ranks.length) {
+      console.log(`[update-group] Fetching members for ${ranks.length} tracked ranks...`);
+      
       for (const rank of ranks) {
-        try {
-          const role = rs.find((r) => r.groupRoles?.includes(rank.id));
-          if (!role) {
-            console.log(
-              `[update-group] Skipping rank ${rank.name} (Role ID: ${rank.id}, Rank Number: ${rank.rank})`
-            );
-            continue;
-          }
-          console.log(
-            `[update-group] Processing rank ${rank.name} (Role ID: ${rank.id}, Rank Number: ${rank.rank}) for group ${groupID}`
+        if (rank.rank === 0) continue;
+        
+        console.log(
+          `[update-group] Fetching members from rank ${rank.name} (Role ID: ${rank.id}, Rank: ${rank.rank})...`
+        );
+        
+        await delay(500);
+        const members = await retryNobloxRequest(() =>
+          noblox.getPlayers(groupID, rank.id)
+        ).catch((error) => {
+          console.error(
+            `[update-group] Failed to get players for rank ${rank.name}:`,
+            error
           );
+          return null;
+        });
+        
+        if (!members) {
+          console.log(`[update-group] No members found for rank ${rank.name}`);
+          continue;
+        }
+        
+        console.log(
+          `[update-group] Fetched ${members.length} members from rank ${rank.name}`
+        );
 
-          await delay(500); // delay to avoid rate limiting
-          const members = await retryNobloxRequest(() =>
-            noblox.getPlayers(groupID, rank.id)
-          ).catch((error) => {
-            console.error(
-              `[update-group] Failed to get players for rank ${rank.name} (Role ID: ${rank.id}):`,
-              error
-            );
-            return null;
+        for (const member of members) {
+          userRoleMap.set(member.userId, { 
+            roleId: rank.id, 
+            username: member.username 
           });
-          if (!members) {
-            console.log(
-              `[update-group] No members found for rank ${rank.name}, skipping`
-            );
-            continue;
-          }
+        }
+      }
+      
+      console.log(
+        `[update-group] Cached ${userRoleMap.size} unique users across all tracked ranks`
+      );
+    }
+    
+    const users = await prisma.user
+      .findMany({
+        where: {},
+        include: {
+          roles: {
+            where: {
+              workspaceGroupId: groupID,
+            },
+          },
+          ranks: {
+            where: {
+              workspaceGroupId: groupID,
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        console.error(
+          `[update-group] Failed to fetch users from database:`,
+          error
+        );
+        return [];
+      });
+    
+    console.log(`[update-group] Fetched ${users.length} users from database`);
 
+    for (const [userId, userData] of userRoleMap.entries()) {
+      try {
+        const { roleId, username } = userData;
+        const workspaceRole = rs.find((r) => r.groupRoles?.includes(roleId));
+        
+        if (!workspaceRole) {
+          continue;
+        }
+        
+        if (workspaceRole.isOwnerRole) {
+          continue;
+        }
+        
+        const userInDb = users.find((u) => Number(u.userid) === userId);
+        const hasRole = userInDb?.roles.some((r) => r.id === workspaceRole.id);
+        
+        if (hasRole) {
+          await prisma.user
+            .update({
+              where: { userid: BigInt(userId) },
+              data: { username },
+            })
+            .catch((error) => {
+              console.error(
+                `[update-group] Failed to update username for user ${userId}:`,
+                error
+              );
+            });
+        } else {
           console.log(
-            `[update-group] Found ${members.length} members in rank ${rank.name}`
+            `[update-group] Adding role "${workspaceRole.name}" to user ${userId} (RID: ${roleId})`
           );
-
-          const users = await prisma.user
-            .findMany({
-              where: {},
-              include: {
+          
+          await prisma.user
+            .upsert({
+              where: { userid: BigInt(userId) },
+              create: {
+                userid: BigInt(userId),
+                username,
+                picture: getThumbnail(userId),
                 roles: {
-                  where: {
-                    workspaceGroupId: groupID,
-                  },
+                  connect: { id: workspaceRole.id },
                 },
-                ranks: {
-                  where: {
-                    workspaceGroupId: groupID,
-                  },
+              },
+              update: {
+                username,
+                roles: {
+                  connect: { id: workspaceRole.id },
                 },
               },
             })
             .catch((error) => {
               console.error(
-                `[update-group] Failed to fetch users from database:`,
+                `[update-group] Failed to upsert user ${userId}:`,
                 error
               );
-              return [];
             });
-          for (const user of users) {
-            try {
-              if (
-                user.ranks?.find((r) => r.workspaceGroupId === groupID)
-                  ?.rankId === BigInt(rank.rank)
-              )
-                continue;
-              if (
-                members.find((member) => member.userId === Number(user.userid))
-              ) {
-                await prisma.rank
-                  .upsert({
-                    where: {
-                      userId_workspaceGroupId: {
-                        userId: user.userid,
-                        workspaceGroupId: groupID,
-                      },
-                    },
-                    update: {
-                      rankId: BigInt(rank.rank),
-                    },
-                    create: {
-                      userId: user.userid,
-                      workspaceGroupId: groupID,
-                      rankId: BigInt(rank.rank),
-                    },
-                  })
-                  .catch((error) => {
-                    console.error(
-                      `[update-group] Failed to upsert rank for user ${user.userid}:`,
-                      error
-                    );
-                  });
-              }
-            } catch (error) {
-              console.error(
-                `[update-group] Error processing rank for user ${user.userid}:`,
-                error
-              );
-            }
-          }
-
-          if (role) {
-            for (const member of members) {
-              try {
-                console.log(
-                  `[update-group] Processing user ${member.userId} (${member.username}) for workspace role "${role.name}" via Roblox rank ${rank.name} (Role ID: ${rank.id})`
-                );
-
-                const userInDb = users.find(
-                  (user) => Number(user.userid) === member.userId
-                );
-
-                if (userInDb?.roles.find((r) => r.id === role?.id)) {
-                  await prisma.user
-                    .update({
-                      where: {
-                        userid: BigInt(member.userId),
-                      },
-                      data: {
-                        username: member.username,
-                      },
-                    })
-                    .catch((error) => {
-                      console.error(
-                        `[update-group] Failed to update username for user ${member.userId}:`,
-                        error
-                      );
-                    });
-                  await prisma.rank
-                    .upsert({
-                      where: {
-                        userId_workspaceGroupId: {
-                          userId: BigInt(member.userId),
-                          workspaceGroupId: groupID,
-                        },
-                      },
-                      update: {
-                        rankId: BigInt(rank.rank),
-                      },
-                      create: {
-                        userId: BigInt(member.userId),
-                        workspaceGroupId: groupID,
-                        rankId: BigInt(rank.rank),
-                      },
-                    })
-                    .catch((error) => {
-                      console.error(
-                        `[update-group] Failed to upsert rank for existing user ${member.userId}:`,
-                        error
-                      );
-                    });
-                  continue;
-                }
-
-                if (role.isOwnerRole) {
-                  console.log(
-                    `[update-group] Skipping assignment of owner role ${role.id} to user ${member.userId}`
-                  );
-                  continue;
-                }
-                console.log(
-                  `[update-group] Adding role "${role.name}" to user ${member.userId} based on rank ${rank.name}`
-                );
-
-                await prisma.user
-                  .upsert({
-                    where: {
-                      userid: member.userId,
-                    },
-                    create: {
-                      userid: member.userId,
-                      roles: {
-                        connect: {
-                          id: role.id,
-                        },
-                      },
-                      username: member.username,
-                      picture: getThumbnail(member.userId),
-                    },
-                    update: {
-                      roles: {
-                        connect: {
-                          id: role.id,
-                        },
-                      },
-                      username: member.username,
-                    },
-                  })
-                  .catch((error) => {
-                    console.error(
-                      `[update-group] Failed to upsert user ${member.userId}:`,
-                      error
-                    );
-                  });
-
-                await prisma.rank
-                  .upsert({
-                    where: {
-                      userId_workspaceGroupId: {
-                        userId: BigInt(member.userId),
-                        workspaceGroupId: groupID,
-                      },
-                    },
-                    update: {
-                      rankId: BigInt(rank.id),
-                    },
-                    create: {
-                      userId: BigInt(member.userId),
-                      workspaceGroupId: groupID,
-                      rankId: BigInt(rank.id),
-                    },
-                  })
-                  .catch((error) => {
-                    console.error(
-                      `[update-group] Failed to upsert rank for new user ${member.userId}:`,
-                      error
-                    );
-                  });
-              } catch (error) {
-                console.error(
-                  `[update-group] Error processing member ${member.userId}:`,
-                  error
-                );
-              }
-            }
-          }
-        } catch (error) {
-          console.error(
-            `[update-group] Error processing rank ${rank.id}:`,
-            error
-          );
         }
+        
+        await prisma.rank
+          .upsert({
+            where: {
+              userId_workspaceGroupId: {
+                userId: BigInt(userId),
+                workspaceGroupId: groupID,
+              },
+            },
+            update: {
+              rankId: BigInt(roleId),
+            },
+            create: {
+              userId: BigInt(userId),
+              workspaceGroupId: groupID,
+              rankId: BigInt(roleId),
+            },
+          })
+          .catch((error) => {
+            console.error(
+              `[update-group] Failed to upsert rank for user ${userId}:`,
+              error
+            );
+          });
+      } catch (error) {
+        console.error(
+          `[update-group] Error processing user ${userId}:`,
+          error
+        );
       }
     }
 
     console.log(`[update-group] Starting role cleanup for group ${groupID}`);
     try {
-      const allRobloxRoles = await retryNobloxRequest(() =>
-        noblox.getRoles(groupID)
-      ).catch((error) => {
-        console.error(
-          `[update-group] Failed to get all roles for cleanup:`,
-          error
-        );
-        return [];
-      });
       const usersWithRoles = await prisma.user.findMany({
         where: {
           roles: {
@@ -840,9 +757,8 @@ export async function checkGroupRoles(groupID: number) {
         `[update-group] Found ${usersWithRoles.length} users with roles for cleanup check`
       );
       console.log(
-        `[update-group] Waiting 5 seconds before cleanup to avoid rate limiting...`
+        `[update-group] Reusing cached role membership data (${userRoleMap.size} group members)`
       );
-      await delay(5000);
 
       for (const user of usersWithRoles) {
         const membership = user.workspaceMemberships[0];
@@ -853,34 +769,27 @@ export async function checkGroupRoles(groupID: number) {
           continue;
         }
 
-        await delay(500);
-        let currentRankNumber: number;
-        let currentRobloxRoleId: number | undefined;
-
-        try {
-          currentRankNumber = await retryNobloxRequest(() =>
-            noblox.getRankInGroup(groupID, Number(user.userid))
-          );
-        } catch (error) {
-          console.error(
-            `[update-group] Failed to get current rank for user ${user.userid}:`,
-            error
-          );
-          continue;
-        }
-
-        if (currentRankNumber === 0) {
+        const userId = Number(user.userid);
+        const userRankData = userRoleMap.get(userId);
+        
+        if (!userRankData) {
           console.log(
-            `[update-group] User ${user.userid} is not in group - removing all auto-managed roles`
+            `[update-group] User ${user.userid} is not in any tracked roles - removing all auto-managed roles`
           );
+          
           for (const userRole of user.roles) {
-            if (
-              userRole.isOwnerRole ||
-              !userRole.groupRoles ||
-              userRole.groupRoles.length === 0
-            ) {
+            if (userRole.isOwnerRole) {
               continue;
             }
+            
+            if (userRole.groupRoles === null || userRole.groupRoles === undefined) {
+              continue;
+            }
+            
+            console.log(
+              `[update-group] Removing auto-managed role "${userRole.name}" from user ${user.userid}`
+            );
+            
             await prisma.user
               .update({
                 where: { userid: user.userid },
@@ -895,70 +804,9 @@ export async function checkGroupRoles(groupID: number) {
           }
           continue;
         }
-
-        const possibleRoles = allRobloxRoles.filter(
-          (r) => r.rank === currentRankNumber
-        );
-
-        if (possibleRoles.length === 0) {
-          console.log(
-            `[update-group] Could not find any Roblox roles for rank ${currentRankNumber}`
-          );
-          continue;
-        }
-
-        if (possibleRoles.length > 1) {
-          console.log(
-            `[update-group] User ${
-              user.userid
-            } has rank ${currentRankNumber} which matches ${
-              possibleRoles.length
-            } roles: ${possibleRoles
-              .map((r) => r.name)
-              .join(", ")} - querying specific role`
-          );
-
-          await delay(500);
-          try {
-            let foundRole = false;
-            for (const role of possibleRoles) {
-              const playersInRole = await retryNobloxRequest(() =>
-                noblox.getPlayers(groupID, role.id)
-              );
-              if (playersInRole.some((p) => p.userId === Number(user.userid))) {
-                currentRobloxRoleId = role.id;
-                console.log(
-                  `[update-group] User ${user.userid} confirmed in role "${role.name}" (ID: ${role.id})`
-                );
-                foundRole = true;
-                break;
-              }
-            }
-
-            if (!foundRole) {
-              console.error(
-                `[update-group] User ${user.userid} has rank ${currentRankNumber} but not found in any matching role's member list`
-              );
-              continue;
-            }
-          } catch (error) {
-            console.error(
-              `[update-group] Failed to determine specific role for user ${user.userid}:`,
-              error
-            );
-            continue;
-          }
-        } else {
-          currentRobloxRoleId = possibleRoles[0].id;
-        }
-
-        if (!currentRobloxRoleId) {
-          console.log(
-            `[update-group] Could not find Roblox role ID for user ${user.userid} with rank ${currentRankNumber}`
-          );
-          continue;
-        }
-
+        
+        const currentRobloxRoleId = userRankData.roleId;
+        
         await prisma.rank
           .upsert({
             where: {
@@ -982,48 +830,46 @@ export async function checkGroupRoles(groupID: number) {
               error
             );
           });
-
         for (const userRole of user.roles) {
           if (userRole.isOwnerRole) {
             continue;
           }
 
-          if (!userRole.groupRoles || userRole.groupRoles.length === 0) {
+          if (userRole.groupRoles === null || userRole.groupRoles === undefined) {
+            continue;
+          }
+
+          if (userRole.groupRoles.length === 0) {
+            console.log(
+              `[update-group] Removing role "${userRole.name}" from user ${user.userid}.`
+            );
+            
+            await prisma.user
+              .update({
+                where: { userid: user.userid },
+                data: { roles: { disconnect: { id: userRole.id } } },
+              })
+              .catch((error) => {
+                console.error(
+                  `[update-group] Failed to remove role ${userRole.id} from user ${user.userid}:`,
+                  error
+                );
+              });
             continue;
           }
 
           const groupRoleIds = userRole.groupRoles.map((id: any) => Number(id));
           const hasQualifyingRank = groupRoleIds.includes(currentRobloxRoleId);
-          console.log(
-            `[update-group] Checking user ${user.userid} for role "${
-              userRole.name
-            }": current role ID=${currentRobloxRoleId}, required role IDs=[${groupRoleIds.join(
-              ", "
-            )}], has qualifying rank=${hasQualifyingRank}`
-          );
-
+          
           if (!hasQualifyingRank) {
             console.log(
-              `[update-group] Removing role "${userRole.name}" (ID: ${
-                userRole.id
-              }) from user ${
-                user.userid
-              } - no longer has qualifying rank (current rank: ${currentRankNumber}, current role ID: ${currentRobloxRoleId}, role requires: ${userRole.groupRoles.join(
-                ", "
-              )})`
+              `[update-group] Removing role "${userRole.name}" from user ${user.userid} - no longer has qualifying rank (current role ID: ${currentRobloxRoleId}, required: [${groupRoleIds.join(", ")}])`
             );
+            
             await prisma.user
               .update({
-                where: {
-                  userid: user.userid,
-                },
-                data: {
-                  roles: {
-                    disconnect: {
-                      id: userRole.id,
-                    },
-                  },
-                },
+                where: { userid: user.userid },
+                data: { roles: { disconnect: { id: userRole.id } } },
               })
               .catch((error) => {
                 console.error(

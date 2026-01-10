@@ -27,6 +27,21 @@ export async function handler(
 	
 	const groupRoles = req.body.groupRoles || [];
 	if (groupRoles.length > 0) {
+		const workspace = await fetchworkspace(parseInt(req.query.id as string));
+		if (!workspace) {
+			return res.status(404).json({ success: false, error: 'Workspace not found' });
+		}
+		
+		const robloxRoles = await noblox.getRoles(workspace.groupId);
+		const guestRole = robloxRoles.find(r => r.rank === 0);
+		
+		if (guestRole && groupRoles.includes(guestRole.id)) {
+			return res.status(400).json({ 
+				success: false, 
+				error: 'Guest rank cannot be assigned to roles' 
+			});
+		}
+		
 		const conflictingRoles = await prisma.role.findMany({
 			where: {
 				workspaceGroupId: parseInt(req.query.id as string),
@@ -62,7 +77,11 @@ export async function handler(
 
 	try {
 		const after = await prisma.role.findUnique({ where: { id: (req.query.roleid as string) } });
-		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.update', `role:${req.query.roleid}`, { before: role, after });
+		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.update', `role:${req.query.roleid}`, { 
+			roleName: after?.name || role.name,
+			before: role, 
+			after 
+		});
 	} catch (e) {}
 
 	res.status(200).json({ success: true })
