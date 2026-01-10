@@ -60,6 +60,28 @@ export async function handler(
 			}
 		}
 	});
+	await prisma.roleMember.deleteMany({
+		where: {
+			userId: parseInt(req.query.userid as string),
+			roleId: user.roles[0].id
+		}
+	});
+	await prisma.roleMember.upsert({
+		where: {
+			roleId_userId: {
+				roleId: req.body.role,
+				userId: BigInt(req.query.userid as string)
+			}
+		},
+		update: {
+			manuallyAdded: true
+		},
+		create: {
+			roleId: req.body.role,
+			userId: BigInt(req.query.userid as string),
+			manuallyAdded: true
+		}
+	});
 
 	try {
 		const afterUser = await prisma.user.findUnique({ where: { userid: parseInt(req.query.userid as string) }, include: { roles: { where: { workspaceGroupId: parseInt(req.query.id as string) } } } });

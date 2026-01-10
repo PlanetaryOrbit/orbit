@@ -65,6 +65,23 @@ export async function handler(
 			}
 		},
 	});
+
+	await prisma.roleMember.upsert({
+		where: {
+			roleId_userId: {
+				roleId: role.id,
+				userId: userid
+			}
+		},
+		update: {
+			manuallyAdded: true
+		},
+		create: {
+			roleId: role.id,
+			userId: userid,
+			manuallyAdded: true
+		}
+	});
 	
 	await prisma.workspaceMember.upsert({
 		where: {

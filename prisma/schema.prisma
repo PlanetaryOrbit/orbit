@@ -82,6 +82,7 @@ model user {
   managedMembers       workspaceMember[]      @relation("LineManager")
   Ally                 Ally[]                 @relation("AllyTouser")
   roles                role[]                 @relation("roleTouser")
+  roleMembers          RoleMember[]
   policyAcknowledgments PolicyAcknowledgment[]
   createdPolicyLinks   PolicyShareableLink[]
 }
@@ -115,6 +116,18 @@ model role {
   SessionType      SessionType[] @relation("SessionTypeTorole")
   documents        document[]    @relation("documentTorole")
   members          user[]        @relation("roleTouser")
+  roleMembers      RoleMember[]
+}
+
+model RoleMember {
+  roleId         String   @db.Uuid
+  userId         BigInt
+  manuallyAdded  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  role           role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user           user     @relation(fields: [userId], references: [userid], onDelete: Cascade)
+
+  @@id([roleId, userId])
 }
 
 model department {

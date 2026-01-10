@@ -696,6 +696,27 @@ export async function checkGroupRoles(groupID: number) {
                 error
               );
             });
+          await prisma.roleMember
+            .upsert({
+              where: {
+                roleId_userId: {
+                  roleId: workspaceRole.id,
+                  userId: BigInt(userId),
+                },
+              },
+              update: {},
+              create: {
+                roleId: workspaceRole.id,
+                userId: BigInt(userId),
+                manuallyAdded: false,
+              },
+            })
+            .catch((error) => {
+              console.error(
+                `[update-group] Failed to create RoleMember for user ${userId}:`,
+                error
+              );
+            });
         }
         
         await prisma.rank
@@ -774,7 +795,7 @@ export async function checkGroupRoles(groupID: number) {
         
         if (!userRankData) {
           console.log(
-            `[update-group] User ${user.userid} is not in any tracked roles - removing all auto-managed roles`
+            `[update-group] User ${user.userid} is not in any tracked roles - checking for auto-synced roles to remove`
           );
           
           for (const userRole of user.roles) {
@@ -786,8 +807,24 @@ export async function checkGroupRoles(groupID: number) {
               continue;
             }
             
+            const roleMember = await prisma.roleMember.findUnique({
+              where: {
+                roleId_userId: {
+                  roleId: userRole.id,
+                  userId: user.userid,
+                },
+              },
+            });
+            
+            if (roleMember?.manuallyAdded) {
+              console.log(
+                `[update-group] Keeping manually added role "${userRole.name}" for user ${user.userid}`
+              );
+              continue;
+            }
+            
             console.log(
-              `[update-group] Removing auto-managed role "${userRole.name}" from user ${user.userid}`
+              `[update-group] Removing auto-synced role "${userRole.name}" from user ${user.userid} (user no longer qualifies)`
             );
             
             await prisma.user
@@ -801,6 +838,13 @@ export async function checkGroupRoles(groupID: number) {
                   error
                 );
               });
+            
+            await prisma.roleMember.deleteMany({
+              where: {
+                roleId: userRole.id,
+                userId: user.userid,
+              },
+            });
           }
           continue;
         }
@@ -840,6 +884,23 @@ export async function checkGroupRoles(groupID: number) {
           }
 
           if (userRole.groupRoles.length === 0) {
+
+            const roleMember = await prisma.roleMember.findUnique({
+              where: {
+                roleId_userId: {
+                  roleId: userRole.id,
+                  userId: user.userid,
+                },
+              },
+            });
+            
+            if (roleMember?.manuallyAdded) {
+              console.log(
+                `[update-group] Keeping manually added role "${userRole.name}" for user ${user.userid}.`
+              );
+              continue;
+            }
+            
             console.log(
               `[update-group] Removing role "${userRole.name}" from user ${user.userid}.`
             );
@@ -855,6 +916,12 @@ export async function checkGroupRoles(groupID: number) {
                   error
                 );
               });
+            await prisma.roleMember.deleteMany({
+              where: {
+                roleId: userRole.id,
+                userId: user.userid,
+              },
+            });
             continue;
           }
 
@@ -862,8 +929,24 @@ export async function checkGroupRoles(groupID: number) {
           const hasQualifyingRank = groupRoleIds.includes(currentRobloxRoleId);
           
           if (!hasQualifyingRank) {
+            const roleMember = await prisma.roleMember.findUnique({
+              where: {
+                roleId_userId: {
+                  roleId: userRole.id,
+                  userId: user.userid,
+                },
+              },
+            });
+            
+            if (roleMember?.manuallyAdded) {
+              console.log(
+                `[update-group] Keeping manually added role "${userRole.name}" for user ${user.userid}`
+              );
+              continue;
+            }
+            
             console.log(
-              `[update-group] Removing role "${userRole.name}" from user ${user.userid} - no longer has qualifying rank (current role ID: ${currentRobloxRoleId}, required: [${groupRoleIds.join(", ")}])`
+              `[update-group] Removing auto-synced role "${userRole.name}" from user ${user.userid} - no longer has qualifying rank (current role ID: ${currentRobloxRoleId}, required: [${groupRoleIds.join(", ")}])`
             );
             
             await prisma.user
@@ -877,6 +960,12 @@ export async function checkGroupRoles(groupID: number) {
                   error
                 );
               });
+            await prisma.roleMember.deleteMany({
+              where: {
+                roleId: userRole.id,
+                userId: user.userid,
+              },
+            });
           }
         }
       }

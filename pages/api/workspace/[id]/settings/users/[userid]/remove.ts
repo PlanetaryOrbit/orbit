@@ -55,7 +55,12 @@ export async function handler(
 		}
 	});
 	
-
+	await prisma.roleMember.deleteMany({
+		where: {
+			userId: parseInt(req.query.userid as string),
+			roleId: user.roles[0].id
+		}
+	});
 
 	res.status(200).json({ success: true })
 }
