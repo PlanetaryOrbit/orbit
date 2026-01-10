@@ -30,7 +30,7 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
 	const isAdmin = actorMembership?.isAdmin || false;
 	const actorRole = actor?.roles?.[0];
 	const perms = actorRole?.permissions || [];
-	const allowed = isAdmin || perms.includes('manage_users') || perms.includes('manage_workspace');
+	const allowed = isAdmin || perms.includes('manage_users');
 	if (!allowed) return res.status(403).json({ success: false, error: 'Insufficient permissions' });
 
 	if (req.method === 'GET') {
