@@ -26,7 +26,7 @@ export default function AuthProvider({
 		const checkLogin = async () => {
 			try {
 				const req = await axios.get('/api/@me');
-				setLogin(req.data.user);
+				setLogin({ ...req.data.user, workspaces: req.data.workspaces || [] });
 				setLoading(false);
 			} catch (err: any) {
 				console.error('Login check error:', err.response?.data);
