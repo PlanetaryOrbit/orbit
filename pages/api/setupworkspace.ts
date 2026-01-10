@@ -222,7 +222,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             key: "policies",
             workspaceGroupId: groupIdNumber,
             value: {
-              enabled: true,
+              enabled: false,
             },
           },
         }),
