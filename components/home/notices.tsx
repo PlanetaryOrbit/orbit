@@ -104,8 +104,7 @@ const NoticesWidget: React.FC = () => {
               <div className="flex items-start gap-3">
                 <div
                   className={`rounded-lg h-10 w-10 flex items-center justify-center ${getRandomBg(
-                    String(u.userId),
-                    u.username
+                    String(u.userId)
                   )}`}
                 >
                   <img
