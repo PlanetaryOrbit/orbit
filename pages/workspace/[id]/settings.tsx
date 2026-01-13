@@ -125,10 +125,12 @@ const SECTIONS = {
     icon: IconHome,
     description: "Basic workspace settings and preferences",
     components: Object.entries(All)
-      .filter(([key]) => key === "Color" || key === "home")
+      .filter(([key]) => key === "Color" || key === "home" || key === "Admin")
       .sort(([keyA], [keyB]) => {
         if (keyA === "home") return -1;
         if (keyB === "home") return 1;
+        if (keyA === "Admin") return 1;
+        if (keyB === "Admin") return -1;
         return 0;
       })
       .map(([key, Component]) => ({
@@ -261,14 +263,25 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
 	  ))
 	}
 
-    return SECTIONS[activeSection as keyof typeof SECTIONS].components.map(({ component: Component, title }, index) => (
-      <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
-        <div className="mb-4">
-          <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">{title}</h3>
-          <Component triggerToast={toast} isSidebarExpanded={isSidebarExpanded} hasResetActivityOnly={activeSection === 'activity' && !isAdmin && !userPermissions.includes('workspace_customisation')} />
+    return SECTIONS[activeSection as keyof typeof SECTIONS].components.map(({ component: Component, title, key }, index) => {
+      const componentProps: any = { triggerToast: toast };
+      
+      if (key === 'Admin') {
+        componentProps.isAdmin = isAdmin;
+      } else {
+        componentProps.isSidebarExpanded = isSidebarExpanded;
+        componentProps.hasResetActivityOnly = activeSection === 'activity' && !isAdmin && !userPermissions.includes('workspace_customisation');
+      }
+      
+      return (
+        <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">{title}</h3>
+            <Component {...componentProps} />
+          </div>
         </div>
-      </div>
-    ))
+      );
+    })
   }
 
   return (

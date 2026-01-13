@@ -8,4 +8,5 @@ import Leaderboard from './leaderboard'
 import Notices from './notices'
 import Policies from './policies'
 import AuditLogs from './logs'
-export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices };
+import Admin from './admin'
+export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices, Admin };
