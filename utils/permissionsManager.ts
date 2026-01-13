@@ -966,6 +966,28 @@ export async function checkGroupRoles(groupID: number) {
                 userId: user.userid,
               },
             });
+            
+            const remainingRoles = user.roles.filter(r => {
+              if (r.isOwnerRole || !r.groupRoles) return false;
+              return r.id !== userRole.id;
+            });
+            
+            if (remainingRoles.length === 0) {
+              console.log(
+                `[update-group] User ${user.userid} has no more valid roles - removing all department assignments`
+              );
+              await prisma.departmentMember.deleteMany({
+                where: {
+                  workspaceGroupId: groupID,
+                  userId: user.userid,
+                },
+              }).catch((error) => {
+                console.error(
+                  `[update-group] Failed to remove departments for user ${user.userid}:`,
+                  error
+                );
+              });
+            }
           }
         }
       }
