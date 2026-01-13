@@ -232,18 +232,27 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   return (
     <>
       {/* Mobile menu button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-[999999] p-2 rounded-lg bg-white dark:bg-zinc-800 shadow"
-      >
-        <IconMenu2 className="w-6 h-6 text-zinc-700 dark:text-white" />
-      </button>
+      {!isMobileMenuOpen && (
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-[999999] p-2 rounded-lg bg-white dark:bg-zinc-800 shadow"
+        >
+          <IconMenu2 className="w-6 h-6 text-zinc-700 dark:text-white" />
+        </button>
+      )}
 
       {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-[99998]"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <div
   		className={clsx(
-  			"fixed lg:static top-0 left-0 h-screen w-full lg:w-auto z-[99999] transition-transform duration-300 flex flex-col",
+  			"fixed lg:static top-0 left-0 h-screen lg:w-auto z-[99999] transition-transform duration-300 flex flex-col",
     		isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
   		)}
       >
@@ -255,7 +264,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             isCollapsed ? "w-[4.5rem]" : "w-64",
           )}
         >
-          <div className="h-full flex flex-col p-3 overflow-y-auto">
+          <div className="h-full flex flex-col p-3 overflow-y-auto pb-20 lg:pb-3">
             <div className="relative">
               <Listbox
                 value={workspace.groupId}
@@ -392,7 +401,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <div className="mb-1">
                 <div className="flex items-center gap-0.2 mb-0.5 -ml-1">
                   <button
-                    onClick={() => setShowOrbitInfo(true)}
+                    onClick={() => {
+                      setShowOrbitInfo(true);
+                      setIsMobileMenuOpen(false);
+                    }}
                     className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
                     title="Copyright Notices"
                   >
@@ -429,7 +441,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <div className="flex items-center gap-1 text-sm text-zinc-500">
                   <span>Orbit v{packageJson.version}</span>
                   <button
-                    onClick={() => setShowChangelog(true)}
+                    onClick={() => {
+                      setShowChangelog(true);
+                      setIsMobileMenuOpen(false);
+                    }}
                     className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-primary transition-all duration-300"
                     title="Changelog"
                   >
