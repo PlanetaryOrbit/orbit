@@ -37,6 +37,11 @@ import {
   IconTrophyFilled,
   IconShieldFilled,
   IconTarget,
+  IconCopyright,
+  IconBook,
+  IconBrandGithub,
+  IconHistory,
+  IconBug,
 } from "@tabler/icons-react"
 import axios from "axios"
 import clsx from "clsx"
@@ -383,6 +388,57 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               )}
             </nav>
 
+            {!isCollapsed && (
+              <div className="mb-1">
+                <div className="flex items-center gap-0.2 mb-0.5 -ml-1">
+                  <button
+                    onClick={() => setShowOrbitInfo(true)}
+                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    title="Copyright Notices"
+                  >
+                    <IconCopyright className="w-4 h-4" />
+                  </button>
+                  <a
+                    href="https://docs.planetaryapp.us"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    title="Documentation"
+                  >
+                    <IconBook className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://github.com/planetaryorbit/orbit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    title="GitHub"
+                  >
+                    <IconBrandGithub className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://feedback.planetaryapp.us/bugs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    title="Bug Reports"
+                  >
+                    <IconBug className="w-4 h-4" />
+                  </a>
+                </div>
+                <div className="flex items-center gap-1 text-sm text-zinc-500">
+                  <span>Orbit v{packageJson.version}</span>
+                  <button
+                    onClick={() => setShowChangelog(true)}
+                    className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-primary transition-all duration-300"
+                    title="Changelog"
+                  >
+                    <IconHistory className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <Menu as="div" className="relative">
               <Menu.Button
                 className={clsx(
@@ -451,26 +507,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 </Menu.Item>
               </Menu.Items>
             </Menu>
-            {!isCollapsed && (
-              <button
-                onClick={() => {
-                  setShowOrbitInfo(true);
-                }}
-                className="mt-4 w-full text-left text-xs text-zinc-500 hover:text-primary transition-all duration-300"
-              >
-                © Copyright Notices
-              </button>
-            )}
-            {!isCollapsed && (
-              <div className="mt-1 text-xs text-zinc-500">
-                <a href="https://docs.planetaryapp.us" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Documentation</a>
-              </div>
-            )}
-            {!isCollapsed && (
-              <div className="mt-1 text-xs text-zinc-500">
-                Orbit v{packageJson.version} - <button onClick={() => setShowChangelog(true)} className="text-xs text-zinc-500 hover:text-primary">Changelog</button>
-              </div>
-            )}		
           </div>
 
           <Dialog
