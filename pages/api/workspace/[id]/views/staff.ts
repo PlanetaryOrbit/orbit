@@ -39,7 +39,9 @@ export default withPermissionCheck(
 
       const activityConfig = await getConfig("activity", workspaceGroupId);
       const idleTimeEnabled = activityConfig?.idleTimeEnabled ?? true;
-      const whereClause: any = {
+      const usernameFilters = filters.filter((f) => f.column === "username");
+      const hasUsernameFilter = usernameFilters.length > 0;
+      const whereClause: any = hasUsernameFilter ? {} : {
         roles: {
           some: {
             workspaceGroupId,
@@ -47,8 +49,7 @@ export default withPermissionCheck(
         },
       };
 
-      const usernameFilters = filters.filter((f) => f.column === "username");
-      if (usernameFilters.length > 0) {
+      if (hasUsernameFilter) {
         const usernameConditions = usernameFilters.map((filter) => {
           if (filter.filter === "equal") {
             return { username: filter.value };

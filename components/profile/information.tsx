@@ -472,7 +472,7 @@ export function InformationTab({
                       </Listbox>
                     ) : (
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                        No departments available. Ask an admin to create some.
+                        No departments available.
                       </p>
                     )}
                   </div>

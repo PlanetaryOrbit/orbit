@@ -1731,7 +1731,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   ))
                                 ) : (
                                   <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                                    No departments available. Create some in settings first.
+                                    No departments available.
                                   </p>
                                 )}
                               </div>
@@ -2472,7 +2472,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   ))
                                 ) : (
                                   <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                                    No departments available. Create some in settings first.
+                                    No departments available.
                                   </p>
                                 )}
                               </div>

@@ -43,7 +43,7 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
               </div>
               {/* Documentation link */}
               <div className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
-                📚 Looking for usage examples or endpoint details? Check out the{" "}
+                Check out the{" "}
                 <a
                   href="https://docs.planetaryapp.cloud/api-references/introduction"
                   target="_blank"

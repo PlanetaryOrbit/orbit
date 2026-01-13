@@ -1,5 +1,5 @@
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
@@ -9,6 +9,8 @@ import clsx from "clsx";
 
 type props = {
   triggerToast: typeof toast;
+  isSidebarExpanded?: boolean;
+  hasResetActivityOnly?: boolean;
 };
 
 const Color: FC<props> = (props) => {
