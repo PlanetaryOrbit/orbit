@@ -70,8 +70,9 @@ const Sessions: React.FC = () => {
       .get(`/api/workspace/${router.query.id}/home/activeSessions?startDate=${startISO}&endDate=${endISO}`)
       .then((res) => {
         if (res.status === 200) {
-          setActiveSessions(res.data.sessions || []);
-          setNextSession(res.data.nextSession || null);
+          const sessionsWithOwner = (res.data.sessions || []).filter((session: any) => session.owner);
+          setActiveSessions(sessionsWithOwner);
+          setNextSession(res.data.nextSession?.owner ? res.data.nextSession : null);
         }
       })
       .catch((err) => {
