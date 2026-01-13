@@ -59,7 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const defaultAnnouncement = {
       title: "Planetary",
-      subtitle: "Update: v2.1.7 is now live!",
+      subtitle: "Update: v2.1.8 is now live!",
       sections: [
         {
           title: "",
@@ -67,24 +67,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             "We're keeping this going with a well needed update. Here are a few highlights from this week's work and community feedback.",
         },
         {
-          title: "📖 Sessions",
+          title: "💼 Permissions",
           content:
-            "We have updated our session logic, so when editing recurring sessions you have the option to edit the one session or all the events in the series.",
+            "We now have over 50 permissions available to assign to roles!",
         },
         {
-          title: "👤 Profiles",
+          title: "🧹",
           content:
-            "We have refreshed how all the staff profiles look and the information that shows up. You can now see activity quotas, session history, and activity overview all in one place! As well as new information like Timezone, Department etc!",
-        },
-        {
-          title: "🎂 Birthdays",
-          content:
-            "We have added the ability for you to add a webhook which announced the birthdays of people on your workspace.",
+            "Improved overall performance and stability across the board.",
         },
         {
           title: "",
           content:
-            "That's a wrap for this week — we'll see you next Saturday for more updates from Team Planetary.",
+            "That's a wrap for this week — we'll see you soon for more updates from Team Planetary.",
         },
       ],
       editorUsername: null,
