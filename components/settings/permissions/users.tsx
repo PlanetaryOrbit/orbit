@@ -125,7 +125,7 @@ const Button: FC<Props> = (props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
           Users
         </h3>
@@ -137,7 +137,7 @@ const Button: FC<Props> = (props) => {
                   {...userForm.register("username")}
                   placeholder="Enter username"
                   className={clsx(
-                    "w-48 px-3 py-2 text-sm rounded-lg border bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-white focus:ring-primary focus:border-primary transition focus-visible:outline-none",
+                    "w-full sm:w-48 px-3 py-1.5 text-sm rounded-lg border bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-white focus:ring-primary focus:border-primary transition focus-visible:outline-none",
                     userForm.formState.errors.username
                       ? "border-red-500"
                       : "border-gray-300 dark:border-zinc-600"
@@ -151,7 +151,7 @@ const Button: FC<Props> = (props) => {
               </div>
               <button
                 onClick={addUser}
-                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors whitespace-nowrap"
               >
                 <IconPlus size={16} className="mr-1.5" />
                 Add User
@@ -228,17 +228,17 @@ const Button: FC<Props> = (props) => {
                           {roleUsers.map((user: any) => (
                             <div
                               key={user.userid}
-                              className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-700"
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-zinc-700"
                             >
                               <div className="flex items-center space-x-3">
                                 <img
                                   src={user.thumbnail}
                                   alt={user.displayName}
-                                  className="w-10 h-10 rounded-full"
+                                  className="w-10 h-10 rounded-full flex-shrink-0"
                                 />
-                                <div>
-                                  <div className="flex items-center space-x-2">
-                                    <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center space-x-2 flex-wrap">
+                                    <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
                                       {user.displayName}
                                     </p>
                                     {user.workspaceMemberships?.[0]?.isAdmin && (
@@ -247,21 +247,21 @@ const Button: FC<Props> = (props) => {
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                                     @{user.username}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-2 ml-auto">
+                              <div className="flex items-center space-x-2 w-full sm:w-auto sm:ml-auto">
                                 <Listbox
                                   value={user.roles[0].id}
                                   onChange={(value) =>
                                     updateRole(user.userid, value)
                                   }
                                 >
-                                  <div className="relative">
+                                  <div className="relative flex-1 sm:flex-none">
                                     <Listbox.Button
-                                      className="relative w-40 py-2 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                      className="relative w-full sm:w-40 py-1.5 pl-3 pr-10 text-left bg-white dark:text-white dark:bg-zinc-700 rounded-lg border border-gray-300 dark:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
                                     >
                                       <span className="block truncate text-sm">
                                         {user.roles[0].name}
@@ -317,7 +317,7 @@ const Button: FC<Props> = (props) => {
                                   }}
                                   disabled={user.workspaceMemberships?.[0]?.isAdmin}
                                   className={clsx(
-                                    "inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white transition-colors",
+                                    "inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md text-white transition-colors whitespace-nowrap flex-shrink-0",
                                     user.workspaceMemberships?.[0]?.isAdmin
                                       ? "bg-red-600/50 cursor-not-allowed opacity-60"
                                       : "bg-red-600 hover:bg-red-700"
@@ -326,9 +326,9 @@ const Button: FC<Props> = (props) => {
                                   <IconCircleMinus
                                     width={16}
                                     height={16}
-                                    className="mr-1.5"
+                                    className="sm:mr-1.5"
                                   />
-                                  Remove
+                                  <span className="hidden sm:inline">Remove</span>
                                 </button>
                               </div>
                             </div>
