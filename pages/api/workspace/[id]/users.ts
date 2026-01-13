@@ -18,13 +18,15 @@ export default withPermissionCheck(async (req: NextApiRequest, res: NextApiRespo
 			select: {
 				userid: true,
 				username: true,
-				picture: true
+				picture: true,
+				registered: true
 			}
 		});
 		const users = workspaceUsers.map(user => ({
 			userid: user.userid.toString(),
 			username: user.username,
-			picture: user.picture
+			picture: user.picture,
+			registered: user.registered ?? false
 		}));
 		res.status(200).json(users);
 	} catch (error) {

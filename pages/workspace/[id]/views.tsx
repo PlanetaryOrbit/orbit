@@ -748,21 +748,37 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     setType("");
   };
 
-  const updateSearchQuery = async (query: any) => {
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const updateSearchQuery = (query: any) => {
     setSearchQuery(query);
-    setSearchOpen(true);
-    if (query == "") {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    if (query.trim() === "") {
       setSearchOpen(false);
       setColFilters([]);
+      setSearchResults([]);
       return;
-    } else {
-      setSearchOpen(true);
     }
-    const userRequest = await axios.get(
-      `/api/workspace/${router.query.id}/staff/search/${query}`
-    );
-    const userList = userRequest.data.users;
-    setSearchResults(userList);
+    const timeout = setTimeout(async () => {
+      try {
+        setSearchOpen(true);
+        const userRequest = await axios.get(
+          `/api/workspace/${router.query.id}/staff/search/${query.trim()}`
+        );
+        const userList = userRequest.data.users;
+        setSearchResults(userList);
+      } catch (error: any) {
+        if (error.response?.status === 429) {
+          toast.error("Please wait before searching again");
+        }
+        setSearchResults([]);
+      }
+    }, 2000);
+    
+    setSearchTimeout(timeout);
   };
 
   const updateSearchFilter = async (username: string) => {
@@ -784,7 +800,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
       return "Warnings";
     } else if (columnId == "wallPosts") {
       return "Wall Posts";
-    } else if (columnId == "rankID") {
+    } else if (columnId == "rankName" || columnId == "rankID") {
       return "Rank";
     } else if (columnId == "inactivityNotices") {
       return "Inactivity notices";
