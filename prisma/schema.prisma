@@ -31,6 +31,7 @@ model workspace {
   externalServices  workspaceExternalServices?
   members           workspaceMember[]
   policyLinks       PolicyShareableLink[]
+  stickyAnnouncements StickyAnnouncement[]
 }
 
 model config {
@@ -174,6 +175,22 @@ model wallPost {
   author           user      @relation(fields: [authorId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 
+}
+
+model StickyAnnouncement {
+  id               Int       @id @default(autoincrement())
+  workspaceGroupId Int
+  title            String
+  subtitle         String?
+  sections         Json      // Array of {title: string, content: string}
+  editorId         BigInt?
+  editorUsername   String?
+  editorPicture    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  
+  @@unique([workspaceGroupId])
 }
 
 model AuditLog {
