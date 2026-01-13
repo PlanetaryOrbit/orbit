@@ -145,6 +145,31 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     // Validate and sanitize image (if present)
     if (image) {
+      const workspaceId = parseInt(req.query.id as string);
+      const user = await prisma.user.findFirst({
+        where: { userid: BigInt(req.session.userid) },
+        include: {
+          roles: {
+            where: { workspaceGroupId: workspaceId },
+          },
+          workspaceMemberships: {
+            where: { workspaceGroupId: workspaceId },
+          },
+        },
+      });
+
+      const isAdmin = user?.workspaceMemberships?.[0]?.isAdmin || false;
+      const hasPhotoPermission = 
+        isAdmin || 
+        user?.roles?.[0]?.permissions?.includes("add_wall_photos");
+
+      if (!hasPhotoPermission) {
+        return res.status(403).json({
+          success: false,
+          error: "You don't have permission to add photos to wall posts",
+        });
+      }
+
       try {
         image = await validateAndSanitizeImage(image);
       } catch (error) {

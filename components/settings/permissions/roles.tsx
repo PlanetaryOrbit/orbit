@@ -33,7 +33,9 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     Wall: {
       "View wall": "view_wall",
       "Post on wall": "post_on_wall",
+      "Add photos to wall posts": "add_wall_photos",
       "Delete wall posts": "delete_wall_posts",
+      "Edit sticky post": "edit_sticky_post",
     },
     Sessions: {
       "Assign users to Sessions": "sessions_assign",

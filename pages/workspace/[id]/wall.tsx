@@ -252,6 +252,19 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   };
 
+  const canAddPhotos = () => {
+    try {
+      const role = workspace?.roles?.find(
+        (r: any) => r.id === workspace?.yourRole
+      );
+      const isOwner = !!(role && role.isOwnerRole);
+      const hasPerm = !!workspace?.yourPermission?.includes("add_wall_photos");
+      return isOwner || hasPerm || !!login?.canMakeWorkspace;
+    } catch (e) {
+      return false;
+    }
+  };
+
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
@@ -315,12 +328,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     onChange={handleImageSelect}
                   />
-                  <button
-                    className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <IconPhoto size={20} />
-                  </button>
+                  {canAddPhotos() && (
+                    <button
+                      className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <IconPhoto size={20} />
+                    </button>
+                  )}
                   <div className="relative z-10">
                     <button
                       className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"

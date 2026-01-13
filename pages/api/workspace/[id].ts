@@ -115,6 +115,7 @@ export async function handler(
 		"View wall": "view_wall",
 		"Post on wall": "post_on_wall",
 		"Delete wall posts": "delete_wall_posts",
+		"Add photos to wall posts": "add_wall_photos",
 		'Assign users to Sessions': 'sessions_assign',
 		'Assign Self to Sessions': 'sessions_claim',
 		'Host Sessions': 'sessions_host',
