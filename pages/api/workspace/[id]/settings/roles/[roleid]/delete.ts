@@ -50,7 +50,10 @@ export async function handler(
 		return res.status(403).json({ success: false, error: 'Cannot delete a role assigned to an admin user' });
 	}
 	
-	const newrole = role[0];
+	const newrole = role.find(r => r.id !== req.query.roleid);
+	if (!newrole) {
+		return res.status(400).json({ success: false, error: 'No fallback role available' });
+	}
 
 	for (const member of oldrole.members) {
 		await prisma.user.update({
@@ -63,7 +66,7 @@ export async function handler(
 						id: newrole.id
 					},
 					disconnect: {
-						id: newrole.id
+						id: oldrole.id
 					}
 				}
 			}
