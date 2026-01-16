@@ -31,9 +31,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const ws = await prisma.workspace.findMany({});
     const ids: number[] = [];
-    for (const w of ws) {
-      ids.push(w.groupId);
-      checkGroupRoles(w.groupId).catch((e) => console.error("checkgrouproles cron error for", w.groupId, e));
+    const isMultiContainer = process.env.NEXT_MULTI === 'true';
+    
+    if (isMultiContainer) {
+      console.log(`[cron-update-roles] Multi-container mode: Starting sequential sync of ${ws.length} workspaces`);
+      for (let i = 0; i < ws.length; i++) {
+        const w = ws[i];
+        ids.push(w.groupId);
+        console.log(`[cron-update-roles] Syncing workspace ${i + 1}/${ws.length}: ${w.groupId}`);
+        
+        try {
+          await checkGroupRoles(w.groupId);
+          console.log(`[cron-update-roles] Successfully synced workspace ${w.groupId}`);
+        } catch (e) {
+          console.error("checkgrouproles cron error for", w.groupId, e);
+        }
+        
+        if (i < ws.length - 1) {
+          const delayMs = 15000;
+          console.log(`[cron-update-roles] Waiting ${delayMs}ms before next workspace...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+      console.log(`[cron-update-roles] Completed all ${ws.length} workspace syncs`);
+    } else {
+      console.log(`[cron-update-roles] Single-container mode: Starting parallel sync of ${ws.length} workspaces`);
+      for (const w of ws) {
+        ids.push(w.groupId);
+        checkGroupRoles(w.groupId).catch((e) => console.error("checkgrouproles cron error for", w.groupId, e));
+      }
     }
 
     return res.status(200).json({ success: true, started: ids.length, workspaces: ids });
