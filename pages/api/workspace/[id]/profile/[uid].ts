@@ -96,6 +96,7 @@ export default withSessionRoute(async function handler(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
       include: {
         user: {
@@ -109,6 +110,7 @@ export default withSessionRoute(async function handler(
       where: {
         userId,
         workspaceGroupId,
+        archived: { not: true },
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -134,6 +136,7 @@ export default withSessionRoute(async function handler(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
       orderBy: { date: "desc" },
     });
@@ -146,6 +149,7 @@ export default withSessionRoute(async function handler(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
     });
 
@@ -158,6 +162,7 @@ export default withSessionRoute(async function handler(
             gte: startDate,
             lte: currentDate,
           },
+          archived: { not: true },
         },
       },
       include: {

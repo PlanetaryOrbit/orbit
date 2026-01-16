@@ -90,6 +90,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           userId,
           workspaceGroupId,
           endTime: { not: null },
+          archived: { not: true },
         },
       });
 
@@ -108,7 +109,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         totalIdleTime += Number(session.idleTime) || 0;
       });
       const adjustments = await prisma.activityAdjustment.findMany({
-        where: { userId, workspaceGroupId },
+        where: { 
+          userId, 
+          workspaceGroupId,
+          archived: { not: true },
+        },
       });
 
       const adjustmentMinutes = adjustments.reduce(
@@ -125,6 +130,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             gte: periodStart,
             lte: periodEnd,
           },
+          archived: { not: true },
         },
       });
 
@@ -138,6 +144,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               lte: periodEnd,
             },
           },
+          archived: { not: true },
         },
         include: {
           session: {
@@ -318,24 +325,55 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           previousPeriodEnd: periodEnd,
         },
       });
-      await tx.sessionUser.deleteMany({
+      await tx.sessionUser.updateMany({
         where: {
           session: {
             sessionType: { workspaceGroupId },
             date: { lte: new Date() },
           },
+          archived: { not: true },
+        },
+        data: {
+          archived: true,
+          archiveStartDate: periodStart,
+          archiveEndDate: periodEnd,
         },
       });
-      await tx.activitySession.deleteMany({
-        where: { workspaceGroupId },
+      
+      await tx.activitySession.updateMany({
+        where: { 
+          workspaceGroupId,
+          archived: { not: true },
+        },
+        data: {
+          archived: true,
+          archiveStartDate: periodStart,
+          archiveEndDate: periodEnd,
+        },
       });
-      await tx.activityAdjustment.deleteMany({
-        where: { workspaceGroupId },
+      
+      await tx.activityAdjustment.updateMany({
+        where: { 
+          workspaceGroupId,
+          archived: { not: true },
+        },
+        data: {
+          archived: true,
+          archiveStartDate: periodStart,
+          archiveEndDate: periodEnd,
+        },
       });
-      await tx.session.deleteMany({
+      
+      await tx.session.updateMany({
         where: {
           sessionType: { workspaceGroupId },
           date: { lte: new Date() },
+          archived: { not: true },
+        },
+        data: {
+          archived: true,
+          archiveStartDate: periodStart,
+          archiveEndDate: periodEnd,
         },
       });
     });

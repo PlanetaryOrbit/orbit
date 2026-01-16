@@ -24,6 +24,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         id: {
           not: sessionId as string,
         },
+        archived: { not: true },
         OR: [
           {
             startTime: {

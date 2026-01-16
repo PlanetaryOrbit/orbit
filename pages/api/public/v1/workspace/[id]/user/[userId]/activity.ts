@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Fetch activity sessions
     const sessions = await prisma.activitySession.findMany({
-      where,
+      where: { ...where, archived: { not: true } },
       orderBy: {
         startTime: "desc",
       },

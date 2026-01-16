@@ -346,6 +346,8 @@ const Activity: FC<Props> = ({
                   idleTimeEnabled={idleTimeEnabled}
                   sessionsHosted={sessionsHosted}
                   sessionsAttended={sessionsAttended}
+                  isHistorical={isHistorical}
+                  historicalPeriod={historicalPeriod}
                 />
               </Tab.Panel>
               <Tab.Panel>

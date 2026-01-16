@@ -232,33 +232,39 @@ model schedule {
 }
 
 model sessionUser {
-  userid    BigInt
-  sessionid String  @db.Uuid
-  roleID    String
-  slot      Int
-  session   Session @relation(fields: [sessionid], references: [id])
-  user      user    @relation(fields: [userid], references: [userid])
+  userid           BigInt
+  sessionid        String    @db.Uuid
+  roleID           String
+  slot             Int
+  archived         Boolean?  @default(false)
+  archiveStartDate DateTime?
+  archiveEndDate   DateTime?
+  session          Session   @relation(fields: [sessionid], references: [id])
+  user             user      @relation(fields: [userid], references: [userid])
 
   @@id([userid, sessionid, roleID, slot])
 }
 
 model Session {
-  id            String        @id @unique @default(uuid()) @db.Uuid
-  ownerId       BigInt?
-  date          DateTime
-  startedAt     DateTime?
-  ended         DateTime?
-  duration      Int           @default(30) // Duration in minutes
-  sessionTypeId String        @db.Uuid
-  scheduleId    String?       @db.Uuid
-  name          String?
-  type          String?
-  owner         user?         @relation(fields: [ownerId], references: [userid])
-  schedule      schedule?     @relation(fields: [scheduleId], references: [id])
-  sessionType   SessionType   @relation(fields: [sessionTypeId], references: [id])
-  logs          SessionLog[]
-  notes         SessionNote[]
-  users         sessionUser[]
+  id               String        @id @unique @default(uuid()) @db.Uuid
+  ownerId          BigInt?
+  date             DateTime
+  startedAt        DateTime?
+  ended            DateTime?
+  duration         Int           @default(30) // Duration in minutes
+  sessionTypeId    String        @db.Uuid
+  scheduleId       String?       @db.Uuid
+  name             String?
+  type             String?
+  archived         Boolean?      @default(false)
+  archiveStartDate DateTime?
+  archiveEndDate   DateTime?
+  owner            user?         @relation(fields: [ownerId], references: [userid])
+  schedule         schedule?     @relation(fields: [scheduleId], references: [id])
+  sessionType      SessionType   @relation(fields: [sessionTypeId], references: [id])
+  logs             SessionLog[]
+  notes            SessionNote[]
+  users            sessionUser[]
 }
 
 model SessionNote {
@@ -296,6 +302,9 @@ model ActivitySession {
   messages         Int?
   universeId       BigInt?
   sessionMessage   String?
+  archived         Boolean?  @default(false)
+  archiveStartDate DateTime?
+  archiveEndDate   DateTime?
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 }
@@ -447,6 +456,9 @@ model ActivityAdjustment {
   minutes          Int
   reason           String?
   createdAt        DateTime  @default(now())
+  archived         Boolean?  @default(false)
+  archiveStartDate DateTime?
+  archiveEndDate   DateTime?
   actor            user      @relation("AdjustmentActor", fields: [actorId], references: [userid])
   user             user      @relation("AdjustmentUser", fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])

@@ -199,6 +199,7 @@ async function performReset(workspaceGroupId: number) {
         userId,
         workspaceGroupId,
         endTime: { not: null },
+        archived: { not: true },
       },
     });
 
@@ -218,7 +219,7 @@ async function performReset(workspaceGroupId: number) {
     });
 
     const adjustments = await prisma.activityAdjustment.findMany({
-      where: { userId, workspaceGroupId },
+      where: { userId, workspaceGroupId, archived: { not: true } },
     });
 
     const adjustmentMinutes = adjustments.reduce(
@@ -235,6 +236,7 @@ async function performReset(workspaceGroupId: number) {
           gte: periodStart,
           lte: periodEnd,
         },
+        archived: { not: true },
       },
     });
 
@@ -247,6 +249,7 @@ async function performReset(workspaceGroupId: number) {
             gte: periodStart,
             lte: periodEnd,
           },
+          archived: { not: true },
         },
       },
     });

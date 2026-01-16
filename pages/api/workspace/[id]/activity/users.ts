@@ -70,6 +70,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         gte: startDate,
         lte: currentDate,
       },
+      archived: { not: true },
     },
   });
 
@@ -77,6 +78,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     where: {
       active: true,
       workspaceGroupId: workspaceId,
+      archived: { not: true },
     },
     select: {
       userId: true,
@@ -217,6 +219,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         gte: startDate,
         lte: currentDate,
       },
+      archived: { not: true },
     },
   });
 

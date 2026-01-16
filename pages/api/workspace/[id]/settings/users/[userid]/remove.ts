@@ -62,5 +62,15 @@ export async function handler(
 		}
 	});
 
+	await prisma.workspaceMember.updateMany({
+		where: {
+			userId: parseInt(req.query.userid as string),
+			workspaceGroupId: parseInt(req.query.id as string)
+		},
+		data: {
+			joinDate: null
+		}
+	});
+
 	res.status(200).json({ success: true })
 }

@@ -179,6 +179,7 @@ export default withPermissionCheck(
           userId: {
             in: userIdsToProcess,
           },
+          archived: { not: true },
         },
         select: {
           userId: true,
@@ -201,6 +202,7 @@ export default withPermissionCheck(
               gte: startDate,
               lte: currentDate,
             },
+            archived: { not: true },
           },
         }),
         prisma.session.findMany({
@@ -211,6 +213,7 @@ export default withPermissionCheck(
               gte: startDate,
               lte: currentDate,
             },
+            archived: { not: true },
           },
         }),
         prisma.sessionUser.findMany({
@@ -222,6 +225,7 @@ export default withPermissionCheck(
                 gte: startDate,
                 lte: currentDate,
               },
+              archived: { not: true },
             },
           },
           include: {

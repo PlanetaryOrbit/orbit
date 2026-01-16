@@ -13,6 +13,7 @@ export async function closeActiveSessions() {
     const activeSessions = await prisma.activitySession.findMany({
       where: {
         active: true,
+        archived: { not: true },
       },
     });
 

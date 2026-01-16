@@ -28,7 +28,8 @@ export async function handler(
 	const sessions = await prisma.activitySession.findMany({
 		where: {
 			workspaceGroupId: workspaceId,
-			active: false
+			active: false,
+			archived: { not: true }
 		}
 	});
 
