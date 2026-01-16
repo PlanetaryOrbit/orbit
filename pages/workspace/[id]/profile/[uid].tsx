@@ -33,6 +33,7 @@ import {
   IconCloud,
   IconStars,
   IconExternalLink,
+  IconBeach,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -207,6 +208,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
       include: {
         user: {
@@ -226,6 +228,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
       orderBy: { createdAt: "desc" },
       include: {
@@ -266,6 +269,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           lte: endOfWeek,
           gte: startOfWeek,
         },
+        archived: { not: true },
       },
       orderBy: {
         startTime: "asc",
@@ -331,6 +335,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           gte: startDate,
           lte: currentDate,
         },
+        archived: { not: true },
       },
     });
 
@@ -345,7 +350,9 @@ export const getServerSideProps = withPermissionCheckSsr(
             gte: startDate,
             lte: currentDate,
           },
+          archived: { not: true },
         },
+        archived: { not: true },
       },
       include: {
         session: {
@@ -527,25 +534,28 @@ export const getServerSideProps = withPermissionCheckSsr(
       }
     }
 
-    const allMembersRaw = await prisma.workspaceMember.findMany({
+    const allMembersRaw = await prisma.user.findMany({
       where: {
-        workspaceGroupId: parseInt(query.id as string),
-      },
-      include: {
-        user: {
-          select: {
-            userid: true,
-            username: true,
-            picture: true,
+        roles: {
+          some: {
+            workspaceGroupId: parseInt(query.id as string),
           },
         },
+      },
+      select: {
+        userid: true,
+        username: true,
+        picture: true,
+      },
+      orderBy: {
+        username: 'asc',
       },
     });
 
     const allMembers = allMembersRaw.map((member) => ({
-      userid: member.user.userid.toString(),
-      username: member.user.username,
-      picture: member.user.picture || "",
+      userid: member.userid.toString(),
+      username: member.username,
+      picture: member.picture || "",
     }));
 
     if (!user) {
@@ -956,9 +966,33 @@ const Profile: pageWithLayout<pageProps> = ({
             </div>
             <div className="flex-1 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white truncate">
-                  {info.displayName}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white truncate">
+                    {info.displayName}
+                  </h1>
+                  {(() => {
+                    const now = new Date();
+                    const activeNotice = notices.find(
+                      (notice: any) =>
+                        notice.approved === true &&
+                        notice.reviewed === true &&
+                        notice.revoked === false &&
+                        new Date(notice.startTime) <= now &&
+                        new Date(notice.endTime) >= now
+                    );
+                    if (activeNotice) {
+                      return (
+                        <div
+                          className="flex-shrink-0"
+                          title={`On notice: ${activeNotice.reason || "N/A"}`}
+                        >
+                          <IconBeach className="w-5 h-5 text-amber-500" />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
                   @{info.username}
                 </p>
