@@ -77,20 +77,19 @@ export default withPermissionCheck(
         isAdmin = membership?.isAdmin || false;
       }
 
-      const visibilityFilters = await getConfig(
-        "session_filters",
-        parseInt(id as string)
-      );
-
       let filteredSessions = sessions;
-      if (visibilityFilters && userRole) {
-        const roleId = userRole.id;
-        const allowedTypes = visibilityFilters[roleId];
-
-        if (allowedTypes !== undefined && Array.isArray(allowedTypes) && allowedTypes.length > 0) {
+      if (userRole && !isAdmin) {
+        const sessionTypes = ["shift", "training", "event", "other"];
+        const visibleTypes = sessionTypes.filter(type => 
+          userRole.permissions.includes(`sessions_${type}_see`)
+        );
+        
+        if (visibleTypes.length > 0) {
           filteredSessions = sessions.filter((session) =>
-            allowedTypes.includes(session.type)
+            visibleTypes.includes(session.type || "other")
           );
+        } else {
+          filteredSessions = [];
         }
       }
 

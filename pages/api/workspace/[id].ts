@@ -111,17 +111,26 @@ export async function handler(
 	if (!user) return res.status(401).json({ success: false, error: 'Not logged in' })
 	if (!user.roles.length) return res.status(401).json({ success: false, error: 'Not logged in' })
 
+	const sessionTypes = ["shift", "training", "event", "other"];
+	const sessionPermissions: Record<string, string> = {};
+	
+	sessionTypes.forEach(type => {
+		const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
+		sessionPermissions[`See ${typeCapitalized} Sessions`] = `sessions_${type}_see`;
+		sessionPermissions[`Assign users to ${typeCapitalized} Sessions`] = `sessions_${type}_assign`;
+		sessionPermissions[`Assign Self to ${typeCapitalized} Sessions`] = `sessions_${type}_claim`;
+		sessionPermissions[`Host ${typeCapitalized} Sessions`] = `sessions_${type}_host`;
+		sessionPermissions[`Create Unscheduled ${typeCapitalized} Sessions`] = `sessions_${type}_unscheduled`;
+		sessionPermissions[`Create Scheduled ${typeCapitalized} Sessions`] = `sessions_${type}_scheduled`;
+		sessionPermissions[`Manage ${typeCapitalized} Sessions`] = `sessions_${type}_manage`;
+	});
+
 	const permissions = {
 		"View wall": "view_wall",
 		"Post on wall": "post_on_wall",
 		"Delete wall posts": "delete_wall_posts",
 		"Add photos to wall posts": "add_wall_photos",
-		'Assign users to Sessions': 'sessions_assign',
-		'Assign Self to Sessions': 'sessions_claim',
-		'Host Sessions': 'sessions_host',
-		"Create Unscheduled": "sessions_unscheduled",
-		"Create Scheduled": "sessions_scheduled",
-		"Manage sessions": "manage_sessions",
+		...sessionPermissions,
 		"View members": "view_members",
 		"Use saved views": "use_views",
 		"Create views": "create_views",

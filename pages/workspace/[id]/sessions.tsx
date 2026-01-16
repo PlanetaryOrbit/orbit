@@ -13,7 +13,6 @@ import {
   IconUsers,
   IconClock,
   IconUserCircle,
-  IconFilter,
   IconX,
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
@@ -28,6 +27,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast, { Toaster } from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
+import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
 import { Dialog, Transition } from "@headlessui/react";
 import { getConfig } from "@/utils/configEngine";
 
@@ -94,8 +94,8 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    // Apply visibility filters to initial sessions
     let filteredSessions = allSessions;
+    let isAdmin = false;
     if (req.session?.userid) {
       const userId = BigInt(req.session.userid);
       const user = await prisma.user.findFirst({
@@ -104,24 +104,28 @@ export const getServerSideProps = withPermissionCheckSsr(
           roles: {
             where: { workspaceGroupId: parseInt(query.id as string) },
           },
+          workspaceMemberships: {
+            where: { workspaceGroupId: parseInt(query.id as string) },
+          },
         },
       });
 
-      if (user && user.roles?.[0]) {
-        const visibilityFilters = await getConfig(
-          "session_filters",
-          parseInt(query.id as string)
+      const membership = user?.workspaceMemberships?.[0];
+      isAdmin = membership?.isAdmin || false;
+
+      if (user && user.roles?.[0] && !isAdmin) {
+        const role = user.roles[0];
+        const sessionTypes = ["shift", "training", "event", "other"];
+        const visibleTypes = sessionTypes.filter(type => 
+          role.permissions.includes(`sessions_${type}_see`)
         );
-
-        if (visibilityFilters) {
-          const roleId = user.roles[0].id;
-          const allowedTypes = visibilityFilters[roleId];
-
-          if (allowedTypes !== undefined && Array.isArray(allowedTypes) && allowedTypes.length > 0) {
-            filteredSessions = allSessions.filter((session) =>
-              allowedTypes.includes(session.type)
-            );
-          }
+        
+        if (visibleTypes.length > 0) {
+          filteredSessions = allSessions.filter((session) =>
+            visibleTypes.includes(session.type || "other")
+          );
+        } else {
+          filteredSessions = [];
         }
       }
     }
@@ -149,6 +153,7 @@ export const getServerSideProps = withPermissionCheckSsr(
             gte: startDate,
             lte: currentDate,
           },
+          archived: { not: true },
         },
       });
 
@@ -163,7 +168,9 @@ export const getServerSideProps = withPermissionCheckSsr(
               gte: startDate,
               lte: currentDate,
             },
+            archived: { not: true },
           },
+          archived: { not: true },
         },
         include: {
           session: {
@@ -289,6 +296,7 @@ const WeeklyCalendar: React.FC<{
 }) => {
   const { getSessionTypeColor, getRecurringColor, getTextColorForBackground } =
     useSessionColors(workspaceId);
+  const [workspace] = useRecoilState(workspacestate);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date();
@@ -507,7 +515,7 @@ const WeeklyCalendar: React.FC<{
                         </div>
 
                         <div className="relative">
-                          {canManage && onEditSession && (
+                          {canManageSession(workspace?.yourPermission || [], session.type) && onEditSession && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -587,9 +595,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
-  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false);
-  const [visibilityFilters, setVisibilityFilters] = useState<any>({});
-  const [workspaceRoles, setWorkspaceRoles] = useState<any[]>([]);
   const [isPatternEditDialogOpen, setIsPatternEditDialogOpen] = useState(false);
   const [sessionToEdit, setSessionToEdit] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -606,57 +611,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
   } = useSessionColors(workspaceIdForColors);
   const { userSessionMetrics } = props;
 
-  const SESSION_TYPES = ["shift", "training", "event", "other"];
 
-  const loadVisibilityFilters = async () => {
-    try {
-      const response = await axios.get(
-        `/api/workspace/${router.query.id}/sessions/filters`
-      );
-      if (response.data.success) {
-        setVisibilityFilters(response.data.filters || {});
-      }
-    } catch (error) {
-      console.error("Failed to load filters:", error);
-    }
-  };
-
-  const loadWorkspaceRoles = async () => {
-    try {
-      const response = await axios.get(
-        `/api/workspace/${router.query.id}/settings/roles`
-      );
-      if (response.data.success) {
-        setWorkspaceRoles(response.data.roles || []);
-      }
-    } catch (error) {
-      console.error("Failed to load workspace roles:", error);
-    }
-  };
-
-  const saveVisibilityFilters = async () => {
-    try {
-      await axios.post(`/api/workspace/${router.query.id}/sessions/filters`, {
-        filters: visibilityFilters,
-      });
-      toast.success("Filters saved successfully!");
-      setIsVisibilityModalOpen(false);
-      loadSessionsForDate(selectedDate);
-    } catch (error) {
-      console.error("Failed to save filters:", error);
-      toast.error("Failed to save filters");
-    }
-  };
-
-  const toggleSessionTypeForRole = (roleId: string, sessionType: string) => {
-    setVisibilityFilters((prev: any) => {
-      const current = prev[roleId] || [];
-      const newTypes = current.includes(sessionType)
-        ? current.filter((t: string) => t !== sessionType)
-        : [...current, sessionType];
-      return { ...prev, [roleId]: newTypes };
-    });
-  };
 
   const monday = getMonday(currentWeek);
   const weekDates = getWeekDates(monday);
@@ -810,10 +765,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
   useEffect(() => {
     if (router.query.id) {
       loadWorkspaceMembers();
-      if (workspace.yourPermission?.includes("admin")) {
-        loadVisibilityFilters();
-        loadWorkspaceRoles();
-      }
     }
   }, [router.query.id, workspace.yourPermission]);
 
@@ -986,17 +937,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
             </div>
 
             <div>
-              {workspace.yourPermission?.includes("admin") && (
-                <button
-                  onClick={() => setIsVisibilityModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 mr-2 shadow-sm text-sm font-medium rounded-md text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-                >
-                  <IconFilter className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Visibility Filters</span>
-                </button>
-              )}
-              {(workspace.yourPermission?.includes("sessions_scheduled") ||
-                workspace.yourPermission?.includes("sessions_unscheduled")) && (
+              {canCreateAnySession(workspace.yourPermission) && (
                 <button
                   onClick={() =>
                     router.push(`/workspace/${router.query.id}/sessions/new`)
@@ -1145,9 +1086,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
                             )}
                           </div>
                           {workspace.yourPermission &&
-                            workspace.yourPermission.includes(
-                              "manage_sessions"
-                            ) && (
+                            canManageSession(workspace.yourPermission, session.type) && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1205,136 +1144,14 @@ const Home: pageWithLayout<pageProps> = (props) => {
               }
             }}
             workspaceMembers={workspaceMembers}
-            canManage={workspace.yourPermission?.includes("manage_sessions")}
+            canManage={canManageSession(workspace.yourPermission || [], selectedSession?.type)}
+            canAddNotes={canAddNotes(workspace.yourPermission || [], selectedSession?.type)}
             sessionColors={sessionColors}
             colorsReady={!colorsLoading}
           />
         )}
 
-        <Transition appear show={isVisibilityModalOpen} as={Fragment}>
-          <Dialog
-            as="div"
-            className="relative z-50"
-            onClose={() => setIsVisibilityModalOpen(false)}
-          >
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-black bg-opacity-25" />
-            </Transition.Child>
 
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4 text-center md:ml-64">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
-                    <Dialog.Title
-                      as="div"
-                      className="flex items-center justify-between mb-4"
-                    >
-                      <div>
-                        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                          Session Visibility Filters
-                        </h3>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                          Control which session types each role can see
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setIsVisibilityModalOpen(false)}
-                        className="text-zinc-400 hover:text-zinc-500"
-                      >
-                        <IconX className="w-5 h-5" />
-                      </button>
-                    </Dialog.Title>
-
-                    <div className="mt-4 space-y-4 max-h-96 overflow-y-auto">
-                      {workspaceRoles
-                        .filter((role) => !role.isOwnerRole)
-                        .map((role) => (
-                          <div
-                            key={role.id}
-                            className="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg"
-                          >
-                            <h4 className="font-medium text-zinc-900 dark:text-white mb-3">
-                              {role.name}
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {SESSION_TYPES.map((type) => {
-                                const isSelected = (
-                                  visibilityFilters[role.id] || []
-                                ).includes(type);
-                                return (
-                                  <button
-                                    key={type}
-                                    onClick={() =>
-                                      toggleSessionTypeForRole(role.id, type)
-                                    }
-                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                                      isSelected
-                                        ? "bg-primary text-white"
-                                        : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"
-                                    }`}
-                                  >
-                                    {type.charAt(0).toUpperCase() +
-                                      type.slice(1)}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            {(!visibilityFilters[role.id] ||
-                              visibilityFilters[role.id].length === 0) && (
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                No filters set - this role can see all session
-                                types
-                              </p>
-                            )}
-                          </div>
-                        ))}
-
-                      {workspaceRoles.filter((role) => !role.isOwnerRole)
-                        .length === 0 && (
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
-                          No roles available to configure
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-6 flex justify-end gap-2">
-                      <button
-                        type="button"
-                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-600 focus:outline-none"
-                        onClick={() => setIsVisibilityModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none"
-                        onClick={saveVisibilityFilters}
-                      >
-                        Save Filters
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
-              </div>
-            </div>
-          </Dialog>
-        </Transition>
 
         {sessionToEdit && (
           <PatternEditDialog

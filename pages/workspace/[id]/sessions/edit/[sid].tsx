@@ -123,7 +123,12 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       };
     }
   },
-  "manage_sessions"
+  [
+    "sessions_shift_manage",
+    "sessions_training_manage",
+    "sessions_event_manage",
+    "sessions_other_manage"
+  ]
 );
 
 const EditSession: pageWithLayout<

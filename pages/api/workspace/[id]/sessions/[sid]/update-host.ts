@@ -55,6 +55,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     const session = await prisma.session.findUnique({
       where: { id: sid as string },
+      include: {
+        sessionType: true,
+      },
     });
 
     if (!session) {
@@ -63,6 +66,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         .json({ success: false, error: "Session not found" });
     }
 
+    const sessionCategory = session.type?.toLowerCase() || 'other';
+    const validTypes = ['shift', 'training', 'event', 'other'];
+    const type = validTypes.includes(sessionCategory) ? sessionCategory : 'other';
     const currentUser = await prisma.user.findFirst({
       where: { userid: BigInt(currentUserId) },
       include: {
@@ -89,8 +95,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const membership = currentUser.workspaceMemberships[0];
     const isAdmin = membership?.isAdmin || false;
     const userPermissions = currentUser.roles[0].permissions;
-    const hasAssignPermission = isAdmin || userPermissions.includes("sessions_assign");
-    const hasHostPermission = isAdmin || userPermissions.includes("sessions_host");
+    const hasAssignPermission = isAdmin || userPermissions.includes(`sessions_${type}_assign`);
+    const hasHostPermission = isAdmin || userPermissions.includes(`sessions_${type}_host`);
     const isAssigningToSelf = ownerId && ownerId.toString() === currentUserId.toString();
     const isRemoving = !ownerId;
     const currentSession = await prisma.session.findUnique({
@@ -99,7 +105,22 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
     
     const isRemovingSelf = isRemoving && currentSession?.ownerId && currentSession.ownerId.toString() === currentUserId.toString();
-    if (!hasAssignPermission && !(hasHostPermission && (isAssigningToSelf || isRemovingSelf))) {
+    let canUpdateHost = false;
+    if (isRemoving) {
+      if (isRemovingSelf) {
+        canUpdateHost = hasHostPermission;
+      } else {
+        canUpdateHost = hasAssignPermission && hasHostPermission;
+      }
+    } else {
+      if (isAssigningToSelf) {
+        canUpdateHost = hasHostPermission;
+      } else {
+        canUpdateHost = hasAssignPermission && hasHostPermission;
+      }
+    }
+    
+    if (!canUpdateHost) {
       return res.status(403).json({ 
         success: false, 
         error: "You do not have permission to assign this host role" 
@@ -132,7 +153,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         const targetUserPermissions = targetUser.roles[0]?.permissions || [];
         const targetMembership = targetUser.workspaceMemberships?.[0];
         const targetIsAdmin = targetMembership?.isAdmin || false;
-        const targetHasHostPermission = targetIsAdmin || targetUserPermissions.includes("sessions_host");
+        const targetHasHostPermission = targetIsAdmin || targetUserPermissions.includes(`sessions_${type}_host`);
         if (!targetHasHostPermission) {
           return res.status(403).json({ 
             success: false, 

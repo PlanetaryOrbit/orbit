@@ -60,10 +60,19 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     },
     include: {
       sessionType: true,
+      sessions: {
+        take: 1,
+        orderBy: { date: 'desc' },
+      },
     },
   });
+  
+
+  const existingSessionType = schedule?.sessions?.[0]?.type?.toLowerCase() || 'other';
+  const validTypes = ['shift', 'training', 'event', 'other'];
+  const type = validTypes.includes(existingSessionType) ? existingSessionType : 'other';
   const userRoles = user?.roles || [];
-  const hasHostPermission = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("sessions_host"));
+  const hasHostPermission = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes(`sessions_${type}_host`));
   const hasAdminPerm = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("admin"));
 
   if (!hasHostPermission && !isAdmin && !hasAdminPerm) {

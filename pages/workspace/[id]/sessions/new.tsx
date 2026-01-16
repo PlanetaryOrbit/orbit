@@ -33,6 +33,7 @@ import prisma from "@/utils/database";
 import Switchcomponenet from "@/components/switch";
 import { useForm, FormProvider } from "react-hook-form";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { canCreateScheduled, canCreateUnscheduled } from "@/utils/sessionPermissions";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -62,7 +63,12 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     };
   },
-  ["sessions_scheduled", "sessions_unscheduled"]
+  [
+    "sessions_shift_scheduled", "sessions_shift_unscheduled",
+    "sessions_training_scheduled", "sessions_training_unscheduled",
+    "sessions_event_scheduled", "sessions_event_unscheduled",
+    "sessions_other_scheduled", "sessions_other_unscheduled"
+  ]
 );
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
@@ -128,9 +134,22 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     (() => Promise<void>) | null
   >(null);
   const router = useRouter();
-
-  const canCreateScheduled = workspace.yourPermission?.includes("sessions_scheduled") || workspace.yourPermission?.includes("admin");
-  const canCreateUnscheduled = workspace.yourPermission?.includes("sessions_unscheduled") || workspace.yourPermission?.includes("admin");
+  const availableSessionTypes = [
+    { value: "shift", label: "Shift" },
+    { value: "training", label: "Training" },
+    { value: "event", label: "Event" },
+    { value: "other", label: "Other" },
+  ].filter(type => {
+    const hasScheduledPerm = canCreateScheduled(workspace.yourPermission || [], type.value);
+    const hasUnscheduledPerm = canCreateUnscheduled(workspace.yourPermission || [], type.value);
+    return hasScheduledPerm || hasUnscheduledPerm;
+  });
+  const canCreateAnyScheduled = availableSessionTypes.some(type => 
+    canCreateScheduled(workspace.yourPermission || [], type.value)
+  );
+  const canCreateAnyUnscheduled = availableSessionTypes.some(type => 
+    canCreateUnscheduled(workspace.yourPermission || [], type.value)
+  );
 
   const checkOverlaps = async (sessionDate: Date, duration: number) => {
     try {
@@ -624,25 +643,32 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                     Session Type
                   </label>
-                  <select
-                    {...form.register("type", {
-                      required: {
-                        value: true,
-                        message: "Session type is required",
-                      },
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="shift">Shift</option>
-                    <option value="training">Training</option>
-                    <option value="event">Event</option>
-                    <option value="other">Other</option>
-                  </select>
-                  {form.formState.errors.type && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {form.formState.errors.type.message as string}
-                    </p>
+                  {availableSessionTypes.length > 0 ? (
+                    <>
+                      <select
+                        {...form.register("type", {
+                          required: {
+                            value: true,
+                            message: "Session type is required",
+                          },
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                      >
+                        <option value="">Select type...</option>
+                        {availableSessionTypes.map(type => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                      </select>
+                      {form.formState.errors.type && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {form.formState.errors.type.message as string}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-zinc-50 dark:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400">
+                      No session types available - you don't have permission to create any session types
+                    </div>
                   )}
                 </div>
 
@@ -788,12 +814,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="space-y-6 max-w-2xl">
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-gray-200 dark:border-zinc-700">
                   <div className="flex flex-col space-y-3">
-                    <div className={!canCreateUnscheduled ? "opacity-50 cursor-not-allowed" : ""}>
+                    <div className={!canCreateAnyUnscheduled ? "opacity-50 cursor-not-allowed" : ""}>
                       <Switchcomponenet
                         label="Unscheduled session"
                         checked={allowUnscheduled}
                         onChange={() => {
-                          if (!canCreateUnscheduled) return;
+                          if (!canCreateAnyUnscheduled) return;
                           if (!allowUnscheduled && enabled) {
                             setEnabled(false);
                           }
@@ -801,18 +827,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         }}
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                        {canCreateUnscheduled 
+                        {canCreateAnyUnscheduled 
                           ? "Enable this to set up a one time session"
                           : "You don't have permission to create unscheduled sessions"}
                       </p>
                     </div>
 
-                    <div className={!canCreateScheduled ? "opacity-50 cursor-not-allowed mt-2" : "mt-2"}>
+                    <div className={!canCreateAnyScheduled ? "opacity-50 cursor-not-allowed mt-2" : "mt-2"}>
                       <Switchcomponenet
                         label="Scheduled session"
                         checked={enabled}
                         onChange={() => {
-                          if (!canCreateScheduled) return;
+                          if (!canCreateAnyScheduled) return;
                           if (!enabled && allowUnscheduled) {
                             setAllowUnscheduled(false);
                           }
@@ -820,7 +846,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         }}
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                        {canCreateScheduled
+                        {canCreateAnyScheduled
                           ? "Enable this to set up recurring sessions on a schedule"
                           : "You don't have permission to create scheduled sessions"}
                       </p>

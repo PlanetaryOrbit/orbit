@@ -18,6 +18,7 @@ import { loginState, workspacestate } from "@/state";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import type { SessionColors } from "@/hooks/useSessionColors";
+import { canAssignUsers, canClaimSelf, canHostSession } from "@/utils/sessionPermissions";
 
 // Mobile detection utility
 const isMobile = () => {
@@ -63,6 +64,7 @@ interface SessionModalProps {
   onUpdate?: () => void;
   workspaceMembers: any[];
   canManage: boolean;
+  canAddNotes?: boolean;
   sessionColors?: SessionColors;
   colorsReady?: boolean | undefined;
 }
@@ -76,6 +78,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   onUpdate,
   workspaceMembers,
   canManage,
+  canAddNotes,
   sessionColors,
   colorsReady,
 }) => {
@@ -128,8 +131,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
   }, [isOpen, session, workspaceMembers, login.userId]);
 
   const handleHostClaim = async (username: string) => {
-    const userHasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
-    const userHasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
+    const userHasAssignPermission = canAssignUsers(workspace.yourPermission, session.type);
+    const userHasHostPermission = canHostSession(workspace.yourPermission, session.type);
     const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
     const isRemovingSelf = !username.trim() && session.owner?.username?.toLowerCase() === login.username.toLowerCase();
     const isRemovingOther = !username.trim() && session.owner?.username?.toLowerCase() !== login.username.toLowerCase();
@@ -196,8 +199,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
     slot: number,
     username: string
   ) => {
-    const userHasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
-    const userHasClaimPermission = workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin");
+    const userHasAssignPermission = canAssignUsers(workspace.yourPermission, session.type);
+    const userHasClaimPermission = canClaimSelf(workspace.yourPermission, session.type);
     const isAssigningToSelf = username.toLowerCase() === login.username.toLowerCase();
     
     const currentAssignment = session.users?.find(
@@ -462,8 +465,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       isSubmitting={isSubmitting}
                       canEdit={
                         canManage ||
-                        workspace.yourPermission.includes("sessions_assign") ||
-                        workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin")
+                        canAssignUsers(workspace.yourPermission, session.type) ||
+                        canHostSession(workspace.yourPermission, session.type) || workspace.yourPermission.includes("admin")
                       }
                       availableUsers={availableUsers}
                       currentUserId={login.userId}
@@ -473,6 +476,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       assignedUserId={session.owner?.userid?.toString()}
                       workspace={workspace}
                       isHostRole={true}
+                      sessionType={session.type}
                     />
                   </div>
                 </div>
@@ -529,11 +533,11 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     isSubmitting={isSubmitting}
                                     canEdit={
                                       canManage ||
-                                      workspace.yourPermission.includes("sessions_assign") ||
+                                      canAssignUsers(workspace.yourPermission, session.type) ||
                                       workspace.yourPermission.includes("admin") ||
                                       (slotData.name === "Host" || slotData.name.toLowerCase() === "co-host" 
-                                        ? workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin")
-                                        : workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin"))
+                                        ? canHostSession(workspace.yourPermission, session.type) || workspace.yourPermission.includes("admin")
+                                        : canClaimSelf(workspace.yourPermission, session.type) || workspace.yourPermission.includes("admin"))
                                     }
                                     availableUsers={availableUsers}
                                     currentUserId={login.userId}
@@ -543,6 +547,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
                                     assignedUserId={assignedUser?.userid?.toString()}
                                     workspace={workspace}
                                     isHostRole={slotData.name === "Host" || slotData.name.toLowerCase() === "co-host"}
+                                    sessionType={session.type}
                                   />
                                 </div>
                               </div>
@@ -558,7 +563,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
           <NotesSection
             sessionId={session.id}
-            canManage={canManage}
+            canManage={canAddNotes ?? canManage}
             currentUser={login}
             refreshKey={refreshKey}
             onDataChange={refreshSessionData}
@@ -577,6 +582,7 @@ const AutocompleteInput: React.FC<{
   isSubmitting: boolean;
   canEdit: boolean;
   availableUsers: any[];
+  sessionType: string;
   currentUserId: number;
   currentUserPicture?: string;
   currentUserUsername?: string;
@@ -601,6 +607,7 @@ const AutocompleteInput: React.FC<{
   isHostRole = false,
   workspace,
   canRemove = true,
+  sessionType,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(currentValue);
@@ -611,12 +618,13 @@ const AutocompleteInput: React.FC<{
   const suggestionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const hasPermissionToEdit = () => {
     if (!workspace) return canEdit;
-    const hasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
-    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin");
-    const hasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
+    const hasAssignPermission = canAssignUsers(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+    const hasClaimPermission = canClaimSelf(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+    const hasHostPermission = canHostSession(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
     
     if (isHostRole) {
-      return hasAssignPermission || hasHostPermission;
+      // Host roles require the host permission (assign alone is NOT enough)
+      return hasHostPermission;
     } else {
       return hasAssignPermission || hasClaimPermission;
     }
@@ -629,7 +637,7 @@ const AutocompleteInput: React.FC<{
   }, [currentValue]);
 
   useEffect(() => {
-    const userHasAssignPermission = workspace?.yourPermission?.includes("sessions_assign") || workspace.yourPermission.includes("admin") || false;
+    const userHasAssignPermission = canAssignUsers(workspace?.yourPermission || [], sessionType) || workspace?.yourPermission?.includes("admin") || false;
     let usersForSuggestions = availableUsers;
     
     if (!userHasAssignPermission) {
@@ -701,27 +709,26 @@ const AutocompleteInput: React.FC<{
 
   const canAssignToUser = (targetUsername: string) => {
     if (!workspace) return true;
-    const hasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
-    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin");
-    const hasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
+    const hasAssignPermission = canAssignUsers(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+    const hasClaimPermission = canClaimSelf(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+    const hasHostPermission = canHostSession(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
     const targetUser = availableUsers.find(user => user.username === targetUsername);
     if (!targetUser) return false;
     const isAssigningToSelf = targetUser.userid.toString() === currentUserId.toString();
-    if (hasAssignPermission) {
-      return true;
-    }
     
     if (isHostRole) {
-      if (hasHostPermission && isAssigningToSelf) {
-        return true;
-      }
-      if (hasHostPermission && !isAssigningToSelf) {
-        const targetUserHasHostPermission = workspace.members?.find((member: any) => 
-          member.userid === targetUser.userid
-        )?.permissions?.includes("sessions_host") || workspace.yourPermission.includes("admin") || false;
-        return targetUserHasHostPermission;
+      // Host roles require host permission
+      if (isAssigningToSelf) {
+        return hasHostPermission;
+      } else {
+        // Assigning others to host roles requires both assign AND host
+        return hasAssignPermission && hasHostPermission;
       }
     } else {
+      // Normal roles
+      if (hasAssignPermission) {
+        return true;
+      }
       if (hasClaimPermission && isAssigningToSelf) {
         return true;
       }
@@ -952,14 +959,19 @@ const AutocompleteInput: React.FC<{
                 const canRemoveAssignment = () => {
                   if (!workspace) return true;
                   
-                  const hasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
+                  const hasAssignPermission = canAssignUsers(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
                   const isAssignedToSelf = assignedUserId?.toString() === currentUserId.toString();
                   
                   if (isHostRole) {
-                    const hasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
-                    return hasAssignPermission || (hasHostPermission && isAssignedToSelf);
+                    // Host roles require host permission (assign + host for others, just host for self)
+                    const hasHostPermission = canHostSession(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+                    if (isAssignedToSelf) {
+                      return hasHostPermission;
+                    } else {
+                      return hasAssignPermission && hasHostPermission;
+                    }
                   } else {
-                    const hasClaimPermission = workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin");
+                    const hasClaimPermission = canClaimSelf(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
                     return hasAssignPermission || (hasClaimPermission && isAssignedToSelf);
                   }
                 };
@@ -992,6 +1004,7 @@ const HostButton: React.FC<{
   assignedUserId?: string;
   workspace?: any;
   isHostRole?: boolean;
+  sessionType: string;
 }> = ({
   currentValue,
   onValueChange,
@@ -1005,15 +1018,21 @@ const HostButton: React.FC<{
   assignedUserId,
   workspace,
   isHostRole = false,
+  sessionType,
 }) => {
   const filteredUsers = availableUsers;
 const canRemoveHost = workspace ? 
     (() => {
-      const hasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
-      const hasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
+      const hasAssignPermission = canAssignUsers(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+      const hasHostPermission = canHostSession(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
       const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
       
-      return hasAssignPermission || (hasHostPermission && isCurrentUserAssigned);
+      // Host roles require host permission (assign + host for others, just host for self)
+      if (isCurrentUserAssigned) {
+        return hasHostPermission;
+      } else {
+        return hasAssignPermission && hasHostPermission;
+      }
     })()
     : true;
 
@@ -1033,6 +1052,7 @@ const canRemoveHost = workspace ?
       isHostRole={isHostRole}
       workspace={workspace}
       canRemove={canRemoveHost}
+      sessionType={sessionType}
     />
   );
 };
@@ -1050,6 +1070,7 @@ const RoleButton: React.FC<{
   assignedUserId?: string;
   workspace?: any;
   isHostRole?: boolean;
+  sessionType: string;
 }> = ({
   currentValue,
   onValueChange,
@@ -1063,17 +1084,23 @@ const RoleButton: React.FC<{
   assignedUserId,
   workspace,
   isHostRole = false,
+  sessionType,
 }) => {
   const filteredUsers = availableUsers;
   const canRemoveRole = workspace ? 
     (() => {
-      const hasAssignPermission = workspace.yourPermission.includes("sessions_assign") || workspace.yourPermission.includes("admin");
+      const hasAssignPermission = canAssignUsers(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
       const isCurrentUserAssigned = assignedUserId === currentUserId.toString();
       if (isHostRole) {
-        const hasHostPermission = workspace.yourPermission.includes("sessions_host") || workspace.yourPermission.includes("admin");
-        return hasAssignPermission || (hasHostPermission && isCurrentUserAssigned);
+        // Host roles require host permission (assign + host for others, just host for self)
+        const hasHostPermission = canHostSession(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
+        if (isCurrentUserAssigned) {
+          return hasHostPermission;
+        } else {
+          return hasAssignPermission && hasHostPermission;
+        }
       } else {
-        const hasClaimPermission = workspace.yourPermission.includes("sessions_claim") || workspace.yourPermission.includes("admin");
+        const hasClaimPermission = canClaimSelf(workspace.yourPermission, sessionType) || workspace.yourPermission.includes("admin");
         return hasAssignPermission || (hasClaimPermission && isCurrentUserAssigned);
       }
     })()
@@ -1095,6 +1122,7 @@ const RoleButton: React.FC<{
       isHostRole={isHostRole}
       workspace={workspace}
       canRemove={canRemoveRole}
+      sessionType={sessionType}
     />
   );
 };

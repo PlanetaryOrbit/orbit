@@ -101,10 +101,37 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const membership = currentUser.workspaceMemberships[0];
     const isAdmin = membership?.isAdmin || false;
     const userPermissions = currentUser.roles[0].permissions;
-    const hasAssignPermission = isAdmin || userPermissions.includes("sessions_assign") || userPermissions.includes("admin"); 
-    const hasClaimPermission = isAdmin || userPermissions.includes("sessions_claim") || userPermissions.includes("admin")
-    const hasHostPermission = isAdmin || userPermissions.includes("sessions_host") || userPermissions.includes("admin")
+    const sessionCategory = session.type?.toLowerCase() || 'other';
+    const validTypes = ['shift', 'training', 'event', 'other'];
+    const type = validTypes.includes(sessionCategory) ? sessionCategory : 'other';
+    const hasAssignPermission = isAdmin || userPermissions.includes(`sessions_${type}_assign`) || userPermissions.includes("admin"); 
+    const hasClaimPermission = isAdmin || userPermissions.includes(`sessions_${type}_claim`) || userPermissions.includes("admin")
+    const hasHostPermission = isAdmin || userPermissions.includes(`sessions_${type}_host`) || userPermissions.includes("admin")
     const isAssigningToSelf = userId && userId.toString() === currentUserId.toString();
+    const sessionSlots = (session.sessionType as any)?.slots || [];
+    const matchingSlot = sessionSlots.find((s: any) => s.id === roleId);
+    const slotName = matchingSlot?.name?.toLowerCase() || '';
+    const isHostRole = slotName.includes("host") || slotName.includes("co-host");
+
+    console.log('[claim-role] Permission check:', {
+      sessionType: session.type,
+      type,
+      isAdmin,
+      userPermissions,
+      requiredAssign: `sessions_${type}_assign`,
+      requiredClaim: `sessions_${type}_claim`,
+      requiredHost: `sessions_${type}_host`,
+      hasAssignPermission,
+      hasClaimPermission,
+      hasHostPermission,
+      isAssigningToSelf,
+      isHostRole,
+      slotName,
+      roleId,
+      userId,
+      currentUserId,
+      action,
+    });
 
     if (action === "unclaim") {
       const existingAssignment = await prisma.sessionUser.findFirst({
@@ -115,15 +142,47 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         },
       });
 
-      const isRemovingSelf = existingAssignment && existingAssignment.userid.toString() === currentUserId.toString();
-      if (!hasAssignPermission && !((hasClaimPermission || hasHostPermission) && isRemovingSelf)) {
+      const isRemovingSelf = !!(existingAssignment && existingAssignment.userid.toString() === currentUserId.toString());
+      let canUnclaim = false;
+      
+      if (isHostRole) {
+        if (isRemovingSelf) {
+          canUnclaim = hasHostPermission;
+        } else {
+          canUnclaim = hasAssignPermission && hasHostPermission;
+        }
+      } else {
+        if (isRemovingSelf) {
+          canUnclaim = hasClaimPermission || hasAssignPermission;
+        } else {
+          canUnclaim = hasAssignPermission;
+        }
+      }
+      
+      if (!canUnclaim) {
         return res.status(403).json({ 
           success: false, 
           error: "You do not have permission to remove this role" 
         });
       }
     } else if (action === "claim") {
-      if (!hasAssignPermission && !((hasClaimPermission || hasHostPermission) && isAssigningToSelf)) {
+      let canClaim = false;
+      
+      if (isHostRole) {
+        if (isAssigningToSelf) {
+          canClaim = hasHostPermission;
+        } else {
+          canClaim = hasAssignPermission && hasHostPermission;
+        }
+      } else {
+        if (isAssigningToSelf) {
+          canClaim = hasClaimPermission || hasAssignPermission;
+        } else {
+          canClaim = hasAssignPermission;
+        }
+      }
+      
+      if (!canClaim) {
         return res.status(403).json({ 
           success: false, 
           error: "You do not have permission to assign this role" 

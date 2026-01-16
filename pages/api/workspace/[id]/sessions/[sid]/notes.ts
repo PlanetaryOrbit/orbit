@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withSessionRoute } from "@/lib/withSession";
+import { validateCsrf } from "@/utils/csrf";
 
 // Simple in-memory rate limiting for notes creation
 const notesCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
@@ -61,6 +62,49 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   if (!session) {
     return res.status(404).json({ success: false, error: "Session not found" });
+  }
+
+  if (req.method === "POST") {
+    if (!validateCsrf(req, res)) {
+      return res.status(403).json({
+        success: false,
+        error: "CSRF validation failed. Invalid origin or referer.",
+      });
+    }
+
+    const userId = req.session?.userid;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: "Not authenticated" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { userid: BigInt(userId) },
+      include: {
+        roles: {
+          where: { workspaceGroupId: parseInt(id as string) },
+        },
+        workspaceMemberships: {
+          where: { workspaceGroupId: parseInt(id as string) },
+        },
+      },
+    });
+
+    const membership = user?.workspaceMemberships[0];
+    const isAdmin = membership?.isAdmin || false;
+    const userPermissions = user?.roles[0]?.permissions || [];
+    const sessionCategory = session.type?.toLowerCase() || 'other';
+    const validTypes = ['shift', 'training', 'event', 'other'];
+    const type = validTypes.includes(sessionCategory) ? sessionCategory : 'other';
+    const hasNotesPermission = isAdmin || 
+      userPermissions.includes(`sessions_${type}_notes`) || 
+      userPermissions.includes('admin');
+
+    if (!hasNotesPermission) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "You do not have permission to add notes to this session" 
+      });
+    }
   }
 
   if (req.method === "GET") {

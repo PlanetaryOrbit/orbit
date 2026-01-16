@@ -8,7 +8,12 @@ type Data = {
   updatedCount?: number;
 };
 
-export default withPermissionCheck(handler, "manage_sessions");
+export default withPermissionCheck(handler, [
+  "sessions_shift_manage",
+  "sessions_training_manage",
+  "sessions_event_manage",
+  "sessions_other_manage"
+]);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {

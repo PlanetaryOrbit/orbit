@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import { withSessionRoute } from "@/lib/withSession";
 
 const sessionCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkSessionCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
@@ -34,7 +34,7 @@ type Data = {
   session?: any;
 };
 
-export default withPermissionCheck(handler, "sessions_unscheduled");
+export default withSessionRoute(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!checkSessionCreationRateLimit(req, res)) return;
@@ -57,6 +57,39 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(400)
       .json({ success: false, error: "Invalid session type" });
+  }
+
+  if (!req.session?.userid) {
+    return res.status(401).json({ 
+      success: false, 
+      error: "Not authenticated" 
+    });
+  }
+
+  const userId = BigInt(req.session.userid);
+  const workspaceId = parseInt(req.query.id as string);
+  const user = await prisma.user.findFirst({
+    where: { userid: userId },
+    include: {
+      roles: {
+        where: { workspaceGroupId: workspaceId },
+      },
+      workspaceMemberships: {
+        where: { workspaceGroupId: workspaceId },
+      },
+    },
+  });
+
+  const membership = user?.workspaceMemberships?.[0];
+  const isAdmin = membership?.isAdmin || false;
+  const userRole = user?.roles?.[0];
+  const requiredPermission = `sessions_${type}_unscheduled`;
+
+  if (!isAdmin && (!userRole || !userRole.permissions.includes(requiredPermission))) {
+    return res.status(403).json({ 
+      success: false, 
+      error: `You don't have permission to create unscheduled ${type} sessions` 
+    });
   }
 
   try {

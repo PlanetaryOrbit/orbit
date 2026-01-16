@@ -8,7 +8,16 @@ type Data = {
   sessionTypes?: any[];
 };
 
-export default withPermissionCheck(handler, ["sessions_scheduled", "sessions_unscheduled"]);
+export default withPermissionCheck(handler, [
+  "sessions_shift_see",
+  "sessions_shift_unscheduled",
+  "sessions_training_see",
+  "sessions_training_unscheduled",
+  "sessions_event_see",
+  "sessions_event_unscheduled",
+  "sessions_other_see",
+  "sessions_other_unscheduled"
+]);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")
