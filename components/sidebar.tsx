@@ -116,6 +116,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [noticesEnabled, setNoticesEnabled] = useState(false);
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
+  const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
   const router = useRouter()
 
   // Add body class to prevent scrolling when mobile menu is open
@@ -228,6 +229,21 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         .catch(() => setPendingPolicyCount(0));
     }
   }, [workspace.groupId, policiesEnabled]);
+
+  useEffect(() => {
+    if (noticesEnabled) {
+      if (workspace.yourPermission?.includes("approve_notices") || workspace.yourPermission?.includes("manage_notices") || workspace.yourPermission?.includes("admin")) {
+        fetch(`/api/workspace/${workspace.groupId}/activity/notices/count`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setPendingNoticesCount(data.count || 0);
+            }
+          })
+          .catch(() => setPendingNoticesCount(0));
+      }
+    }
+  }, [workspace.groupId, noticesEnabled, workspace.yourPermission]);
 
   return (
     <>
@@ -385,11 +401,21 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             )}
                           </>
                         )}
+                        {page.name === "Notices" && pendingNoticesCount > 0 && (
+                          <span className="px-1.5 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full">
+                            {pendingNoticesCount}
+                          </span>
+                        )}
                       </div>
                     )}
                     {isCollapsed && page.name === "Policies" && pendingPolicyCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {pendingPolicyCount}
+                      </span>
+                    )}
+                    {isCollapsed && page.name === "Notices" && pendingNoticesCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        {pendingNoticesCount}
                       </span>
                     )}
                   </button>
