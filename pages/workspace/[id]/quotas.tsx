@@ -128,6 +128,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       where: {
         userId: BigInt(userId),
         workspaceGroupId: workspaceId,
+        archived: { not: true },
       },
       select: {
         startTime: true,
@@ -141,6 +142,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       where: {
         userId: BigInt(userId),
         workspaceGroupId: workspaceId,
+        archived: { not: true },
       },
       select: {
         minutes: true,
@@ -172,6 +174,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         date: {
           gte: startDate,
         },
+        archived: { not: true },
       },
       select: {
         type: true,
@@ -190,6 +193,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           date: {
             gte: startDate,
           },
+          archived: { not: true },
         },
       },
       include: {
@@ -715,8 +719,8 @@ const Quotas: pageWithLayout<pageProps> = ({
                           {quota.quotaRoles?.map((qr: any) => (
                             <div
                               key={qr.role.id}
-                              className={`${qr.role.color || getRandomColor()} text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1`}
-                              style={{ backgroundColor: qr.role.color || undefined }}
+                              className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
+                              style={{ backgroundColor: qr.role.color || "#6b7280" }}
                             >
                               <IconUsers className="w-3 h-3" />
                               {qr.role.name}
@@ -825,8 +829,8 @@ const Quotas: pageWithLayout<pageProps> = ({
                         {quota.quotaRoles?.map((qr: any) => (
                           <div
                             key={qr.role.id}
-                            className={`${qr.role.color || getRandomColor()} text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1`}
-                            style={{ backgroundColor: qr.role.color || undefined }}
+                            className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
+                            style={{ backgroundColor: qr.role.color || "#6b7280" }}
                           >
                             <IconUsers className="w-3 h-3" />
                             {qr.role.name}
