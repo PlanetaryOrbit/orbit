@@ -355,14 +355,14 @@ export function ActivityOverview({
               Activity Timeline
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Sessions, inactivity notices, and manual adjustments
+              Sessions and manual adjustments
             </p>
           </div>
         </div>
         <div className="p-4 md:p-6">
           {sortedTimeline.length === 0 ? (
             <div className="text-center py-10">
-              <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-8 max-w-md mx-auto">
+              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                   <IconClipboardList className="w-8 h-8 text-primary" />
                 </div>
@@ -457,37 +457,7 @@ export function ActivityOverview({
                             <p className="text-xs text-zinc-600 dark:text-zinc-300">
                               Currently active in game
                             </p>
-                          )}
-                        </div>
-                      </li>
-                    </div>
-                  );
-                }
-                if (item.__type === "notice") {
-                  return (
-                    <div key={`notice-${item.id}`}>
-                      <li className="mb-6 ml-6">
-                        <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-primary rounded-full ring-4 ring-white">
-                          <img
-                            className="rounded-full"
-                            src={avatar}
-                            alt="timeline avatar"
-                          />
-                        </span>
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-700 rounded-lg border border-zinc-100 dark:border-zinc-600">
-                          <div className="flex justify-between items-center mb-1">
-                            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                              Inactivity Notice
-                            </p>
-                            <time className="text-xs text-zinc-500 dark:text-zinc-400">
-                              {moment(item.startTime).format("DD MMM")} -{" "}
-                              {moment(item.endTime).format("DD MMM YYYY")}
-                            </time>
-                          </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            {item.reason}
-                          </p>
-                        </div>
+                          )}n                        </div>
                       </li>
                     </div>
                   );
