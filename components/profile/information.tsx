@@ -15,7 +15,7 @@ import {
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { Listbox, Transition } from "@headlessui/react";
+import { Listbox, Transition, Combobox } from "@headlessui/react";
 import toast from "react-hot-toast";
 import moment from "moment-timezone";
 
@@ -148,9 +148,19 @@ export function InformationTab({
   const [loading, setLoading] = useState(false);
   const [localTime, setLocalTime] = useState("");
   const [isNight, setIsNight] = useState(false);
+  const [managerQuery, setManagerQuery] = useState("");
 
   const workspaceId = router.query.id as string;
   const canEdit = isUser || isAdmin || canEditMembers;
+
+  const filteredManagers = managerQuery === ""
+    ? allMembers.filter((m) => m.userid !== user.userid).slice(0, 5)
+    : allMembers
+        .filter((m) => 
+          m.userid !== user.userid &&
+          m.username.toLowerCase().includes(managerQuery.toLowerCase())
+        )
+        .slice(0, 5);
 
   useEffect(() => {
     const updateTime = () => {
@@ -505,26 +515,28 @@ export function InformationTab({
               <div className="p-2 bg-cyan-500/10 rounded-lg">
                 <IconUserCheck className="w-5 h-5 text-cyan-500" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 relative z-20">
                 <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
                   Line Manager
                 </p>
                 {editing ? (
-                  <Listbox value={selectedManager} onChange={setSelectedManager}>
+                  <Combobox value={selectedManager} onChange={setSelectedManager}>
                     <div className="relative">
-                      <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-300 dark:border-zinc-600">
-                        <span className="block truncate text-zinc-900 dark:text-white">
-                          {selectedManager?.username || "None"}
-                        </span>
-                      </Listbox.Button>
+                      <Combobox.Input
+                        className="relative w-full cursor-text rounded-lg bg-white dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
+                        displayValue={(manager: any) => manager?.username || ""}
+                        onChange={(event) => setManagerQuery(event.target.value)}
+                        placeholder="Search or select manager..."
+                      />
                       <Transition
                         as={Fragment}
                         leave="transition ease-in duration-100"
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
+                        afterLeave={() => setManagerQuery("")}
                       >
-                        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
-                          <Listbox.Option
+                        <Combobox.Options className="absolute z-50 mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
+                          <Combobox.Option
                             className={({ active }) =>
                               `relative cursor-pointer select-none py-2 px-3 ${
                                 active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-900 dark:text-white"
@@ -532,40 +544,46 @@ export function InformationTab({
                             }
                             value={null}
                           >
-                            None
-                          </Listbox.Option>
-                          {allMembers && allMembers.length > 0 ? (
-                            allMembers
-                              .filter((m) => m.userid !== user.userid)
-                              .map((member) => (
-                                <Listbox.Option
-                                  key={member.userid}
-                                  className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${
-                                      active ? "bg-[#ff0099]/10" : ""
-                                    }`
-                                  }
-                                  value={member}
-                                >
-                                  <img
-                                    src={member.picture}
-                                    className="w-6 h-6 rounded-full"
-                                    alt={member.username}
-                                  />
-                                  <span className="text-zinc-900 dark:text-white">
-                                    {member.username}
-                                  </span>
-                                </Listbox.Option>
-                              ))
-                          ) : (
+                            {({ selected }) => (
+                              <span className={selected ? "font-semibold" : ""}>
+                                None
+                              </span>
+                            )}
+                          </Combobox.Option>
+                          {filteredManagers.length === 0 && managerQuery !== "" ? (
                             <div className="py-2 px-3 text-zinc-500 dark:text-zinc-400 text-sm">
-                              No members available
+                              No members found.
                             </div>
+                          ) : (
+                            filteredManagers.map((member) => (
+                              <Combobox.Option
+                                key={member.userid}
+                                className={({ active }) =>
+                                  `relative cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${
+                                    active ? "bg-[#ff0099]/10" : ""
+                                  }`
+                                }
+                                value={member}
+                              >
+                                {({ selected }) => (
+                                  <>
+                                    <img
+                                      src={member.picture}
+                                      className="w-6 h-6 rounded-full"
+                                      alt={member.username}
+                                    />
+                                    <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>
+                                      {member.username}
+                                    </span>
+                                  </>
+                                )}
+                              </Combobox.Option>
+                            ))
                           )}
-                        </Listbox.Options>
+                        </Combobox.Options>
                       </Transition>
                     </div>
-                  </Listbox>
+                  </Combobox>
                 ) : selectedManager || initialLineManager ? (
                   <div className="flex items-center gap-2">
                     <div
