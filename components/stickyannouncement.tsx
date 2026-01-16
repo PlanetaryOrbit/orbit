@@ -340,12 +340,11 @@ export default function StickyNoteAnnouncement() {
 
       {!isEditing && (
         <div className="flex gap-2">
-          {(canEdit || true) && (
+          {canEdit && (
             <button
               onClick={handleEdit}
               className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
               aria-label="Edit announcement"
-              title={`Edit button - canEdit: ${canEdit}`}
             >
               <IconPencil className="w-5 h-5" />
             </button>
