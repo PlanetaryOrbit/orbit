@@ -21,6 +21,8 @@ import {
   IconBug,
   IconHome,
   IconBook,
+  IconChevronDown,
+  IconChevronUp,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -53,7 +55,17 @@ function getRandomBg(userid: string, username?: string) {
 }
 
 type NoticeWithUser = inactivityNotice & {
-  user: user;
+  user: user & {
+    workspaceMemberships?: Array<{
+      departmentMembers?: Array<{
+        department: {
+          id: string;
+          name: string;
+          color: string | null;
+        };
+      }>;
+    }>;
+  };
   reviewComment?: string | null;
 };
 
@@ -152,7 +164,22 @@ export const getServerSideProps = withPermissionCheckSsr(
         startTime: "desc",
       },
       include: {
-        user: true,
+        user: {
+          include: {
+            workspaceMemberships: {
+              where: {
+                workspaceGroupId: workspaceId,
+              },
+              include: {
+                departmentMembers: {
+                  include: {
+                    department: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -207,6 +234,8 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   const [activeTab, setActiveTab] = useState<"my-notices" | "manage-notices">(
     "my-notices"
   );
+  const [isActiveExpanded, setIsActiveExpanded] = useState(false);
+  const [isUpcomingExpanded, setIsUpcomingExpanded] = useState(false);
 
   const text = useMemo(() => randomText(login.displayname), []);
   const hasApproveAccess =
@@ -736,73 +765,6 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
           )}
           {(hasApproveAccess || hasManageAccess) && activeTab === "manage-notices" && (
             <>
-              {activeNotices.length > 0 && (
-                <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 shadow-sm mb-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-emerald-500/20 p-2 rounded-lg">
-                      <IconCalendarTime className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Currently Active Notices
-                    </h2>
-                  </div>
-                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {activeNotices.map((notice) => (
-                      <div
-                        key={notice.id}
-                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
-                              notice.user?.userid?.toString() ?? ""
-                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
-                          >
-                            <img
-                              src={notice.user?.picture ?? "/default-avatar.jpg"}
-                              alt={notice.user?.username ?? "User"}
-                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
-                              {notice.user?.username}
-                            </h4>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                              Active period
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                            <span>
-                              {moment(notice.startTime!).format("MMM Do")} -{" "}
-                              {moment(notice.endTime!).format("MMM Do YYYY")}
-                            </span>
-                          </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            {notice.reason}
-                          </p>
-                        </div>
-
-                        {hasManageAccess && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => updateNotice(notice.id, "cancel")}
-                              className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
-                            >
-                              Revoke
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {pendingNotices.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
@@ -826,10 +788,24 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                               className="w-10 h-10 object-cover rounded-full border-2 border-white"
                             />
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
-                              {notice.user?.username}
-                            </h4>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                                {notice.user?.username}
+                              </h4>
+                              {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
+                                <span
+                                  key={dm.department.id}
+                                  className="px-2 py-0.5 text-xs font-medium rounded-full"
+                                  style={{
+                                    backgroundColor: dm.department.color || '#64748b',
+                                    color: '#fff'
+                                  }}
+                                >
+                                  {dm.department.name}
+                                </span>
+                              ))}
+                            </div>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400">
                               Pending period
                             </p>
@@ -871,65 +847,181 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 </div>
               )}
 
+              {activeNotices.length > 0 && (
+                <div className="mb-8">
+                  <button
+                    onClick={() => setIsActiveExpanded(!isActiveExpanded)}
+                    className="flex items-center justify-between w-full text-left mb-4 group"
+                  >
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Currently Active Notices ({activeNotices.length})
+                    </h3>
+                    {isActiveExpanded ? (
+                      <IconChevronUp className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                    ) : (
+                      <IconChevronDown className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                    )}
+                  </button>
+                  {isActiveExpanded && (
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 shadow-sm">
+                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                        {activeNotices.map((notice) => (
+                          <div
+                            key={notice.id}
+                            className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                                  notice.user?.userid?.toString() ?? ""
+                                )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                              >
+                                <img
+                                  src={notice.user?.picture ?? "/default-avatar.jpg"}
+                                  alt={notice.user?.username ?? "User"}
+                                  className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                                    {notice.user?.username}
+                                  </h4>
+                                  {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
+                                    <span
+                                      key={dm.department.id}
+                                      className="px-2 py-0.5 text-xs font-medium rounded-full"
+                                      style={{
+                                        backgroundColor: dm.department.color || '#64748b',
+                                        color: '#fff'
+                                      }}
+                                    >
+                                      {dm.department.name}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  Active period
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                              <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                                <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                                <span>
+                                  {moment(notice.startTime!).format("MMM Do")} -{" "}
+                                  {moment(notice.endTime!).format("MMM Do YYYY")}
+                                </span>
+                              </div>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                                {notice.reason}
+                              </p>
+                            </div>
+
+                            {hasManageAccess && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => updateNotice(notice.id, "cancel")}
+                                  className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
+                                >
+                                  Revoke
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {upcomingNotices.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-                    Upcoming Notices
-                  </h3>
-                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {upcomingNotices.map((notice) => (
-                      <div
-                        key={notice.id}
-                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
-                              notice.user?.userid?.toString() ?? ""
-                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
-                          >
-                            <img
-                              src={notice.user?.picture ?? "/default-avatar.jpg"}
-                              alt={notice.user?.username ?? "User"}
-                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
-                            />
+                  <button
+                    onClick={() => setIsUpcomingExpanded(!isUpcomingExpanded)}
+                    className="flex items-center justify-between w-full text-left mb-4 group"
+                  >
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Upcoming Notices ({upcomingNotices.length})
+                    </h3>
+                    {isUpcomingExpanded ? (
+                      <IconChevronUp className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                    ) : (
+                      <IconChevronDown className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                    )}
+                  </button>
+                  {isUpcomingExpanded && (
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                      {upcomingNotices.map((notice) => (
+                        <div
+                          key={notice.id}
+                          className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                                notice.user?.userid?.toString() ?? ""
+                              )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                            >
+                              <img
+                                src={notice.user?.picture ?? "/default-avatar.jpg"}
+                                alt={notice.user?.username ?? "User"}
+                                className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                                  {notice.user?.username}
+                                </h4>
+                                {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
+                                  <span
+                                    key={dm.department.id}
+                                    className="px-2 py-0.5 text-xs font-medium rounded-full"
+                                    style={{
+                                      backgroundColor: dm.department.color || '#64748b',
+                                      color: '#fff'
+                                    }}
+                                  >
+                                    {dm.department.name}
+                                  </span>
+                                ))}
+                              </div>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                Upcoming period
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
-                              {notice.user?.username}
-                            </h4>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                              Upcoming period
+
+                          <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
+                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
+                              <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                              <span>
+                                {moment(notice.startTime!).format("MMM Do")} -{" "}
+                                {moment(notice.endTime!).format("MMM Do YYYY")}
+                              </span>
+                            </div>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                              {notice.reason}
                             </p>
                           </div>
-                        </div>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                            <span>
-                              {moment(notice.startTime!).format("MMM Do")} -{" "}
-                              {moment(notice.endTime!).format("MMM Do YYYY")}
-                            </span>
-                          </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            {notice.reason}
-                          </p>
+                          {hasManageAccess && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => updateNotice(notice.id, "cancel")}
+                                className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                              >
+                                Revoke
+                              </button>
+                            </div>
+                          )}
                         </div>
-
-                        {hasManageAccess && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => updateNotice(notice.id, "cancel")}
-                              className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
-                            >
-                              Revoke
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
