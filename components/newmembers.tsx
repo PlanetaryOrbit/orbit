@@ -78,14 +78,14 @@ export default function NewToTeam() {
   const visibleMembers = members.slice(0, maxVisible);
 
   return (
-    <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
+    <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative overflow-hidden">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
           <IconUserPlus className="w-5 h-5 text-primary" />
         </div>
         <span className="text-lg font-medium text-zinc-900 dark:text-white">New to the Team</span>
       </div>
-      <div className="flex gap-6">
+      <div className="flex gap-6 overflow-hidden">
         {visibleMembers.map(m => (
           <div key={m.userid} className="flex flex-col items-center shrink-0 w-20">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}>
