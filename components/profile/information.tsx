@@ -412,7 +412,7 @@ export function InformationTab({
               </div>
             </div>
           </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 relative z-30">
+          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 relative z-40">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-emerald-500/10 rounded-lg">
                 <IconBriefcase className="w-5 h-5 text-emerald-500" />
@@ -445,7 +445,7 @@ export function InformationTab({
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                           >
-                            <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
+                            <Listbox.Options className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
                               {availableDepartments.map((dept) => (
                                 <Listbox.Option
                                   key={dept.id}
@@ -515,7 +515,7 @@ export function InformationTab({
               <div className="p-2 bg-cyan-500/10 rounded-lg">
                 <IconUserCheck className="w-5 h-5 text-cyan-500" />
               </div>
-              <div className="flex-1 min-w-0 relative z-20">
+              <div className="flex-1 min-w-0 relative z-10">
                 <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
                   Line Manager
                 </p>
