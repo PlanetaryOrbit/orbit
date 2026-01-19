@@ -165,11 +165,13 @@ export async function handler(
 
 			// Calculate how many members need to acknowledge this policy based on role and department assignments
 			let totalRequired = 0;
+			let requiredMemberIds = new Set<string>();
 			const hasRoleAssignments = policy.roles.length > 0;
 			const hasDepartmentAssignments = policy.departments.length > 0;
 			
 			if (!hasRoleAssignments && !hasDepartmentAssignments) {
 				totalRequired = totalMembers;
+				members.forEach(member => requiredMemberIds.add(member.userId.toString()));
 			} else {
 				// Count members who have at least one of the assigned roles OR are in one of the assigned departments
 				const policyRoleIds = policy.roles.map(role => role.id);
@@ -181,7 +183,7 @@ export async function handler(
 					});
 				});
 				
-				totalRequired = members.filter(member => {
+				const requiredMembers = members.filter(member => {
 					const hasRequiredRole = hasRoleAssignments && 
 						member.user.roles.some(userRole => policyRoleIds.includes(userRole.id));
 					
@@ -189,15 +191,19 @@ export async function handler(
 						departmentUserIds.has(member.userId.toString());
 					
 					return hasRequiredRole || hasRequiredDepartment;
-				}).length;
+				});
+				totalRequired = requiredMembers.length;
+				requiredMembers.forEach(member => requiredMemberIds.add(member.userId.toString()));
 			}
-			const totalAcknowledged = policyAcknowledgments.length;
-			const complianceRate = totalRequired > 0 ? (totalAcknowledged / totalRequired) * 100 : 0;
+			const totalAcknowledged = policyAcknowledgments.filter(ack => 
+				requiredMemberIds.has(ack.userId.toString())
+			).length;
+			const complianceRate = totalRequired > 0 ? Math.min((totalAcknowledged / totalRequired) * 100, 100) : 0;
 
 			// Calculate overdue count
 			const now = new Date();
 			const isOverdue = policy.acknowledgmentDeadline && now > new Date(policy.acknowledgmentDeadline);
-			const overdueCount = isOverdue ? (totalRequired - totalAcknowledged) : 0;
+			const overdueCount = isOverdue ? Math.max(totalRequired - totalAcknowledged, 0) : 0;
 
 			// Recent acknowledgments (last 7 days)
 			const sevenDaysAgo = new Date();
@@ -282,10 +288,10 @@ export async function handler(
 		const totalRequiredAcknowledgments = policyBreakdown.reduce((sum, policy) => sum + policy.totalRequired, 0);
 		const totalCompletedAcknowledgments = policyBreakdown.reduce((sum, policy) => sum + policy.totalAcknowledged, 0);
 		const overallComplianceRate = totalRequiredAcknowledgments > 0
-			? (totalCompletedAcknowledgments / totalRequiredAcknowledgments) * 100
+			? Math.min((totalCompletedAcknowledgments / totalRequiredAcknowledgments) * 100, 100)
 			: 100;
 
-		const pendingAcknowledgments = totalRequiredAcknowledgments - totalCompletedAcknowledgments;
+		const pendingAcknowledgments = Math.max(totalRequiredAcknowledgments - totalCompletedAcknowledgments, 0);
 		const overdueAcknowledgments = policyBreakdown.reduce((sum, policy) => sum + policy.overdueCount, 0);
 
 		// Calculate trends (last 30 days)
@@ -322,7 +328,7 @@ export async function handler(
 			).length;
 
 			const rateUpToDate = totalRequiredAcknowledgments > 0
-				? (acknowledgementsUpToDate / totalRequiredAcknowledgments) * 100
+				? Math.min((acknowledgementsUpToDate / totalRequiredAcknowledgments) * 100, 100)
 				: 100;
 
 			complianceOverTime.push({
