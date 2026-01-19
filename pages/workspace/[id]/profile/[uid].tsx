@@ -76,7 +76,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     const hasManageMembersPermission =
       isAdmin ||
       (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("manage_members")
+        role.permissions?.includes("edit_member_details")
       ) ??
         false);
 
