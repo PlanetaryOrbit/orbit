@@ -142,6 +142,26 @@ export const getServerSideProps = withPermissionCheckSsr(
             },
           },
         },
+        workspaceMemberships: {
+          where: {
+            workspaceGroupId: parseInt(query.id as string),
+          },
+          include: {
+            departmentMembers: {
+              include: {
+                department: {
+                  include: {
+                    quotaDepartments: {
+                      include: {
+                        quota: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -165,9 +185,22 @@ export const getServerSideProps = withPermissionCheckSsr(
         : nov30
       : nov30;
 
-    const quotas = userTakingAction.roles
+    const roleQuotas = userTakingAction.roles
       .flatMap((role) => role.quotaRoles)
       .map((qr) => qr.quota);
+
+    const departmentQuotas = userTakingAction.workspaceMemberships
+      .flatMap((wm) => wm.departmentMembers)
+      .flatMap((dm) => dm.department.quotaDepartments)
+      .map((qd) => qd.quota);
+
+    const quotaMap = new Map();
+    [...roleQuotas, ...departmentQuotas].forEach((quota) => {
+      if (!quotaMap.has(quota.id)) {
+        quotaMap.set(quota.id, quota);
+      }
+    });
+    const quotas = Array.from(quotaMap.values());
 
     const noticesConfig = await prisma.config.findFirst({
       where: {
