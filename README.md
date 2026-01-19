@@ -8,7 +8,7 @@
     <img height="40px" src=".github/logo.png"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v2.1.8beta13-purple"></img>
+    <img src="https://img.shields.io/badge/version-v2.1.8beta14-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
