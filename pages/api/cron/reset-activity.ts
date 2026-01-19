@@ -175,6 +175,19 @@ async function performReset(workspaceGroupId: number) {
           },
         },
       },
+      departmentMembers: {
+        include: {
+          department: {
+            include: {
+              quotaDepartments: {
+                include: {
+                  quota: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -271,6 +284,21 @@ async function performReset(workspaceGroupId: number) {
     for (const role of userRoles) {
       for (const quotaRole of role.quotaRoles) {
         const quota = quotaRole.quota;
+        if (!quotaProgress[quota.id]) {
+          quotaProgress[quota.id] = {
+            quotaId: quota.id,
+            quotaName: quota.name,
+            targetMinutes: quota.value,
+            currentMinutes: 0,
+            completed: false,
+          };
+        }
+      }
+    }
+
+    for (const departmentMember of member.departmentMembers) {
+      for (const quotaDepartment of departmentMember.department.quotaDepartments) {
+        const quota = quotaDepartment.quota;
         if (!quotaProgress[quota.id]) {
           quotaProgress[quota.id] = {
             quotaId: quota.id,

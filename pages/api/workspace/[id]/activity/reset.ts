@@ -64,6 +64,19 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             },
           },
         },
+        departmentMembers: {
+          include: {
+            department: {
+              include: {
+                quotaDepartments: {
+                  include: {
+                    quota: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
     const quotas = await prisma.quota.findMany({
@@ -241,9 +254,21 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       const totalWallPosts = wallPosts.length;
 
       const quotaProgress: any = {};
-      const userQuotas = member.user.roles
+      const roleQuotas = member.user.roles
         .flatMap((role) => role.quotaRoles)
         .map((qr) => qr.quota);
+      
+      const departmentQuotas = member.departmentMembers
+        .flatMap((dm) => dm.department.quotaDepartments)
+        .map((qd) => qd.quota);
+
+      const quotaMap = new Map();
+      [...roleQuotas, ...departmentQuotas].forEach((quota) => {
+        if (!quotaMap.has(quota.id)) {
+          quotaMap.set(quota.id, quota);
+        }
+      });
+      const userQuotas = Array.from(quotaMap.values());
 
       for (const quota of userQuotas) {
         let currentValue = 0;

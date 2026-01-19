@@ -165,6 +165,8 @@ export const getServerSideProps = withPermissionCheckSsr(
       ? (lastReset.resetAt > nov30 ? lastReset.resetAt : nov30)
       : nov30;
 
+    const currentDate = new Date();
+
     const ownedSessions = await prisma.session.findMany({
       where: {
         ownerId: BigInt(userId),
@@ -173,10 +175,12 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
         date: {
           gte: startDate,
+          lte: currentDate,
         },
         archived: { not: true },
       },
       select: {
+        id: true,
         type: true,
         ownerId: true,
         date: true,
@@ -192,25 +196,65 @@ export const getServerSideProps = withPermissionCheckSsr(
           },
           date: {
             gte: startDate,
+            lte: currentDate,
           },
           archived: { not: true },
         },
+        archived: { not: true },
       },
       include: {
         session: {
           select: {
+            id: true,
             type: true,
             ownerId: true,
             date: true,
+            sessionType: {
+              select: {
+                slots: true,
+              },
+            },
           },
         },
       },
     });
 
+    const roleBasedHostedSessions = sessionParticipations.filter(
+      (participation) => {
+        const slots = participation.session.sessionType.slots as any[];
+        const slotIndex = participation.slot;
+        const slotName = slots[slotIndex]?.name || "";
+        return (
+          participation.roleID.toLowerCase().includes("co-host") ||
+          slotName.toLowerCase().includes("co-host")
+        );
+      }
+    ).length;
+
+    const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
+    const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
+    const sessionsAttended = sessionParticipations.filter(
+      (participation) => {
+        const slots = participation.session.sessionType.slots as any[];
+        const slotIndex = participation.slot;
+        const slotName = slots[slotIndex]?.name || "";
+
+        const isCoHost =
+          participation.roleID.toLowerCase().includes("co-host") ||
+          slotName.toLowerCase().includes("co-host");
+
+        return !isCoHost && !ownedSessionIds.has(participation.session.id);
+      }
+    ).length;
+
     const sessionsLogged = [
       ...ownedSessions,
       ...sessionParticipations.map((sp) => sp.session),
     ];
+    const totalSessionsLogged = new Set([
+      ...ownedSessions.map(s => s.id),
+      ...sessionParticipations.map(p => p.session.id)
+    ]).size;
 
     const activityConfig = await prisma.config.findFirst({
       where: {
@@ -260,14 +304,6 @@ export const getServerSideProps = withPermissionCheckSsr(
     const activeMinutes = idleTimeEnabled
       ? Math.max(0, totalMinutes - totalIdleMinutes)
       : totalMinutes;
-
-    const sessionsHosted = sessionsLogged.filter(
-      (s) => s.ownerId?.toString() === userId
-    ).length;
-    const sessionsAttended = sessionsLogged.filter(
-      (s) => s.ownerId?.toString() !== userId
-    ).length;
-    const totalSessionsLogged = sessionsLogged.length;
 
     const allianceVisits = await prisma.allyVisit.count({
       where: {
