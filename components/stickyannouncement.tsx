@@ -77,7 +77,6 @@ export default function StickyNoteAnnouncement() {
       const response = await axios.get(
         `/api/workspace/${router.query.id}/announcement`
       );
-      console.log('API Response:', response.data);
       if (response.data.success) {
         setAnnouncement(response.data.announcement);
         setCanEdit(response.data.canEdit);
