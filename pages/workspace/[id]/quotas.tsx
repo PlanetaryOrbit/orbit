@@ -219,21 +219,31 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    const roleBasedHostedSessions = sessionParticipations.filter(
-      (participation) => {
-        const slots = participation.session.sessionType.slots as any[];
-        const slotIndex = participation.slot;
-        const slotName = slots[slotIndex]?.name || "";
-        return (
-          participation.roleID.toLowerCase().includes("co-host") ||
-          slotName.toLowerCase().includes("co-host")
-        );
-      }
-    ).length;
-
     const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
+    const hostedSessionsByType: Record<string, number> = {};
+    ownedSessions.forEach((s) => {
+      const type = s.type || 'other';
+      hostedSessionsByType[type] = (hostedSessionsByType[type] || 0) + 1;
+    });
+    
+    let roleBasedHostedSessions = 0;
+    sessionParticipations.forEach((participation) => {
+      const slots = participation.session.sessionType.slots as any[];
+      const slotIndex = participation.slot;
+      const slotName = slots[slotIndex]?.name || "";
+      const isCoHost =
+        participation.roleID.toLowerCase().includes("co-host") ||
+        slotName.toLowerCase().includes("co-host");
+      if (isCoHost) {
+        roleBasedHostedSessions++;
+        const type = participation.session.type || 'other';
+        hostedSessionsByType[type] = (hostedSessionsByType[type] || 0) + 1;
+      }
+    });
+
     const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
-    const sessionsAttended = sessionParticipations.filter(
+    const attendedSessionsByType: Record<string, number> = {};
+    const attendedParticipations = sessionParticipations.filter(
       (participation) => {
         const slots = participation.session.sessionType.slots as any[];
         const slotIndex = participation.slot;
@@ -245,7 +255,14 @@ export const getServerSideProps = withPermissionCheckSsr(
 
         return !isCoHost && !ownedSessionIds.has(participation.session.id);
       }
-    ).length;
+    );
+    
+    attendedParticipations.forEach((participation) => {
+      const type = participation.session.type || 'other';
+      attendedSessionsByType[type] = (attendedSessionsByType[type] || 0) + 1;
+    });
+
+    const sessionsAttended = attendedParticipations.length;
 
     const sessionsLogged = [
       ...ownedSessions,
@@ -255,6 +272,16 @@ export const getServerSideProps = withPermissionCheckSsr(
       ...ownedSessions.map(s => s.id),
       ...sessionParticipations.map(p => p.session.id)
     ]).size;
+
+    const loggedSessionsByType: Record<string, number> = {};
+    const seenSessionIds = new Set<string>();
+    [...ownedSessions, ...sessionParticipations.map(sp => sp.session)].forEach((s) => {
+      if (!seenSessionIds.has(s.id)) {
+        seenSessionIds.add(s.id);
+        const type = s.type || 'other';
+        loggedSessionsByType[type] = (loggedSessionsByType[type] || 0) + 1;
+      }
+    });
 
     const activityConfig = await prisma.config.findFirst({
       where: {
@@ -369,22 +396,21 @@ export const getServerSideProps = withPermissionCheckSsr(
           break;
         case "sessions_hosted":
           const hostedCount = quota.sessionType && quota.sessionType !== "all"
-            ? sessionsLogged.filter(
-                (s) =>
-                  s.ownerId?.toString() === userId &&
-                  s.type === quota.sessionType
-              ).length
+            ? hostedSessionsByType[quota.sessionType] || 0
             : sessionsHosted;
           currentValue = hostedCount;
           percentage = (hostedCount / quota.value) * 100;
           break;
         case "sessions_attended":
-          currentValue = sessionsAttended;
-          percentage = (sessionsAttended / quota.value) * 100;
+          const attendedCount = quota.sessionType && quota.sessionType !== "all"
+            ? attendedSessionsByType[quota.sessionType] || 0
+            : sessionsAttended;
+          currentValue = attendedCount;
+          percentage = (attendedCount / quota.value) * 100;
           break;
         case "sessions_logged":
           const loggedCount = quota.sessionType && quota.sessionType !== "all"
-            ? sessionsLogged.filter((s) => s.type === quota.sessionType).length
+            ? loggedSessionsByType[quota.sessionType] || 0
             : totalSessionsLogged;
           currentValue = loggedCount;
           percentage = (loggedCount / quota.value) * 100;

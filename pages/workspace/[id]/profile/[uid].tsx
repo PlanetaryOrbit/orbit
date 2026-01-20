@@ -185,17 +185,28 @@ export const getServerSideProps = withPermissionCheckSsr(
         : nov30
       : nov30;
 
-    const roleQuotas = userTakingAction.roles
-      .flatMap((role) => role.quotaRoles)
-      .map((qr) => qr.quota);
+    const roleQuotasWithInfo = userTakingAction.roles.flatMap((role) =>
+      role.quotaRoles.map((qr) => ({
+        ...qr.quota,
+        linkedVia: 'role' as const,
+        linkedName: role.name,
+        linkedColor: role.color,
+      }))
+    );
 
-    const departmentQuotas = userTakingAction.workspaceMemberships
+    const departmentQuotasWithInfo = userTakingAction.workspaceMemberships
       .flatMap((wm) => wm.departmentMembers)
-      .flatMap((dm) => dm.department.quotaDepartments)
-      .map((qd) => qd.quota);
+      .flatMap((dm) =>
+        dm.department.quotaDepartments.map((qd) => ({
+          ...qd.quota,
+          linkedVia: 'department' as const,
+          linkedName: dm.department.name,
+          linkedColor: dm.department.color,
+        }))
+      );
 
     const quotaMap = new Map();
-    [...roleQuotas, ...departmentQuotas].forEach((quota) => {
+    [...roleQuotasWithInfo, ...departmentQuotasWithInfo].forEach((quota) => {
       if (!quotaMap.has(quota.id)) {
         quotaMap.set(quota.id, quota);
       }

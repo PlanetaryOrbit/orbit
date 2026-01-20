@@ -1,10 +1,18 @@
 import React from "react";
 import type { Quota } from "@prisma/client";
-import { IconChartBar } from "@tabler/icons-react";
+import { IconChartBar, IconUsers, IconBriefcase } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 
+type QuotaWithLinkage = Quota & {
+  currentValue?: number;
+  percentage?: number;
+  linkedVia?: 'role' | 'department';
+  linkedName?: string;
+  linkedColor?: string | null;
+};
+
 type Props = {
-  quotas: (Quota & { currentValue?: number; percentage?: number })[];
+  quotas: QuotaWithLinkage[];
   displayMinutes: number;
   sessionsHosted: number;
   sessionsAttended: number;
@@ -107,35 +115,59 @@ export function QuotasProgress({
       </div>
       <div className="p-4 md:p-6">
         <div className="grid gap-4">
-          {quotas.map((quota: any) => (
+          {quotas.map((quota: QuotaWithLinkage) => (
             <div
               key={quota.id}
               className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4"
             >
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-start mb-1">
                 <h3 className="text-sm font-medium dark:text-white text-zinc-900">
                   {quota.name}
                 </h3>
-                <p className="text-xs text-zinc-500 dark:text-white">
-                  {getQuotaProgress(quota)}
-                </p>
               </div>
-              <Tooltip
-                orientation="top"
-                tooltipText={getQuotaProgress(quota)}
-              >
-                <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{
-                      width: `${Math.min(
-                        getQuotaPercentage(quota) || 0,
-                        100
-                      )}%`,
-                    }}
-                  />
+              {quota.sessionType && quota.sessionType !== 'all' && (
+                <p className="text-xs text-primary mb-1">
+                  Session type: {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)}
+                </p>
+              )}
+              {quota.linkedVia && quota.linkedName && (
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <span
+                    className="inline-flex items-center gap-1 text-white py-1 px-2 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: quota.linkedColor || "#6b7280" }}
+                  >
+                    {quota.linkedVia === 'role' ? (
+                      <IconUsers className="w-3 h-3" />
+                    ) : (
+                      <IconBriefcase className="w-3 h-3" />
+                    )}
+                    {quota.linkedName}
+                  </span>
                 </div>
-              </Tooltip>
+              )}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Progress
+                </span>
+                <span className="text-sm font-bold text-zinc-900 dark:text-white">
+                  {quota.currentValue !== undefined ? quota.currentValue : 0} / {quota.value}
+                </span>
+              </div>
+              <div className="w-full bg-zinc-200 dark:bg-zinc-600 rounded-full h-3">
+                <div
+                  className={`h-3 rounded-full transition-all ${
+                    (getQuotaPercentage(quota) || 0) >= 100
+                      ? "bg-green-500"
+                      : "bg-primary"
+                  }`}
+                  style={{
+                    width: `${Math.min(getQuotaPercentage(quota) || 0, 100)}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                {(getQuotaPercentage(quota) || 0).toFixed(0)}% complete
+              </p>
             </div>
           ))}
         </div>
