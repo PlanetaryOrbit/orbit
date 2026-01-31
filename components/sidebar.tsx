@@ -42,8 +42,10 @@ import {
   IconBrandGithub,
   IconHistory,
   IconBug,
+  IconDownload,
 } from "@tabler/icons-react"
 import axios from "axios"
+import toast from "react-hot-toast"
 import clsx from "clsx"
 import Parser from "rss-parser"
 import ReactMarkdown from "react-markdown";
@@ -117,9 +119,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
+  const [downloadingData, setDownloadingData] = useState(false);
   const router = useRouter()
 
-  // Add body class to prevent scrolling when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.classList.add("overflow-hidden")
@@ -196,6 +198,29 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   }
 
+  const downloadMyData = async () => {
+    setDownloadingData(true)
+    try {
+      const res = await fetch("/api/user/export", { credentials: "include" })
+      if (!res.ok) throw new Error("Export failed")
+      const blob = await res.blob()
+      const disposition = res.headers.get("Content-Disposition")
+      const match = disposition?.match(/filename="?([^";]+)"?/)
+      const filename = match?.[1] ?? `orbit-data-${new Date().toISOString().slice(0, 10)}.json`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success("Data downloaded")
+    } catch (err) {
+      toast.error("Failed to download data")
+    } finally {
+      setDownloadingData(false)
+    }
+  }
+
   useEffect(() => {
     if (showChangelog && changelog.length === 0) {
       fetch('/api/changelog')
@@ -247,25 +272,22 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
   return (
     <>
-      {/* Mobile menu button */}
       {!isMobileMenuOpen && (
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="lg:hidden fixed top-4 left-4 z-[999999] p-2 rounded-lg bg-white dark:bg-zinc-800 shadow"
+          className="lg:hidden fixed top-4 left-4 z-[999999] p-2.5 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border border-zinc-200/80 dark:border-zinc-600/80"
         >
           <IconMenu2 className="w-6 h-6 text-zinc-700 dark:text-white" />
         </button>
       )}
 
-      {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/50 z-[99998]"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
-      
-      {/* Sidebar */}
+
       <div
   		className={clsx(
   			"fixed lg:static top-0 left-0 h-screen lg:w-auto z-[99999] transition-transform duration-300 flex flex-col",
@@ -275,12 +297,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
         <aside
           className={clsx(
-            "h-screen flex flex-col pointer-events-auto shadow-xl transition-all duration-300",
-            "bg-white dark:bg-zinc-800 border-r border-gray-200 dark:border-zinc-700",
+            "h-screen flex flex-col pointer-events-auto transition-all duration-300",
+            "bg-zinc-50/80 dark:bg-zinc-900/95 border-r border-zinc-200/80 dark:border-zinc-700/80",
+            "backdrop-blur-sm",
             isCollapsed ? "w-[4.5rem]" : "w-64",
           )}
         >
-          <div className="h-full flex flex-col p-3 overflow-y-auto pb-20 lg:pb-3">
+          <div className="h-full flex flex-col p-4 overflow-y-auto pb-20 lg:pb-4">
             <div className="relative">
               <Listbox
                 value={workspace.groupId}
@@ -299,9 +322,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               >
                 <Listbox.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
-                    "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
-                    "dark:hover:bg-zinc-700",
+                    "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200",
+                    "bg-white dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-600/80",
+                    "hover:border-[color:rgb(var(--group-theme)/0.4)] hover:bg-[color:rgb(var(--group-theme)/0.06)]",
+                    "shadow-sm",
                     isCollapsed && "justify-center"
                   )}
                 >
@@ -309,28 +333,28 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     src={workspace.groupThumbnail || "/favicon-32x32.png"}
                     alt=""
                     className={clsx(
-                      "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                      "w-9 h-9 rounded-lg object-cover ring-1 ring-zinc-200/50 dark:ring-zinc-600/50 transition-all duration-300",
                       isCollapsed && "scale-90 opacity-80"
                     )}
                   />
                   {!isCollapsed && (
                     <div className="flex-1 min-w-0 text-left transition-all duration-300">
-                      <p className="text-sm font-medium truncate dark:text-white max-w-full">
+                      <p className="text-sm font-semibold truncate text-zinc-800 dark:text-white max-w-full">
                         {workspace.groupName}
                       </p>
-                      <p className="text-xs text-zinc-500 dark:text-white truncate max-w-full">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-full">
                         Switch workspace
                       </p>
                     </div>
                   )}
                   {!isCollapsed && (
-                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500 transition-all duration-300 flex-shrink-0" />
                   )}
                 </Listbox.Button>
               
                 <Listbox.Options
                   className={clsx(
-                    "absolute top-0 left-0 z-50 w-[calc(100%-0.5rem)] mt-14 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border dark:border-zinc-700 max-h-60 overflow-y-auto"
+                    "absolute top-full left-0 z-50 w-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-600 max-h-60 overflow-y-auto py-1"
                   )}
                 >
                   {login?.workspaces && login.workspaces.length > 1 ? (
@@ -342,7 +366,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           value={ws.groupId}
                           className={({ active }) =>
                             clsx(
-                              "flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md transition duration-200",
+                              "flex items-center gap-3 px-3 py-2.5 mx-1 cursor-pointer rounded-lg transition duration-200",
                               active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
                             )
                           }
@@ -365,18 +389,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Listbox>
             </div>
 
-            <nav className="flex-1 space-y-1 mt-4">
+            <nav className="flex-1 space-y-0.5 mt-2">
               {pages.map((page) =>
                 (page.accessible === undefined || page.accessible) && (
                   <button
                     key={page.name}
                     onClick={() => gotopage(page.href)}
                     className={clsx(
-                      "w-full gap-3 px-2 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative",
+                      "w-full gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative",
                       router.asPath === page.href.replace("[id]", workspace.groupId.toString())
-                        ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))] font-semibold"
-                        : "text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                      isCollapsed ? "grid place-content-center" : "flex gap-2 items-center",
+                        ? "bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] font-semibold shadow-sm border-l-[3px] border-[color:rgb(var(--group-theme))]"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white border-l-[3px] border-transparent",
+                      isCollapsed ? "grid place-content-center" : "flex gap-3 items-center",
                     )}
                   >
                     {(() => {
@@ -384,7 +408,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         router.asPath === page.href.replace("[id]", workspace.groupId.toString())
                           ? page.filledIcon || page.icon
                           : page.icon;
-                      return <IconComponent className="w-5 h-5" />;
+                      return <IconComponent className="w-5 h-5 flex-shrink-0" />;
                     })()}
                     {!isCollapsed && (
                       <div className="flex items-center gap-2">
@@ -424,14 +448,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </nav>
 
             {!isCollapsed && (
-              <div className="mb-1">
-                <div className="flex items-center gap-0.2 mb-0.5 -ml-1">
+              <div className="mt-auto pt-4 border-t border-zinc-200/80 dark:border-zinc-700/80">
+                <div className="flex items-center gap-1 mb-3">
                   <button
                     onClick={() => {
                       setShowOrbitInfo(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    className="p-2 rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-zinc-400 hover:text-[color:rgb(var(--group-theme))] transition-all duration-200"
                     title="Copyright Notices"
                   >
                     <IconCopyright className="w-4 h-4" />
@@ -440,7 +464,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     href="https://docs.planetaryapp.us"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    className="p-2 rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-zinc-400 hover:text-[color:rgb(var(--group-theme))] transition-all duration-200"
                     title="Documentation"
                   >
                     <IconBook className="w-4 h-4" />
@@ -449,7 +473,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     href="https://github.com/planetaryorbit/orbit"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    className="p-2 rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-zinc-400 hover:text-[color:rgb(var(--group-theme))] transition-all duration-200"
                     title="GitHub"
                   >
                     <IconBrandGithub className="w-4 h-4" />
@@ -458,20 +482,22 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     href="https://feedback.planetaryapp.us/bugs"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-primary transition-all duration-300"
+                    className="p-2 rounded-lg hover:bg-white dark:hover:bg-zinc-800 text-zinc-400 hover:text-[color:rgb(var(--group-theme))] transition-all duration-200"
                     title="Bug Reports"
                   >
                     <IconBug className="w-4 h-4" />
                   </a>
                 </div>
-                <div className="flex items-center gap-1 text-sm text-zinc-500">
-                  <span>Orbit v{packageJson.version}</span>
+                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="px-2 py-1 rounded-md bg-zinc-200/60 dark:bg-zinc-700/60">
+                    Orbit v{packageJson.version}
+                  </span>
                   <button
                     onClick={() => {
                       setShowChangelog(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-primary transition-all duration-300"
+                    className="p-1.5 rounded-md hover:bg-white dark:hover:bg-zinc-800 hover:text-[color:rgb(var(--group-theme))] transition-all duration-200"
                     title="Changelog"
                   >
                     <IconHistory className="w-3.5 h-3.5" />
@@ -480,12 +506,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </div>
             )}
 
-            <Menu as="div" className="relative">
+            <Menu as="div" className={clsx("relative", !isCollapsed && "mt-4")}>
               <Menu.Button
                 className={clsx(
-                  "w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
-                  "hover:bg-[color:rgb(var(--group-theme)/0.1)] hover:text-[color:rgb(var(--group-theme))]",
-                  "dark:hover:bg-zinc-700",
+                  "w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200",
+                  "bg-white dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-600/80",
+                  "hover:border-[color:rgb(var(--group-theme)/0.4)] hover:bg-[color:rgb(var(--group-theme)/0.06)] shadow-sm",
                   isCollapsed ? "justify-center" : "justify-start"
                 )}
               >
@@ -493,53 +519,74 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   src={login?.thumbnail || "/placeholder.svg"}
                   alt=""
                   className={clsx(
-                    "w-10 h-10 rounded-lg object-cover transition-all duration-300",
+                    "w-9 h-9 rounded-lg object-cover ring-1 ring-zinc-200/50 dark:ring-zinc-600/50 transition-all duration-300",
                     isCollapsed && "scale-90 opacity-80"
                   )}
                 />
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0 text-left transition-all duration-300">
-                    <p className="text-sm font-medium truncate dark:text-white">{login?.displayname}</p>
+                    <p className="text-sm font-semibold truncate text-zinc-800 dark:text-white">{login?.displayname}</p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                       Manage account
                     </p>
                   </div>
                 )}
                 {!isCollapsed && (
-                  <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-white transition-all duration-300" />
+                  <IconChevronDown className="w-4 h-4 text-zinc-400 dark:text-zinc-500 transition-all duration-300 flex-shrink-0" />
                 )}
               </Menu.Button>
           
-              <Menu.Items className="absolute bottom-14 left-0 w-full bg-white dark:bg-zinc-700 rounded-lg shadow-lg z-50 py-2">
-                  <Menu.Item>
+              <Menu.Items className="absolute bottom-full left-0 w-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-600 z-50 py-1.5 min-w-[11rem]">
+                <Menu.Item>
                   {({ active }) => (
                     <button
                       onClick={toggleTheme}
                       className={clsx(
-                        "w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-white transition-all duration-200",
-                        active && "bg-zinc-100 dark:bg-zinc-600"
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5",
+                        "text-zinc-700 dark:text-zinc-200",
+                        active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
                       )}
                     >
                       {theme === "dark" ? (
-                        <div className="flex items-center gap-2">
-                          <IconSun className="w-4 h-4" /> Light Mode
-                        </div>
+                        <>
+                          <IconSun className="w-4 h-4 flex-shrink-0" />
+                          Light mode
+                        </>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <IconMoon className="w-4 h-4" /> Dark Mode
-                        </div>
+                        <>
+                          <IconMoon className="w-4 h-4 flex-shrink-0" />
+                          Dark mode
+                        </>
                       )}
                     </button>
                   )}
                 </Menu.Item>
-                
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      onClick={downloadMyData}
+                      disabled={downloadingData}
+                      className={clsx(
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5",
+                        "text-zinc-700 dark:text-zinc-200",
+                        active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]",
+                        downloadingData && "opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <IconDownload className="w-4 h-4 flex-shrink-0" />
+                      {downloadingData ? "Downloading…" : "Download my data"}
+                    </button>
+                  )}
+                </Menu.Item>
+                <div className="my-1 border-t border-zinc-200 dark:border-zinc-600" />
                 <Menu.Item>
                   {({ active }) => (
                     <button
                       onClick={logout}
                       className={clsx(
-                        "w-full text-left px-4 py-2 text-sm text-red-500 transition-all duration-200",
-                        active && "bg-red-50 dark:bg-red-900/40"
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5",
+                        "text-red-600 dark:text-red-400",
+                        active && "bg-red-50 dark:bg-red-900/30"
                       )}
                     >
                       Logout
