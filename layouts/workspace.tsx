@@ -26,6 +26,14 @@ const workspace: LayoutProps = ({ children }) => {
 	const [open, setOpen] = useState(true);
 
 	const useTheme = (groupTheme: string) => {
+		if (groupTheme.startsWith("#")) {
+			try {
+				const hex = hexRgb(groupTheme);
+				return `${hex.red} ${hex.green} ${hex.blue}`;
+			} catch {
+				return "255 0 153";
+			}
+		}
 		const themes: Record<string, string> = {
 			"bg-pink-100": colors.pink[100],
 			"bg-rose-100": colors.rose[100],

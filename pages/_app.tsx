@@ -89,6 +89,11 @@ function getRGBFromTailwindColor(tw: any): string {
     return fallback;
   }
 
+  if (tw.startsWith("#")) {
+    const rgb = hexToRgb(tw);
+    return rgb !== null ? rgb : fallback;
+  }
+
   const colorName = tw.replace("bg-", "");
 
   if (colorName === "orbit") {
@@ -110,6 +115,14 @@ function getRGBFromTailwindColor(tw: any): string {
   };
 
   return colorMap[colorName] || fallback;
+}
+
+function hexToRgb(hex: string): string | null {
+  const shorthand = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthand, (_, r, g, b) => r + r + g + g + b + b);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
 }
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {

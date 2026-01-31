@@ -7,7 +7,7 @@ import { workspacestate } from "@/state";
 import type { FC } from "@/types/settingsComponent";
 import { IconCheck, IconPalette } from "@tabler/icons-react";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type SessionColors = {
   recurring: string;
@@ -35,16 +35,85 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     other: "bg-zinc-500",
   });
   const [isLoadingSessionColors, setIsLoadingSessionColors] = useState(false);
+  const [customHex, setCustomHex] = useState<string>(
+    workspace?.groupTheme?.startsWith("#") ? workspace.groupTheme : "#ec4899"
+  );
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (workspace?.groupTheme) {
       setSelectedColor(workspace.groupTheme);
+      if (workspace.groupTheme.startsWith("#")) {
+        setCustomHex(workspace.groupTheme);
+      }
     }
   }, [workspace?.groupTheme]);
 
   useEffect(() => {
     loadSessionColors();
   }, [workspace?.groupId]);
+
+  const applyColorLocally = useCallback((color: string) => {
+    setSelectedColor(color);
+    setWorkspace((prev) => {
+      if (!prev) return prev;
+      return { ...prev, groupTheme: color };
+    });
+    const rgbValue = getRGBFromTailwindColor(color);
+    document.documentElement.style.setProperty("--group-theme", rgbValue);
+  }, [setWorkspace]);
+
+  const saveColorToServer = useCallback(
+    async (color: string) => {
+      if (!workspace?.groupId) return;
+      try {
+        const res = await axios.patch(
+          `/api/workspace/${workspace.groupId}/settings/general/color`,
+          { color }
+        );
+        if (res.status === 200) {
+          triggerToast.success("Workspace color updated successfully!");
+        } else {
+          triggerToast.error("Failed to update color.");
+          handleRevert();
+        }
+      } catch (error) {
+        triggerToast.error("Something went wrong.");
+        handleRevert();
+      }
+    },
+    [workspace?.groupId, triggerToast]
+  );
+
+  const handleRevert = () => {
+    const previousColor = workspace?.groupTheme || "bg-pink-500";
+    setSelectedColor(previousColor);
+    setWorkspace((prev) => ({
+      ...prev,
+      groupTheme: previousColor,
+    }));
+    const rgbValue = getRGBFromTailwindColor(previousColor);
+    document.documentElement.style.setProperty("--group-theme", rgbValue);
+  };
+
+  const handleCustomColorChange = useCallback(
+    (hex: string) => {
+      setCustomHex(hex);
+      applyColorLocally(hex);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        saveTimeoutRef.current = null;
+        saveColorToServer(hex);
+      }, 600);
+    },
+    [applyColorLocally, saveColorToServer]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   const loadSessionColors = async () => {
     if (!workspace?.groupId) return;
@@ -64,32 +133,9 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     }
   };
 
-  const updateColor = async (color: string) => {
-    try {
-      setSelectedColor(color);
-      setWorkspace((prev) => ({
-        ...prev,
-        groupTheme: color,
-      }));
-
-      const rgbValue = getRGBFromTailwindColor(color);
-      document.documentElement.style.setProperty("--group-theme", rgbValue);
-
-      const res = await axios.patch(
-        `/api/workspace/${workspace.groupId}/settings/general/color`,
-        { color }
-      );
-
-      if (res.status === 200) {
-        triggerToast.success("Workspace color updated successfully!");
-      } else {
-        triggerToast.error("Failed to update color.");
-        handleRevert();
-      }
-    } catch (error) {
-      triggerToast.error("Something went wrong.");
-      handleRevert();
-    }
+  const updateColor = (color: string) => {
+    applyColorLocally(color);
+    saveColorToServer(color);
   };
 
   const updateSessionColor = async (
@@ -115,17 +161,6 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
       triggerToast.error("Something went wrong.");
       setSessionColors(sessionColors);
     }
-  };
-
-  const handleRevert = () => {
-    const previousColor = workspace?.groupTheme || "bg-pink-500";
-    setSelectedColor(previousColor);
-    setWorkspace((prev) => ({
-      ...prev,
-      groupTheme: previousColor,
-    }));
-    const rgbValue = getRGBFromTailwindColor(previousColor);
-    document.documentElement.style.setProperty("--group-theme", rgbValue);
   };
 
   const colors = [
@@ -215,6 +250,71 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
           Choose a color theme for your workspace
         </p>
+
+        <div className="mb-6 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
+          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
+            Custom color (color wheel + hex)
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">Pick:</span>
+              <input
+                type="color"
+                value={
+                  selectedColor.startsWith("#")
+                    ? selectedColor
+                    : customHex
+                }
+                onChange={(e) => handleCustomColorChange(e.target.value)}
+                className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
+              />
+              {selectedColor.startsWith("#") && (
+                <span className="text-xs text-primary font-medium">Active</span>
+              )}
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">Hex:</span>
+              <input
+                type="text"
+                value={
+                  selectedColor.startsWith("#")
+                    ? selectedColor
+                    : customHex
+                }
+                onChange={(e) => setCustomHex(e.target.value)}
+                onBlur={() => {
+                  const raw = customHex.trim();
+                  const hex = raw.startsWith("#") ? raw : `#${raw}`;
+                  if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                    const fullHex =
+                      hex.length === 4
+                        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+                        : hex;
+                    setCustomHex(fullHex);
+                    applyColorLocally(fullHex);
+                    if (saveTimeoutRef.current) {
+                      clearTimeout(saveTimeoutRef.current);
+                      saveTimeoutRef.current = null;
+                    }
+                    saveColorToServer(fullHex);
+                  }
+                }}
+                placeholder="#ec4899"
+                className={clsx(
+                  "w-28 px-3 py-2 rounded-lg text-sm border-2",
+                  "bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600",
+                  "text-zinc-900 dark:text-white",
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
+              />
+            </label>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            Click the color square to open the color wheel, or type a hex code (e.g. #ec4899).
+          </p>
+        </div>
+
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Or pick a preset:</p>
         <div className="grid grid-cols-10 gap-3">
           {colors.map((color, i) => (
             <button
@@ -321,6 +421,14 @@ function getColorDisplayName(color: string): string {
   return colorDisplayMap[color] || color.replace("bg-", "").replace("-", " ");
 }
 
+function hexToRgb(hex: string): string | null {
+  const shorthand = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthand, (_, r, g, b) => r + r + g + g + b + b);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
+}
+
 function getRGBFromTailwindColor(tw: any): string {
   const fallback = "236, 72, 153";
   if (!tw || typeof tw !== "string") {
@@ -328,6 +436,10 @@ function getRGBFromTailwindColor(tw: any): string {
       console.warn("Invalid color value:", tw);
     }
     return fallback;
+  }
+  if (tw.startsWith("#")) {
+    const rgb = hexToRgb(tw);
+    return rgb !== null ? rgb : fallback;
   }
   const colorName = tw.replace("bg-", "");
 
