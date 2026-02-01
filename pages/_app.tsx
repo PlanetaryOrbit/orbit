@@ -80,7 +80,7 @@ function ColorThemeHandler() {
 }
 
 function getRGBFromTailwindColor(tw: any): string {
-  const fallback = "236, 72, 153"; // pink-500
+  const fallback = "236, 72, 153";
 
   if (!tw || typeof tw !== "string") {
     if (tw !== null && tw !== undefined) {
