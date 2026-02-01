@@ -732,7 +732,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
                             {quota.value} {types[quota.type]}
                           </p>)}
-                          {quota.type === "custom" && (<p className="text-sm text-zinc-500 italic">Custom Quota</p)}
+                          {quota.type === "custom" && (<p className="text-sm text-zinc-500 italic">Custom Quota</p>)}
                           {quota.description && (
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 italic">
                               {quota.description}
