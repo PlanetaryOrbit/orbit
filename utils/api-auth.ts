@@ -12,7 +12,6 @@ export async function validateApiKey(apiKey: string, workspaceId: string | numbe
   const numericWorkspaceId = typeof workspaceId === 'string' ? parseInt(workspaceId, 10) : workspaceId
   if (!numericWorkspaceId || key.workspaceGroupId !== numericWorkspaceId) return null
 
-  // Non-blocking lastUsed update
   prisma.apiKey.update({
     where: { id: key.id },
     data: { lastUsed: new Date() }

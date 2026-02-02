@@ -1,12 +1,12 @@
 import prisma from './database';
 
-const configCahce = new Map<string, any>();
+const configCache = new Map<string, any>();
 
 /** @returns {Promise<object>} */
 
 export async function getConfig(key: string, groupid: number) {
-	if (configCahce.has(`${groupid}_${key}`)) {
-		return configCahce.get(`${groupid}_${key}`);
+	if (configCache.has(`${groupid}_${key}`)) {
+		return configCache.get(`${groupid}_${key}`);
 	} else {
 		const config = await prisma.config.findFirst({
 			where: {
@@ -15,7 +15,7 @@ export async function getConfig(key: string, groupid: number) {
 			},
 		});
 		if (config) {
-			configCahce.set(`${groupid}_${key}`, config.value);
+			configCache.set(`${groupid}_${key}`, config.value);
 			return config.value;
 		} else {
 			return null;
@@ -57,10 +57,10 @@ export async function setConfig(key: string, value: any, groupid: number) {
 			},
 		});
 	}
-	configCahce.set(`${groupid}_${key}`, value);
+	configCache.set(`${groupid}_${key}`, value);
 }
 
 export async function refresh(key: string, groupid: number) {
-	configCahce.delete(`${groupid}_${key}`);
+	configCache.delete(`${groupid}_${key}`);
 }
 

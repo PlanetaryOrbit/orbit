@@ -24,6 +24,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
 		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
 		const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
+		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
+		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
 		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
 
 		if (usingEnvVars) {
@@ -32,6 +34,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				robloxClientSecret: '••••••••',
 				robloxRedirectUri: envRedirectUri,
 				oauthOnlyLogin: envOAuthOnly,
+				redirectWorkspace: envWorkspaceRedirect,
+				redirectWID: envWorkspaceID,
 				usingEnvVars: true
 			});
 		}
@@ -39,7 +43,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
-					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin']
+					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace']
 				}
 			}
 		});
@@ -54,7 +58,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			robloxClientSecret: configMap.robloxClientSecret || '',
 			robloxRedirectUri: configMap.robloxRedirectUri || '',
 			oauthOnlyLogin: configMap.oauthOnlyLogin || false,
-			usingEnvVars: false
+			usingEnvVars: false,
+			redirectWorkspace: configMap.redirectWorkspace || ''
 		});
 		} catch (error) {
 		console.error('Failed to fetch instance config:', error);
@@ -66,6 +71,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envClientId = process.env.ROBLOX_CLIENT_ID;
 		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
 		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
+		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
+		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
 		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
 
 		if (usingEnvVars) {
@@ -75,7 +82,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			});
 		}
 
-		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin } = req.body;
+		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin, redirectWorkspaceID } = req.body;
 
 		try {
 			const updates = [
@@ -84,6 +91,15 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				{ key: 'robloxRedirectUri', value: typeof robloxRedirectUri === 'string' ? robloxRedirectUri.trim() : (robloxRedirectUri || '') },
 				{ key: 'oauthOnlyLogin', value: oauthOnlyLogin || false }
 			];
+
+			if (redirectWorkspaceID) {
+				updates.push(
+					{
+						key: 'redirectWorkspace',
+						value: typeof redirectWorkspaceID === 'string' && redirectWorkspaceID.length > 0 ? redirectWorkspaceID.trim() : ''
+					}
+				)			
+			} 
 
 			await Promise.all(
 				updates.map(({ key, value }) =>
