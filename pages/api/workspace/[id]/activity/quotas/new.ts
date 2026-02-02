@@ -26,7 +26,7 @@ async function handler(
 
 	const { name, type, value, roles, departments, description, sessionType } = req.body;
 	const isCustom = type === "custom";
-	if (!name || !type || (!isCustom && typeof value !== "number") || (!Array.isArray(roles) && !Array.isArray(departments) || (Array.isArray(roles) && Array.isArray(departments) && roles.length === 0 && departments.length === 0)) {
+	if (!name || !type || (!isCustom && typeof value !== "number") || (!Array.isArray(roles) && !Array.isArray(departments) || (Array.isArray(roles) && Array.isArray(departments) && roles.length === 0 && departments.length === 0))) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
