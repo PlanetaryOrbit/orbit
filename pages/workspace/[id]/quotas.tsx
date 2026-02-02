@@ -763,7 +763,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                         </div>
                       </div>
 
-                      <div className="mb-4">
+                      {quota.type !== "custom" && (<div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                             Progress
@@ -785,7 +785,8 @@ const Quotas: pageWithLayout<pageProps> = ({
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                           {quota.percentage.toFixed(0)}% complete
                         </p>
-                      </div>
+                      </div>)}
+                      {quota.type === "custom" && (<div className="text-xs text-zinc-500 italic mt-2">Quota tracked manually.</div>)}
                       <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-600">
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
                           Assigned to:
