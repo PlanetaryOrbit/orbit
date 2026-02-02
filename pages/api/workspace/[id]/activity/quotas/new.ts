@@ -26,7 +26,12 @@ async function handler(
 
 	const { name, type, value, roles, departments, description, sessionType } = req.body;
 	const isCustom = type === "custom";
-	if (!name || !type || (!isCustom && typeof value !== "number") || (!Array.isArray(roles) && !Array.isArray(departments) || (Array.isArray(roles) && Array.isArray(departments) && roles.length === 0 && departments.length === 0))) {
+	const hasRoles = Array.isArray(roles) && roles.length > 0;
+	const hasDepartments = Array.isArray(departments) && departments.length > 0;
+
+
+	const parsedValue = value != undefined ? Number(value): null;
+	if (!name || !type || (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) || (!hasRoles && !hasDepartments)) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
@@ -38,7 +43,7 @@ async function handler(
 			description: description || null,
 		};
 		if (!isCustom) {
-			quotaData.value = parseInt(value);
+			quotaData.value = parsedValue;
 		}
 
 		if (sessionType && !isCustom) {
