@@ -875,9 +875,11 @@ const Quotas: pageWithLayout<pageProps> = ({
                           <h3 className="text-sm font-medium text-zinc-900 dark:text-white">
                             {quota.name}
                           </h3>
+                          {quota.type !== "custom" ? (
+                            
                           <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400">
                             {quota.value} {types[quota.type]} per timeframe
-                          </p>
+                          </p>) : ( <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400 italic">Manually tracked</p>)}
                           {quota.description && (
                             <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 italic">
                               {quota.description}
