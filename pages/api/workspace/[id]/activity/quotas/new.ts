@@ -38,7 +38,7 @@ async function handler(
 			description: description || null,
 		};
 		if (!isCustom) {
-			quota.value = parseInt(value);
+			quotaData.value = parseInt(value);
 		}
 
 		if (sessionType && !isCustom) {
