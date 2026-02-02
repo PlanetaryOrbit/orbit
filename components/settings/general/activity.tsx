@@ -9,15 +9,19 @@ import {
   IconCheck,
   IconChevronDown,
   IconAlertTriangle,
-  IconRefresh,
   IconCalendarTime,
   IconList,
   IconPodium,
+  IconDownload,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import moment from "moment";
-
+import clsx from "clsx";
 import { FC } from "@/types/settingsComponent";
+
+const listboxButtonClass = "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-left text-sm font-medium text-zinc-900 dark:text-white hover:border-[color:rgb(var(--group-theme)/0.4)] focus:outline-none focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.3)]";
+const listboxOptionsClass = "absolute left-0 z-20 mt-2 w-full min-w-[12rem] rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 shadow-lg py-1 overflow-auto max-h-60";
+const listboxOptionClass = (active: boolean) => clsx("flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer text-sm", active ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]" : "text-zinc-700 dark:text-zinc-300");
 
 type props = {
   triggerToast: typeof toast;
@@ -254,444 +258,151 @@ const Activity: FC<props> = (props) => {
   };
 
   return (
-    <div className="relative z-15">
+    <div className="relative z-15 space-y-8">
       {!hasResetActivityOnly && (
         <>
-          <p className="mb-4 z-15 dark:text-zinc-400">
-            Configure activity tracking settings for your workspace
-          </p>
-          <div className="mb-8 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Activity Role
-          </label>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-            Set the minimum rank to be tracked for activity
-          </p>
-          <Listbox
-            value={selectedRole}
-            onChange={(value: number) => updateRole(value)}
-            as="div"
-            className="relative inline-block w-full text-left mb-2"
-          >
-            <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
-              <p className="z-10 my-auto text-lg pl-2 dark:text-white">
-                {(roles.find((r: any) => r.rank === selectedRole) as any)
-                  ?.name || "Select a role"}
-              </p>
-              <IconChevronDown
-                size={18}
-                color="#AAAAAA"
-                className="my-auto ml-auto"
-              />
-            </Listbox.Button>
-            <Listbox.Options className="absolute left-0 z-20 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-              <div className="">
-                {roles
-                  .filter((role: any) => role.rank > 0)
-                  .map((role: any, index) => (
-                    <Listbox.Option
-                      className={({ active }) =>
-                        `${
-                          active
-                            ? "text-white bg-primary"
-                            : "text-zinc-900 dark:text-white"
-                        } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                      }
-                      key={index}
-                      value={role.rank}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <div className="flex items-center">
-                            <span
-                              className={`${
-                                selected ? "font-semibold" : "font-normal"
-                              } ml-2 block truncate text-lg`}
-                            >
-                              {role.name}
-                            </span>
-                          </div>
-
-                          {selected ? (
-                            <span
-                              className={`${
-                                active ? "text-white" : "text-primary"
-                              } absolute inset-y-0 right-0 flex items-center pr-4`}
-                            >
-                              <IconCheck
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  ))}
-              </div>
-            </Listbox.Options>
-          </Listbox>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Idle Time Tracking
-          </label>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-            Track time when users are away from keyboard
-          </p>
-          <Listbox
-            value={idleTimeEnabled}
-            onChange={(value: boolean) => updateIdleTimeEnabled(value)}
-            as="div"
-            className="relative inline-block w-full text-left mb-2"
-          >
-            <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
-              <p className="z-10 my-auto text-lg pl-2 dark:text-white">
-                {idleTimeEnabled ? "Enabled" : "Disabled"}
-              </p>
-              <IconChevronDown
-                size={18}
-                color="#AAAAAA"
-                className="my-auto ml-auto"
-              />
-            </Listbox.Button>
-            <Listbox.Options className="absolute left-0 z-20 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-              <div className="">
-                <Listbox.Option
-                  className={({ active }) =>
-                    `${
-                      active
-                        ? "text-white bg-primary"
-                        : "text-zinc-900 dark:text-white"
-                    } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                  }
-                  value={true}
-                >
-                  {({ selected, active }) => (
-                    <>
-                      <div className="flex items-center">
-                        <span
-                          className={`${
-                            selected ? "font-semibold" : "font-normal"
-                          } ml-2 block truncate text-lg`}
-                        >
-                          Enabled
-                        </span>
-                      </div>
-                      {selected ? (
-                        <span
-                          className={`${
-                            active ? "text-white" : "text-primary"
-                          } absolute inset-y-0 right-0 flex items-center pr-4`}
-                        >
-                          <IconCheck className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </Listbox.Option>
-                <Listbox.Option
-                  className={({ active }) =>
-                    `${
-                      active
-                        ? "text-white bg-primary"
-                        : "text-zinc-900 dark:text-white"
-                    } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                  }
-                  value={false}
-                >
-                  {({ selected, active }) => (
-                    <>
-                      <div className="flex items-center">
-                        <span
-                          className={`${
-                            selected ? "font-semibold" : "font-normal"
-                          } ml-2 block truncate text-lg`}
-                        >
-                          Disabled
-                        </span>
-                      </div>
-                      {selected ? (
-                        <span
-                          className={`${
-                            active ? "text-white" : "text-primary"
-                          } absolute inset-y-0 right-0 flex items-center pr-4`}
-                        >
-                          <IconCheck className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </Listbox.Option>
-              </div>
-            </Listbox.Options>
-          </Listbox>
-        </div>
-
-        <div className="mb-6">
-          <button
-            onClick={downloadLoader}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"
-          >
-            Download loader
-          </button>
-        </div>
-      </div>
-
-      <div className="border-t border-zinc-200 dark:border-zinc-700 my-8"></div>
-      {leaderboardEnabled && (
-        <>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-            Leaderboard
-          </h3>
-          <p className="mb-4 z-15 dark:text-zinc-400">
-            Configure leaderboard display and ranking settings
-          </p>
-          <div className="mb-8 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Leaderboard Rank
-              </label>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-                Set the minimum rank that will appear on the leaderboard
-              </p>
-              <Listbox
-                value={selectedLRole}
-                onChange={(value: number | undefined) => updateLRole(value)}
-                as="div"
-                className="relative inline-block w-full text-left mb-2"
-              >
-                <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
-                  <p className="z-10 my-auto text-lg pl-2 dark:text-white">
-                    {selectedLRole
-                      ? (
-                          roles.find(
-                            (r: any) => r.rank === selectedLRole
-                          ) as any
-                        )?.name || "Guest"
-                      : "All ranks"}
-                  </p>
-                  <IconChevronDown
-                    size={18}
-                    color="#AAAAAA"
-                    className="my-auto ml-auto"
-                  />
-                </Listbox.Button>
-                <Listbox.Options className="absolute left-0 z-30 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-                  <div className="">
-                    <Listbox.Option
-                      className={({ active }) =>
-                        `${
-                          active
-                            ? "text-white bg-primary"
-                            : "text-zinc-900 dark:text-white"
-                        } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                      }
-                      value={undefined}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <div className="flex items-center">
-                            <span
-                              className={`${
-                                selected ? "font-semibold" : "font-normal"
-                              } ml-2 block truncate text-lg`}
-                            >
-                              All ranks
-                            </span>
-                          </div>
-
-                          {selected ? (
-                            <span
-                              className={`${
-                                active ? "text-white" : "text-primary"
-                              } absolute inset-y-0 right-0 flex items-center pr-4`}
-                            >
-                              <IconCheck
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                    {roles
-                      .filter(
-                        (role: any) =>
-                          !selectedRole || role.rank >= selectedRole
-                      )
-                      .map((role: any, index) => (
-                        <Listbox.Option
-                          className={({ active }) =>
-                            `${
-                              active
-                                ? "text-white bg-primary"
-                                : "text-zinc-900 dark:text-white"
-                            } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                          }
-                          key={index}
-                          value={role.rank}
-                        >
-                          {({ selected, active }) => (
-                            <>
-                              <div className="flex items-center">
-                                <span
-                                  className={`${
-                                    selected ? "font-semibold" : "font-normal"
-                                  } ml-2 block truncate text-lg`}
-                                >
-                                  {role.name}
-                                </span>
-                              </div>
-
-                              {selected ? (
-                                <span
-                                  className={`${
-                                    active ? "text-white" : "text-primary"
-                                  } absolute inset-y-0 right-0 flex items-center pr-4`}
-                                >
-                                  <IconCheck
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </Listbox.Option>
-                      ))}
-                  </div>
-                </Listbox.Options>
-              </Listbox>
+          <section className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30 overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-200 dark:border-zinc-700">
+              <IconCalendarTime className="w-5 h-5 text-[color:rgb(var(--group-theme))]" />
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Activity</h3>
             </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Leaderboard Style
-              </label>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-                Choose how the leaderboard is displayed
+            <div className="p-5 space-y-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 -mt-1">
+                Configure activity tracking settings for your workspace
               </p>
-              <Listbox
-                value={leaderboardStyle}
-                onChange={(value: "list" | "podium") =>
-                  updateLeaderboardStyle(value)
-                }
-                as="div"
-                className="relative inline-block w-full text-left mb-2"
-              >
-                <Listbox.Button className="z-10 h-auto w-full flex flex-row rounded-xl py-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 px-2 transition cursor-pointer outline-1 outline-gray-300 outline mb-1 focus-visible:bg-zinc-200">
-                  <p className="z-10 my-auto text-lg pl-2 dark:text-white">
-                    {leaderboardStyle === "list" ? "Stack" : "Podium"}
-                  </p>
-                  <IconChevronDown
-                    size={18}
-                    color="#AAAAAA"
-                    className="my-auto ml-auto"
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Activity Role</label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Set the minimum rank to be tracked for activity</p>
+                <Listbox value={selectedRole} onChange={(value: number) => updateRole(value)} as="div" className="relative">
+                  <Listbox.Button className={listboxButtonClass}>
+                    <span>{(roles.find((r: any) => r.rank === selectedRole) as any)?.name || "Select a role"}</span>
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                  </Listbox.Button>
+                  <Listbox.Options className={listboxOptionsClass}>
+                    {roles.filter((role: any) => role.rank > 0).map((role: any, index) => (
+                      <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
+                        {({ selected }) => (
+                          <>
+                            <span className={selected ? "font-semibold" : ""}>{role.name}</span>
+                            {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Listbox>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Idle Time Tracking</label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Track time when users are away from keyboard</p>
+                <div className="flex items-center gap-3">
+                  <SwitchComponenet
+                    checked={idleTimeEnabled}
+                    onChange={() => updateIdleTimeEnabled(!idleTimeEnabled)}
+                    label=""
                   />
-                </Listbox.Button>
-                <Listbox.Options className="absolute left-0 z-20 mt-2 w-48 origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-                  <div className="">
-                    <Listbox.Option
-                      className={({ active }) =>
-                        `${
-                          active
-                            ? "text-white bg-primary"
-                            : "text-zinc-900 dark:text-white"
-                        } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                      }
-                      value="list"
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <div className="flex items-center">
-                            <IconList
-                              className="h-5 w-5 mr-2"
-                              aria-hidden="true"
-                            />
-                            <div>
-                              <span
-                                className={`${
-                                  selected ? "font-semibold" : "font-normal"
-                                } block truncate text-lg`}
-                              >
-                                Stack
-                              </span>
-                              <span className="block text-xs opacity-75">
-                                Compact vertical list
-                              </span>
-                            </div>
-                          </div>
-                          {selected ? (
-                            <span
-                              className={`${
-                                active ? "text-white" : "text-primary"
-                              } absolute inset-y-0 right-0 flex items-center pr-4`}
-                            >
-                              <IconCheck
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                    <Listbox.Option
-                      className={({ active }) =>
-                        `${
-                          active
-                            ? "text-white bg-primary"
-                            : "text-zinc-900 dark:text-white"
-                        } relative cursor-pointer select-none py-2 pl-3 pr-9`
-                      }
-                      value="podium"
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <div className="flex items-center">
-                            <IconPodium
-                              className="h-5 w-5 mr-2"
-                              aria-hidden="true"
-                            />
-                            <div>
-                              <span
-                                className={`${
-                                  selected ? "font-semibold" : "font-normal"
-                                } block truncate text-lg`}
-                              >
-                                Podium
-                              </span>
-                              <span className="block text-xs opacity-75">
-                                Visual display with medals
-                              </span>
-                            </div>
-                          </div>
-                          {selected ? (
-                            <span
-                              className={`${
-                                active ? "text-white" : "text-primary"
-                              } absolute inset-y-0 right-0 flex items-center pr-4`}
-                            >
-                              <IconCheck
-                                className="h-5 w-5"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  </div>
-                </Listbox.Options>
-              </Listbox>
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{idleTimeEnabled ? "Enabled" : "Disabled"}</span>
+                </div>
+              </div>
+              <div>
+                <button
+                  onClick={downloadLoader}
+                  className={clsx(
+                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                    "bg-[color:rgb(var(--group-theme))] text-white hover:opacity-90"
+                  )}
+                >
+                  <IconDownload className="w-4 h-4" />
+                  Download loader
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </section>
+
+          {leaderboardEnabled && (
+          <section className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/30 overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-200 dark:border-zinc-700">
+              <IconPodium className="w-5 h-5 text-[color:rgb(var(--group-theme))]" />
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Leaderboard</h3>
+            </div>
+            <div className="p-5 space-y-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 -mt-1">
+                Configure leaderboard display and ranking settings
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Leaderboard Rank</label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Set the minimum rank that will appear on the leaderboard</p>
+                <Listbox value={selectedLRole} onChange={(value: number | undefined) => updateLRole(value)} as="div" className="relative">
+                  <Listbox.Button className={listboxButtonClass}>
+                    <span>
+                      {selectedLRole ? (roles.find((r: any) => r.rank === selectedLRole) as any)?.name || "Guest" : "All ranks"}
+                    </span>
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                  </Listbox.Button>
+                  <Listbox.Options className={listboxOptionsClass}>
+                    <Listbox.Option value={undefined} className={({ active }) => listboxOptionClass(active)}>
+                      {({ selected }) => (
+                        <>
+                          <span className={selected ? "font-semibold" : ""}>All ranks</span>
+                          {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                        </>
+                      )}
+                    </Listbox.Option>
+                    {roles.filter((role: any) => !selectedRole || role.rank >= selectedRole).map((role: any, index) => (
+                      <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
+                        {({ selected }) => (
+                          <>
+                            <span className={selected ? "font-semibold" : ""}>{role.name}</span>
+                            {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                          </>
+                        )}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Listbox>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Leaderboard Style</label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">Choose how the leaderboard is displayed</p>
+                <Listbox value={leaderboardStyle} onChange={(value: "list" | "podium") => updateLeaderboardStyle(value)} as="div" className="relative">
+                  <Listbox.Button className={listboxButtonClass}>
+                    <span className="flex items-center gap-2">
+                      {leaderboardStyle === "list" ? <IconList className="w-4 h-4" /> : <IconPodium className="w-4 h-4" />}
+                      {leaderboardStyle === "list" ? "List" : "Podium"}
+                    </span>
+                    <IconChevronDown className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                  </Listbox.Button>
+                  <Listbox.Options className={listboxOptionsClass}>
+                    <Listbox.Option value="list" className={({ active }) => listboxOptionClass(active)}>
+                      {({ selected }) => (
+                        <>
+                          <span className="flex items-center gap-2">
+                            <IconList className="w-4 h-4" />
+                            <span className={selected ? "font-semibold" : ""}>List</span>
+                            <span className="text-zinc-500 dark:text-zinc-400 text-xs">Compact vertical list</span>
+                          </span>
+                          {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                        </>
+                      )}
+                    </Listbox.Option>
+                    <Listbox.Option value="podium" className={({ active }) => listboxOptionClass(active)}>
+                      {({ selected }) => (
+                        <>
+                          <span className="flex items-center gap-2">
+                            <IconPodium className="w-4 h-4" />
+                            <span className={selected ? "font-semibold" : ""}>Podium</span>
+                            <span className="text-zinc-500 dark:text-zinc-400 text-xs">Visual display with medals</span>
+                          </span>
+                          {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                        </>
+                      )}
+                    </Listbox.Option>
+                  </Listbox.Options>
+                </Listbox>
+              </div>
+            </div>
+          </section>
+          )}
         </>
       )}
 

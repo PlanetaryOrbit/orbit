@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import type { NextPage } from "next"
 import { loginState, workspacestate } from "@/state"
 import { themeState } from "@/state/theme"
@@ -42,10 +42,8 @@ import {
   IconBrandGithub,
   IconHistory,
   IconBug,
-  IconDownload,
 } from "@tabler/icons-react"
 import axios from "axios"
-import toast from "react-hot-toast"
 import clsx from "clsx"
 import Parser from "rss-parser"
 import ReactMarkdown from "react-markdown";
@@ -112,6 +110,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelog, setChangelog] = useState<{ title: string, link: string, pubDate: string, content: string }[]>([]);
+  const [changelogLoading, setChangelogLoading] = useState(false);
   const [docsEnabled, setDocsEnabled] = useState(false);
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
@@ -119,7 +118,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
-  const [downloadingData, setDownloadingData] = useState(false);
+  const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter()
 
   useEffect(() => {
@@ -198,36 +197,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   }
 
-  const downloadMyData = async () => {
-    setDownloadingData(true)
-    try {
-      const res = await fetch("/api/user/export", { credentials: "include" })
-      if (!res.ok) throw new Error("Export failed")
-      const blob = await res.blob()
-      const disposition = res.headers.get("Content-Disposition")
-      const match = disposition?.match(/filename="?([^";]+)"?/)
-      const filename = match?.[1] ?? `orbit-data-${new Date().toISOString().slice(0, 10)}.json`
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = filename
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.success("Data downloaded")
-    } catch (err) {
-      toast.error("Failed to download data")
-    } finally {
-      setDownloadingData(false)
-    }
-  }
-
   useEffect(() => {
-    if (showChangelog && changelog.length === 0) {
-      fetch('/api/changelog')
-        .then(res => res.json())
-        .then(items => setChangelog(items));
-    }
-  }, [showChangelog, changelog.length]);
+    if (!showChangelog) return;
+    setChangelogLoading(true);
+    fetch('/api/changelog')
+      .then(res => res.json())
+      .then((data) => {
+        const items = Array.isArray(data) ? data : (data?.items ?? []);
+        setChangelog(Array.isArray(items) ? items : []);
+      })
+      .catch(() => setChangelog([]))
+      .finally(() => setChangelogLoading(false));
+  }, [showChangelog]);
 
   useEffect(() => {
     fetch(`/api/workspace/${workspace.groupId}/settings/general/configuration`)
@@ -304,7 +285,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           )}
         >
           <div className="h-full flex flex-col p-4 overflow-y-auto pb-20 lg:pb-4">
-            <div className="relative">
+            <div className="relative" ref={workspaceListboxWrapperRef}>
               <Listbox
                 value={workspace.groupId}
                 onChange={(id) => {
@@ -357,6 +338,21 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     "absolute top-full left-0 z-50 w-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-600 max-h-60 overflow-y-auto py-1"
                   )}
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      workspaceListboxWrapperRef.current?.querySelector('button')?.click()
+                      router.push('/')
+                    }}
+                    className={clsx(
+                      "w-full flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg text-sm font-medium transition duration-200",
+                      "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                    )}
+                  >
+                    <IconChevronLeft className="w-4 h-4 flex-shrink-0" />
+                    Back to menu
+                  </button>
+                  <div className="my-1 border-t border-zinc-200 dark:border-zinc-600" />
                   {login?.workspaces && login.workspaces.length > 1 ? (
                     login.workspaces
                       .filter(ws => ws.groupId !== workspace.groupId)
@@ -561,23 +557,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </button>
                   )}
                 </Menu.Item>
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={downloadMyData}
-                      disabled={downloadingData}
-                      className={clsx(
-                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg mx-1.5",
-                        "text-zinc-700 dark:text-zinc-200",
-                        active && "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]",
-                        downloadingData && "opacity-60 cursor-not-allowed"
-                      )}
-                    >
-                      <IconDownload className="w-4 h-4 flex-shrink-0" />
-                      {downloadingData ? "Downloading…" : "Download my data"}
-                    </button>
-                  )}
-                </Menu.Item>
                 <div className="my-1 border-t border-zinc-200 dark:border-zinc-600" />
                 <Menu.Item>
                   {({ active }) => (
@@ -704,8 +683,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   </button>
                 </div>
                 <div className="space-y-6 max-h-96 overflow-y-auto">
-                  {changelog.length === 0 && <p className="text-sm text-zinc-500">Loading...</p>}
-                  {changelog.map((entry, idx) => (
+                  {changelogLoading && <p className="text-sm text-zinc-500">Loading...</p>}
+                  {!changelogLoading && changelog.length === 0 && <p className="text-sm text-zinc-500">No entries found.</p>}
+                  {!changelogLoading && changelog.map((entry, idx) => (
                     <div 
                       key={idx}
                       className={clsx(
