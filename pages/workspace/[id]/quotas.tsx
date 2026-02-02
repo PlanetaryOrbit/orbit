@@ -545,7 +545,9 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>("all");
 
-  const form = useForm<Form>();
+  const form = useForm<Form>({
+    shouldUnregister: true,
+  });
   const { register, handleSubmit, watch } = form;
   const watchedType = watch("type");
 
