@@ -25,8 +25,8 @@ async function handler(
 	}
 
 	const { name, type, value, roles, departments, description, sessionType } = req.body;
-
-	if (!name || !type || !value || (!roles && !departments) || (roles && !Array.isArray(roles)) || (departments && !Array.isArray(departments))) {
+	const isCustom = type === "custom";
+	if (!name || !type || (!isCustom && typeof value !== "number") || (!Array.isArray(roles) && !Array.isArray(departments) || (Array.isArray(roles) && Array.isArray(departments) && roles.length === 0 && departments.length === 0)) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
@@ -34,12 +34,14 @@ async function handler(
 		const quotaData: any = {
 			name,
 			type,
-			value: parseInt(value),
 			workspaceGroupId: parseInt(req.query.id as string),
 			description: description || null,
 		};
+		if (!isCustom) {
+			quota.value = parseInt(value);
+		}
 
-		if (sessionType) {
+		if (sessionType && !isCustom) {
 			quotaData.sessionType = sessionType;
 		}
 
