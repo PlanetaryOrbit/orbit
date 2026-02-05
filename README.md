@@ -1,14 +1,17 @@
->[!IMPORTANT]
+[!IMPORTANT]
 >**Work-in-progress** - Planetary is currently in the process of updating this read me and creating our documentation for Orbit. We recommend you host for free with Planetary Cloud, however you can still self-host by following our <a href="https://docs.planetaryapp.us">Documentation</a>. Expect bugs in this beta. We've tried our best to iron out everything we could find in Tovy, but we expect there to be issues. Let us know by creating an issue, or if you're adventurous... patch it yourself and send in a PR.
 
 >[!TIP]
 > The best and easiest way to get started with Orbit is our cloud hosting solution, Planetary Cloud. It's easy, secure, and supafast. See https://planetaryapp.us to get started. The best part? It's **FREE**!
 <div>
-  <div align="left">
-    <img height="40px" src=".github/logo.png"></img>
+  <div align="center">
+    <img height="90px" src=".github/logo.png"></img><br>
+	<img src="https://img.shields.io/github/contributors/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099"></img>
+	<img src="https://img.shields.io/github/license/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099&link=https%3A%2F%2Fwww.gnu.org%2Flicenses%2Fgpl-3.0.en.html"></img>
+	<img src="https://img.shields.io/github/v/tag/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099"></img>
+	<img src="https://img.shields.io/github/forks/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img>
     <h1>Orbit by Team Planetary</h1>
   </div>
-    <img src="https://img.shields.io/badge/version-v2.1.8beta19-purple"></img>
   <ul>
     <li><a href="#about">About</a></li>
     <li><a href="#why-consider">Why consider</a></li>
@@ -35,10 +38,10 @@
           Bulk manage your group members
         </li>
         <li>
-          Track your members' group activity
+          Track your member's group activity
         </li>
         <li>
-          Rank with Orbit Intergrations
+          Rank with Orbit Integrations
         </li>
         <li>
           Warn, promote, demote, and way more to your members
