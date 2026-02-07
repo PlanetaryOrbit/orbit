@@ -393,7 +393,7 @@ model rank {
 model Quota {
   id               String            @id @default(uuid()) @db.Uuid
   type             String
-  value            Int
+  value            Int?
   workspaceGroupId Int
   name             String
   description      String?

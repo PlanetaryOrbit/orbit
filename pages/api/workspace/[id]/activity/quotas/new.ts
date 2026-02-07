@@ -25,8 +25,13 @@ async function handler(
 	}
 
 	const { name, type, value, roles, departments, description, sessionType } = req.body;
+	const isCustom = type === "custom";
+	const hasRoles = Array.isArray(roles) && roles.length > 0;
+	const hasDepartments = Array.isArray(departments) && departments.length > 0;
 
-	if (!name || !type || !value || (!roles && !departments) || (roles && !Array.isArray(roles)) || (departments && !Array.isArray(departments))) {
+
+	const parsedValue = value != undefined ? Number(value): null;
+	if (!name || !type || (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) || (!hasRoles && !hasDepartments)) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
@@ -34,12 +39,14 @@ async function handler(
 		const quotaData: any = {
 			name,
 			type,
-			value: parseInt(value),
 			workspaceGroupId: parseInt(req.query.id as string),
 			description: description || null,
 		};
+		if (!isCustom) {
+			quotaData.value = parsedValue;
+		}
 
-		if (sessionType) {
+		if (sessionType && !isCustom) {
 			quotaData.sessionType = sessionType;
 		}
 
