@@ -142,7 +142,7 @@ end
 
 local function InitiateTovy(Player)
 	rankTable[Player.UserId] = {
-		Rank = Player:GetRankInGroup(Configuration.groupId)
+		Rank = Player:GetRankInGroupAsync(Configuration.groupId)
 	}
 	messageTable[Player.UserId] = 0
 	if isUserTracked(Player) then
