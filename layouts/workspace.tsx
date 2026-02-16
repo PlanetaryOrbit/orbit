@@ -15,6 +15,7 @@ import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
 import { useEffect, useState } from "react";
 import { IconChevronLeft, IconChevronRight, IconMenu2 } from "@tabler/icons-react";
 import clsx from 'clsx';
+import { HelpProvider, HelpFloatingButton } from "@/components/HelpFloatingButton";
 
 
 const workspace: LayoutProps = ({ children }) => {
@@ -140,22 +141,25 @@ const workspace: LayoutProps = ({ children }) => {
 				/>
 			</Transition>
 
-			<div className="flex h-screen">
-				<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-				
-				<main
-		  			className={clsx(
-		    		"flex-1 transition-all duration-300 overflow-y-auto",
-		    		!isMobile && (isCollapsed ? "ml-16" : "ml-60")
-		  			)}>
-		  			<div className="relative z-10">
-		    		{children}
-		  			</div>
-		  			{router.query.id && (
-		  				<WorkspaceBirthdayPrompt workspaceId={router.query.id as string} />
-		  			)}
-				</main>
-			</div>
+			<HelpProvider>
+				<div className="flex h-screen">
+					<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+					<main
+						className={clsx(
+							"flex-1 transition-all duration-300 overflow-y-auto",
+							!isMobile && (isCollapsed ? "ml-16" : "ml-60")
+						)}>
+						<div className="relative z-10">
+							{children}
+						</div>
+						{router.query.id && (
+							<WorkspaceBirthdayPrompt workspaceId={router.query.id as string} />
+						)}
+					</main>
+				</div>
+				<HelpFloatingButton />
+			</HelpProvider>
 		</div>
 	);
 };
