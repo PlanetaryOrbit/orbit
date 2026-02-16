@@ -351,7 +351,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </>
                   )}
                 </Menu.Button>
-                <Menu.Items className="absolute bottom-full left-0 mb-2 py-2 rounded-2xl z-50 min-w-[11rem] w-full max-w-[14rem] bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg shadow-zinc-200/50 dark:shadow-zinc-950/50 border border-zinc-200/50 dark:border-zinc-800/80 overflow-visible">
+                <Menu.Items className="absolute bottom-full left-0 mb-2 py-2 rounded-2xl z-50 min-w-[11rem] w-full max-w-[14rem] bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg shadow-zinc-200/50 dark:shadow-zinc-950/50 border border-zinc-200/50 dark:border-zinc-800/80 overflow-hidden">
                   <Menu.Item>
                     {({ active }) => (
                       <button

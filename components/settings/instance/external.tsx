@@ -216,7 +216,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
       </p>
 
       <div className="flex justify-end pt-4 border-t border-zinc-200 dark:border-zinc-700">
-        <Button onClick={handleSave} disabled={isSaving || isLoading}>
+        <Button onClick={handleSave} disabled={isSaving || isLoading} workspace>
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
       </div>
