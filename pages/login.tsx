@@ -20,6 +20,19 @@ type SignupForm = {
   verifypassword: string;
 };
 
+const AVATAR_BG_COLORS = [
+  "#fce7f3", "#fbcfe8", "#f9a8d4", "#f472b6", "#ec4899",
+  "#e0e7ff", "#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1",
+  "#d1fae5", "#a7f3d0", "#6ee7b7", "#34d399", "#10b981",
+  "#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4",
+  "#fef3c7", "#fde68a", "#fcd34d", "#fbbf24", "#f59e0b",
+];
+function getAvatarBgColor(displayName: string): string {
+  let n = 0;
+  for (let i = 0; i < displayName.length; i++) n = (n * 31 + displayName.charCodeAt(i)) >>> 0;
+  return AVATAR_BG_COLORS[n % AVATAR_BG_COLORS.length];
+}
+
 const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
   const { isAvailable: isOAuth, oauthOnly } = OAuthAvailable();
@@ -41,7 +54,9 @@ const Login: NextPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [signupStep, setSignupStep] = useState<0 | 1 | 2>(0);
+  const [signupStep, setSignupStep] = useState<0 | 1 | 2 | 3>(0);
+  const [signupThumbnail, setSignupThumbnail] = useState("");
+  const [signupDisplayName, setSignupDisplayName] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationError, setVerificationError] = useState<string | null>(
     null
@@ -60,6 +75,8 @@ const Login: NextPage = () => {
     signupMethods.reset();
     setVerificationError(null);
     setSignupStep(0);
+    setSignupThumbnail("");
+    setSignupDisplayName("");
     setLoading(false);
     setUsernameCheckLoading(false);
     setUsernameAvailable(null);
@@ -113,6 +130,16 @@ const Login: NextPage = () => {
     usernameCheckTimeout.current = setTimeout(() => {
       checkUsernameAvailability(username);
     }, 800);
+  };
+
+  const signupUsernameReg = regSignup("username", { required: "This field is required" });
+  const signupUsernameProps = {
+    ...signupUsernameReg,
+    onChange: (e: Parameters<typeof signupUsernameReg.onChange>[0]) => {
+      const result = signupUsernameReg.onChange(e);
+      onUsernameChange((e.target as HTMLInputElement).value);
+      return result;
+    },
   };
 
   const onSubmitLogin: SubmitHandler<LoginForm> = async (data) => {
@@ -184,7 +211,7 @@ const Login: NextPage = () => {
     try {
       const { data } = await axios.post("/api/auth/signup/start", { username });
       setVerificationCode(data.code);
-      setSignupStep(2);
+      setSignupStep(3);
     } catch (e: any) {
       setErrSignup("username", {
         type: "custom",
@@ -437,9 +464,24 @@ const Login: NextPage = () => {
                   {!oauthOnly && (
                     <FormProvider {...signupMethods}>
                       <form
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                           e.preventDefault();
-                          setSignupStep(1);
+                          const username = getSignupValues("username");
+                          if (!username) return;
+                          setLoading(true);
+                          try {
+                            const { data } = await axios.post("/api/auth/signup/preview", { username });
+                            setSignupThumbnail(data.thumbnail || "");
+                            setSignupDisplayName(data.displayName || username);
+                            setSignupStep(1);
+                          } catch (err: any) {
+                            setErrSignup("username", {
+                              type: "custom",
+                              message: err?.response?.data?.error || "Something went wrong",
+                            });
+                          } finally {
+                            setLoading(false);
+                          }
                         }}
                         className="space-y-4 mb-6"
                         noValidate
@@ -448,13 +490,7 @@ const Login: NextPage = () => {
                           label="Username"
                           placeholder="Username"
                           id="signup-username"
-                          {...regSignup("username", {
-                            required: "This field is required",
-                            onChange: (e) => {
-                              regSignup("username").onChange(e);
-                              onUsernameChange(e.target.value);
-                            },
-                          })}
+                          {...signupUsernameProps}
                         />
                         {usernameCheckLoading && (
                           <p className="text-sm text-orbit mt-1">
@@ -522,6 +558,57 @@ const Login: NextPage = () => {
 
               {signupStep === 1 && (
                 <>
+                  <div className="flex items-start gap-5 mb-6">
+                    <div
+                      className="flex shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-600/60 w-[5.5rem] h-[5.5rem]"
+                      style={{ backgroundColor: getAvatarBgColor(signupDisplayName || "") }}
+                    >
+                      {signupThumbnail ? (
+                        <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center bg-transparent shrink-0">
+                          <img
+                            src={signupThumbnail}
+                            alt=""
+                            className="max-w-full max-h-full w-full h-full rounded-xl object-contain object-bottom block"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 rounded-xl bg-zinc-200/80 dark:bg-zinc-600/80 flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-2xl font-medium shrink-0">
+                          ?
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+                        Is <span className="text-orbit">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
+                      </h2>
+                      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                        Confirm this is your Roblox account, then choose a password.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                      onPress={() => setSignupStep(0)}
+                      disabled={loading}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+                      onPress={() => setSignupStep(2)}
+                      disabled={loading}
+                    >
+                      Yes, continue
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {signupStep === 2 && (
+                <>
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
                     Set a password
                   </h2>
@@ -569,7 +656,7 @@ const Login: NextPage = () => {
                         <Button
                           type="button"
                           classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                          onPress={() => setSignupStep(0)}
+                          onPress={() => setSignupStep(1)}
                           disabled={loading}
                         >
                           Back
@@ -623,7 +710,7 @@ const Login: NextPage = () => {
                 </>
               )}
 
-              {signupStep === 2 && (
+              {signupStep === 3 && (
                 <>
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
                     Verify your account
@@ -649,7 +736,7 @@ const Login: NextPage = () => {
                     <Button
                       type="button"
 classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                    onPress={() => setSignupStep(1)}
+                    onPress={() => setSignupStep(2)}
                       disabled={loading}
                     >
                       Back

@@ -394,8 +394,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     className={clsx(
                       "w-full gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative",
                       router.asPath === page.href.replace("[id]", workspace.groupId.toString())
-                        ? "bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] font-semibold shadow-sm border-l-[3px] border-[color:rgb(var(--group-theme))]"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white border-l-[3px] border-transparent",
+                        ? "bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] font-semibold shadow-sm"
+                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white",
                       isCollapsed ? "grid place-content-center" : "flex gap-3 items-center",
                     )}
                   >
