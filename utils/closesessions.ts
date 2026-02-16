@@ -1,11 +1,5 @@
 import prisma from "@/utils/database";
 
-/**
- * Temp fix for issue with active play sessions not closing when Orbit restarts
- * This previously caused someone to be active for 6000+ minutes...
- * #BlameOldCode
-**/
-
 export async function closeActiveSessions() {
   try {
     console.log("[STARTUP] Checking for active sessions to close...");

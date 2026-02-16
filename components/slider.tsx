@@ -1,36 +1,45 @@
-import React, { FC, Children, ReactNode, useState, useRef, useEffect } from "react";
+import React, { FC, Children, ReactNode, useRef } from "react";
+import { motion } from "framer-motion";
 
 type Props = {
 	children: ReactNode;
 	activeSlide: number;
 };
 
-
 const Slider: FC<Props> = ({ children, activeSlide }: Props) => {
-	const elementsRef = useRef(new Array(Children.count(children)))
-	const [sliderHeight, setSliderHeight] = useState('');
-
-	useEffect(() => {
-		const nextHeights = `height-[${elementsRef.current[activeSlide].clientHeight}px]`;
-		setSliderHeight(nextHeights);
-	  }, [elementsRef.current, activeSlide]);	
+	const elementsRef = useRef<(HTMLDivElement | null)[]>([]);
+	const count = Children.count(children);
 
 	return (
-		<div
-			className={`flex items-start overflow-clip w-11/12 sm:w-4/6 md:3/6 xl:w-5/12 mx-auto my-auto`}
-		>
-			<div
-				className={`flex items-start transition w-full h-auto translate-x-[calc(var(--active)*-100%)] duration-700`}
-				style={{ "--active": activeSlide } as React.CSSProperties}
+		<div className="relative w-full overflow-hidden">
+			<motion.div
+				className="flex items-stretch shrink-0"
+				style={{
+					width: `${count * 100}%`,
+					minWidth: `${count * 100}%`,
+				}}
+				animate={{ x: `${(-activeSlide * 100) / count}%` }}
+				transition={{
+					type: "spring",
+					stiffness: 400,
+					damping: 35,
+					mass: 0.8,
+				}}
 			>
 				{Children.map(children, (child, index) => {
 					return (
-						<div key={index} className="w-full my-auto bg-white dark:bg-zinc-800 dark:bg-opacity-50 dark:backdrop-blur-lg shrink-0 p-6 rounded-3xl " id={index.toString()} ref={el => { elementsRef.current[index] = el; }}						>
+						<div
+							key={index}
+							className="shrink-0 p-8 rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 box-border"
+							id={index.toString()}
+							ref={el => { elementsRef.current[index] = el; }}
+							style={{ width: `${100 / count}%`, minWidth: `${100 / count}%` }}
+						>
 							{child}
 						</div>
 					);
 				})}
-			</div>
+			</motion.div>
 		</div>
 	);
 };
