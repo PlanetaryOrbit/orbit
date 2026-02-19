@@ -1,13 +1,13 @@
 import Parser from "rss-parser";
 
-const FEED_URL = "https://feedack.planetaryapp.us/api/changelog/rss";
+const FEED_URL = "https://feedback.planetaryapp.us/api/changelog/rss";
 
 function normalizeItem(item) {
 	return {
 		title: item.title || "",
 		link: item.link || item.url || item.guid || "",
 		pubDate: item.pubDate || item.isoDate || item.pubdate || item.date_published || "",
-		content: item["content:encoded"] || item.content || item.content_html || item.contentSnippet || item.summary || item.description || item.content_text || "",
+		content: item.contentEncoded || item["content:encoded"] || item.content || item.content_html || item.contentSnippet || item.summary || item.description || item.content_text || "",
 	};
 }
 
@@ -38,7 +38,9 @@ export default async function handler(req, res) {
 		}
 
 		const xml = await fetchRes.text();
-		const parser = new Parser();
+		const parser = new Parser({
+			customFields: { item: [["content:encoded", "contentEncoded"]] },
+		});
 		const feed = await parser.parseString(xml);
 		const rawItems = feed.items || feed.entries || [];
 		let items = rawItems.map(normalizeItem);

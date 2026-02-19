@@ -11,11 +11,17 @@ import {
   IconCopyright,
   IconX,
 } from "@tabler/icons-react";
-import ReactMarkdown from "react-markdown";
+import sanitizeHtml from "sanitize-html";
 import clsx from "clsx";
 import packageJson from "../package.json";
 
 type ChangelogEntry = { title: string; link: string; pubDate: string; content: string };
+
+const CHANGELOG_HTML_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: ["p", "br", "img", "a", "strong", "em", "b", "i", "ul", "ol", "li", "h1", "h2", "h3", "h4", "blockquote", "span", "div"],
+  allowedAttributes: { img: ["src", "alt", "width", "height"], a: ["href", "target", "rel"] },
+  allowedSchemes: ["https", "http"],
+};
 
 const HelpContext = createContext<{
   openChangelog: () => void;
@@ -114,9 +120,12 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                       {entry.title}
                     </a>
                     <div className="text-xs text-zinc-400 mt-1 mb-3">{entry.pubDate}</div>
-                    <div className="text-sm text-zinc-700 dark:text-zinc-300 prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:my-2">
-                      <ReactMarkdown>{entry.content}</ReactMarkdown>
-                    </div>
+                    <div
+                      className="text-sm text-zinc-700 dark:text-zinc-300 prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-headings:my-2 prose-img:rounded-lg prose-img:max-w-full"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(entry.content || "", CHANGELOG_HTML_OPTIONS),
+                      }}
+                    />
                   </div>
                 ))}
             </div>
