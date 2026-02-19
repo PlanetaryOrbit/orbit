@@ -2,7 +2,8 @@ import axios from 'axios';
 import React, { useEffect, useState, Fragment } from 'react';
 import { workspacestate } from '@/state';
 import { useRecoilState } from 'recoil';
-import { IconSearch, IconRefresh, IconFilter } from '@tabler/icons-react';
+import { IconSearch, IconRefresh, IconFilter, IconHistory } from '@tabler/icons-react';
+import clsx from 'clsx';
 import { Popover, Transition } from '@headlessui/react';
 import { FC } from '@/types/settingsComponent';
 
@@ -302,19 +303,15 @@ const renderDetails = (details: any, action?: string) => {
                 </div>
                 <div className="space-y-2">
                   {change.removed && change.removed.length > 0 && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1.5">
-                      <div className="text-[10px] text-red-700 dark:text-red-400 mb-1">Removed</div>
-                      <div className="text-xs text-red-900 dark:text-red-200">
-                        {change.removed.join(', ')}
-                      </div>
+                    <div className="bg-red-50/80 dark:bg-red-950/30 border border-red-200/80 dark:border-red-800/60 rounded-lg px-2.5 py-1.5">
+                      <div className="text-[10px] font-medium text-red-600 dark:text-red-400 mb-1 uppercase tracking-wide">Removed</div>
+                      <div className="text-xs text-red-900 dark:text-red-200">{change.removed.join(', ')}</div>
                     </div>
                   )}
                   {change.added && change.added.length > 0 && (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1.5">
-                      <div className="text-[10px] text-green-700 dark:text-green-400 mb-1">Added</div>
-                      <div className="text-xs text-green-900 dark:text-green-200">
-                        {change.added.join(', ')}
-                      </div>
+                    <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-lg px-2.5 py-1.5">
+                      <div className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 mb-1 uppercase tracking-wide">Added</div>
+                      <div className="text-xs text-emerald-900 dark:text-emerald-200">{change.added.join(', ')}</div>
                     </div>
                   )}
                 </div>
@@ -335,14 +332,14 @@ const renderDetails = (details: any, action?: string) => {
                         {colorChange.label}:
                       </span>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1">
-                          <div className={`w-4 h-4 rounded ${colorChange.before}`}></div>
+                        <div className="flex items-center gap-1.5 bg-red-50/80 dark:bg-red-950/30 border border-red-200/80 dark:border-red-800/60 rounded-lg px-2 py-1">
+                          <div className={`w-3.5 h-3.5 rounded ${colorChange.before}`} />
                           <span className="text-[10px] text-red-700 dark:text-red-300">{colorChange.before}</span>
                         </div>
                         <span className="text-zinc-400 dark:text-zinc-500">→</span>
-                        <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1">
-                          <div className={`w-4 h-4 rounded ${colorChange.after}`}></div>
-                          <span className="text-[10px] text-green-700 dark:text-green-300">{colorChange.after}</span>
+                        <div className="flex items-center gap-1.5 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-lg px-2 py-1">
+                          <div className={`w-3.5 h-3.5 rounded ${colorChange.after}`} />
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-300">{colorChange.after}</span>
                         </div>
                       </div>
                     </div>
@@ -357,15 +354,15 @@ const renderDetails = (details: any, action?: string) => {
               <div className="font-medium text-zinc-700 dark:text-zinc-300 mb-1 capitalize">
                 {change.key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}
               </div>
-              <div className="flex items-start gap-2">
-                <div className="flex-1 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded px-2 py-1">
-                  <div className="text-[10px] text-red-700 dark:text-red-400 mb-0.5">Before</div>
-                  <div className="text-xs text-red-900 dark:text-red-200">{formatValue(change.before, 150)}</div>
+                <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0 bg-red-50/80 dark:bg-red-950/30 border border-red-200/80 dark:border-red-800/60 rounded-lg px-2.5 py-1.5">
+                  <div className="text-[10px] font-medium text-red-600 dark:text-red-400 mb-0.5 uppercase tracking-wide">Before</div>
+                  <div className="text-xs text-red-900 dark:text-red-200 break-words">{formatValue(change.before, 150)}</div>
                 </div>
-                <div className="text-zinc-400 dark:text-zinc-500 self-center">→</div>
-                <div className="flex-1 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-2 py-1">
-                  <div className="text-[10px] text-green-700 dark:text-green-400 mb-0.5">After</div>
-                  <div className="text-xs text-green-900 dark:text-green-200">{formatValue(change.after, 150)}</div>
+                <div className="text-zinc-400 dark:text-zinc-500 self-center shrink-0">→</div>
+                <div className="flex-1 min-w-0 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-lg px-2.5 py-1.5">
+                  <div className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 mb-0.5 uppercase tracking-wide">After</div>
+                  <div className="text-xs text-emerald-900 dark:text-emerald-200 break-words">{formatValue(change.after, 150)}</div>
                 </div>
               </div>
             </div>
@@ -433,45 +430,83 @@ const AuditLogs: FC<{ triggerToast?: any }> = () => {
 
   useEffect(() => {
     fetch();
-    // finish later
   }, []);
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 flex items-center gap-2">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <IconSearch className="w-4 h-4 text-zinc-400 dark:text-white" />
-            </div>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search details"
-              className="flex-1 md:w-50 p-2 pl-10 border rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={fetch} title="Refresh" className="p-2 rounded-md bg-zinc-50 dark:bg-zinc-700 text-zinc-700 dark:text-white">
-              <IconRefresh />
-            </button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] shrink-0">
+          <IconHistory className="w-5 h-5" stroke={1.5} />
         </div>
-        <div className="flex items-center">
+        <div>
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Activity log</h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Search and filter workspace audit events</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative flex-1 min-w-0">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
+            <IconSearch className="w-4 h-4" stroke={1.5} />
+          </div>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetch()}
+            placeholder="Search details…"
+            className={clsx(
+              "w-full py-2.5 pl-10 pr-3 text-sm rounded-xl border transition-colors",
+              "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600",
+              "text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500",
+              "focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] focus:border-[color:rgb(var(--group-theme))]"
+            )}
+          />
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={fetch}
+            title="Refresh"
+            disabled={loading}
+            className={clsx(
+              "p-2.5 rounded-xl border transition-colors",
+              "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600",
+              "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+          >
+            <IconRefresh className="w-4 h-4" stroke={1.5} />
+          </button>
           <Popover className="relative">
             {({ open, close }) => (
               <>
-                <Popover.Button className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${open ? 'bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50' : 'bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white'}`}>
-                  <IconFilter className="w-4 h-4" />
-                  <span className="text-sm">{actionFilter ? (ACTION_LABELS[actionFilter] || getActionLabel(actionFilter)) : 'Filters'}</span>
+                <Popover.Button
+                  className={clsx(
+                    "inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-xl border transition-all",
+                    open
+                      ? "bg-[color:rgb(var(--group-theme)/0.1)] border-[color:rgb(var(--group-theme)/0.3)] text-[color:rgb(var(--group-theme))] ring-2 ring-[color:rgb(var(--group-theme)/0.25)]"
+                      : "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+                  )}
+                >
+                  <IconFilter className="w-4 h-4" stroke={1.5} />
+                  <span>{actionFilter ? (ACTION_LABELS[actionFilter] || getActionLabel(actionFilter)) : 'Filters'}</span>
                 </Popover.Button>
-
                 <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
-                  <Popover.Panel className="absolute z-50 mt-2 w-42 max-w-[90vw] origin-top-right right-0 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xl p-2 top-full max-h-[60vh] overflow-auto">
-                    <div className="space-y-1">
-                      <button onClick={() => { setActionFilter(''); setSearch(''); fetch(); close(); }} className="w-full text-left px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700">All actions</button>
+                  <Popover.Panel className="absolute z-50 mt-2 w-48 max-w-[90vw] origin-top-right right-0 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-lg shadow-zinc-200/50 dark:shadow-none overflow-hidden top-full max-h-[60vh] overflow-y-auto">
+                    <div className="p-1.5 space-y-0.5">
+                      <button
+                        onClick={() => { setActionFilter(''); setSearch(''); fetch(); close(); }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-colors"
+                      >
+                        All actions
+                      </button>
                       {Object.keys(ACTION_LABELS).map((k) => (
-                        <button key={k} onClick={() => { setActionFilter(k); fetch(); close(); }} className="w-full text-left px-3 py-2 rounded-md text-sm text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700">{ACTION_LABELS[k]}</button>
+                        <button
+                          key={k}
+                          onClick={() => { setActionFilter(k); fetch(); close(); }}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-colors"
+                        >
+                          {ACTION_LABELS[k]}
+                        </button>
                       ))}
                     </div>
                   </Popover.Panel>
@@ -482,38 +517,59 @@ const AuditLogs: FC<{ triggerToast?: any }> = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto bg-white dark:bg-zinc-800 rounded-lg p-2">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-zinc-500 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700">
-              <th className="p-2">Time</th>
-              <th className="p-2">User</th>
-              <th className="p-2">Action</th>
-              <th className="p-2">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr><td colSpan={4} className="p-2 dark:text-white">Loading…</td></tr>
-            )}
-            {!loading && rows.length === 0 && (
-              <tr><td colSpan={4} className="p-2 dark:text-white">No audit entries</td></tr>
-            )}
-            {rows.map((r) => {
-              const details = r.details || {};
-              return (
-                <tr key={r.id} className="border-t bg-white dark:bg-zinc-800 dark:text-white">
-                  <td className="p-2 text-xs" title={new Date(r.createdAt).toUTCString()}>{new Date(r.createdAt).toLocaleString()}</td>
-                  <td className="p-2">{r.userName || r.userId || 'System'}</td>
-                  <td className="p-2">{getActionLabel(r.action)}</td>
-                  <td className="p-2">
-                    {renderDetails(details, r.action)}
+      <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-900/30">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-zinc-100/80 dark:bg-zinc-800/80">
+                <th className="py-3 px-4">Time</th>
+                <th className="py-3 px-4">User</th>
+                <th className="py-3 px-4">Action</th>
+                <th className="py-3 px-4">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={4} className="py-8 px-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                    Loading…
                   </td>
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
+              )}
+              {!loading && rows.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-8 px-4 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                    No audit entries
+                  </td>
+                </tr>
+              )}
+              {rows.map((r) => {
+                const details = r.details || {};
+                return (
+                  <tr
+                    key={r.id}
+                    className="border-t border-zinc-200/80 dark:border-zinc-700/50 bg-white dark:bg-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/80 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap" title={new Date(r.createdAt).toUTCString()}>
+                      {new Date(r.createdAt).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 font-medium text-zinc-900 dark:text-white">
+                      {r.userName || r.userId || 'System'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))]">
+                        {getActionLabel(r.action)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 max-w-md">
+                      {renderDetails(details, r.action)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

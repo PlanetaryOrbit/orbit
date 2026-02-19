@@ -241,7 +241,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
 
     if (activeSection === "audit") {
       return (
-        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6">
+        <div className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm shadow-zinc-200/50 dark:shadow-none p-6 sm:p-8">
           <All.AuditLogs />
         </div>
       )
@@ -263,31 +263,52 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
 	  ))
 	}
 
-    return SECTIONS[activeSection as keyof typeof SECTIONS].components.map(({ component: Component, title, key }, index) => {
+    const section = SECTIONS[activeSection as keyof typeof SECTIONS];
+    const isServices = activeSection === "instance";
+
+    return section.components.map(({ component: Component, title, key }, index) => {
       const componentProps: any = { triggerToast: toast };
-      
-      if (key === 'Admin') {
+
+      if (key === "Admin") {
         componentProps.isAdmin = isAdmin;
       } else {
         componentProps.isSidebarExpanded = isSidebarExpanded;
-        componentProps.hasResetActivityOnly = activeSection === 'activity' && !isAdmin && !userPermissions.includes('workspace_customisation');
+        componentProps.hasResetActivityOnly =
+          activeSection === "activity" &&
+          !isAdmin &&
+          !userPermissions.includes("workspace_customisation");
       }
-      
+
+      if (isServices) {
+        return (
+          <div
+            key={index}
+            className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm shadow-zinc-200/50 dark:shadow-none p-6 sm:p-8 mb-6 last:mb-0"
+          >
+            <Component {...componentProps} title={title} />
+          </div>
+        );
+      }
+
       return (
-        <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
+        <div
+          key={index}
+          className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0"
+        >
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">{title}</h3>
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">
+              {title}
+            </h3>
             <Component {...componentProps} />
           </div>
         </div>
       );
-    })
+    });
   }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">Settings</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
@@ -296,7 +317,6 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Navigation Sidebar */}
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-3">
               <nav className="space-y-1">
@@ -329,7 +349,6 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1">
             <div className="mb-4">
               <h2 className="text-lg font-medium text-zinc-900 dark:text-white">

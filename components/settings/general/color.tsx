@@ -8,6 +8,7 @@ import type { FC } from "@/types/settingsComponent";
 import { IconCheck, IconPalette } from "@tabler/icons-react";
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getRGBFromTailwindColor, getHexFromTheme } from "@/utils/themeColor";
 
 type SessionColors = {
   recurring: string;
@@ -36,16 +37,14 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   });
   const [isLoadingSessionColors, setIsLoadingSessionColors] = useState(false);
   const [customHex, setCustomHex] = useState<string>(
-    workspace?.groupTheme?.startsWith("#") ? workspace.groupTheme : "#ec4899"
+    workspace?.groupTheme ? getHexFromTheme(workspace.groupTheme) : "#ec4899"
   );
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (workspace?.groupTheme) {
       setSelectedColor(workspace.groupTheme);
-      if (workspace.groupTheme.startsWith("#")) {
-        setCustomHex(workspace.groupTheme);
-      }
+      setCustomHex(getHexFromTheme(workspace.groupTheme));
     }
   }, [workspace?.groupTheme]);
 
@@ -419,48 +418,6 @@ function getColorDisplayName(color: string): string {
   };
 
   return colorDisplayMap[color] || color.replace("bg-", "").replace("-", " ");
-}
-
-function hexToRgb(hex: string): string | null {
-  const shorthand = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthand, (_, r, g, b) => r + r + g + g + b + b);
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return null;
-  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
-}
-
-function getRGBFromTailwindColor(tw: any): string {
-  const fallback = "236, 72, 153";
-  if (!tw || typeof tw !== "string") {
-    if (tw !== null && tw !== undefined) {
-      console.warn("Invalid color value:", tw);
-    }
-    return fallback;
-  }
-  if (tw.startsWith("#")) {
-    const rgb = hexToRgb(tw);
-    return rgb !== null ? rgb : fallback;
-  }
-  const colorName = tw.replace("bg-", "");
-
-  if (colorName === "orbit") {
-    return "0, 112, 240";
-  }
-
-  const colorMap: Record<string, string> = {
-    "blue-500": "59, 130, 246",
-    "red-500": "239, 68, 68",
-    "red-700": "185, 28, 28",
-    "green-500": "34, 197, 94",
-    "green-600": "22, 163, 74",
-    "yellow-500": "234, 179, 8",
-    "orange-500": "249, 115, 22",
-    "purple-500": "168, 85, 247",
-    "pink-500": "236, 72, 153",
-    "gray-500": "107, 114, 128",
-  };
-
-  return colorMap[colorName] || fallback;
 }
 
 Color.title = "Customize";

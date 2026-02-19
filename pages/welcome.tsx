@@ -21,7 +21,7 @@ const Login: NextPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const methods = useForm<{groupid: string}>();
 	const signupform = useForm<FormData>();
-	const { register, handleSubmit, watch, formState: { errors } } = methods;
+	const { register, handleSubmit, formState: { errors } } = methods;
 	const [selectedSlide, setSelectedSlide] = useState(0);
 
 	async function createAccount() {
