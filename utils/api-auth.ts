@@ -1,5 +1,6 @@
 import prisma from "@/utils/database"
 
+// Validate API key for a given workspace
 export async function validateApiKey(apiKey: string, workspaceId: string | number) {
   if (!apiKey || !apiKey.startsWith("orbit_")) return null
 

@@ -23,37 +23,29 @@ export default function AuthProvider({
 	const posthogRef = useRef<any>(null);
 
 	useEffect(() => {
-		const path = Router.pathname;
-		const publicPath = path === '/login' || path === '/welcome' || path === '/forgot-password';
-		if (publicPath) {
-			setLoading(false);
-			return;
-		}
-
 		const checkLogin = async () => {
 			try {
 				const req = await axios.get('/api/@me');
 				setLogin({ ...req.data.user, workspaces: req.data.workspaces || [] });
 				setLoading(false);
 			} catch (err: any) {
-				const error = err.response?.data?.error;
-				if (error === 'Workspace not setup') {
+				console.error('Login check error:', err.response?.data);
+				if (err.response?.data.error === 'Workspace not setup') {
 					Router.push('/welcome');
 					setLoading(false);
 					return;
 				}
-				if (error === 'Not logged in') {
+				if (err.response?.data.error === 'Not logged in') {
 					Router.push('/login');
 					setLoading(false);
 					return;
 				}
-				console.error('Login check error:', err.response?.data ?? err);
 				setLoading(false);
 			}
 		};
 
 		checkLogin();
-	}, [Router.pathname, setLoading, setLogin]);
+	}, [setLoading, setLogin]);
 
 	useEffect(() => {
 		if (!POSTHOG_KEY) return;
@@ -94,7 +86,9 @@ export default function AuthProvider({
 						const bootGuest = () => {
 							try {
 								(window as any).Intercom('boot', { app_id: INTERCOM_APP_ID });
-							} catch (e) {}
+							} catch (e) {
+								// ignore
+							}
 						};
 
 						injectIntercom();

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withSessionRoute } from "@/lib/withSession";
 import prisma from "@/utils/database";
+import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
-import { getRobloxThumbnail, getRobloxDisplayName } from "@/utils/roblox";
 
 export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
@@ -25,16 +25,5 @@ export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse
 		isReset: true as boolean,
 	};
 	await req.session.save();
-
-	const [thumbnail, displayName] = await Promise.all([
-		getRobloxThumbnail(authid).catch(() => ""),
-		getRobloxDisplayName(authid).catch(() => username),
-	]);
-
-	res.status(200).json({
-		success: true,
-		code: verificationCode,
-		thumbnail: thumbnail || undefined,
-		displayName: displayName || username,
-	});
+	res.status(200).json({ success: true, code: verificationCode });
 });

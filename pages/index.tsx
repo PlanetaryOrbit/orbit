@@ -78,6 +78,7 @@ const Home: NextPage = () => {
 			} catch (err: any) {
 				if (err.response?.data.error === "Workspace not setup") {
 					const currentPath = router.pathname
+					// Only redirect if we are not already on the /welcome page
 					if (currentPath !== "/welcome") {
 						router.push("/welcome")
 					}
@@ -134,8 +135,7 @@ const Home: NextPage = () => {
 	}
 
 	useEffect(() => {
-		if (!isOwner) return
-		if (showInstanceSettings) {
+		if (showInstanceSettings && isOwner) {
 			loadRobloxConfig()
 		}
 	}, [showInstanceSettings, isOwner])
@@ -169,6 +169,9 @@ const Home: NextPage = () => {
 		}
 	}
 
+	useEffect(() => {
+		loadRobloxConfig()
+	}, [])
 
 	const saveRobloxConfig = async () => {
 		setConfigLoading(true)

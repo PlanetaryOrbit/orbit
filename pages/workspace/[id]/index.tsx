@@ -120,7 +120,9 @@ const Home: pageWithLayout = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: detectedTimezone }),
-      }).catch(() => {});
+      }).catch(() => {
+		// no errors its gonan work amazing trust - famous last words
+      });
     }
   }, [workspace?.groupId, login?.userId])
 

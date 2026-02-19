@@ -20,9 +20,7 @@ import {
   IconX,
   IconTrash,
   IconInbox,
-  IconMessageCircle,
 } from "@tabler/icons-react";
-import clsx from "clsx";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
 import ReactMarkdown from "react-markdown";
@@ -100,6 +98,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
 
+  // Sanitize posts on client-side as an extra layer of security
   useEffect(() => {
     if (typeof window !== "undefined" && props.posts.length > 0) {
       const sanitizedPosts = props.posts.map((post) => ({
@@ -167,6 +166,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       toast.error(
@@ -178,7 +178,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    // Validate file size (limit to 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
       toast.error("File too large. Maximum size is 5MB.");
       if (fileInputRef.current) {
@@ -264,48 +265,39 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   };
 
-  const iconButtonClass =
-    "p-2.5 text-zinc-500 dark:text-zinc-400 rounded-xl hover:text-[color:rgb(var(--group-theme))] hover:bg-[color:rgb(var(--group-theme)/0.1)] dark:hover:bg-[color:rgb(var(--group-theme)/0.15)] transition-colors";
-
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
 
-      <div className="flex items-center gap-4 mb-8">
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] shrink-0">
-          <IconMessageCircle className="w-6 h-6" stroke={1.5} />
-        </div>
+      <div className="flex items-center gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
+          <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
             Group Wall
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Share updates and announcements with your team
           </p>
         </div>
       </div>
 
       {canPostOnWall() ? (
-        <div className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm shadow-zinc-200/50 dark:shadow-none p-5 sm:p-6 mb-8">
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8">
           <div className="flex items-start gap-4">
             <div
-              className={clsx(
-                "w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-white dark:ring-zinc-800",
-                getRandomBg(login.userId.toString())
-              )}
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                login.userId.toString()
+              )}`}
             >
               <img
                 src={login.thumbnail}
                 alt="Your avatar"
-                className="w-full h-full object-cover"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                style={{ background: "transparent" }}
               />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1">
               <textarea
-                className={clsx(
-                  "w-full border-0 focus:ring-0 resize-none bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500",
-                  "focus:outline-none text-sm sm:text-base"
-                )}
+                className="w-full border-0 focus:ring-0 resize-none bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-zinc-900 dark:text-white"
                 placeholder="What's on your mind?"
                 value={wallMessage}
                 onChange={(e) => setWallMessage(e.target.value)}
@@ -313,22 +305,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                 maxLength={10000}
               />
               {selectedImage && (
-                <div className="relative mt-3">
+                <div className="relative mt-2">
                   <img
                     src={selectedImage}
                     alt="Selected"
-                    className="max-h-64 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-900/50"
+                    className="max-h-64 rounded-lg object-contain"
                   />
                   <button
                     onClick={removeImage}
-                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-lg text-white transition-colors"
+                    className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
                   >
-                    <IconX size={16} stroke={2} />
+                    <IconX size={16} />
                   </button>
                 </div>
               )}
-              <div className="flex items-center justify-between pt-3 mt-3 border-t border-zinc-200/80 dark:border-zinc-700/80">
-                <div className="flex items-center gap-1">
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-700">
+                <div className="flex items-center gap-4">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -338,23 +330,21 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   />
                   {canAddPhotos() && (
                     <button
-                      className={iconButtonClass}
+                      className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
-                      type="button"
                     >
-                      <IconPhoto size={20} stroke={1.5} />
+                      <IconPhoto size={20} />
                     </button>
                   )}
                   <div className="relative z-10">
                     <button
-                      type="button"
-                      className={iconButtonClass}
+                      className="p-2 text-zinc-500 hover:text-primary rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     >
-                      <IconMoodSmile size={20} stroke={1.5} />
+                      <IconMoodSmile size={20} />
                     </button>
                     {showEmojiPicker && (
-                      <div className="absolute top-full left-0 mt-2 z-20 rounded-xl overflow-hidden shadow-lg border border-zinc-200 dark:border-zinc-700">
+                      <div className="absolute top-full left-0 mt-2 z-10">
                         <EmojiPicker
                           onEmojiClick={onEmojiClick}
                           theme={
@@ -372,36 +362,35 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   </div>
                 </div>
                 <Button
+                  classoverride="bg-primary hover:bg-primary/90 text-white dark:text-white px-6 dark:bg-primary dark:hover:bg-primary/80"
                   workspace
                   onPress={sendPost}
                   loading={loading}
                   disabled={!wallMessage.trim() && !selectedImage}
                 >
-                  <span className="inline-flex items-center gap-2">
-                    <IconSend size={18} stroke={1.5} />
-                    Post
-                  </span>
+                  <IconSend size={18} className="mr-2" />
+                  Post
                 </Button>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm p-5 sm:p-6 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
           You don't have permission to post on the wall.
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {posts.length < 1 ? (
-          <div className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm p-10 sm:p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[color:rgb(var(--group-theme)/0.12)] flex items-center justify-center text-[color:rgb(var(--group-theme))]">
-              <IconInbox className="w-8 h-8" stroke={1.5} />
+          <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <IconInbox className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-1">
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
               No posts yet
             </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-zinc-500 dark:text-zinc-400">
               Be the first to share something with your team!
             </p>
           </div>
@@ -409,28 +398,28 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           posts.map((post: any) => (
             <div
               key={post.id}
-              className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm shadow-zinc-200/50 dark:shadow-none p-5 sm:p-6 hover:shadow-md dark:hover:shadow-none transition-shadow"
+              className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={clsx(
-                    "w-11 h-11 rounded-full flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-white dark:ring-zinc-800",
-                    getRandomBg(post.authorId)
-                  )}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${getRandomBg(
+                    post.authorId
+                  )}`}
                 >
                   <img
                     alt="avatar headshot"
                     src={post.author.picture}
-                    className="w-full h-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white"
+                    style={{ background: "transparent" }}
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-zinc-900 dark:text-white">
                         {post.author.username}
                       </h3>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         {moment(post.createdAt).format(
                           "MMMM D, YYYY [at] h:mm A"
                         )}
@@ -445,19 +434,18 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
                       return canDelete ? (
                         <button
-                          type="button"
                           onClick={() => {
                             setPostToDelete(post.id);
                             setShowDeleteModal(true);
                           }}
-                          className="p-2 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         >
-                          <IconTrash size={18} stroke={1.5} />
+                          <IconTrash size={18} />
                         </button>
                       ) : null;
                     })()}
                   </div>
-                  <div className="prose prose-sm text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-3">
+                  <div className="prose text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-3">
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                       {post.content}
                     </ReactMarkdown>
@@ -467,7 +455,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       <img
                         src={post.image}
                         alt="Post image"
-                        className="max-h-96 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-900/50"
+                        className="max-h-96 rounded-lg object-contain"
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder-image-error.png";
                           toast.error("Failed to load image");
@@ -481,28 +469,26 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           ))
         )}
       </div>
-
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-700/80 p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
-              Delete post?
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+              Confirm Deletion
             </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-              This action cannot be undone.
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
+              Are you sure you want to delete this post? This action cannot be
+              undone.
             </p>
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-4">
               <button
-                type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Delete
               </button>
