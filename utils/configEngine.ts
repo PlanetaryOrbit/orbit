@@ -2,6 +2,8 @@ import prisma from './database';
 
 const configCache = new Map<string, any>();
 
+/** @returns {Promise<object>} */
+
 export async function getConfig(key: string, groupid: number) {
 	if (configCache.has(`${groupid}_${key}`)) {
 		return configCache.get(`${groupid}_${key}`);
