@@ -32,7 +32,6 @@ export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = (
         const needs = !skipped && (birthdayDay == null || birthdayMonth == null);
         setOpen(needs && (visible ?? true));
       } catch (e) {
-        // ignore
       } finally {
         if (!cancelled) setInitialLoaded(true);
       }

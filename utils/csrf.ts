@@ -60,7 +60,6 @@ export function validateOrigin(req: NextApiRequest): boolean {
         return true;
       }
     } catch (e) {
-      // invalid
       return false;
     }
   }

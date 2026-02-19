@@ -164,7 +164,7 @@ const Settings: pageWithLayout<Props> = ({ document, canEdit, canDelete }) => {
         }
       }
     } catch (e) {
-      // smyw
+
     }
   }, [output, router, workspace.groupId]);
 
