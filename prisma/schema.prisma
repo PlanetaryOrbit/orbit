@@ -429,24 +429,32 @@ model allyVisit {
 }
 
 model workspaceMember {
-  workspaceGroupId    Int
-  userId              BigInt
-  joinDate            DateTime?
-  birthdayDay         Int?
-  birthdayMonth       Int?
-  lineManagerId       BigInt?
-  timezone            String?
-  discordId           String?
-  isAdmin             Boolean?            @default(false)
-  user                user                @relation(fields: [userId], references: [userid])
-  workspace           workspace           @relation(fields: [workspaceGroupId], references: [groupId])
-  lineManager         user?               @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)
-  departmentMembers   DepartmentMember[]
+  workspaceGroupId     Int
+  userId               BigInt
+  joinDate             DateTime?
+  birthdayDay          Int?
+  birthdayMonth        Int?
+  discordId            String?
+  isAdmin              Boolean?           @default(false)
+  lineManagerId        BigInt?
+  timezone             String?
+  introMessage         String?
+  trackId              String?
+  trackName            String?
+  artistName           String?
+  artwork              String?
+  previewUrl           String?
+  departmentMembers    DepartmentMember[]
+  lineManager          user?              @relation("LineManager", fields: [lineManagerId], references: [userid], onDelete: NoAction, onUpdate: NoAction)
+  user                 user               @relation(fields: [userId], references: [userid])
+  workspace            workspace          @relation(fields: [workspaceGroupId], references: [groupId])
 
   @@id([workspaceGroupId, userId])
   @@index([userId])
   @@index([lineManagerId])
+  @@index([workspaceGroupId, joinDate])
 }
+
 
 model ActivityAdjustment {
   id               String    @id @default(uuid()) @db.Uuid
