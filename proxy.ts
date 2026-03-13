@@ -14,6 +14,7 @@ export default function proxy(request: NextRequest) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com https://fonts.intercomcdn.com",
       "img-src 'self' data: https: blob:",
+      "media-src 'self' https://audio-ssl.itunes.apple.com",
       "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://uranus.planetaryapp.cloud wss://*.intercom.io wss:",
       "frame-src 'self' https://widget.intercom.io",
       "frame-ancestors 'self'",
@@ -23,22 +24,11 @@ export default function proxy(request: NextRequest) {
   );
 
   response.headers.set("X-Content-Type-Options", "nosniff");
-
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
-
   response.headers.set("X-XSS-Protection", "1; mode=block");
-
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
-  );
-
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload"
-  );
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
   return response;
 }
