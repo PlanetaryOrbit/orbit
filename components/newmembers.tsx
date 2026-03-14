@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import axios from "axios";
 import {
-  IconUserPlus,
+  IconSparkles,
   IconPlayerPlay,
   IconPlayerPause,
   IconPencil,
@@ -11,6 +11,7 @@ import {
   IconMusic,
 } from "@tabler/icons-react";
 import MemberIntroEditor from "./introductions";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 
 interface NewMember {
   userid: string;
@@ -23,6 +24,34 @@ interface NewMember {
   artistName?: string | null;
   artwork?: string | null;
   previewUrl?: string | null;
+}
+
+const BG_COLORS = [
+  "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
+];
+
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
+  }
+  return BG_COLORS[(hash >>> 0) % BG_COLORS.length];
 }
 
 function MemberCard({
@@ -39,6 +68,7 @@ function MemberCard({
   onPlayPreview: (m: NewMember) => void;
 }) {
   const hasExtra = !!(m.trackId || m.introMessage);
+  const bg = getRandomBg(m.userid, m.username);
 
   return (
     <div
@@ -51,18 +81,16 @@ function MemberCard({
           <span className="absolute inset-0 rounded-full ring-2 ring-primary/50 animate-pulse pointer-events-none z-10" />
         )}
 
-        <img
-          src={m.picture || "/default-avatar.jpg"}
-          alt={m.username}
-          className={`w-20 h-20 rounded-full object-cover shadow-sm transition-all duration-200
-            ${isPlaying
-              ? "ring-2 ring-primary/60 border-2 border-primary/30"
-              : isCurrentUser
-              ? "ring-2 ring-transparent border-2 border-zinc-200 dark:border-zinc-700 group-hover/card:ring-2 group-hover/card:ring-pink-400/70 group-hover/card:border-pink-400"
-              : "ring-2 ring-transparent border-2 border-zinc-200 dark:border-zinc-700"
-            }
-          `}
-        />
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${bg} ring-2 ring-transparent transition overflow-hidden
+          ${isPlaying ? "ring-primary/60" : isCurrentUser ? "group-hover/card:ring-pink-400/70" : ""}
+        `}>
+          <img
+            src={m.picture || "/default-avatar.jpg"}
+            alt={m.username}
+            className="w-16 h-16 object-cover rounded-full border-2 border-white"
+            loading="lazy"
+          />
+        </div>
 
         {isCurrentUser && (
           <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/0 group-hover/card:bg-black/35 transition-all duration-200 pointer-events-none">
@@ -82,7 +110,8 @@ function MemberCard({
                 title={`${m.trackName} — ${m.artistName}`}
                 className="relative w-7 h-7 shrink-0 -mr-2 z-10 group/vinyl"
               >
-                <div className={`w-7 h-7 rounded-full overflow-hidden shadow-md border-2 border-white dark:border-zinc-900 transition-all duration-300 ${isPlaying ? "[animation:spin_3s_linear_infinite]" : "group-hover/vinyl:scale-110"}`}
+                <div
+                  className={`w-7 h-7 rounded-full overflow-hidden shadow-md border-2 border-white dark:border-zinc-900 transition-all duration-300 ${isPlaying ? "" : "group-hover/vinyl:scale-110"}`}
                   style={isPlaying ? { animation: "spin 3s linear infinite" } : undefined}
                 >
                   {m.artwork
@@ -132,7 +161,7 @@ function MemberCard({
       <span className={`mt-6 text-xs font-medium text-center max-w-[88px] truncate transition-colors duration-150
         ${isCurrentUser
           ? "text-zinc-700 dark:text-zinc-300 group-hover/card:text-pink-500"
-          : "text-zinc-500 dark:text-zinc-400"
+          : "text-zinc-700 dark:text-zinc-300"
         }
       `}>
         {m.username}
@@ -150,6 +179,8 @@ export default function NewToTeam() {
   const [showEditor, setShowEditor] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [maxVisible, setMaxVisible] = useState(10);
 
   useEffect(() => {
     axios.get("/api/@me").then((r) => {
@@ -178,6 +209,18 @@ export default function NewToTeam() {
     setLoading(true);
     fetchMembers(workspaceId).finally(() => setLoading(false));
   }, [workspaceId, currentUserId]);
+
+  useEffect(() => {
+    const calc = () => {
+      if (!cardRef.current) return;
+      const available = cardRef.current.offsetWidth - 32;
+      const itemW = 80 + 24;
+      setMaxVisible(Math.max(1, Math.floor(available / itemW)));
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
 
   const refreshMembers = () => {
     if (workspaceId) fetchMembers(workspaceId);
@@ -251,26 +294,19 @@ export default function NewToTeam() {
   useEffect(() => () => { audioRef.current?.pause(); }, []);
 
   if (loading) return null;
-
-  if (!members.length) {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-          <IconUserPlus className="w-5 h-5 text-zinc-400" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No new members</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">No one joined in the last 7 days</p>
-        </div>
-      </div>
-    );
-  }
+  if (!members.length) return null;
 
   return (
     <>
-      <div className="overflow-x-auto overflow-y-visible scrollbar-hide -mx-1">
-        <div className="flex gap-5 pb-5 pt-2 px-1 min-w-max">
-          {members.slice(0, 6).map((m) => (
+      <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <SparklesIcon className="w-5 h-5 text-primary" />
+          </div>
+          <span className="text-lg font-medium text-zinc-900 dark:text-white">New to the Team</span>
+        </div>
+        <div className="flex gap-6 px-2 pb-2">
+          {members.slice(0, maxVisible).map((m) => (
             <MemberCard
               key={m.userid}
               m={m}
