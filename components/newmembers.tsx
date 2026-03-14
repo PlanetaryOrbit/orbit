@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import axios from "axios";
 import {
-  IconUserPlus,
+  IconSparkles,
   IconPlayerPlay,
   IconPlayerPause,
   IconPencil,
@@ -11,6 +11,7 @@ import {
   IconMusic,
 } from "@tabler/icons-react";
 import MemberIntroEditor from "./introductions";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 
 interface NewMember {
   userid: string;
@@ -23,6 +24,34 @@ interface NewMember {
   artistName?: string | null;
   artwork?: string | null;
   previewUrl?: string | null;
+}
+
+const BG_COLORS = [
+  "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
+];
+
+function getRandomBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
+  }
+  return BG_COLORS[(hash >>> 0) % BG_COLORS.length];
 }
 
 function MemberCard({
@@ -39,6 +68,7 @@ function MemberCard({
   onPlayPreview: (m: NewMember) => void;
 }) {
   const hasExtra = !!(m.trackId || m.introMessage);
+  const bg = getRandomBg(m.userid, m.username);
 
   return (
     <div
@@ -175,6 +205,8 @@ export default function NewToTeam() {
   const [showEditor, setShowEditor] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [maxVisible, setMaxVisible] = useState(10);
 
   useEffect(() => {
     axios
@@ -208,6 +240,18 @@ export default function NewToTeam() {
     setLoading(true);
     fetchMembers(workspaceId).finally(() => setLoading(false));
   }, [workspaceId, currentUserId]);
+
+  useEffect(() => {
+    const calc = () => {
+      if (!cardRef.current) return;
+      const available = cardRef.current.offsetWidth - 32;
+      const itemW = 80 + 24;
+      setMaxVisible(Math.max(1, Math.floor(available / itemW)));
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
 
   const refreshMembers = () => {
     if (workspaceId) fetchMembers(workspaceId);
@@ -310,30 +354,19 @@ export default function NewToTeam() {
   );
 
   if (loading) return null;
-
-  if (!members.length) {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-          <IconUserPlus className="w-5 h-5 text-zinc-400" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            No new members
-          </p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-            No one joined in the last 7 days
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!members.length) return null;
 
   return (
     <>
-      <div className="overflow-x-auto overflow-y-visible scrollbar-hide -mx-1">
-        <div className="flex gap-5 pb-5 pt-2 px-1 min-w-max">
-          {members.slice(0, 6).map((m) => (
+      <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <SparklesIcon className="w-5 h-5 text-primary" />
+          </div>
+          <span className="text-lg font-medium text-zinc-900 dark:text-white">New to the Team</span>
+        </div>
+        <div className="flex gap-6 px-2 pb-2">
+          {members.slice(0, maxVisible).map((m) => (
             <MemberCard
               key={m.userid}
               m={m}
