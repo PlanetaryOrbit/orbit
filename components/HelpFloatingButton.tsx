@@ -137,7 +137,6 @@ function VersionStatusDialog({
 			<div className="fixed inset-0 flex items-center justify-center p-4">
 				<Dialog.Panel className="mx-auto w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-800 shadow-2xl border border-zinc-200/80 dark:border-zinc-700/80 overflow-hidden">
 
-					{/* Coloured status banner */}
 					<div className={`px-5 py-4 border-b ${accent.bg} ${accent.border}`}>
 						<div className="flex items-start gap-3">
 							<div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${accent.iconBg}`}>
@@ -150,7 +149,6 @@ function VersionStatusDialog({
 						</div>
 					</div>
 
-					{/* Meta rows */}
 					<div className="px-5 py-4 space-y-3">
 						<div className="flex items-center justify-between">
 							<span className="text-xs text-zinc-400 dark:text-zinc-500">Version</span>
@@ -168,7 +166,6 @@ function VersionStatusDialog({
 						)}
 					</div>
 
-					{/* Footer */}
 					<div className="px-4 pb-4">
 						<div className="border-t border-zinc-100 dark:border-zinc-700 pt-3 flex items-center gap-1.5">
 							<a
@@ -256,7 +253,7 @@ function VersionDot({
 			<span className={`text-[11px] font-medium ${labelColor}`}>v{packageJson.version}</span>
 			{label && (
 				<span className={`text-[10px] font-medium leading-none ${labelColor}`}>
-					· {label}
+					{label}
 				</span>
 			)}
 		</button>
