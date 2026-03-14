@@ -23,7 +23,8 @@ const randomText = (name: string) => {
 		`New day, new tasks — let’s crush them, ${name} ✅`,
 		`Hello sunshine! ${name}, you’re glowing today ☀️`,
 		`Mission log: ${name} is online and operational 🛰️`,
-		`Don't just wake up, show up — let’s go ${name} 💼`
+		`Don't just wake up, show up — let’s go ${name} 💼`,
+		`It's time to shine ${name}!`
 	];
 
 	const afternoonOnlyTexts = [

@@ -310,7 +310,7 @@ export default function MemberIntroEditor({ onSaved }: MemberIntroEditorProps = 
               }}
               onFocus={() => searchResults.length > 0 && setDropdownOpen(true)}
               onKeyDown={handleKeyDown}
-              className="flex-1 py-2.5 bg-transparent text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 focus:outline-none min-w-0"
+              className="flex-1 py-2.5 bg-transparent text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 min-w-0"
             />
             {isSearching && (
               <IconLoader2 size={15} className="text-zinc-400 shrink-0 animate-spin" />
