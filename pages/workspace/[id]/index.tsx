@@ -157,7 +157,7 @@ const Home: pageWithLayout = () => {
                   )}
                 ></div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
-                  Here's what's happening in your workspace today
+                  Full run through of what's happening today
                 </p>
               </div>
             </div>
