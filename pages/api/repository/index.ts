@@ -1,4 +1,3 @@
-import { execSync } from "child_process";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type VersionStatus = {
@@ -13,13 +12,7 @@ type ErrorResponse = {
 };
 
 function getLocalGitHash(): string | null {
-  try {
-    return execSync("git rev-parse HEAD", { cwd: process.cwd() })
-      .toString()
-      .trim();
-  } catch {
-    return null;
-  }
+  return process.env.COMMIT_HASH ?? null;
 }
 
 export default async function handler(
@@ -31,13 +24,16 @@ export default async function handler(
   }
 
   const localHash = getLocalGitHash();
+
   if (!localHash) {
-    return res.status(500).json({ error: "Could not read local git hash" });
+    return res.status(500).json({ error: "Commit hash not available in environment" });
   }
 
   try {
+    const branch = "main";
+
     const branchRes = await fetch(
-      `https://api.github.com/repos/planetaryorbit/orbit/commits/HEAD`,
+      `https://api.github.com/repos/planetaryorbit/orbit/commits/${branch}`,
       {
         headers: {
           Accept: "application/vnd.github+json",
@@ -48,13 +44,14 @@ export default async function handler(
     );
 
     if (!branchRes.ok) {
-      return res.status(502).json({ error: `GitHub API error: ${branchRes.status}` });
+      return res
+        .status(502)
+        .json({ error: `GitHub API error: ${branchRes.status}` });
     }
 
     const branchData = await branchRes.json();
     const remoteHash: string = branchData.sha;
 
-    // Already up to date
     if (localHash === remoteHash) {
       return res.status(200).json({
         upToDate: true,
@@ -84,9 +81,10 @@ export default async function handler(
     }
 
     const compareData = await compareRes.json();
-    const behind: number =
+
+    const behind =
       compareData.status === "behind" || compareData.status === "diverged"
-        ? (compareData.behind_by ?? 1)
+        ? compareData.behind_by ?? 1
         : 0;
 
     return res.status(200).json({
