@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type VersionStatus = {
@@ -12,7 +13,14 @@ type ErrorResponse = {
 };
 
 function getLocalGitHash(): string | null {
-  return process.env.COMMIT_HASH ?? null;
+  try {
+    return execSync('git rev-parse --short HEAD', { cwd: process.cwd() })
+      .toString()
+      .trim();
+  } catch (err) {
+    console.error('[version api] failed to get local git hash', err);
+    return null;
+  }
 }
 
 export default async function handler(
@@ -26,7 +34,7 @@ export default async function handler(
   const localHash = getLocalGitHash();
 
   if (!localHash) {
-    return res.status(500).json({ error: "Commit hash not available in environment" });
+    return res.status(500).json({ error: "Commit hash not available" });
   }
 
   try {
@@ -44,9 +52,7 @@ export default async function handler(
     );
 
     if (!branchRes.ok) {
-      return res
-        .status(502)
-        .json({ error: `GitHub API error: ${branchRes.status}` });
+      return res.status(502).json({ error: `GitHub API error: ${branchRes.status}` });
     }
 
     const branchData = await branchRes.json();
