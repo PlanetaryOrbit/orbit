@@ -1,6 +1,7 @@
 FROM node:20-alpine
-# Install pnpm
+# Install pnpm and git
 RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN apk add --no-cache git
 # Create app directory
 WORKDIR /usr/src/app
 COPY .git .git
