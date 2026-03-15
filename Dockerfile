@@ -5,6 +5,9 @@ RUN apk add --no-cache git
 # Create app directory
 WORKDIR /usr/src/app
 COPY .git .git
+
+ARG COMMIT_HASH=dev
+ENV COMMIT_HASH=$COMMIT_HASH
 # Install app dependencies
 COPY package.json pnpm-lock.yaml ./
 # Copy Prisma schema
@@ -16,6 +19,7 @@ RUN pnpm exec prisma generate
 # Bundle app source
 COPY . .
 # Build the app
+RUN echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> /etc/environment
 RUN COMMIT_HASH=$(git rev-parse --short HEAD) && \
     export COMMIT_HASH && \
     pnpm run build

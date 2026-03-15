@@ -4,12 +4,9 @@ services:
     tty: true
     build:
       context: .
-      args:
-        COMMIT_HASH: ${COMMIT_HASH}
     environment:
       SESSION_SECRET: ${SESSION_SECRET}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
-      COMMIT_HASH: ${COMMIT_HASH}
     depends_on:
       db: # Disable this if you are using an external Postgres database
         condition: service_healthy
