@@ -75,11 +75,15 @@ function MemberCard({
       onClick={() => isCurrentUser && onEdit()}
     >
       <div className="relative p-1">
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/main
         {isPlaying && (
           <span className="absolute inset-0 rounded-full ring-2 ring-primary/50 animate-pulse pointer-events-none z-10" />
         )}
 
+<<<<<<< HEAD
         <div className={`w-16 h-16 rounded-full flex items-center justify-center ${bg} ring-2 ring-transparent transition overflow-hidden
           ${isPlaying ? "ring-primary/60" : isCurrentUser ? "group-hover/card:ring-pink-400/70" : ""}
         `}>
@@ -90,6 +94,21 @@ function MemberCard({
             loading="lazy"
           />
         </div>
+=======
+        <img
+          src={m.picture || "/default-avatar.jpg"}
+          alt={m.username}
+          className={`w-20 h-20 rounded-full object-cover shadow-sm transition-all duration-200
+            ${
+              isPlaying
+                ? "ring-2 ring-primary/60 border-2 border-primary/30"
+                : isCurrentUser
+                  ? "ring-2 ring-transparent border-2 border-zinc-200 dark:border-zinc-700 group-hover/card:ring-2 group-hover/card:ring-pink-400/70 group-hover/card:border-pink-400"
+                  : "ring-2 ring-transparent border-2 border-zinc-200 dark:border-zinc-700"
+            }
+          `}
+        />
+>>>>>>> refs/remotes/origin/main
 
         {isCurrentUser && (
           <div className="absolute inset-0 rounded-full flex items-center justify-center bg-black/0 group-hover/card:bg-black/35 transition-all duration-200 pointer-events-none">
@@ -102,14 +121,24 @@ function MemberCard({
 
         {hasExtra && (
           <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center">
+<<<<<<< HEAD
 
             {m.trackId && m.previewUrl && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPlayPreview(m); }}
+=======
+            {m.trackId && m.previewUrl && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlayPreview(m);
+                }}
+>>>>>>> refs/remotes/origin/main
                 title={`${m.trackName} — ${m.artistName}`}
                 className="relative w-7 h-7 shrink-0 -mr-2 z-10 group/vinyl"
               >
                 <div
+<<<<<<< HEAD
                   className={`w-7 h-7 rounded-full overflow-hidden shadow-md border-2 border-white dark:border-zinc-900 transition-all duration-300 ${isPlaying ? "" : "group-hover/vinyl:scale-110"}`}
                   style={isPlaying ? { animation: "spin 3s linear infinite" } : undefined}
                 >
@@ -119,20 +148,52 @@ function MemberCard({
                         <IconMusic className="w-3 h-3 text-white/80" />
                       </div>
                   }
+=======
+                  className={`w-7 h-7 rounded-full overflow-hidden shadow-md border-2 border-white dark:border-zinc-900 transition-all duration-300 ${isPlaying ? "[animation:spin_3s_linear_infinite]" : "group-hover/vinyl:scale-110"}`}
+                  style={
+                    isPlaying
+                      ? { animation: "spin 3s linear infinite" }
+                      : undefined
+                  }
+                >
+                  {m.artwork ? (
+                    <img
+                      src={m.artwork}
+                      alt={m.trackName || "Song"}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
+                      <IconMusic className="w-3 h-3 text-white/80" />
+                    </div>
+                  )}
+>>>>>>> refs/remotes/origin/main
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-2 h-2 rounded-full bg-white dark:bg-zinc-900 ring-1 ring-black/10" />
                 </div>
+<<<<<<< HEAD
                 <div className={`absolute inset-0 rounded-full bg-black/50 flex items-center justify-center transition-opacity duration-150 ${isPlaying ? "opacity-100" : "opacity-0 group-hover/vinyl:opacity-100"}`}>
                   {isPlaying
                     ? <IconPlayerPause className="w-3 h-3 text-white" />
                     : <IconPlayerPlay className="w-3 h-3 text-white" />
                   }
+=======
+                <div
+                  className={`absolute inset-0 rounded-full bg-black/50 flex items-center justify-center transition-opacity duration-150 ${isPlaying ? "opacity-100" : "opacity-0 group-hover/vinyl:opacity-100"}`}
+                >
+                  {isPlaying ? (
+                    <IconPlayerPause className="w-3 h-3 text-white" />
+                  ) : (
+                    <IconPlayerPlay className="w-3 h-3 text-white" />
+                  )}
+>>>>>>> refs/remotes/origin/main
                 </div>
               </button>
             )}
 
             {(m.introMessage || m.trackName) && (
+<<<<<<< HEAD
               <div className={`
                 relative flex items-center h-[22px] rounded-full shadow-sm border
                 text-[10px] font-medium whitespace-nowrap
@@ -143,26 +204,64 @@ function MemberCard({
                 }
               `}>
                 <span className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-0 h-0
+=======
+              <div
+                className={`
+                relative flex items-center h-[22px] rounded-full shadow-sm border
+                text-[10px] font-medium whitespace-nowrap
+                ${m.trackId ? "pl-4 pr-2.5" : "px-2.5"}
+                ${
+                  isPlaying
+                    ? "bg-white dark:bg-zinc-800 border-primary/30 text-zinc-700 dark:text-zinc-200"
+                    : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400"
+                }
+              `}
+              >
+                <span
+                  className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-0 h-0
+>>>>>>> refs/remotes/origin/main
                   border-l-[4px] border-l-transparent
                   border-r-[4px] border-r-transparent
                   border-b-[5px] border-b-white dark:border-b-zinc-800"
                 />
+<<<<<<< HEAD
                 {m.introMessage
                   ? <span className="italic truncate max-w-[82px]">"{m.introMessage}"</span>
                   : <span className="truncate max-w-[82px]">♪ {m.trackName}</span>
                 }
+=======
+                {m.introMessage ? (
+                  <span className="italic truncate max-w-[82px]">
+                    "{m.introMessage}"
+                  </span>
+                ) : (
+                  <span className="truncate max-w-[82px]">♪ {m.trackName}</span>
+                )}
+>>>>>>> refs/remotes/origin/main
               </div>
             )}
           </div>
         )}
       </div>
 
+<<<<<<< HEAD
       <span className={`mt-6 text-xs font-medium text-center max-w-[88px] truncate transition-colors duration-150
         ${isCurrentUser
           ? "text-zinc-700 dark:text-zinc-300 group-hover/card:text-pink-500"
           : "text-zinc-700 dark:text-zinc-300"
         }
       `}>
+=======
+      <span
+        className={`mt-6 text-xs font-medium text-center max-w-[88px] truncate transition-colors duration-150
+        ${
+          isCurrentUser
+            ? "text-zinc-700 dark:text-zinc-300 group-hover/card:text-pink-500"
+            : "text-zinc-500 dark:text-zinc-400"
+        }
+      `}
+      >
+>>>>>>> refs/remotes/origin/main
         {m.username}
       </span>
     </div>
@@ -182,6 +281,7 @@ export default function NewToTeam() {
   const [maxVisible, setMaxVisible] = useState(10);
 
   useEffect(() => {
+<<<<<<< HEAD
     axios.get("/api/@me").then((r) => {
       if (r.data.user?.userId) setCurrentUserId(String(r.data.user.userId));
     }).catch(() => {});
@@ -201,6 +301,32 @@ export default function NewToTeam() {
         setMembers(list);
       }
     });
+=======
+    axios
+      .get("/api/@me")
+      .then((r) => {
+        if (r.data.user?.userId) setCurrentUserId(String(r.data.user.userId));
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchMembers = (wid: string | string[]) => {
+    return axios
+      .get(`/api/workspace/${wid}/home/new-members?days=7`)
+      .then((r) => {
+        if (r.status === 200 && r.data.success) {
+          let list: NewMember[] = r.data.members || [];
+          if (currentUserId) {
+            const idx = list.findIndex((m) => m.userid === currentUserId);
+            if (idx > 0) {
+              const cu = list[idx];
+              list = [cu, ...list.filter((_, i) => i !== idx)];
+            }
+          }
+          setMembers(list);
+        }
+      });
+>>>>>>> refs/remotes/origin/main
   };
 
   useEffect(() => {
@@ -225,6 +351,7 @@ export default function NewToTeam() {
     if (workspaceId) fetchMembers(workspaceId);
   };
 
+<<<<<<< HEAD
   const playScratch = (reverse = false) => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -256,6 +383,58 @@ export default function NewToTeam() {
       filter.connect(gain);
       gain.connect(audioContext.destination);
       source.start();
+=======
+  const playScratch = (flip = false) => {
+    try {
+      const ctx = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
+
+      const scratchLength = 0.32;
+      const frameCount = Math.floor(ctx.sampleRate * scratchLength);
+
+      const scratchBuffer = ctx.createBuffer(1, frameCount, ctx.sampleRate);
+      const samples = scratchBuffer.getChannelData(0);
+
+      let phasePos = 0;
+
+      for (let frame = 0; frame < frameCount; frame++) {
+        const progress = frame / frameCount;
+
+        const startPitch = 950;
+        const endPitch = 140;
+        const pitch = startPitch * Math.pow(endPitch / startPitch, progress);
+
+        phasePos += (2 * Math.PI * pitch) / ctx.sampleRate;
+
+        const harmonic = Math.sin(phasePos);
+        const grit = (Math.random() * 2 - 1) * (0.25 + progress * 0.2);
+
+        const fade = Math.pow(1 - progress, 2.4);
+
+        samples[frame] = (harmonic * 0.45 + grit * 0.55) * fade;
+      }
+
+      if (flip) {
+        Array.prototype.reverse.call(samples);
+      }
+
+      const player = ctx.createBufferSource();
+      player.buffer = scratchBuffer;
+
+      const toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = "bandpass";
+      toneFilter.frequency.value = 1300;
+
+      const level = ctx.createGain();
+      level.gain.value = 0.55;
+
+      player.connect(toneFilter);
+      toneFilter.connect(level);
+      level.connect(ctx.destination);
+
+      player.start();
+>>>>>>> refs/remotes/origin/main
     } catch {}
   };
 
@@ -274,23 +453,50 @@ export default function NewToTeam() {
       playScratch(true);
       setTimeout(() => {
         const audio = new Audio(member.previewUrl!);
+<<<<<<< HEAD
         audio.volume = 0.5;
         audio.play().catch(() => {});
         audio.onended = () => { playScratch(); setPlayingId(null); };
         audioRef.current = audio;
         setPlayingId(member.userid);
       }, 200);
+=======
+        audio.volume = 0.55;
+        audio.play().catch(() => {});
+        audio.onended = () => {
+          playScratch();
+          setPlayingId(null);
+        };
+        audioRef.current = audio;
+        setPlayingId(member.userid);
+      }, 180);
+>>>>>>> refs/remotes/origin/main
     }
   };
 
   useEffect(() => {
     if (!showEditor) return;
+<<<<<<< HEAD
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setShowEditor(false); };
+=======
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowEditor(false);
+    };
+>>>>>>> refs/remotes/origin/main
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [showEditor]);
 
+<<<<<<< HEAD
   useEffect(() => () => { audioRef.current?.pause(); }, []);
+=======
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+    },
+    [],
+  );
+>>>>>>> refs/remotes/origin/main
 
   if (loading) return null;
   if (!members.length) return null;
@@ -318,6 +524,7 @@ export default function NewToTeam() {
         </div>
       </div>
 
+<<<<<<< HEAD
       {showEditor && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
@@ -336,6 +543,35 @@ export default function NewToTeam() {
         </div>,
         document.body,
       )}
+=======
+      {showEditor &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowEditor(false);
+            }}
+          >
+            <div className="relative w-full max-w-md animate-in fade-in zoom-in-95 duration-150">
+              <button
+                onClick={() => setShowEditor(false)}
+                className="absolute -top-3 -right-3 z-10 w-7 h-7 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition"
+                aria-label="Close"
+              >
+                <IconX size={14} />
+              </button>
+              <MemberIntroEditor
+                onSaved={() => {
+                  setShowEditor(false);
+                  refreshMembers();
+                }}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
+>>>>>>> refs/remotes/origin/main
     </>
   );
 }

@@ -5,6 +5,7 @@ RUN apk add --no-cache git
 
 # App directory
 WORKDIR /usr/src/app
+COPY .git .git
 
 # Copy package manager files first (better caching)
 COPY package.json pnpm-lock.yaml ./
