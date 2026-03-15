@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Docker / Git tag to release (e.g. 2.1.9beta2)"
+        description: "Docker / Git tag to release (e.g. 2.1.9beta4)"
         required: true
         type: string
 
@@ -24,6 +24,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Get commit hash
+        id: commit 
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,6 +55,8 @@ jobs:
           context: .
           platforms: linux/arm64
           push: true
+          build-args: | 
+            COMMIT_HASH=${{ steps.commit.outputs.sha }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}-arm64
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}
