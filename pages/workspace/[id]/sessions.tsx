@@ -826,17 +826,15 @@ const Home: pageWithLayout<pageProps> = (props) => {
   return (
     <div className="pagePadding">
       <Toaster position="bottom-center" />
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-              Sessions
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              Plan, schedule, and manage sessions for your staff members
-            </p>
-          </div>
-        </div>
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+            Sessions
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Plan, schedule, and manage sessions for your staff members
+          </p>
+        </header>
 
         <div className="mb-6">
           <div className="flex items-start justify-between gap-6">
@@ -912,9 +910,9 @@ const Home: pageWithLayout<pageProps> = (props) => {
         </div>
 
         <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-2xl sm:text-3xl font-semibold text-zinc-900 dark:text-white text-left">
+          <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
                 {isTodaySelected
                   ? "Today"
                   : selectedDate.toLocaleDateString("en-US", {
@@ -922,40 +920,35 @@ const Home: pageWithLayout<pageProps> = (props) => {
                       month: "long",
                       day: "numeric",
                     })}
-              </div>
+              </h2>
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className={`inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-xl transition-colors ${
                   showHistory
                     ? "bg-primary text-white"
-                    : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                    : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600"
                 }`}
                 title={showHistory ? "Showing all sessions" : "Showing recent and upcoming sessions"}
               >
-                {showHistory ? "Hide History" : "Show History"}
+                {showHistory ? "Hide history" : "Show history"}
               </button>
             </div>
-
-            <div>
-              {canCreateAnySession(workspace.yourPermission) && (
-                <button
-                  onClick={() =>
-                    router.push(`/workspace/${router.query.id}/sessions/new`)
-                  }
-                  className="inline-flex items-center justify-center px-4 py-2 shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-                >
-                  <IconPlus className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">New Session</span>
-                  <span className="sm:hidden">New</span>
-                </button>
-              )}
-            </div>
+            {canCreateAnySession(workspace.yourPermission) && (
+              <button
+                onClick={() =>
+                  router.push(`/workspace/${router.query.id}/sessions/new`)
+                }
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm w-fit"
+              >
+                <IconPlus className="w-4 h-4" />
+                New session
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-wrap -mx-2 gap-y-4">
+          <div className="space-y-4">
             {selectedDateSessions.length > 0 ? (
               selectedDateSessions.map((session: any) => {
-                const isRecurring = session.scheduleId !== null;
                 const now = new Date();
                 const sessionStart = new Date(session.date);
                 const sessionDuration = session.duration || 30;
@@ -975,148 +968,138 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 });
 
                 return (
-                  <div className="px-2" key={session.id}>
-                    <div
-                      className={`rounded-xl p-4 cursor-pointer transition-all group transform hover:-translate-y-0.5 shadow-sm border w-[260px] h-[110px] flex flex-col overflow-hidden ${
-                        isActive
-                          ? "border-emerald-200 dark:border-emerald-600/50"
-                          : "bg-white border border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-800/60"
-                      } backdrop-blur-sm`}
-                      onClick={() => handleSessionClick(session)}
-                    >
-                      <div className="flex items-start justify-between mb-auto overflow-hidden">
-                        <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="flex items-center justify-between w-full">
-                            <h4 className="flex-1 min-w-0 font-medium text-zinc-900 dark:text-white truncate mb-0">
-                              {session.name || session.sessionType.name}
-                            </h4>
-                          </div>
-
-                          <div className="flex items-center gap-2 mb-2 min-h-[28px] flex-wrap">
-                            {isActive && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse flex-shrink-0">
-                                • LIVE
-                              </span>
-                            )}
-                            {session.type && (
-                              <span
-                                className={`${getSessionTypeColor(
-                                  session.type
-                                )} ${getTextColorForBackground(
-                                  getSessionTypeColor(session.type)
-                                )} px-2 py-1 rounded text-xs font-medium flex-shrink-0`}
-                              >
-                                {session.type.charAt(0).toUpperCase() +
-                                  session.type.slice(1)}
-                              </span>
-                            )}
-                            {isConcluded && (
-                              <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium flex-shrink-0">
-                                Concluded
-                              </span>
-                            )}
-                            {!isConcluded && statues && statues.has(session.id) && statues.get(session.id) !== "Open" && (
-                              <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium flex-shrink-0">
-                                {statues.get(session.id)}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400 w-full">
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              <IconClock className="w-4 h-4" />
-                              {new Date(session.date).toLocaleTimeString(
-                                undefined,
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                }
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 min-w-0">
-                              <IconUserCircle className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">
-                                {session.owner?.username || "Unclaimed"}
-                              </span>
-                            </div>
-                          </div>
+                  <div
+                    key={session.id}
+                    className={`rounded-2xl border p-5 cursor-pointer transition-all group ${
+                      isActive
+                        ? "border-emerald-200 dark:border-emerald-600/50 bg-emerald-50/30 dark:bg-emerald-500/5"
+                        : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
+                    }`}
+                    onClick={() => handleSessionClick(session)}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <h4 className="text-base font-semibold text-zinc-900 dark:text-white truncate">
+                            {session.name || session.sessionType.name}
+                          </h4>
+                          {isActive && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
+                              Live
+                            </span>
+                          )}
+                          {session.type && (
+                            <span
+                              className={`${getSessionTypeColor(
+                                session.type
+                              )} ${getTextColorForBackground(
+                                getSessionTypeColor(session.type)
+                              )} px-2 py-0.5 rounded-lg text-xs font-medium shrink-0`}
+                            >
+                              {session.type.charAt(0).toUpperCase() +
+                                session.type.slice(1)}
+                            </span>
+                          )}
+                          {isConcluded && (
+                            <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
+                              Concluded
+                            </span>
+                          )}
+                          {!isConcluded && statues?.has(session.id) && statues.get(session.id) !== "Open" && (
+                            <span className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
+                              {statues.get(session.id)}
+                            </span>
+                          )}
                         </div>
-
-                        <div className="relative w-0 h-0">
-                          <div className="absolute top-0 right-0 flex items-center gap-1 z-10">
-                            {session.owner && (
-                              <div
-                                className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                                  session.owner.userid.toString()
-                                )}`}
-                              >
-                                <img
-                                  src={
-                                    session.owner.picture ||
-                                    "/default-avatar.jpg"
-                                  }
-                                  className="w-7 h-7 rounded-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.src =
-                                      "/default-avatar.jpg";
-                                  }}
-                                />
-                              </div>
+                        <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                          <span className="inline-flex items-center gap-1.5">
+                            <IconClock className="w-4 h-4 shrink-0" />
+                            {new Date(session.date).toLocaleTimeString(
+                              undefined,
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
                             )}
-
-                            {coHost && (
-                              <div
-                                className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                                  coHost.user.userid.toString()
-                                )} ${session.owner ? "-ml-2" : ""}`}
-                              >
-                                <img
-                                  src={
-                                    coHost.user.picture ||
-                                    "/default-avatar.jpg"
-                                  }
-                                  className="w-7 h-7 rounded-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.src =
-                                      "/default-avatar.jpg";
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                          {workspace.yourPermission &&
-                            canManageSession(workspace.yourPermission, session.type) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditSession(session.id);
-                                }}
-                                className="absolute -top-2 -right-2 p-1.5 bg-zinc-900/60 text-zinc-200 hover:text-white transition-colors opacity-0 group-hover:opacity-100 rounded-full shadow-sm border border-zinc-800 z-20"
-                                title="Edit session"
-                              >
-                                <IconEdit className="w-3.5 h-3.5" />
-                              </button>
-                            )}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 min-w-0">
+                            <IconUserCircle className="w-4 h-4 shrink-0" />
+                            <span className="truncate">
+                              {session.owner?.username || "Unclaimed"}
+                            </span>
+                          </span>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {session.owner && (
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                              session.owner.userid.toString()
+                            )}`}
+                          >
+                            <img
+                              src={
+                                session.owner.picture ||
+                                "/default-avatar.jpg"
+                              }
+                              alt=""
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "/default-avatar.jpg";
+                              }}
+                            />
+                          </div>
+                        )}
+                        {coHost && (
+                          <div
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
+                              coHost.user.userid.toString()
+                            )} ${session.owner ? "-ml-2" : ""}`}
+                          >
+                            <img
+                              src={
+                                coHost.user.picture ||
+                                "/default-avatar.jpg"
+                              }
+                              alt=""
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "/default-avatar.jpg";
+                              }}
+                            />
+                          </div>
+                        )}
+                        {workspace.yourPermission &&
+                          canManageSession(workspace.yourPermission, session.type) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditSession(session.id);
+                              }}
+                              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors opacity-0 group-hover:opacity-100"
+                              title="Edit session"
+                              aria-label="Edit session"
+                            >
+                              <IconEdit className="w-4 h-4" />
+                            </button>
+                          )}
                       </div>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="w-full h-40 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="mx-auto w-12 h-12 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
-                    <IconCalendarEvent className="w-6 h-6 text-zinc-400" />
-                  </div>
-                  <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
-                    No Sessions Scheduled
-                  </h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    There are no sessions scheduled for this date
-                  </p>
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+                  <IconCalendarEvent className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
                 </div>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                  No sessions this day
+                </h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  There are no sessions scheduled for this date.
+                </p>
               </div>
             )}
           </div>
