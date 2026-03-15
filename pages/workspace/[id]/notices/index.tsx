@@ -360,173 +360,85 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
       new Date(n.endTime) >= now
   );
 
-  const renderManageNoticeSection = (
-    title: string,
-    list: NoticeWithUser[],
-    showCancel: boolean
-  ) => (
-    <div className="mb-10">
-      <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-        {title}
-      </h3>
-      {list.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 text-center text-zinc-500 dark:text-zinc-400">
-          No {title.toLowerCase()}
-        </div>
-      ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-          {list.map((notice) => (
-            <div
-              key={notice.id}
-              className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
-                    notice.user?.userid?.toString() ?? ""
-                  )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
-                >
-                  <img
-                    src={notice.user?.picture ?? "/default-avatar.jpg"}
-                    alt={notice.user?.username ?? "User"}
-                    className="w-10 h-10 object-cover rounded-full border-2 border-white"
-                  />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
-                    {notice.user?.username}
-                  </h4>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {title.split(" ")[0]} period
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                  <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                  <span>
-                    {moment(notice.startTime!).format("MMM Do")} -{" "}
-                    {moment(notice.endTime!).format("MMM Do YYYY")}
-                  </span>
-                </div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  {notice.reason}
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                {showCancel ? (
-                  <button
-                    onClick={() => updateNotice(notice.id, "cancel")}
-                    className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
-                  >
-                    Revoke
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => updateNotice(notice.id, "approve")}
-                      className="flex-1 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 text-sm font-medium"
-                    >
-                      <IconCheck className="w-4 h-4 inline-block mr-1 text-primary" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => updateNotice(notice.id, "deny")}
-                      className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
-                    >
-                      <IconX className="w-4 h-4 inline-block mr-1 text-red-600" />
-                      Deny
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <>
       <Toaster position="bottom-center" />
       <div className="pagePadding">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <div>
-              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-                Notices
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {activeTab === "my-notices" ? "Manage your inactivity notices" : "Review and manage team notices"}
-              </p>
-            </div>
-          </div>
+        <div className="max-w-5xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+              Notices
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              {activeTab === "my-notices"
+                ? "Request time off and see your notices"
+                : "Review and manage team notices"}
+            </p>
+          </header>
+
           {(hasApproveAccess || hasManageAccess) && (
-            <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mb-6">
+            <nav className="flex p-1 gap-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 w-fit mb-8">
               <button
                 onClick={() => setActiveTab("my-notices")}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === "my-notices"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <IconUserCircle className="w-4 h-4" />
+                <IconUserCircle className="w-4 h-4 shrink-0" />
                 <span>My Notices</span>
               </button>
               <button
                 onClick={() => setActiveTab("manage-notices")}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === "manage-notices"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <IconUsers className="w-4 h-4" />
+                <IconUsers className="w-4 h-4 shrink-0" />
                 <span>Manage Notices</span>
                 {pendingNotices.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500 text-white">
+                  <span className="min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold rounded-full bg-amber-500 text-white">
                     {pendingNotices.length}
                   </span>
                 )}
               </button>
-            </div>
+            </nav>
           )}
           {(!(hasApproveAccess || hasManageAccess) || activeTab === "my-notices") && (
             <>
-              {activeNotices.length > 0 && (
-                <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+              {myActiveNotices.length > 0 && (
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-6 mb-8">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <IconCalendarTime className="w-5 h-5 text-primary" />
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+                      <IconCalendarTime className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                        Active Notices
+                      <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                        Active notices
                       </h2>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Currently approved inactivity periods.
+                        Your currently approved time off
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    {activeNotices.map((notice) => (
+                    {myActiveNotices.map((notice) => (
                       <div
                         key={notice.id}
-                        className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-4 shadow-sm"
+                        className="flex flex-col items-center gap-2 rounded-xl border border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 p-4"
                       >
                         <div
-                          className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(
+                          className={`w-14 h-14 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-zinc-700 ${getRandomBg(
                             notice.user?.userid?.toString() ?? ""
-                          )} ring-2 ring-white dark:ring-zinc-700 overflow-hidden`}
+                          )}`}
                         >
                           <img
                             src={notice.user?.picture ?? "/default-avatar.jpg"}
                             alt={notice.user?.username ?? "User"}
-                            className="w-16 h-16 object-cover rounded-full"
+                            className="w-14 h-14 object-cover rounded-full"
                           />
                         </div>
                         <div className="text-center">
@@ -534,8 +446,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                             {notice.user?.username}
                           </p>
                           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {moment(notice.startTime!).format("MMM Do")} -{" "}
-                            {moment(notice.endTime!).format("MMM Do")}
+                            {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D")}
                           </p>
                         </div>
                       </div>
@@ -544,19 +455,19 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 </div>
               )}
 
-                <div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-6 mb-8">
                   {canCreateNotices ? (
                 <>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <IconPlus className="w-5 h-5 text-primary" />
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="shrink-0 w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
+                    <IconPlus className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                      Request Inactivity Notice
+                    <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                      Request time off
                     </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Submit a time-off request for review by your leadership team.
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      Submit a request for your leadership team to review.
                     </p>
                   </div>
                 </div>
@@ -566,126 +477,73 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                     Type
                   </label>
                   <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={() => {
-                        setSelectedType("holiday");
-                        setReason("Holiday");
-                      }}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        selectedType === "holiday"
-                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                      Holiday
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedType("sickness");
-                        setReason("Sickness");
-                      }}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        selectedType === "sickness"
-                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <IconBug className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                      Sickness
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedType("personal");
-                        setReason("Personal");
-                      }}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        selectedType === "personal"
-                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <IconHome className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                      Personal
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedType("school");
-                        setReason("School");
-                      }}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        selectedType === "school"
-                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <IconBook className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                      School
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedType("other");
-                        setReason("");
-                      }}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        selectedType === "other"
-                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <IconPlus className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                      Other
-                    </button>
+                    {(["holiday", "sickness", "personal", "school", "other"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          setSelectedType(t);
+                          setReason(t === "other" ? "" : TYPE_LABELS[t]);
+                        }}
+                        className={`px-3 py-2 text-sm font-medium rounded-xl transition-colors flex items-center gap-2 ${
+                          selectedType === t
+                            ? "bg-zinc-900 dark:bg-zinc-600 text-white"
+                            : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                        }`}
+                      >
+                        {t === "holiday" && <IconCalendarTime className="w-4 h-4" />}
+                        {t === "sickness" && <IconBug className="w-4 h-4" />}
+                        {t === "personal" && <IconHome className="w-4 h-4" />}
+                        {t === "school" && <IconBook className="w-4 h-4" />}
+                        {t === "other" && <IconPlus className="w-4 h-4" />}
+                        {TYPE_LABELS[t]}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                      Start Date
+                      Start date
                     </label>
                     <input
                       type="date"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                      className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       min={moment().format("YYYY-MM-DD")}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                      End Date
+                      End date
                     </label>
                     <input
                       type="date"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                      className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       min={startTime || moment().format("YYYY-MM-DD")}
                     />
                   </div>
                 </div>
 
                 {selectedType !== "" && (
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                      Reason for Inactivity
+                      Reason
                     </label>
                     {selectedType !== "other" ? (
-                      <div className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                      <div className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-zinc-50 dark:bg-zinc-700/50 text-zinc-900 dark:text-white">
                         {TYPE_LABELS[selectedType] ?? reason}
                       </div>
                     ) : (
                       <textarea
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none"
+                        className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         rows={3}
-                        placeholder="Please provide a brief explanation for your requested inactivity period..."
+                        placeholder="Brief explanation for your requested time off..."
                       />
                     )}
                   </div>
@@ -696,66 +554,58 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   disabled={
                     isCreating || !reason.trim() || !startTime || !endTime
                   }
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isCreating ? "Submitting..." : "Submit Notice"}
+                  {isCreating ? "Submitting…" : "Submit request"}
                 </button>
                 </>
                 ) : (
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     You don't have permission to create notices.
-                  </div>
+                  </p>
                 )}
               </div>
 
               {userNotices.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-                    My Submitted Notices
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
+                    Your requests
                   </h3>
-                  <div className="grid gap-4">
+                  <div className="space-y-4">
                     {userNotices.map((notice) => (
                       <div
                         key={notice.id}
-                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm"
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                            <IconCalendarTime className="w-4 h-4 shrink-0" />
                             <span>
-                              {moment(notice.startTime!).format("MMM Do")} -{" "}
-                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                              {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")}
                             </span>
                           </div>
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            className={`shrink-0 px-2.5 py-1 text-xs font-medium rounded-lg ${
                               !notice.reviewed
-                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
                                 : notice.approved
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                : "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300"
                             }`}
                           >
-                            {!notice.reviewed
-                              ? "Pending"
-                              : notice.approved
-                              ? "Approved"
-                              : "Denied"}
+                            {!notice.reviewed ? "Pending" : notice.approved ? "Approved" : "Denied"}
                           </span>
                         </div>
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-3">
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300">
                           {notice.reason}
                         </p>
-                        {notice.reviewed &&
-                          !notice.approved &&
-                          notice.reviewComment && (
-                            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                              <p className="text-sm text-red-700 dark:text-red-300">
-                                <strong>Review comment:</strong>{" "}
-                                {notice.reviewComment}
-                              </p>
-                            </div>
-                          )}
+                        {notice.reviewed && !notice.approved && notice.reviewComment && (
+                          <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-3">
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                              <span className="font-medium">Review comment:</span> {notice.reviewComment}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -767,77 +617,71 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
             <>
               {pendingNotices.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-                    Pending Notices
-                  </h3>
-                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                  <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
+                    Pending notices
+                  </h2>
+                  <div className="space-y-4">
                     {pendingNotices.map((notice) => (
                       <div
                         key={notice.id}
-                        className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5"
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                            className={`w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${getRandomBg(
                               notice.user?.userid?.toString() ?? ""
-                            )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                            )}`}
                           >
                             <img
                               src={notice.user?.picture ?? "/default-avatar.jpg"}
                               alt={notice.user?.username ?? "User"}
-                              className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                              className="w-11 h-11 object-cover"
                             />
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
+                              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
                                 {notice.user?.username}
                               </h4>
                               {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
                                 <span
                                   key={dm.department.id}
-                                  className="px-2 py-0.5 text-xs font-medium rounded-full"
-                                  style={{
-                                    backgroundColor: dm.department.color || '#64748b',
-                                    color: '#fff'
-                                  }}
+                                  className="px-2 py-0.5 text-xs font-medium rounded-lg text-white/95"
+                                  style={{ backgroundColor: dm.department.color || "#71717a" }}
                                 >
                                   {dm.department.name}
                                 </span>
                               ))}
                             </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                              Pending period
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                              Awaiting review
                             </p>
                           </div>
                         </div>
-
-                        <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                            <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+                        <div className="rounded-xl bg-zinc-50 dark:bg-zinc-700/50 p-3 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                            <IconCalendarTime className="w-4 h-4 shrink-0" />
                             <span>
-                              {moment(notice.startTime!).format("MMM Do")} -{" "}
-                              {moment(notice.endTime!).format("MMM Do YYYY")}
+                              {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")}
                             </span>
                           </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-white">
                             {notice.reason}
                           </p>
                         </div>
-
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-1">
                           <button
                             onClick={() => updateNotice(notice.id, "approve")}
-                            className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
                           >
-                            <IconCheck className="w-4 h-4 inline-block mr-1 text-primary" />
+                            <IconCheck className="w-4 h-4" />
                             Approve
                           </button>
                           <button
                             onClick={() => updateNotice(notice.id, "deny")}
-                            className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors"
                           >
-                            <IconX className="w-4 h-4 inline-block mr-1 text-white" />
+                            <IconX className="w-4 h-4" />
                             Deny
                           </button>
                         </div>
@@ -851,38 +695,38 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 <div className="mb-8">
                   <button
                     onClick={() => setIsActiveExpanded(!isActiveExpanded)}
-                    className="flex items-center justify-between w-full text-left mb-4 group"
+                    className="flex items-center justify-between w-full text-left py-2 group"
                   >
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Currently Active Notices ({activeNotices.length})
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                      Active now ({activeNotices.length})
                     </h3>
                     {isActiveExpanded ? (
-                      <IconChevronUp className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                      <IconChevronUp className="w-5 h-5 text-zinc-500 transition-colors" />
                     ) : (
-                      <IconChevronDown className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                      <IconChevronDown className="w-5 h-5 text-zinc-500 transition-colors" />
                     )}
                   </button>
                   {isActiveExpanded && (
-                    <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 shadow-sm">
-                      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-500/5 p-5 mt-2">
+                      <div className="space-y-4">
                         {activeNotices.map((notice) => (
                           <div
                             key={notice.id}
-                            className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                            className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
                           >
                             <div className="flex items-center gap-3 mb-3">
                               <div
-                                className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                                className={`w-10 h-10 rounded-xl overflow-hidden shrink-0 ${getRandomBg(
                                   notice.user?.userid?.toString() ?? ""
-                                )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                                )}`}
                               >
                                 <img
                                   src={notice.user?.picture ?? "/default-avatar.jpg"}
                                   alt={notice.user?.username ?? "User"}
-                                  className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                                  className="w-10 h-10 object-cover"
                                 />
                               </div>
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
                                     {notice.user?.username}
@@ -890,45 +734,26 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                                   {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
                                     <span
                                       key={dm.department.id}
-                                      className="px-2 py-0.5 text-xs font-medium rounded-full"
-                                      style={{
-                                        backgroundColor: dm.department.color || '#64748b',
-                                        color: '#fff'
-                                      }}
+                                      className="px-2 py-0.5 text-xs font-medium rounded-lg text-white/95"
+                                      style={{ backgroundColor: dm.department.color || "#71717a" }}
                                     >
                                       {dm.department.name}
                                     </span>
                                   ))}
                                 </div>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                  Active period
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                  {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")} · {notice.reason}
                                 </p>
                               </div>
-                            </div>
-
-                            <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                              <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                                <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                                <span>
-                                  {moment(notice.startTime!).format("MMM Do")} -{" "}
-                                  {moment(notice.endTime!).format("MMM Do YYYY")}
-                                </span>
-                              </div>
-                              <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                                {notice.reason}
-                              </p>
-                            </div>
-
-                            {hasManageAccess && (
-                              <div className="flex gap-2">
+                              {hasManageAccess && (
                                 <button
                                   onClick={() => updateNotice(notice.id, "cancel")}
-                                  className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60"
+                                  className="shrink-0 px-3 py-2 text-sm font-medium rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors"
                                 >
                                   Revoke
                                 </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -941,37 +766,37 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 <div className="mb-8">
                   <button
                     onClick={() => setIsUpcomingExpanded(!isUpcomingExpanded)}
-                    className="flex items-center justify-between w-full text-left mb-4 group"
+                    className="flex items-center justify-between w-full text-left py-2 group"
                   >
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Upcoming Notices ({upcomingNotices.length})
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                      Upcoming ({upcomingNotices.length})
                     </h3>
                     {isUpcomingExpanded ? (
-                      <IconChevronUp className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                      <IconChevronUp className="w-5 h-5 text-zinc-500 transition-colors" />
                     ) : (
-                      <IconChevronDown className="w-5 h-5 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors" />
+                      <IconChevronDown className="w-5 h-5 text-zinc-500 transition-colors" />
                     )}
                   </button>
                   {isUpcomingExpanded && (
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="space-y-4 mt-2">
                       {upcomingNotices.map((notice) => (
                         <div
                           key={notice.id}
-                          className="bg-white dark:bg-zinc-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all"
+                          className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-4"
                         >
-                          <div className="flex items-center gap-3 mb-3">
+                          <div className="flex items-center gap-3">
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
+                              className={`w-10 h-10 rounded-xl overflow-hidden shrink-0 ${getRandomBg(
                                 notice.user?.userid?.toString() ?? ""
-                              )} ring-2 ring-transparent hover:ring-primary transition overflow-hidden`}
+                              )}`}
                             >
                               <img
                                 src={notice.user?.picture ?? "/default-avatar.jpg"}
                                 alt={notice.user?.username ?? "User"}
-                                className="w-10 h-10 object-cover rounded-full border-2 border-white"
+                                className="w-10 h-10 object-cover"
                               />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <h4 className="text-sm font-medium text-zinc-900 dark:text-white">
                                   {notice.user?.username}
@@ -979,45 +804,26 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                                 {notice.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
                                   <span
                                     key={dm.department.id}
-                                    className="px-2 py-0.5 text-xs font-medium rounded-full"
-                                    style={{
-                                      backgroundColor: dm.department.color || '#64748b',
-                                      color: '#fff'
-                                    }}
+                                    className="px-2 py-0.5 text-xs font-medium rounded-lg text-white/95"
+                                    style={{ backgroundColor: dm.department.color || "#71717a" }}
                                   >
                                     {dm.department.name}
                                   </span>
                                 ))}
                               </div>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                Upcoming period
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")} · {notice.reason}
                               </p>
                             </div>
-                          </div>
-
-                          <div className="bg-zinc-50 dark:bg-zinc-600 rounded-lg p-3 mb-3">
-                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 mb-1">
-                              <IconCalendarTime className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-                              <span>
-                                {moment(notice.startTime!).format("MMM Do")} -{" "}
-                                {moment(notice.endTime!).format("MMM Do YYYY")}
-                              </span>
-                            </div>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                              {notice.reason}
-                            </p>
-                          </div>
-
-                          {hasManageAccess && (
-                            <div className="flex gap-2">
+                            {hasManageAccess && (
                               <button
                                 onClick={() => updateNotice(notice.id, "cancel")}
-                                className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-medium"
+                                className="shrink-0 px-3 py-2 text-sm font-medium rounded-xl bg-zinc-100 dark:bg-zinc-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                               >
                                 Revoke
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1028,15 +834,15 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
               {pendingNotices.length === 0 &&
                 upcomingNotices.length === 0 &&
                 activeNotices.length === 0 && (
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-12 text-center">
-                    <div className="mx-auto w-16 h-16 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
-                      <IconCalendarTime className="w-8 h-8 text-zinc-400" />
+                  <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
+                    <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+                      <IconCalendarTime className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-2">
-                      No Notices to Manage
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                      All caught up
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      There are no pending, active, or upcoming notices at this time
+                      No pending, active, or upcoming notices right now.
                     </p>
                   </div>
                 )}
