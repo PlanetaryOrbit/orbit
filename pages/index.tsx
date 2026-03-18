@@ -107,52 +107,42 @@ const Home: NextPage = () => {
 		}
 	}
 	useEffect(() => {
-		const checkLogin = async () => {
-			let req
-			try {
-				req = await axios.get("/api/@me")
-			} catch (err: any) {
-				if (err.response?.data.error === "Workspace not setup") {
-					const currentPath = router.pathname
-					if (currentPath !== "/welcome") {
-						router.push("/welcome")
-					}
+	const checkLogin = async () => {
+		let req
+		try {
+			req = await axios.get("/api/@me")
+			setLogin({
+				...req.data.user,
+				workspaces: req.data.workspaces,
+			})
+		} catch (err: any) {
+			const status = err.response?.status
+			if (status === 400) {
+				if (router.pathname !== "/welcome") router.push("/welcome")
+			} else if (status === 401) {
+				router.push("/login")
+			} else {
+				console.error("Unexpected error:", err)
+			}
+		} finally {
+			setLoading(false)
+		}
+	}
 
-					setLoading(false)
-					return
-				}
-				if (err.response?.data.error === "Not logged in") {
-					router.push("/login")
-					setLoading(false)
-					return
-				}
-			} finally {
-				if (req?.data) {
-					setLogin({
-						...req.data.user,
-						workspaces: req.data.workspaces,
-					})
-				}
-				setLoading(false)
+	const checkOwnerStatus = async () => {
+		try {
+			const response = await axios.get("/api/auth/checkOwner")
+			if (response.data.success) setIsOwner(response.data.isOwner)
+		} catch (err: any) {
+			if (err.response?.status !== 401) {
+				console.error("Failed to check owner status:", err)
 			}
 		}
+	}
 
-		const checkOwnerStatus = async () => {
-			try {
-				const response = await axios.get("/api/auth/checkOwner")
-				if (response.data.success) {
-					setIsOwner(response.data.isOwner)
-				}
-			} catch (error: any) {
-				if (error.response?.status !== 401) {
-					console.error("Failed to check owner status:", error)
-				}
-			}
-		}
-
-		checkLogin()
-		checkOwnerStatus()
-	}, [])
+	checkLogin()
+	checkOwnerStatus()
+}, [])
 
 	const checkRoles = async () => {
 		const request = axios
