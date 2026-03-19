@@ -12,9 +12,6 @@ import { withSessionRoute } from "@/lib/withSession";
 import bcryptjs from "bcryptjs";
 import { setRegistry } from "@/utils/registryManager";
 import {
-  getRobloxUsername,
-  getRobloxThumbnail,
-  getRobloxDisplayName,
   getRobloxUserId,
 } from "@/utils/roblox";
 
@@ -24,14 +21,6 @@ type Data = {
   user?: User & { isOwner: boolean };
   debug?: any;
 };
-
-type requestData = {
-  groupid: number;
-  username: string;
-  password: string;
-  color: string;
-};
-
 // Safe password hashing function
 async function safeHashPassword(password: string): Promise<string> {
   try {
@@ -49,9 +38,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-
-  // Log raw body for debugging
-
 
   // Ensure body is parsed
   if (!req.body || typeof req.body !== "object") {
