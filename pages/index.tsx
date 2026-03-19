@@ -254,7 +254,7 @@ const Home: NextPage = () => {
 					<header className="mb-10 sm:mb-12">
 						<div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
 							<div>
-								<p className="text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-primary mb-2">
+								<p className="text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-white/60 mb-2">
 									Workspaces
 								</p>
 								<h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">
@@ -296,7 +296,7 @@ const Home: NextPage = () => {
 										onClick={() => setShowInstanceSettings(true)}
 										className={clsx(
 											"flex items-center justify-center w-10 h-10 rounded-xl border border-zinc-200 dark:border-zinc-700",
-											"bg-white dark:bg-zinc-800/90 text-zinc-600 dark:text-zinc-400 hover:text-primary hover:border-primary/30 transition-colors shadow-sm"
+											"bg-white dark:bg-zinc-800/90 text-zinc-600 dark:text-zinc-400 hover:text-primary hover:border-primary/30 shadow-sm"
 										)}
 										title="Instance settings"
 									>
@@ -413,7 +413,7 @@ const Home: NextPage = () => {
 					) : (
 						<div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm p-12 sm:p-16 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
 							<div className="w-20 h-20 rounded-2xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary mb-6">
-								<IconBuildingSkyscraper className="w-10 h-10" stroke={1.5} />
+								<IconBuildingSkyscraper className="w-10 h-10 dark:text-white" stroke={1.5} />
 							</div>
 							<h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">No workspaces yet</h3>
 							<p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm">
@@ -472,7 +472,7 @@ const Home: NextPage = () => {
 
 											<div className="mt-5">
 												<FormProvider {...methods}>
-													<form>
+													<form onSubmit={methods.handleSubmit(createWorkspace)}>
 														<Input
 															label="Group ID"
 															placeholder="e.g. 35724790"
