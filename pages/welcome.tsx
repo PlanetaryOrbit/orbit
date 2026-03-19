@@ -19,10 +19,27 @@ const Login: NextPage = () => {
 	const [selectedColor, setSelectedColor] = useState("bg-orbit");
 	const [login, setLogin] = useRecoilState(loginState);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isRegistered, setIsRegistered] = useState(false)
 	const methods = useForm<{ groupid: string }>();
 	const signupform = useForm<FormData>();
 	const { register, handleSubmit, formState: { errors } } = methods;
 	const [selectedSlide, setSelectedSlide] = useState(0);
+
+	useEffect(() => {
+		const checkLogin = async () => {
+			try {
+				await axios.get("/api/@me")
+				setIsRegistered(true)
+			} catch (err: any) {
+				const status = err.response?.status
+				if (status != 200) {
+					setIsRegistered(false)
+				}
+			}
+		}
+
+		checkLogin()
+	}, [])
 
 	async function createAccount() {
 		setIsLoading(true);
@@ -172,14 +189,20 @@ const Login: NextPage = () => {
 							</button>
 							<button
 								type="button"
-								onClick={handleSubmit(nextSlide)}
+								onClick={() => {
+									if (isRegistered) {
+										Router.push('/');
+									} else {
+										handleSubmit(nextSlide)();
+									}
+								}}
 								className="ml-auto bg-orbit py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
 							>
 								Continue
 							</button>
 						</div>
 					</div>
-					<div>
+					{!isRegistered && <div>
 						<p className="font-bold text-2xl dark:text-white" id="2">
 							Make your Orbit account
 						</p>
@@ -253,7 +276,7 @@ const Login: NextPage = () => {
 								{isLoading ? 'Creating...' : 'Continue'}
 							</button>
 						</div>
-					</div>
+					</div>}
 				</Slider>
 			</div>
 		</div>
