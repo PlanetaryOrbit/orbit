@@ -5,11 +5,11 @@ import { IconDatabaseExclamation } from "@tabler/icons-react";
 export default function DatabaseErrorPage() {
   const isDbConfigured = process.env.NEXT_PUBLIC_DATABASE_CHECK === "true";
 
-  /*useEffect(() => {
+  useEffect(() => {
     if (isDbConfigured) {
       Router.replace("/"); // Redirect back to homepage
     }
-  }, [isDbConfigured]);*/
+  }, [isDbConfigured]);
 
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-white dark:bg-zinc-900 text-center px-4">
