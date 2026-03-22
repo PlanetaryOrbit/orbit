@@ -14,13 +14,18 @@ type User = {
 	registered: boolean
 	birthdayDay?: number | null
 	birthdayMonth?: number | null
+	discordUser?: {
+		discordUserId: string
+		username: string
+		avatar: string | null
+	} | null
 }
 
 type Data = {
 	success: boolean
 	error?: string
 	user?: User
-	workspaces?: { 
+	workspaces?: {
 		groupId: number
 		groupThumbnail: string
 		groupName: string
@@ -49,7 +54,7 @@ export async function handler(
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
 	if (!await prisma.workspace.count()) return res.status(400).json({ success: false, error: 'Workspace not setup' })
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
-	
+
 	const userId = req.session.userid;
 	const cacheKey = `user_${userId}`;
 	const now = Date.now();
@@ -61,7 +66,7 @@ export async function handler(
 	const [dbuser, username, displayname] = await Promise.all([
 		prisma.user.findUnique({
 			where: { userid: userId },
-			include: { roles: true }
+			include: { roles: true, discordUser: true }
 		}),
 		getUsername(userId),
 		getDisplayName(userId)
@@ -76,8 +81,13 @@ export async function handler(
 		registered: dbuser?.registered || false,
 		birthdayDay: dbuser?.birthdayDay ?? null,
 		birthdayMonth: dbuser?.birthdayMonth ?? null,
+		discordUser: dbuser?.discordUser ? {
+			discordUserId: dbuser.discordUser.discordUserId.toString(),
+			username: dbuser.discordUser.username,
+			avatar: dbuser.discordUser.avatar,
+		} : null,
 	}
-	
+
 	let roles: any[] = [];
 	if (dbuser?.roles?.length) {
 		roles = await Promise.all(
@@ -86,7 +96,7 @@ export async function handler(
 					where: { groupId: role.workspaceGroupId },
 					select: { groupName: true, groupLogo: true, lastSynced: true }
 				});
-				
+
 				return {
 					groupId: role.workspaceGroupId,
 					groupThumbnail: workspace?.groupLogo,
@@ -95,10 +105,10 @@ export async function handler(
 			})
 		);
 	}
-	
+
 	const response = { success: true, user, workspaces: roles };
 	userCache.set(cacheKey, { data: response, timestamp: now });
-	
+
 	res.status(200).json(response);
 	setImmediate(async () => {
 		try {

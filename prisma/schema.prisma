@@ -60,6 +60,7 @@ model user {
   registered           Boolean?
   birthdayDay          Int?
   birthdayMonth        Int?
+  discordUser          DiscordUser?
   adjustmentsMade      ActivityAdjustment[]   @relation("AdjustmentActor")
   adjustmentsReceived  ActivityAdjustment[]   @relation("AdjustmentUser")
   activityHistory      ActivityHistory[]
@@ -86,6 +87,19 @@ model user {
   roleMembers          RoleMember[]
   policyAcknowledgments PolicyAcknowledgment[]
   createdPolicyLinks   PolicyShareableLink[]
+}
+
+model DiscordUser {
+  discordUserId BigInt    @id
+  robloxUserId  BigInt?   @unique
+  username      String
+  avatar        String?
+  accessToken   String?
+  refreshToken  String?
+  expireToken   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          user?     @relation(fields: [robloxUserId], references: [userid])
 }
 
 model userInfo {
