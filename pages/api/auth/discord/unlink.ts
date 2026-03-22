@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withSessionRoute } from '@/lib/withSession';
+import prisma from '@/utils/database';
 
 export default withSessionRoute(handler);
 
