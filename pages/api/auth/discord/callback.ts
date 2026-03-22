@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { withSessionRoute } from '@/lib/withSession';
 import axios from 'axios';
 import Package from '@/package.json'
+import prisma from '@/utils/database';
 
 type DiscordTokenResponse = {
 	access_token: string;
