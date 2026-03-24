@@ -132,12 +132,7 @@ const ForgotPassword: NextPage = () => {
 												})}
 											/>
 											<div className="flex gap-3">
-<Button onPress={() => { Router.push("/login"); }}
-													type="button"
-													classoverride="px-6 py-2.5 text-sm rounded-xl shadow-sm"
-												>
-													I remember my password now
-												</Button>
+<link href="/login" className="text-sm text-orbit hover:text-orbit/80 transition-colors">Remember password?</link>
 												<Button
 													type="submit"
 													classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
