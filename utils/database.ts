@@ -13,7 +13,7 @@ const pool = globalThis.pgPool || new Pool({
 
 if (process.env.NODE_ENV === 'development') globalThis.pgPool = pool;
 
-const adapter = new PrismaPg(pool as any);
+const adapter = new PrismaPg(pool);
 const prisma = globalThis.prisma || new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV === 'development') globalThis.prisma = prisma
