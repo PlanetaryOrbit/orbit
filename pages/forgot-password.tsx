@@ -132,7 +132,7 @@ const ForgotPassword: NextPage = () => {
 												})}
 											/>
 											<div className="flex gap-3">
-<link href="/login" className="text-sm text-orbit hover:text-orbit/80 transition-colors">Remember password?</link>
+<Link href="/login" className="text-sm text-orbit hover:text-orbit/80 transition-colors">Remember password?</Link>
 												<Button
 													type="submit"
 													classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
