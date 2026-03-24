@@ -131,7 +131,13 @@ const ForgotPassword: NextPage = () => {
 													required: "This field is required",
 												})}
 											/>
-											<div className="flex justify-end pt-1">
+											<div className="flex gap-3">
+<Button onPress={() => { Router.push("/login"); }}
+													type="button"
+													classoverride="px-6 py-2.5 text-sm rounded-xl shadow-sm"
+												>
+													I remember my password now
+												</Button>
 												<Button
 													type="submit"
 													classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
