@@ -2,6 +2,7 @@ import { NextPage } from "next";
 import React, { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import axios from "axios";
+import Link from "next/link";
 import Router from "next/router";
 import Input from "@/components/input";
 import Button from "@/components/button";
