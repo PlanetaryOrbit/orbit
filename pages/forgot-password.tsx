@@ -2,6 +2,7 @@ import { NextPage } from "next";
 import React, { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import axios from "axios";
+import Link from "next/link";
 import Router from "next/router";
 import Input from "@/components/input";
 import Button from "@/components/button";
@@ -131,7 +132,8 @@ const ForgotPassword: NextPage = () => {
 													required: "This field is required",
 												})}
 											/>
-											<div className="flex justify-end pt-1">
+											<div className="flex gap-3">
+<Link href="/login" className="text-sm text-orbit hover:text-orbit/80 transition-colors">Remember password?</Link>
 												<Button
 													type="submit"
 													classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
