@@ -40,6 +40,7 @@ const Color: FC<props> = (props) => {
     "Inactivity Notices": "notices",
     "Upcoming Birthdays": "birthdays",
     "New Team Members": "new_members",
+	"Music Quote": "music_quote"
   };
 
   const toggle = (name: string) => {

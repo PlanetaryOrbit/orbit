@@ -31,6 +31,7 @@ import {
 import clsx from "clsx"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { GetServerSideProps } from "next"
+import RandomMusic from "@/components/home/randommusic"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async ({ query }) => {
@@ -174,7 +175,11 @@ const Home: pageWithLayout = () => {
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
-
+		{Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("music_quote") && (
+          <div className="mb-8 z-0 relative">
+            <RandomMusic />
+          </div>
+        )}
         {loading ? (
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-12 text-center">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
