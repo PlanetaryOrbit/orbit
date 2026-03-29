@@ -55,13 +55,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
-  // mobileMoreOpen = mounted in DOM; mobileMoreVisible = CSS transition target
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
   const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Mount first, then trigger slide-up on next paint
   const openMoreSheet = () => {
     setMobileMoreOpen(true);
     requestAnimationFrame(() => {
@@ -69,7 +67,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     });
   };
 
-  // Slide down, then unmount after transition
   const closeMoreSheet = () => {
     setMobileMoreVisible(false);
     setTimeout(() => setMobileMoreOpen(false), 300);
@@ -165,7 +162,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
   return (
     <>
-      {/* ─── Desktop Sidebar ─────────────────────────────────────── */}
       <div
         className={clsx(
           "hidden lg:flex fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
@@ -471,7 +467,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="pt-3 pb-1" />
             <div className="flex items-center gap-3 px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
               <img
-                src={workspace.groupThumbnail || "/favicon-32x32.png"}
+                src={workspace.groupThumbnail || "/favicon.png"}
                 alt=""
                 className="w-8 h-8 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-800"
               />
@@ -480,7 +476,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Workspace</p>
               </div>
               <img
-                src={login?.thumbnail || "/placeholder.svg"}
+                src={login?.thumbnail || "/default-avatar.jpg"}
                 alt=""
                 className="w-8 h-8 rounded-xl object-cover"
               />
