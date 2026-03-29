@@ -140,7 +140,9 @@ export function HelpFloatingButton() {
   const { openChangelog, openCopyright } = useHelp();
 
   return (
-    <Menu as="div" className="fixed bottom-6 right-6 z-[99998]">
+    // On mobile: sit above the 64px bottom bar (bottom-16) + a little gap (mb-2 = 8px) → bottom-[4.5rem]
+    // On desktop: normal bottom-6
+    <Menu as="div" className="fixed bottom-[4.5rem] lg:bottom-6 right-6 z-[99998]">
       <Menu.Button
         className="flex items-center justify-center w-12 h-12 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-600/80 text-zinc-500 dark:text-zinc-400 hover:text-[color:rgb(var(--group-theme))] hover:border-[color:rgb(var(--group-theme)/0.3)] hover:bg-white dark:hover:bg-zinc-700/90 transition-all duration-200 shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.4)] focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-900"
         title="Help & resources"
