@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const ANNOUNCEMENT_KEY = "announcementDismissed_v2";
+const ANNOUNCEMENT_KEY = "announcementDismissed_v3";
 
 interface Section {
   title: string;
@@ -22,27 +22,37 @@ interface Announcement {
 
 const defaultAnnouncement: Announcement = {
   title: "Planetary",
-  subtitle: "Update: v2.1.8 is now live!",
+  subtitle: "Update: v2.1.10 is now live!",
   sections: [
     {
       title: "",
       content:
-        "We're keeping this going with a well needed update. Here are a few highlights from this week's work and community feedback.",
+        "This one's a big one. From a full platform redesign to brand new features — here's a peek at what dropped this week.",
     },
     {
-      title: "💼 Permissions",
+      title: "📱 Mobile bottom bar",
       content:
-        "We now have over 50 permissions available to assign to roles!",
+        "Navigation on mobile just got a whole lot better. A new bottom bar keeps everything within reach, right where your thumbs are.",
     },
     {
-      title: "🧹",
+      title: "🛠️ Staff views on mobile",
       content:
-        "Improved overall performance and stability across the board.",
+        "Staff dashboards are now properly optimized for mobile devices — no more squinting or awkward scrolling.",
+    },
+    {
+      title: "🎵 Music quotes",
+      content:
+        "We've introduced music quotes — a new way to share what you're listening to and spark conversations around it.",
+    },
+    {
+      title: "✨ Platform redesign",
+      content:
+        "Planetary has had a major glow-up. Cleaner, faster, and more intuitive across the board.",
     },
     {
       title: "",
       content:
-        "That's a wrap for this week — we'll see you soon for more updates from Team Planetary.",
+        "And honestly? There's a lot more we didn't mention — you'll just have to discover it yourself. 👀",
     },
   ],
   editorUsername: null,
@@ -160,7 +170,7 @@ export default function StickyNoteAnnouncement() {
   return (
     <div className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex items-start space-x-4 mb-6 relative">
       <img
-        src="/favicon-32x32.png"
+        src="/favicon.png"
         alt="Orbit"
         className="w-10 h-10 rounded-full bg-primary flex-shrink-0"
       />
@@ -321,12 +331,12 @@ export default function StickyNoteAnnouncement() {
                     </a>
                     . Submit suggestions in
                     <a
-                      href="https://discord.gg/planetary"
+                      href="https://suggestions.planetaryapp.us"
                       target="_blank"
                       rel="noreferrer noopener"
                       className="ml-1 text-primary underline"
                     >
-                      .gg/planetary
+                      our suggestions website
                     </a>
                     .
                   </p>

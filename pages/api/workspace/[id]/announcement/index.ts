@@ -59,33 +59,43 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const defaultAnnouncement = {
       title: "Planetary",
-      subtitle: "Update: v2.1.8 is now live!",
-      sections: [
-        {
-          title: "",
-          content:
-            "We're keeping this going with a well needed update. Here are a few highlights from this week's work and community feedback.",
-        },
-        {
-          title: "💼 Permissions",
-          content:
-            "We now have over 50 permissions available to assign to roles!",
-        },
-        {
-          title: "🧹",
-          content:
-            "Improved overall performance and stability across the board.",
-        },
-        {
-          title: "",
-          content:
-            "That's a wrap for this week — we'll see you soon for more updates from Team Planetary.",
-        },
-      ],
-      editorUsername: null,
-      editorPicture: null,
-      isDefault: true,
-    };
+      subtitle: "Update: v2.1.10 is now live!",
+  sections: [
+    {
+      title: "",
+      content:
+        "This one's a big one. From a full platform redesign to brand new features — here's a peek at what dropped this week.",
+    },
+    {
+      title: "📱 Mobile bottom bar",
+      content:
+        "Navigation on mobile just got a whole lot better. A new bottom bar keeps everything within reach, right where your thumbs are.",
+    },
+    {
+      title: "🛠️ Staff views on mobile",
+      content:
+        "Staff dashboards are now properly optimized for mobile devices — no more squinting or awkward scrolling.",
+    },
+    {
+      title: "🎵 Music quotes",
+      content:
+        "We've introduced music quotes — a new way to share what you're listening to and spark conversations around it.",
+    },
+    {
+      title: "✨ Platform redesign",
+      content:
+        "Planetary has had a major glow-up. Cleaner, faster, and more intuitive across the board.",
+    },
+    {
+      title: "",
+      content:
+        "And honestly? There's a lot more we didn't mention — you'll just have to discover it yourself. 👀",
+    },
+  ],
+  editorUsername: null,
+  editorPicture: null,
+  isDefault: true,
+};
 
     return res.status(200).json({
       success: true,
