@@ -39,7 +39,7 @@ local Configuration = {
 	groupId = 0, -- The group ID to perform activity tracking for
 	minTrackedRank = 0,	 -- The minimum rank ID to perform activity tracking for (This value is retrieved from your Orbit instance on game launch)
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
-}}
+}
 
 if Configuration.privateEnabled == false then
 	if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
