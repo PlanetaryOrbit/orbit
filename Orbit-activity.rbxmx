@@ -2,18 +2,11 @@
 	<Meta name="ExplicitAutoJoints">true</Meta>
 	<External>null</External>
 	<External>nil</External>
-	<Item class="Script" referent="RBXCECA62ACDA2D4192A6C8F8D8F115829C">
+	<Item class="Script" referent="RBX4790A0FCAD974A218919CE6CAA5FCFF7">
 		<Properties>
-			<BinaryString name="AttributesSerialize"></BinaryString>
-			<bool name="Disabled">false</bool>
-			<Content name="LinkedSource"><null></null></Content>
-			<string name="Name">OrbitActivity</string>
-			<token name="RunContext">0</token>
-			<string name="ScriptGuid">{57280D02-3DDB-4992-BA62-09F779557E92}</string>
-			<ProtectedString name="Source"><![CDATA[
-
--- Orbit Activity Tracking Module
+			<ProtectedString name="Source"><![CDATA[-- Orbit Activity Tracking Module
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local HttpQueue = require(script.Components.HttpQueue)
@@ -25,6 +18,8 @@ TovyEvent.Name = "Activity"
 local TovyClient = script:WaitForChild("Components"):WaitForChild("OrbitClient")
 TovyClient.Event.Value = TovyEvent
 local Close = Instance.new("BindableEvent")
+
+local OrbitData = DataStoreService:GetDataStore("OrbitActivity")
 
 -- Set up tables
 local messageTable = {}
@@ -44,7 +39,7 @@ local Configuration = {
 	groupId = 0, -- The group ID to perform activity tracking for
 	minTrackedRank = 0,	 -- The minimum rank ID to perform activity tracking for (This value is retrieved from your Orbit instance on game launch)
 	minutesTillAFK = 2, -- How long a player can last without moving before being marked AFK
-}
+}}
 
 if Configuration.privateEnabled == false then
 	if game:GetService("RunService"):IsStudio() or game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
@@ -64,7 +59,33 @@ local function isUserTracked(Player)
 	return false
 end
 
+local function isSessionActive(plr: Player)
+	local success, result = pcall(function()
+		return HttpService:RequestAsync({
+			Url = Configuration.url .. "/api/activity/session?id="..plr.UserId,
+			Method = "GET",
+			Headers = {
+				['authorization'] = Configuration.auth
+			}
+		})
+	end)
+	
+	if success then
+		local response = HttpService:JSONDecode(result.Body)
+		if response.success then
+			return true
+		else
+			return false
+		end
+	end
+end
+
 local function CreateSession(Player)
+	if isSessionActive(Player) then
+		warn("Orbit: Session already active for " .. Player.Name .. ", skipping creation.")
+		return
+	end
+
 	local request = HttpQueue.HttpRequest.new(
 		Configuration.url .. "/api/activity/session?type=create",
 		"POST",
@@ -75,9 +96,8 @@ local function CreateSession(Player)
 			['authorization'] = Configuration.auth
 		}
 	);
-	
-	local result = request:Send()
 
+	local result = request:Send()
 end
 
 local function EndSession(Player)
@@ -140,12 +160,12 @@ local function MovementDetection(Player)
 	
 end
 
-local function InitiateTovy(Player)
+local function InitiateTovy(Player:Player)
 	rankTable[Player.UserId] = {
 		Rank = Player:GetRankInGroupAsync(Configuration.groupId)
 	}
 	messageTable[Player.UserId] = 0
-	if isUserTracked(Player) then
+	if isUserTracked(Player) then 
 		local TovyAFKTimer = Instance.new("NumberValue", Player)
 		TovyAFKTimer.Name = "Orbit AFK Timer"
 		TovyClient:Clone().Parent = Player:WaitForChild("PlayerGui")
@@ -230,24 +250,42 @@ while true do
 			table.remove(afkTable, index)
 		end
 	end
-	task.wait(60)
+
+	for _, Player in pairs(Players:GetPlayers()) do
+		if isUserTracked(Player) and not isSessionActive(Player) then
+			warn("Orbit: No active session found for " .. Player.Name .. ", recreating.")
+			messageTable[Player.UserId] = 0
+			local t = Player["Orbit AFK Timer"]
+			if t then t.Value = 0 end
+			CreateSession(Player)
+		end
+	end
+
+	task.wait(30)
 end]]></ProtectedString>
+			<bool name="Disabled">false</bool>
+			<Content name="LinkedSource"><null></null></Content>
+			<token name="RunContext">0</token>
+			<string name="ScriptGuid">{81740BB3-280D-4363-BA2A-0CE80C16A785}</string>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+			<bool name="DefinesCapabilities">false</bool>
+			<string name="Name">OrbitActivity</string>
 			<int64 name="SourceAssetId">-1</int64>
 			<BinaryString name="Tags"></BinaryString>
 		</Properties>
-		<Item class="Folder" referent="RBX238D356AB25F4F25852A0C920DE85681">
+		<Item class="Folder" referent="RBX80BD931FA5E94CBF9B16195F271679C7">
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<bool name="DefinesCapabilities">false</bool>
 				<string name="Name">Components</string>
 				<int64 name="SourceAssetId">-1</int64>
 				<BinaryString name="Tags"></BinaryString>
 			</Properties>
-			<Item class="ModuleScript" referent="RBXD471738D591B46AB9AB6226958E77B5C">
+			<Item class="ModuleScript" referent="RBXDCCA59CAEB344008AFAB508DB1E7D684">
 				<Properties>
-					<BinaryString name="AttributesSerialize"></BinaryString>
 					<Content name="LinkedSource"><null></null></Content>
-					<string name="Name">HttpQueue</string>
-					<string name="ScriptGuid">{2BB9B888-6C73-4B84-A683-74D862D82A62}</string>
 					<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/init.lua
     Description: Front-end for the http-queue library
@@ -267,15 +305,17 @@ end
 
 return exports
 ]]></ProtectedString>
+					<string name="ScriptGuid">{FE2A771C-DD2C-45EB-B0B2-BA2830DA58B6}</string>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<string name="Name">HttpQueue</string>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 				</Properties>
-				<Item class="ModuleScript" referent="RBX7E0BBDEB21ED4C68B2E8427578E00916">
+				<Item class="ModuleScript" referent="RBXB86609D1B78644218828622B180A9A07">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">DataUtils</string>
-						<string name="ScriptGuid">{95267CF8-5E6D-4D0B-AA31-743CF67888AA}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/DataUtils.lua
     Description: Data structures and basic synchronization utilities
@@ -316,16 +356,18 @@ end
 
 return dataUtils
 ]]></ProtectedString>
+						<string name="ScriptGuid">{023794A1-6658-4BCB-92A9-5B9086A5DD23}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">DataUtils</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX070B0F0303354FDEA2282EB34F1385D4">
+				<Item class="ModuleScript" referent="RBX9E8E9481BCDE49BBA49B6D448B2E0666">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">HttpQueue</string>
-						<string name="ScriptGuid">{7E2B1575-0241-440F-8611-F7080AA6D8F2}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/HttpQueue.lua
     Description: Creates a self-regulating queue for rate-limited services
@@ -564,16 +606,18 @@ return setmetatable(HttpQueue, {
     end
 })
 ]]></ProtectedString>
+						<string name="ScriptGuid">{9C00AA1B-2A14-48E5-998E-9BE6EC807541}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">HttpQueue</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX505E14CEEF064E10A46CA8741F4EE1EB">
+				<Item class="ModuleScript" referent="RBXCF436FF276D54753AF0B250CE2E790FD">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">HttpRequest</string>
-						<string name="ScriptGuid">{5B4551CE-AFE0-4077-82F8-84C15E5C3909}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/HttpRequest.lua
     Description: Wrapper for an HttpService request
@@ -647,10 +691,10 @@ function HttpRequest.new(Url, Method, Body, Query, Headers)
                 Url = endpoint,
                 Method = Method,
                 Headers = Headers,
-                Body = (Method == "GET" or Method == "HEAD") and nil or Body
+                Body = if (Method == "GET" or Method == "HEAD") then nil else Body
             })
 		end)
-
+		
         return newHttpResponse(success, result)
     end
 
@@ -685,16 +729,18 @@ return setmetatable(HttpRequest, {
     end
 })
 ]]></ProtectedString>
+						<string name="ScriptGuid">{FB8696F6-C420-4A0B-A3F1-67434876F8E3}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">HttpRequest</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXB6A56CF0E979456D95C53662EA450E1C">
+				<Item class="ModuleScript" referent="RBX9D61B7176A144B6486BD15855D5BCE3B">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">HttpRequestPriority</string>
-						<string name="ScriptGuid">{C9C86114-C43E-4081-AE12-A924A8204282}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/HttpRequestPriority.lua
     Description: Enum to determine how a request should be queued.
@@ -722,16 +768,18 @@ return setmetatable({
     end
 })
 ]]></ProtectedString>
+						<string name="ScriptGuid">{D32001E5-379D-461F-8EE8-561C788CD8A0}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">HttpRequestPriority</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX3DE7A579686B4A2AA64706359FCBEAEE">
+				<Item class="ModuleScript" referent="RBX91CD6278CA254044B76CE51A3C5A11E4">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">HttpResponse</string>
-						<string name="ScriptGuid">{6C392898-FC92-4814-9E19-644205D11DC1}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/HttpResponse.lua
     Description: Private wrapper for an HttpService response
@@ -759,16 +807,18 @@ end
 
 return newHttpResponse
 ]]></ProtectedString>
+						<string name="ScriptGuid">{6852466C-23CA-4C7A-B4A1-D361FCD8FBA7}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">HttpResponse</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX77245AE0C27B4592B46B384745C8C143">
+				<Item class="ModuleScript" referent="RBXF07CF6DCE2A44AB497D76256D2D6ADB0">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">TypeGuards</string>
-						<string name="ScriptGuid">{382423F1-5F84-44A8-A2DF-13BD679896B5}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: https-queue/TypeGuards.lua
     Description: Type guards to validate http-queue interfaces
@@ -816,16 +866,18 @@ end)
 
 return guards
 ]]></ProtectedString>
+						<string name="ScriptGuid">{1D92F075-DDEE-4908-82EB-2D4C5B267F5F}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">TypeGuards</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXBE0CB7CD96284A88BDECE31F32EB25C0">
+				<Item class="ModuleScript" referent="RBX250EF094C7A14B57B60B14804C477D9F">
 					<Properties>
-						<BinaryString name="AttributesSerialize"></BinaryString>
 						<Content name="LinkedSource"><null></null></Content>
-						<string name="Name">DependencyLoader</string>
-						<string name="ScriptGuid">{EF6C05AA-C118-4C7A-BF02-071824745A03}</string>
 						<ProtectedString name="Source"><![CDATA[--[[
     File: http-queue/DependencyLoader.lua
     Description: Loads runtime dependencies
@@ -856,15 +908,17 @@ dependencies.HttpService = game:GetService("HttpService")
 
 return dependencies
 ]]></ProtectedString>
+						<string name="ScriptGuid">{79511612-AC4E-4893-BDD8-E1AC2BCA9E0D}</string>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<string name="Name">DependencyLoader</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
-					<Item class="ModuleScript" referent="RBX428159ECAF6A4FE0BD2D69AA07030F52">
+					<Item class="ModuleScript" referent="RBXDB3F900BD5444C6C832230AAEE43575E">
 						<Properties>
-							<BinaryString name="AttributesSerialize"></BinaryString>
 							<Content name="LinkedSource"><null></null></Content>
-							<string name="Name">Promise</string>
-							<string name="ScriptGuid">{FEAE220C-41AE-42E8-A99E-7B6B2C89983A}</string>
 							<ProtectedString name="Source"><![CDATA[--[[
 	An implementation of Promises similar to Promise/A+.
 ]]
@@ -2268,16 +2322,18 @@ end
 
 return Promise
 ]]></ProtectedString>
+							<string name="ScriptGuid">{B5558958-ED24-4D82-A4C2-8823C8DEDFA4}</string>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+							<bool name="DefinesCapabilities">false</bool>
+							<string name="Name">Promise</string>
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"></BinaryString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX27428138EB6F4C2C887A4D3B71DB26B4">
+					<Item class="ModuleScript" referent="RBXDABCD0DC9A9C489598B40929B255108D">
 						<Properties>
-							<BinaryString name="AttributesSerialize"></BinaryString>
 							<Content name="LinkedSource"><null></null></Content>
-							<string name="Name">t</string>
-							<string name="ScriptGuid">{6B071370-EF1E-4257-8581-61EC1AE6E181}</string>
 							<ProtectedString name="Source"><![CDATA[-- t: a runtime typechecker for Roblox
 
 -- regular lua compatibility
@@ -3463,20 +3519,19 @@ end
 
 return t
 ]]></ProtectedString>
+							<string name="ScriptGuid">{7425151D-C0F2-43DF-BB72-48FFEAA57BA2}</string>
+							<BinaryString name="AttributesSerialize"></BinaryString>
+							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+							<bool name="DefinesCapabilities">false</bool>
+							<string name="Name">t</string>
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"></BinaryString>
 						</Properties>
 					</Item>
 				</Item>
 			</Item>
-			<Item class="LocalScript" referent="RBXC95484D11F404BB68A5C4232E4B79F75">
+			<Item class="LocalScript" referent="RBXED0B3BCA85E0452CB7D726650FE3CF9E">
 				<Properties>
-					<BinaryString name="AttributesSerialize"></BinaryString>
-					<bool name="Disabled">false</bool>
-					<Content name="LinkedSource"><null></null></Content>
-					<string name="Name">OrbitClient</string>
-					<token name="RunContext">0</token>
-					<string name="ScriptGuid">{EC2C7152-6EB3-4E25-8EA5-8767FF7B9CC6}</string>
 					<ProtectedString name="Source"><![CDATA[--[[
 
 █▀▀█ █░░ █▀▀█ █▀▀ █▀▀█ █▀▀▄ █░░█ █▀▀ █▀▀█ █▀▀▄ █▀▀ 
@@ -3499,25 +3554,32 @@ end)
 UserInputService.WindowFocused:Connect(function()
 	Event:FireServer(false)
 end)]]></ProtectedString>
+					<bool name="Disabled">false</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<token name="RunContext">0</token>
+					<string name="ScriptGuid">{BC7BD4DB-5FE1-4C9C-B8A4-1CE5E63FCAD8}</string>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<string name="Name">OrbitClient</string>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 				</Properties>
-				<Item class="ObjectValue" referent="RBX3365C8FAE5364EF8B930E72D7E82F813">
+				<Item class="ObjectValue" referent="RBXF3838ED6BBB24AC6A3956361270AABA3">
 					<Properties>
+						<Ref name="Value">null</Ref>
 						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">Event</string>
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
-						<Ref name="Value">null</Ref>
 					</Properties>
 				</Item>
 			</Item>
-			<Item class="ModuleScript" referent="RBXA566235B9FAA464A9D641F8F5F7BF6BF">
+			<Item class="ModuleScript" referent="RBXB1FE8F108CA04D24B4BB50C0DC92CF30">
 				<Properties>
-					<BinaryString name="AttributesSerialize"></BinaryString>
 					<Content name="LinkedSource"><null></null></Content>
-					<string name="Name">FastWait</string>
-					<string name="ScriptGuid">{5B258459-AE3A-4831-9064-352668083AF2}</string>
 					<ProtectedString name="Source"><![CDATA[local RunService = game:GetService("RunService")
 local threads = {}
 
@@ -3559,6 +3621,11 @@ local function fastWait(t)
 end
 
 return fastWait]]></ProtectedString>
+					<string name="ScriptGuid">{84CDACAC-F18A-46DA-B9DF-C1258CA2406A}</string>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<string name="Name">FastWait</string>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 				</Properties>
