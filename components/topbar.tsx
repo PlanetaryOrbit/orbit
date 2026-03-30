@@ -84,7 +84,6 @@ const Topbar: NextPage = () => {
 								className="h-8 w-32"
 								alt="Planetary logo"
 							/>
-							<ThemeToggle />
 						</div>
 
 						<Menu as="div" className="relative">

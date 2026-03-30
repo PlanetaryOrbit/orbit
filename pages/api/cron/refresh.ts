@@ -27,7 +27,6 @@ export default async function handler(
 		return res.status(401).json({ error: "Unauthorized" });
 	}
 
-	// Resolve Discord OAuth credentials
 	let clientId: string | undefined = process.env.DISCORD_APPLICATION_ID;
 	let clientSecret: string | undefined = process.env.DISCORD_SECRET;
 
@@ -54,7 +53,6 @@ export default async function handler(
 		return res.status(500).json({ error: "Discord OAuth credentials not configured" });
 	}
 
-	// Find all tokens expiring within the next 24 hours that have a refresh token
 	const in24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
 	const expiring = await prisma.discordUser.findMany({

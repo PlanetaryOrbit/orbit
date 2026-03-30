@@ -869,20 +869,22 @@ const Home: pageWithLayout<pageProps> = (props) => {
                               isSelected
                                 ? "bg-primary text-white border-primary shadow-lg"
                                 : isToday
-                                ? "bg-zinc-800 text-white border-zinc-700"
+                                ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-white border-zinc-300 dark:border-zinc-700"
                                 : "bg-white dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800/40"
                             }`}
                           >
-                            <span className="text-[10px] uppercase tracking-wide opacity-80">
+                            <span className={`text-[10px] uppercase tracking-wide opacity-80 ${isSelected ? "text-white" : isToday ? "text-zinc-900 dark:text-white" : "text-zinc-900 dark:text-zinc-200"}`}>
                               {dayNamesShort[index]}
                             </span>
                             <span
                               className={`mt-1 text-xs sm:text-sm font-semibold ${
-                                isSelected
-                                  ? "text-white"
-                                  : "text-zinc-900 dark:text-zinc-200"
-                              }`}
-                            >
+                              isSelected
+                                ? "text-white"
+                                : isToday
+                                ? "text-zinc-900 dark:text-white"
+                                : "text-zinc-900 dark:text-zinc-200"
+                            }`}
+                              >
                               {date.getDate()}
                             </span>
                           </button>
