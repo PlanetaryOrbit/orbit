@@ -3,7 +3,8 @@
   "version": "2.1.10beta2",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev:local": "next dev",
+	"dev:https": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
