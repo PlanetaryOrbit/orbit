@@ -6,7 +6,7 @@
     "dev": "next dev",
 	"dev:https": "next dev --experimental-https",
     "build": "next build",
-    "start": "next start --",
+    "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate"
   },
