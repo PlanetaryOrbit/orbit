@@ -44,22 +44,21 @@ const workspace: LayoutProps = ({ children }) => {
 	}, [workspace]);
 
 	return (
-		<div className="h-screen bg-zinc-50 dark:bg-zinc-900 overflow-hidden">
+		<div className="h-screen bg-zinc-50 dark:bg-zinc-900">
 			<Head>
 				<title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : "Loading..."}</title>
 				<link rel="icon" href={`${workspace.groupThumbnail}`} />
 			</Head>
 
 			<HelpProvider>
-				<div className="flex h-screen">
+				<div className="flex h-screen overflow-hidden">
 					<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
 					<main
 						className={clsx(
 							"flex-1 transition-all duration-300 overflow-y-auto",
-							"lg:ml-0",
 							isCollapsed ? "lg:ml-[72px]" : "lg:ml-56",
-							"pb-16 lg:pb-0"
+							"pb-20 lg:pb-0"
 						)}
 					>
 						<div className="relative z-10">
