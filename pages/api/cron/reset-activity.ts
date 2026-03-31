@@ -78,8 +78,8 @@ export default async function handler(
 
         if (todayReset) {
           continue;
-        }
-
+		}
+		
         // Find last auto-reset (resetById not set)
         const allResets = await prisma.activityReset.findMany({
           where: { 

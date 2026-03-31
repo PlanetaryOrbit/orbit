@@ -483,7 +483,7 @@ const Activity: FC<props> = (props) => {
                     />
                   </Listbox.Button>
                   <Listbox.Options className="absolute left-0 z-20 mt-2 w-full origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-                    {["monday", "sunday"].map((day) => (
+                    {["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => (
                       <Listbox.Option
                         className={({ active }) =>
                           `${
