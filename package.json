@@ -16,7 +16,7 @@
     "@inovua/reactdatagrid-community": "^5.8.0",
     "@intercom/messenger-js-sdk": "^0.0.14",
     "@popperjs/core": "^2.11.8",
-    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/adapter-pg": "^7.5.0",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@tabler/icons": "^2.47.0",
     "@tabler/icons-react": "^3.34.0",
