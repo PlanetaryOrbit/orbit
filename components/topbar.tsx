@@ -11,10 +11,12 @@ import ThemeToggle from "./ThemeToggle";
 import { themeState } from "@/state/theme";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
+import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 
 const Topbar: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const [theme, setTheme] = useRecoilState(themeState);
+	const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
 	const [showSettings, setShowSettings] = useState(false);
 	const router = useRouter();
 	const errorToastShown = useRef(false)
@@ -209,40 +211,40 @@ const Topbar: NextPage = () => {
 										<p className="text-xs text-zinc-500 dark:text-zinc-400">@{login?.username}</p>
 									</div>
 								</div>
-								{login.discordUser ? (
-									<div className="flex items-center gap-3 p-4 rounded-xl border border-zinc-200 dark:border-zinc-600">
-										<img
-											src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
-											alt={login.discordUser.username}
-											className="h-10 w-10 rounded-full bg-zinc-200 dark:bg-zinc-600 shrink-0"
-										/>
-										<div className="flex-1 min-w-0">
-											<p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
-												{login.discordUser.username}
-											</p>
-											<p className="text-xs text-zinc-500 dark:text-zinc-400">Discord linked</p>
-										</div>
-										<button
-											type="button"
-											onClick={unlink}
-											className="text-xs text-red-500 hover:text-red-600 transition-colors"
-										>
-											Unlink
-										</button>
-									</div>
-								) : (
-									<button
-										type="button"
-										onClick={() => (window.location.href = "/api/auth/discord/start")}
-										className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-									>
-										<img
-											src="/discord.svg"
-											alt="Discord"
-											className="w-5 h-5 mr-2 dark:invert-0 invert"
-										/>
-										Link your Discord account
-									</button>
+								{isDiscordOAuth && (
+									<>
+										{login.discordUser ? (
+											<div className="flex items-center gap-3 p-4 rounded-xl border border-zinc-200 dark:border-zinc-600">
+												<img
+													src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
+													alt={login.discordUser.username}
+													className="h-10 w-10 rounded-full bg-zinc-200 dark:bg-zinc-600 shrink-0"
+												/>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+														{login.discordUser.username}
+													</p>
+													<p className="text-xs text-zinc-500 dark:text-zinc-400">Discord linked</p>
+												</div>
+												<button
+													type="button"
+													onClick={unlink}
+													className="text-xs text-red-500 hover:text-red-600 transition-colors"
+												>
+													Unlink
+												</button>
+											</div>
+										) : (
+											<button
+												type="button"
+												onClick={() => (window.location.href = "/api/auth/discord/start")}
+												className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+											>
+												<img src="/discord.svg" alt="Discord" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+												Link your Discord account
+											</button>
+										)}
+									</>
 								)}
 							</div>
 						</Dialog.Panel>
