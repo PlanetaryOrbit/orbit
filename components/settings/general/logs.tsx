@@ -27,7 +27,7 @@ const ACTION_LABELS: Record<string, string> = {
   'wall.post.create': 'Wall Create',
 };
 
-const PERMISSION_LABELS: Record<string, string> = {
+export const PERMISSION_LABELS: Record<string, string> = {
   'view_wall': 'View wall',
   'post_on_wall': 'Post on wall',
   'delete_wall_posts': 'Delete wall posts',
