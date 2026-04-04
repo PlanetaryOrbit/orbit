@@ -1,105 +1,87 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-html,
-body {
-  padding: 0;
+html, body {
+  padding: 0; 
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
-html.dark,
-html.dark body {
-  background-color: #18181B;
+html.dark, html.dark body { 
+  background-color: #18181B; 
 }
 
-html.dark {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
-
-.dark [class*="transition"] {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-/*
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-}*/
+a { color: inherit; text-decoration: none; }
+* { box-sizing: border-box; }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer components { 
-	.cardBtn {
-		@apply px-5 py-4 bg-white rounded-md mt-3 w-full outline-1 cursor-pointer outline-gray-300 outline text-left hover:bg-zinc-200 focus-visible:bg-zinc-200 transition;
-	}
-
-	.pagePadding {
-		@apply 2xl:px-48 lg:px-32 md:px-20 sm:px-14 px-8 py-20;
-	}
-
+	.cardBtn { 
+    @apply px-5 py-4 bg-white rounded-md mt-3 w-full outline-1 cursor-pointer outline-gray-300 outline text-left hover:bg-zinc-200 transition; 
+  }
+	.pagePadding { 
+    @apply 2xl:px-48 lg:px-32 md:px-20 sm:px-14 px-8 py-20; 
+  }
 }
 
 @layer utilities {
-	.scrollbar-hide {
-		-ms-overflow-style: none;
-		scrollbar-width: none;
-	}
-	.scrollbar-hide::-webkit-scrollbar {
-		display: none;
-	}
+	.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+	.scrollbar-hide::-webkit-scrollbar { display: none; }
 }
+
 .dark input[type="date"]::-webkit-calendar-picker-indicator,
 .dark input[type="time"]::-webkit-calendar-picker-indicator {
 	filter: invert(1) brightness(1.5) !important;
 }
-.dark input::-webkit-clear-button,
-.dark input::-webkit-inner-spin-button {
-	filter: invert(1) brightness(1.5) !important;
-}
-.dark .force-light-icon {
-	color: #fff !important;
-}
 
-ul[data-type="taskList"] {
-	list-style: none;
-	padding: 0;
-  
-	p {
-	  margin: 0;
-	}
-  
-	li {
-	  display: flex;
-  
-	  > label {
-		flex: 0 0 auto;
-		margin-right: 0.5rem;
-		user-select: none;
-	  }
-  
-	  > div {
-		flex: 1 1 auto;
-	  }
-	}
+@media all and (display-mode: standalone) {
+  aside, 
+  .lg\:flex, 
+  .w-64, 
+  [class*="Sidebar"] {
+    display: none !important;
+    width: 0 !important;
   }
+
+  main, 
+  .flex-1, 
+  [class*="layout-wrapper"], 
+  [class*="main-content"] {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  nav.fixed.bottom-0 {
+    padding-bottom: env(safe-area-inset-bottom, 32px) !important;
+    height: calc(85px + env(safe-area-inset-bottom, 0px)) !important;
+    display: flex !important;
+    align-items: flex-start !important; 
+    padding-top: 14px !important;
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.75) !important;
+    z-index: 99999;
+  }
+
+  .dark nav.fixed.bottom-0 {
+    background-color: rgba(9, 9, 11, 0.85) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom, 20px)) !important;
+  }
+
+  .pagePadding {
+    padding-top: calc(1rem + env(safe-area-inset-top, 20px)) !important;
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+}

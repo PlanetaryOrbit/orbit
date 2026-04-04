@@ -4,6 +4,16 @@ export default function Document() {
   return (
     <Html lang="en" className="dark">
       <Head>
+        {/* PWA / iOS Standalone Mode Tags */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Orbit" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        
+        {/* Favicon / Touch Icon (Crucial for iOS to treat it as an app) */}
+        <link rel="apple-touch-icon" href="/favicon.png" />
+
         <meta
           httpEquiv="Content-Security-Policy"
           content={
@@ -20,11 +30,8 @@ export default function Document() {
             "base-uri 'self'; form-action 'self';"
           }
         />
-        {/* Prevent MIME type sniffing */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        {/* Additional XSS protection */}
         <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
-        {/* Control referrer information */}
         <meta
           httpEquiv="Referrer-Policy"
           content="strict-origin-when-cross-origin"

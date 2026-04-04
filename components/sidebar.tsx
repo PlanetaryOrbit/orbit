@@ -217,6 +217,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     setTimeout(() => setMobileMoreOpen(false), 300);
   };
 
+  // Detect PWA Mode
   useEffect(() => {
     if (isMobileMenuOpen) document.body.classList.add("overflow-hidden");
     else document.body.classList.remove("overflow-hidden");
