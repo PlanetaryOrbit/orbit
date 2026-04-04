@@ -9,6 +9,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Fix for PWA elastic scrolling */
+  overflow-x: hidden;
 }
 
 html.dark,
@@ -58,6 +60,7 @@ a {
 		display: none;
 	}
 }
+
 .dark input[type="date"]::-webkit-calendar-picker-indicator,
 .dark input[type="time"]::-webkit-calendar-picker-indicator {
 	filter: invert(1) brightness(1.5) !important;
@@ -81,27 +84,42 @@ ul[data-type="taskList"] {
 	}
 }
 
-/* --- Final PWA UI Safety Fixes --- */
+/* --- THE STANDALONE FIXES --- */
+/* This targets the PWA specifically to fix the layout shift */
 @media all and (display-mode: standalone) {
-  /* Ensure the sidebar never renders if the JS check fails */
-  aside, .lg\:flex, .w-64, [class*="Sidebar"] {
+  /* 1. Nuke the sidebar space */
+  aside, 
+  .lg\:flex, 
+  .w-64, 
+  .md\:block,
+  [class*="sidebar"] {
     display: none !important;
     width: 0 !important;
+    visibility: hidden !important;
   }
 
-  /* Force main content to respect full width */
-  main, .main-content {
+  /* 2. Reset the main content margins (The "Shove" Fix) */
+  main, 
+  .flex-1, 
+  [class*="layout"], 
+  [class*="main-content"] {
     margin-left: 0 !important;
     padding-left: 0 !important;
+    margin-right: 0 !important;
     width: 100% !important;
+    max-width: 100vw !important;
   }
 
-  /* Ensure bottom navigation is pinned to the floor */
-  nav, .mobile-nav, .lg\:hidden {
-    display: flex !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    z-index: 9999;
+  /* 3. Center the inner page padding */
+  .pagePadding {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+    padding-top: 2rem !important;
+  }
+
+  /* 4. Fix Bottom Nav visibility on iPhone with Home Bar */
+  nav, .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    height: calc(64px + env(safe-area-inset-bottom, 20px)) !important;
   }
 }
