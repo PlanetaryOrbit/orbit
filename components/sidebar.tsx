@@ -57,7 +57,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false); // PWA Check
+  const [isStandalone, setIsStandalone] = useState(false); // Added for PWA check
   const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -396,8 +396,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       </div>
 
       <nav className={clsx(
-        "fixed bottom-0 inset-x-0 z-[99990] bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/50 dark:border-zinc-800/80 safe-area-bottom",
-        isStandalone ? "flex" : "lg:hidden" // Always flex in PWA mode, else hidden on desktop
+        "fixed bottom-0 inset-x-0 z-[99990] bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/50 dark:border-zinc-800/80",
+        "pb-[env(safe-area-inset-bottom,24px)]", // Corrected padding for home bar
+        isStandalone ? "flex" : "lg:hidden"
       )}>
         <div className="flex items-stretch h-16 w-full">
           {bottomBarPages.map((page) => {
@@ -473,6 +474,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               "lg:hidden fixed bottom-0 inset-x-0 z-[99992]",
               "bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl",
               "transition-transform duration-300 ease-out",
+              "pb-[env(safe-area-inset-bottom,20px)]", // Added padding to bottom sheet too
               mobileMoreVisible ? "translate-y-0" : "translate-y-full"
             )}
           >
