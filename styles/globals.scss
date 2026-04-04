@@ -34,16 +34,6 @@ a {
 * {
   box-sizing: border-box;
 }
-/*
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
-}*/
 
 @tailwind base;
 @tailwind components;
@@ -57,7 +47,6 @@ a {
 	.pagePadding {
 		@apply 2xl:px-48 lg:px-32 md:px-20 sm:px-14 px-8 py-20;
 	}
-
 }
 
 @layer utilities {
@@ -84,22 +73,35 @@ a {
 ul[data-type="taskList"] {
 	list-style: none;
 	padding: 0;
-  
-	p {
-	  margin: 0;
-	}
-  
+	p { margin: 0; }
 	li {
 	  display: flex;
-  
-	  > label {
-		flex: 0 0 auto;
-		margin-right: 0.5rem;
-		user-select: none;
-	  }
-  
-	  > div {
-		flex: 1 1 auto;
-	  }
+	  > label { flex: 0 0 auto; margin-right: 0.5rem; user-select: none; }
+	  > div { flex: 1 1 auto; }
 	}
+}
+
+/* --- Final PWA UI Safety Fixes --- */
+@media all and (display-mode: standalone) {
+  /* Ensure the sidebar never renders if the JS check fails */
+  aside, .lg\:flex, .w-64, [class*="Sidebar"] {
+    display: none !important;
+    width: 0 !important;
   }
+
+  /* Force main content to respect full width */
+  main, .main-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Ensure bottom navigation is pinned to the floor */
+  nav, .mobile-nav, .lg\:hidden {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    z-index: 9999;
+  }
+}
