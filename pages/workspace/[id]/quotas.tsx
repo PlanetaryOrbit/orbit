@@ -23,6 +23,7 @@ import {
   IconX,
   IconTrophy,
   IconBriefcase,
+  IconPencil,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -149,7 +150,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    // Get last activity reset to determine the date range
     const lastReset = await prisma.activityReset.findFirst({
       where: {
         workspaceGroupId: workspaceId,
@@ -159,7 +159,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    // Use last reset date, or November 30th 2024, whichever is more recent
     const nov30 = new Date("2024-11-30T00:00:00Z");
     const startDate = lastReset?.resetAt 
       ? (lastReset.resetAt > nov30 ? lastReset.resetAt : nov30)
@@ -431,7 +430,7 @@ export const getServerSideProps = withPermissionCheckSsr(
  return {
         ...quota,
         currentValue,
-        percentage: Math.min(percentage, 100),
+        percentage,
       };
     });
 
@@ -539,6 +538,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   const departments: any = initialDepartments;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [editingQuota, setEditingQuota] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [quotaToDelete, setQuotaToDelete] = useState<any>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -547,9 +547,40 @@ const Quotas: pageWithLayout<pageProps> = ({
 
   const form = useForm<Form>({
     shouldUnregister: true,
+    defaultValues: {
+      type: "mins",
+      requirement: 0,
+      name: "",
+      description: "",
+      sessionType: "all",
+    },
   });
-  const { register, handleSubmit, watch } = form;
+  const { register, handleSubmit, watch, reset } = form;
   const watchedType = watch("type");
+
+  const openCreateModal = () => {
+    setEditingQuota(null);
+    reset({ type: "mins", requirement: 0, name: "", description: "", sessionType: "all" });
+    setSelectedRoles([]);
+    setSelectedDepartments([]);
+    setSessionTypeFilter("all");
+    setIsOpen(true);
+  };
+
+  const openEditModal = (quota: any) => {
+    setEditingQuota(quota);
+    reset({
+      type: quota.type,
+      requirement: quota.type === "custom" ? 0 : (quota.value ?? 0),
+      name: quota.name ?? "",
+      description: quota.description ?? "",
+      sessionType: quota.sessionType ?? "all",
+    });
+    setSelectedRoles((quota.quotaRoles ?? []).map((qr: any) => qr.role?.id ?? qr.roleId).filter(Boolean));
+    setSelectedDepartments((quota.quotaDepartments ?? []).map((qd: any) => qd.department?.id ?? qd.departmentId).filter(Boolean));
+    setSessionTypeFilter(quota.sessionType ?? "all");
+    setIsOpen(true);
+  };
 
   const types: { [key: string]: string } = {
     mins: "Minutes in game",
@@ -613,11 +644,26 @@ const Quotas: pageWithLayout<pageProps> = ({
     if (type !== "custom") {
       payload.value = Number(requirement);
     }
-
-    if ( type !== "custom" && 
-      ["sessions_hosted", "sessions_attended", "sessions_logged"].includes(type)
-    ) {
+    if (type !== "custom" && ["sessions_hosted", "sessions_attended", "sessions_logged"].includes(type)) {
       payload.sessionType = sessionTypeFilter === "all" ? null : sessionTypeFilter;
+    }
+
+    if (editingQuota) {
+      const axiosPromise = axios
+        .patch(`/api/workspace/${id}/activity/quotas/${editingQuota.id}/update`, payload)
+        .then((res) => {
+          setAllQuotas((prev: any[]) =>
+            prev.map((q: any) => (q.id === res.data.quota.id ? res.data.quota : q))
+          );
+          setIsOpen(false);
+          setEditingQuota(null);
+        });
+      toast.promise(axiosPromise, {
+        loading: "Saving quota...",
+        success: "Quota updated!",
+        error: (err) => err.response?.data?.error || "Failed to update quota.",
+      });
+      return;
     }
 
     const axiosPromise = axios
@@ -658,166 +704,180 @@ const Quotas: pageWithLayout<pageProps> = ({
     });
   };
 
+  const formatGoal = (quota: any) => {
+    if (quota.type === "custom") return null;
+    const unit = quota.type === "mins" ? "minutes" : quota.type === "alliance_visits" ? "visits" : "sessions";
+    return `${quota.value} ${unit}`;
+  };
+
   return (
     <>
       <div className="pagePadding">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-                Quotas
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {activeTab === "my-quotas"
-                  ? "Track your quota progress and requirements"
-                  : "Manage quotas for your workspace"}
-              </p>
-            </div>
-          </div>
+        <div className="max-w-5xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+              Quotas
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              {activeTab === "my-quotas"
+                ? "Track your progress and see how you're doing"
+                : "Create and manage quotas for your workspace"}
+            </p>
+          </header>
 
           {(canManageQuotas || (canDeleteQuotas as boolean)) && (
-            <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mb-6">
+            <nav className="flex p-1 gap-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 w-fit mb-8">
               <button
                 onClick={() => setActiveTab("my-quotas")}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === "my-quotas"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <IconTarget className="w-4 h-4" />
+                <IconTarget className="w-4 h-4 shrink-0" />
                 <span>My Quotas</span>
               </button>
               <button
                 onClick={() => setActiveTab("manage-quotas")}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === "manage-quotas"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <IconClipboardList className="w-4 h-4" />
+                <IconClipboardList className="w-4 h-4 shrink-0" />
                 <span>Manage Quotas</span>
               </button>
-            </div>
+            </nav>
           )}
 
           {(!(canManageQuotas || (canDeleteQuotas as boolean)) || activeTab === "my-quotas") && (
             <div>
               {myQuotas.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <IconTarget className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                      No Quotas Assigned
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                      You don't have any activity quotas assigned to your roles yet
-                    </p>
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
+                  <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+                    <IconTarget className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
                   </div>
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                    No quotas assigned
+                  </h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    You don't have any activity quotas yet. When your roles or departments are assigned quotas, they'll show up here.
+                  </p>
                 </div>
               ) : (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                  {myQuotas.map((quota: any) => (
-                    <div
-                      key={quota.id}
-                      className="bg-white dark:bg-zinc-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-1">
-                            {quota.name}
-                          </h3>
-                          {quota.type !== "custom" && (
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {quota.value} {types[quota.type]}
-                          </p>)}
-                          {quota.type === "custom" && (<p className="text-sm text-zinc-500 italic">Custom Quota</p>)}
-                          {quota.description && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 italic">
-                              {quota.description}
-                            </p>
-                          )}
-                          {quota.sessionType && quota.sessionType !== "all" && (
-                            <p className="text-xs text-primary mt-1">
-                              Session type:{" "}
-                              {quota.sessionType.charAt(0).toUpperCase() +
-                                quota.sessionType.slice(1)}
-                            </p>
-                          )}
-                        </div>
-                        <div
-                          className={`p-3 rounded-lg ${
-                            quota.percentage >= 100
-                              ? "bg-green-100 dark:bg-green-900/30"
-                              : "bg-primary/10"
-                          }`}
-                        >
-                          <IconTrophy
-                            className={`w-6 h-6 ${
-                              quota.percentage >= 100
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-primary"
-                            }`}
-                          />
-                        </div>
-                      </div>
+                <div className="space-y-5">
+                  {myQuotas.map((quota: any) => {
+                    const isComplete = quota.type !== "custom" && quota.percentage >= 100;
+                    const barWidth = quota.type === "custom" ? 0 : Math.min(quota.percentage, 100);
+                    return (
+                      <div
+                        key={quota.id}
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden transition-shadow hover:shadow-md dark:hover:shadow-none"
+                      >
+                        <div className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
+                              isComplete
+                                ? "bg-emerald-100 dark:bg-emerald-500/20"
+                                : "bg-zinc-100 dark:bg-zinc-700"
+                            }`}>
+                              <IconTrophy className={`w-5 h-5 ${
+                                isComplete ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500 dark:text-zinc-400"
+                              }`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                                {quota.name}
+                              </h3>
+                              {quota.type !== "custom" && formatGoal(quota) && (
+                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                                  Goal: {formatGoal(quota)}
+                                </p>
+                              )}
+                              {quota.type === "custom" && (
+                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 italic">Tracked manually</p>
+                              )}
+                              {quota.description && (
+                                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                                  {quota.description}
+                                </p>
+                              )}
+                              {quota.sessionType && quota.sessionType !== "all" && (
+                                <p className="mt-1.5 text-xs text-primary font-medium">
+                                  {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
+                                </p>
+                              )}
+                            </div>
+                          </div>
 
-                      {quota.type !== "custom" && (<div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            Progress
-                          </span>
-                          <span className="text-sm font-bold text-zinc-900 dark:text-white">
-                            {quota.currentValue} / {quota.value}
-                          </span>
-                        </div>
-                        <div className="w-full bg-zinc-200 dark:bg-zinc-600 rounded-full h-3">
-                          <div
-                            className={`h-3 rounded-full transition-all ${
-                              quota.percentage >= 100
-                                ? "bg-green-500"
-                                : "bg-primary"
-                            }`}
-                            style={{ width: `${Math.min(quota.percentage, 100)}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          {quota.percentage.toFixed(0)}% complete
-                        </p>
-                      </div>)}
-                      {quota.type === "custom" && (<div className="text-xs text-zinc-500 italic mt-2">Quota tracked manually.</div>)}
-                      <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-600">
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
-                          Assigned to:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {quota.quotaRoles?.map((qr: any) => (
-                            <div
-                              key={qr.role.id}
-                              className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
-                              style={{ backgroundColor: qr.role.color || "#6b7280" }}
-                            >
-                              <IconUsers className="w-3 h-3" />
-                              {qr.role.name}
+                          {quota.type !== "custom" && (
+                            <div className="mt-5">
+                              <div className="flex items-baseline justify-between gap-2 mb-2">
+                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                                  Progress
+                                </span>
+                                <span className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-white">
+                                  {quota.currentValue} <span className="font-normal text-zinc-400 dark:text-zinc-500">/ {quota.value}</span>
+                                </span>
+                              </div>
+                              <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    isComplete ? "bg-emerald-500" : "bg-primary"
+                                  }`}
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                {isComplete ? (
+                                  quota.percentage > 100 ? (
+                                    <>Goal exceeded · {quota.percentage.toFixed(0)}%</>
+                                  ) : (
+                                    <>Complete</>
+                                  )
+                                ) : (
+                                  <>{quota.percentage.toFixed(0)}% complete</>
+                                )}
+                              </p>
                             </div>
-                          ))}
-                          {quota.quotaDepartments?.map((qd: any) => (
-                            <div
-                              key={qd.department.id}
-                              className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
-                              style={{ backgroundColor: qd.department.color || "#6b7280" }}
-                            >
-                              <IconBriefcase className="w-3 h-3" />
-                              {qd.department.name}
+                          )}
+                          {quota.type === "custom" && (
+                            <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 italic">Tracked manually by your team.</p>
+                          )}
+
+                          <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-700">
+                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+                              Assigned to
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {quota.quotaRoles?.map((qr: any) => (
+                                <span
+                                  key={qr.role.id}
+                                  className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium text-white/95"
+                                  style={{ backgroundColor: qr.role.color || "#71717a" }}
+                                >
+                                  <IconUsers className="w-3.5 h-3.5 opacity-90" />
+                                  {qr.role.name}
+                                </span>
+                              ))}
+                              {quota.quotaDepartments?.map((qd: any) => (
+                                <span
+                                  key={qd.department.id}
+                                  className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium text-white/95"
+                                  style={{ backgroundColor: qd.department.color || "#71717a" }}
+                                >
+                                  <IconBriefcase className="w-3.5 h-3.5 opacity-90" />
+                                  {qd.department.name}
+                                </span>
+                              ))}
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -826,106 +886,114 @@ const Quotas: pageWithLayout<pageProps> = ({
           {activeTab === "manage-quotas" && (canManageQuotas || (canDeleteQuotas as boolean)) && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
-                  All Quotas
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                  All quotas
                 </h2>
                 {canManageQuotas && (
                   <button
-                    onClick={() => setIsOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                    onClick={openCreateModal}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
                   >
                     <IconPlus className="w-4 h-4" />
-                    <span className="text-sm font-medium">Create Quota</span>
+                    Create quota
                   </button>
                 )}
               </div>
 
               {allQuotas.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <IconClipboardList className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                      No Quotas
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                      {canManageQuotas ? "You haven't set up any activity quotas yet" : "No activity quotas have been set up yet"}
-                    </p>
-                    {canManageQuotas && (
-                      <button
-                        onClick={() => setIsOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                      >
-                        <IconPlus className="w-4 h-4" />
-                        <span className="text-sm font-medium">Create Quota</span>
-                      </button>
-                    )}
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
+                  <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+                    <IconClipboardList className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
                   </div>
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                    No quotas yet
+                  </h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+                    {canManageQuotas ? "Create your first quota to assign to roles or departments." : "No activity quotas have been set up yet."}
+                  </p>
+                  {canManageQuotas && (
+                    <button
+                      onClick={openCreateModal}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors"
+                    >
+                      <IconPlus className="w-4 h-4" />
+                      Create quota
+                    </button>
+                  )}
                 </div>
               ) : (
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                <div className="space-y-4">
                   {allQuotas.map((quota: any) => (
                     <div
                       key={quota.id}
-                      className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4"
+                      className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5 flex items-start justify-between gap-4"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium text-zinc-900 dark:text-white">
-                            {quota.name}
-                          </h3>
-                          {quota.type !== "custom" ? (
-                            
-                          <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400">
-                            {quota.value} {types[quota.type]} per timeframe
-                          </p>) : ( <p className="text-xs text-zinc-500 mt-1 dark:text-zinc-400 italic">Manually tracked</p>)}
-                          {quota.description && (
-                            <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 italic">
-                              {quota.description}
-                            </p>
-                          )}
-                          {quota.sessionType && quota.sessionType !== "all" && (
-                            <p className="text-xs text-primary mt-1">
-                              Session type:{" "}
-                              {quota.sessionType.charAt(0).toUpperCase() +
-                                quota.sessionType.slice(1)}
-                            </p>
-                          )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                          {quota.name}
+                        </h3>
+                        {quota.type !== "custom" ? (
+                          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                            {quota.value} {types[quota.type]}
+                          </p>
+                        ) : (
+                          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 italic">Manually tracked</p>
+                        )}
+                        {quota.description && (
+                          <p className="mt-1.5 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                            {quota.description}
+                          </p>
+                        )}
+                        {quota.sessionType && quota.sessionType !== "all" && (
+                          <p className="mt-1 text-xs font-medium text-primary">
+                            {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
+                          </p>
+                        )}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {quota.quotaRoles?.map((qr: any) => (
+                            <span
+                              key={qr.role.id}
+                              className="inline-flex items-center gap-1.5 py-1 px-2 rounded-lg text-xs font-medium text-white/95"
+                              style={{ backgroundColor: qr.role.color || "#71717a" }}
+                            >
+                              <IconUsers className="w-3 h-3 opacity-90" />
+                              {qr.role.name}
+                            </span>
+                          ))}
+                          {quota.quotaDepartments?.map((qd: any) => (
+                            <span
+                              key={qd.department.id}
+                              className="inline-flex items-center gap-1.5 py-1 px-2 rounded-lg text-xs font-medium text-white/95"
+                              style={{ backgroundColor: qd.department.color || "#71717a" }}
+                            >
+                              <IconBriefcase className="w-3 h-3 opacity-90" />
+                              {qd.department.name}
+                            </span>
+                          ))}
                         </div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-1">
+                        {canManageQuotas && (
+                          <button
+                            onClick={() => openEditModal(quota)}
+                            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                            aria-label="Edit quota"
+                          >
+                            <IconPencil className="w-4 h-4" />
+                          </button>
+                        )}
                         {(canDeleteQuotas as boolean) && (
                           <button
                             onClick={() => {
                               setQuotaToDelete(quota);
                               setIsDeleteModalOpen(true);
                             }}
-                            className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
+                            className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                            aria-label="Delete quota"
                           >
                             <IconTrash className="w-4 h-4" />
                           </button>
                         )}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {quota.quotaRoles?.map((qr: any) => (
-                          <div
-                            key={qr.role.id}
-                            className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
-                            style={{ backgroundColor: qr.role.color || "#6b7280" }}
-                          >
-                            <IconUsers className="w-3 h-3" />
-                            {qr.role.name}
-                          </div>
-                        ))}
-                        {quota.quotaDepartments?.map((qd: any) => (
-                          <div
-                            key={qd.department.id}
-                            className="text-white py-1 px-2 rounded-full text-xs font-medium flex items-center gap-1"
-                            style={{ backgroundColor: qd.department.color || "#6b7280" }}
-                          >
-                            <IconBriefcase className="w-3 h-3" />
-                            {qd.department.name}
-                          </div>
-                        ))}
                       </div>
                     </div>
                   ))}
@@ -940,7 +1008,10 @@ const Quotas: pageWithLayout<pageProps> = ({
         <Dialog
           as="div"
           className="relative z-10"
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            setEditingQuota(null);
+          }}
         >
           <Transition.Child
             as={Fragment}
@@ -965,12 +1036,12 @@ const Quotas: pageWithLayout<pageProps> = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium text-zinc-900 mb-4 dark:text-white"
+                    className="text-lg font-semibold text-zinc-900 dark:text-white"
                   >
-                    Create Activity Quota
+                    {editingQuota ? "Edit quota" : "Create quota"}
                   </Dialog.Title>
 
                   <div className="mt-2">
@@ -1126,17 +1197,17 @@ const Quotas: pageWithLayout<pageProps> = ({
                   <div className="mt-6 flex gap-3">
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
                       onClick={handleSubmit(onSubmit)}
                     >
-                      Create
+                      {editingQuota ? "Save" : "Create"}
                     </button>
                   </div>
                 </Dialog.Panel>
@@ -1175,31 +1246,27 @@ const Quotas: pageWithLayout<pageProps> = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
-                      <IconTrash className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    <div className="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                      <IconTrash className="w-5 h-5 text-red-600 dark:text-red-400" />
                     </div>
                     <Dialog.Title
                       as="h3"
-                      className="text-lg font-medium text-zinc-900 dark:text-white"
+                      className="text-lg font-semibold text-zinc-900 dark:text-white"
                     >
-                      Delete Quota
+                      Delete quota
                     </Dialog.Title>
                   </div>
 
-                  <div className="mt-2">
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      Are you sure you want to delete the quota{" "}
-                      <span className="font-semibold">{quotaToDelete?.name}</span>?
-                      This action cannot be undone.
-                    </p>
-                  </div>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    Are you sure you want to delete <span className="font-semibold text-zinc-900 dark:text-white">{quotaToDelete?.name}</span>? This can't be undone.
+                  </p>
 
                   <div className="mt-6 flex gap-3">
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                       onClick={() => {
                         setIsDeleteModalOpen(false);
                         setQuotaToDelete(null);
@@ -1209,7 +1276,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
                       onClick={deleteQuota}
                     >
                       Delete

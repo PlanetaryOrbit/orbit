@@ -3,17 +3,20 @@
 import type { NextPage } from "next"
 import Head from "next/head"
 import Topbar from "@/components/topbar"
-import { useRouter } from "next/router"
+import Router, { useRouter } from "next/router"
 import { loginState } from "@/state"
 import { Transition, Dialog } from "@headlessui/react"
-import { useState, useEffect, Fragment } from "react"
+import { useState, useEffect, Fragment, useRef } from "react"
 import Button from "@/components/button"
 import axios from "axios"
 import Input from "@/components/input"
 import { useForm, FormProvider } from "react-hook-form"
 import { useRecoilState } from "recoil"
-import { toast } from "react-hot-toast"
-import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper, IconSettings, IconX } from "@tabler/icons-react"
+import { toast, Toaster } from "react-hot-toast"
+import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper, IconSettings, IconX, IconPin, IconPinFilled } from "@tabler/icons-react"
+import clsx from "clsx"
+
+const PINNED_WORKSPACE_KEY = "orbit-pinned-workspace"
 
 const Home: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState)
@@ -23,19 +26,55 @@ const Home: NextPage = () => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [isOwner, setIsOwner] = useState(false)
 	const [showInstanceSettings, setShowInstanceSettings] = useState(false)
-	const [robloxConfig, setRobloxConfig] = useState({
+	const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
+	const [externalConfig, setRobloxConfig] = useState({
 		clientId: '',
 		clientSecret: '',
 		redirectUri: '',
 		redirect_wid: '',
+		discordAppId: '',
+		discordAppSecret: '',
 		oauthOnlyLogin: false
 	})
 	const [configLoading, setConfigLoading] = useState(false)
 	const [saveMessage, setSaveMessage] = useState('')
 	const [usingEnvVars, setUsingEnvVars] = useState(false)
+	const [settings, setSettings] = useState(true)
 
 	const gotoWorkspace = (id: number) => {
 		router.push(`/workspace/${id}`)
+	}
+
+	useEffect(() => {
+		if (typeof window === "undefined") return
+		const raw = localStorage.getItem(PINNED_WORKSPACE_KEY)
+		if (raw) {
+			const id = parseInt(raw, 10)
+			if (!isNaN(id)) setPinnedWorkspaceId(id)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (!login.workspaces?.length || pinnedWorkspaceId === null) return
+		const inList = login.workspaces.some((w) => w.groupId === pinnedWorkspaceId)
+		if (!inList) {
+			setPinnedWorkspaceId(null)
+			localStorage.removeItem(PINNED_WORKSPACE_KEY)
+		}
+	}, [login.workspaces, pinnedWorkspaceId])
+
+	const togglePin = (e: React.MouseEvent, groupId: number) => {
+		e.preventDefault()
+		e.stopPropagation()
+		if (pinnedWorkspaceId === groupId) {
+			setPinnedWorkspaceId(null)
+			localStorage.removeItem(PINNED_WORKSPACE_KEY)
+			toast.success("Workspace unpinned")
+		} else {
+			setPinnedWorkspaceId(groupId)
+			localStorage.setItem(PINNED_WORKSPACE_KEY, String(groupId))
+			toast.success("Workspace pinned")
+		}
 	}
 
 	const createWorkspace = async () => {
@@ -75,29 +114,21 @@ const Home: NextPage = () => {
 			let req
 			try {
 				req = await axios.get("/api/@me")
+				console.log(req.data)
+				setLogin({
+					...req.data.user,
+					workspaces: req.data.workspaces,
+				})
 			} catch (err: any) {
-				if (err.response?.data.error === "Workspace not setup") {
-					const currentPath = router.pathname
-					// Only redirect if we are not already on the /welcome page
-					if (currentPath !== "/welcome") {
-						router.push("/welcome")
-					}
-
-					setLoading(false)
-					return
-				}
-				if (err.response?.data.error === "Not logged in") {
+				const status = err.response?.status
+				if (status === 400) {
+					if (router.pathname !== "/welcome") router.push("/welcome")
+				} else if (status === 401) {
 					router.push("/login")
-					setLoading(false)
-					return
+				} else {
+					console.error("Unexpected error:", err)
 				}
 			} finally {
-				if (req?.data) {
-					setLogin({
-						...req.data.user,
-						workspaces: req.data.workspaces,
-					})
-				}
 				setLoading(false)
 			}
 		}
@@ -105,12 +136,10 @@ const Home: NextPage = () => {
 		const checkOwnerStatus = async () => {
 			try {
 				const response = await axios.get("/api/auth/checkOwner")
-				if (response.data.success) {
-					setIsOwner(response.data.isOwner)
-				}
-			} catch (error: any) {
-				if (error.response?.status !== 401) {
-					console.error("Failed to check owner status:", error)
+				if (response.data.success) setIsOwner(response.data.isOwner)
+			} catch (err: any) {
+				if (err.response?.status !== 401) {
+					console.error("Failed to check owner status:", err)
 				}
 			}
 		}
@@ -135,7 +164,8 @@ const Home: NextPage = () => {
 	}
 
 	useEffect(() => {
-		if (showInstanceSettings && isOwner) {
+		if (!isOwner) return
+		if (showInstanceSettings) {
 			loadRobloxConfig()
 		}
 	}, [showInstanceSettings, isOwner])
@@ -151,7 +181,7 @@ const Home: NextPage = () => {
 	const loadRobloxConfig = async () => {
 		try {
 			const response = await axios.get('/api/admin/instance-config')
-			const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace } = response.data
+			const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret } = response.data
 			const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 			const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
 
@@ -159,6 +189,8 @@ const Home: NextPage = () => {
 				clientId: robloxClientId || '',
 				clientSecret: robloxClientSecret || '',
 				redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
+				discordAppId: discordApplicationID,
+				discordAppSecret: discordClientSecret,
 				oauthOnlyLogin: oauthOnlyLogin || false,
 				redirect_wid: redirectWorkspace
 			})
@@ -169,20 +201,17 @@ const Home: NextPage = () => {
 		}
 	}
 
-	useEffect(() => {
-		loadRobloxConfig()
-	}, [])
 
 	const saveRobloxConfig = async () => {
 		setConfigLoading(true)
 		setSaveMessage('')
 		try {
 			await axios.post('/api/admin/instance-config', {
-				robloxClientId: robloxConfig.clientId,
-				robloxClientSecret: robloxConfig.clientSecret,
-				robloxRedirectUri: robloxConfig.redirectUri,
-				oauthOnlyLogin: robloxConfig.oauthOnlyLogin,
-				redirectWorkspaceID: robloxConfig.redirect_wid
+				robloxClientId: externalConfig.clientId,
+				robloxClientSecret: externalConfig.clientSecret,
+				robloxRedirectUri: externalConfig.redirectUri,
+				oauthOnlyLogin: externalConfig.oauthOnlyLogin,
+				redirectWorkspaceID: externalConfig.redirect_wid
 
 			})
 			setSaveMessage('Settings saved successfully!')
@@ -203,8 +232,8 @@ const Home: NextPage = () => {
 			return
 		}
 
-		if (robloxConfig.redirect_wid && robloxConfig.redirect_wid.length >= 1 && login.workspaces?.length) {
-			const redirectWorkspaceId = Number(robloxConfig.redirect_wid)
+		if (externalConfig.redirect_wid && externalConfig.redirect_wid.length >= 1 && login.workspaces?.length) {
+			const redirectWorkspaceId = Number(externalConfig.redirect_wid)
 			const hasAccess = login.workspaces.some(workspace => workspace.groupId === redirectWorkspaceId)
 
 			if (hasAccess) {
@@ -213,9 +242,7 @@ const Home: NextPage = () => {
 				router.push('/404')
 			}
 		}
-	}, [login.workspaces, robloxConfig.redirect_wid, showInstanceSettings, configLoading])
-
-
+	}, [login.workspaces, externalConfig.redirect_wid, showInstanceSettings, configLoading])
 
 	return (
 		<div>
@@ -224,73 +251,194 @@ const Home: NextPage = () => {
 				<meta name="description" content="Manage your Roblox workspaces with Orbit" />
 			</Head>
 
-			<div className="min-h-screen bg-zinc-50 dark:bg-zinc-800">
+			<div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden">
+				<div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)] pointer-events-none" aria-hidden />
 				<Topbar />
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-						<h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-4 sm:mb-0">Your Workspaces</h1>
-						<div className="flex space-x-3">
-							{isOwner && (
-								<Button onClick={() => setIsOpen(true)} classoverride="flex items-center">
-									<IconPlus className="mr-2 h-5 w-5" />
-									New Workspace
-								</Button>
-							)}
-							<Button
-								onClick={checkRoles}
-								classoverride="flex items-center bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
-							>
-								<IconRefresh className="mr-2 h-5 w-5" />
-								Check Roles
-							</Button>
-							{isOwner && (
-								<Button
-									onClick={() => setShowInstanceSettings(true)}
-									classoverride="flex items-center bg-blue-600 hover:bg-blue-700 dark:bg-blue-200 dark:hover:bg-blue-300 text-white">
-									<IconSettings className="h-5 w-5" />
-								</Button>
-							)}
+				<Toaster position="bottom-center" />
+				<div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14 sm:pb-20">
+					<header className="mb-10 sm:mb-12">
+						<div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+							<div>
+								<p className="text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-white/60 mb-2">
+									Workspaces
+								</p>
+								<h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">
+									Pick your space
+								</h1>
+								<p className="text-zinc-500 dark:text-zinc-400 mt-2 max-w-md">
+									Choose a workspace to continue, or create one to get started.
+								</p>
+							</div>
+							<div className="flex items-center gap-2 flex-shrink-0">
+								{isOwner && (
+									<button
+										type="button"
+										onClick={() => setIsOpen(true)}
+										className={clsx(
+											"inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg shadow-primary/25",
+											"bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 active:scale-[0.98] transition-all"
+										)}
+									>
+										<IconPlus className="w-5 h-5" stroke={2} />
+										New Workspace
+									</button>
+								)}
+								<button
+									type="button"
+									onClick={checkRoles}
+									className={clsx(
+										"inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
+										"bg-white dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700",
+										"hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-sm"
+									)}
+								>
+									<IconRefresh className="w-4 h-4" stroke={1.5} />
+									Check Roles
+								</button>
+								{isOwner && (
+									<button
+										type="button"
+										onClick={() => setShowInstanceSettings(true)}
+										className={clsx(
+											"flex items-center justify-center w-10 h-10 rounded-xl border border-zinc-200 dark:border-zinc-700",
+											"bg-white dark:bg-zinc-800/90 text-zinc-600 dark:text-zinc-400 hover:text-primary hover:border-primary/30 shadow-sm"
+										)}
+										title="Instance settings"
+									>
+										<IconSettings className="w-5 h-5" stroke={1.5} />
+									</button>
+								)}
+							</div>
 						</div>
-					</div>
+					</header>
 
 					{login.workspaces?.length ? (
-						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-							{login.workspaces.map((workspace, i) => (
-								<div
-									key={i}
-									className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer aspect-square flex flex-col"
-									onClick={() => gotoWorkspace(workspace.groupId)}
-								>
-									<div
-										className="flex-1 bg-cover bg-center"
-										style={{ backgroundImage: `url(${workspace.groupThumbnail})` }}
-									/>
-									<div className="p-4 flex items-center justify-between">
-										<h3 className="text-lg font-semibold text-zinc-900 dark:text-white truncate">
-											{workspace.groupName}
-										</h3>
-										<IconChevronRight className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
-									</div>
-								</div>
-							))}
-						</div>
+						<>
+							{(() => {
+								const workspaces = login.workspaces ?? []
+								const pinned = pinnedWorkspaceId != null ? workspaces.find((w) => w.groupId === pinnedWorkspaceId) : null
+								const others = pinned ? workspaces.filter((w) => w.groupId !== pinnedWorkspaceId) : workspaces
+								const showPinnedFeatured = !!pinned
+								const showAsSingleBig = !showPinnedFeatured && others.length === 1
+
+								const renderCard = (
+									workspace: { groupId: number; groupName: string; groupThumbnail?: string },
+									options: { featured: boolean; isPinnedHero?: boolean }
+								) => {
+									const isPinned = pinnedWorkspaceId === workspace.groupId
+									const isPinnedHero = !!options.isPinnedHero
+									return (
+										<button
+											type="button"
+											key={workspace.groupId}
+											onClick={() => gotoWorkspace(workspace.groupId)}
+											className={clsx(
+												"group text-left overflow-hidden transition-[box-shadow,transform] duration-300 relative w-full",
+												"bg-white dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/60",
+												"shadow-sm hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-none hover:-translate-y-0.5",
+												"focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950",
+												isPinnedHero ? "rounded-3xl hover:rounded-3xl" : "rounded-2xl hover:rounded-2xl",
+												!isPinnedHero && options.featured && "sm:rounded-3xl sm:hover:rounded-3xl"
+											)}
+										>
+											<button
+												type="button"
+												onClick={(e) => togglePin(e, workspace.groupId)}
+												className={clsx(
+													"absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
+													"bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white",
+													isPinned && "bg-primary/90 hover:bg-primary"
+												)}
+												title={isPinned ? "Unpin workspace" : "Pin as featured workspace"}
+											>
+												{isPinned ? (
+													<IconPinFilled className="w-4 h-4" stroke={1.5} />
+												) : (
+													<IconPin className="w-4 h-4" stroke={1.5} />
+												)}
+											</button>
+											<div
+												className={clsx(
+													"relative overflow-hidden rounded-[inherit]",
+													(options.featured || isPinnedHero) ? "aspect-[2/1] sm:aspect-[12/5]" : "aspect-[4/3]"
+												)}
+											>
+												<img
+													src={workspace.groupThumbnail || "/favicon-32x32.png"}
+													alt=""
+													className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+												/>
+												<div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-zinc-900/20 to-transparent" />
+												<div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 flex items-end justify-between gap-3">
+													<h3 className="text-lg sm:text-xl font-bold text-white truncate drop-shadow-sm">
+														{workspace.groupName}
+													</h3>
+													<span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm text-white group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shrink-0">
+														<IconChevronRight className="w-5 h-5" stroke={2} />
+													</span>
+												</div>
+											</div>
+										</button>
+									)
+								}
+
+								return (
+									<>
+										{showPinnedFeatured && pinned && (
+											<div className="mb-8 max-w-2xl">
+												<p className="text-xs font-medium uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
+													Pinned workspace
+												</p>
+												{renderCard(pinned, { featured: true, isPinnedHero: true })}
+											</div>
+										)}
+										{others.length > 0 && (
+											<div>
+												{showPinnedFeatured && (
+													<p className="text-xs font-medium uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
+														Other workspaces
+													</p>
+												)}
+												<div
+													className={clsx(
+														"grid gap-5 sm:gap-6",
+														!showPinnedFeatured && showAsSingleBig
+															? "grid-cols-1 max-w-xl"
+															: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+													)}
+												>
+													{others.map((w) => renderCard(w, { featured: !showPinnedFeatured && others.length === 1 }))}
+												</div>
+											</div>
+										)}
+									</>
+								)
+							})()}
+						</>
 					) : (
-						<div className="bg-white dark:bg-zinc-700 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center">
-							<div className="bg-zinc-100 dark:bg-zinc-600 rounded-full p-4 mb-4">
-								<IconBuildingSkyscraper className="h-12 w-12 text-zinc-400 dark:text-zinc-500" />
+						<div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm p-12 sm:p-16 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
+							<div className="w-20 h-20 rounded-2xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary mb-6">
+								<IconBuildingSkyscraper className="w-10 h-10 dark:text-white" stroke={1.5} />
 							</div>
-							<h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">No workspaces available</h3>
-							<p className="text-zinc-500 dark:text-zinc-400 mb-6">
-								{isOwner ? "Create a new workspace to get started" : "You don't have permission to create workspaces"}
+							<h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">No workspaces yet</h3>
+							<p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm">
+								{isOwner ? "Create your first workspace to get started." : "You don't have permission to create workspaces."}
 							</p>
 							{isOwner ? (
-								<Button onClick={() => setIsOpen(true)} classoverride="flex items-center">
-									<IconPlus className="mr-2 h-5 w-5" />
+								<button
+									type="button"
+									onClick={() => setIsOpen(true)}
+									className={clsx(
+										"inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white",
+										"bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 shadow-lg shadow-primary/25"
+									)}
+								>
+									<IconPlus className="w-5 h-5" stroke={2} />
 									Create Workspace
-								</Button>
+								</button>
 							) : (
 								<p className="text-sm text-zinc-500 dark:text-zinc-400">
-									Contact an administrator if you need to create a workspace
+									Contact an administrator if you need access.
 								</p>
 							)}
 						</div>
@@ -321,17 +469,18 @@ const Home: NextPage = () => {
 										leaveFrom="opacity-100 scale-100"
 										leaveTo="opacity-0 scale-95"
 									>
-										<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
-											<Dialog.Title as="h3" className="text-2xl font-bold text-zinc-900 dark:text-white">
+										<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 p-6 text-left align-middle shadow-xl transition-all">
+											<Dialog.Title as="h3" className="text-xl font-semibold text-zinc-900 dark:text-white">
 												Create New Workspace
 											</Dialog.Title>
+											<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Enter your Roblox group ID to set up a workspace</p>
 
-											<div className="mt-4">
+											<div className="mt-5">
 												<FormProvider {...methods}>
-													<form>
+													<form onSubmit={methods.handleSubmit(createWorkspace)}>
 														<Input
 															label="Group ID"
-															placeholder="Enter your Roblox group ID"
+															placeholder="e.g. 35724790"
 															{...methods.register("groupID", {
 																required: "This field is required",
 																pattern: { value: /^[a-zA-Z0-9-.]*$/, message: "No spaces or special characters" },
@@ -342,14 +491,15 @@ const Home: NextPage = () => {
 												</FormProvider>
 											</div>
 
-											<div className="mt-6 flex justify-end space-x-3">
-												<Button
+											<div className="mt-6 flex justify-end gap-3">
+												<button
+													type="button"
 													onClick={() => setIsOpen(false)}
-													classoverride="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
+													className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
 												>
 													Cancel
-												</Button>
-												<Button onClick={methods.handleSubmit(createWorkspace)} loading={loading}>
+												</button>
+												<Button onClick={methods.handleSubmit(createWorkspace)} loading={loading} workspace>
 													Create
 												</Button>
 											</div>
@@ -385,25 +535,22 @@ const Home: NextPage = () => {
 										leaveFrom="opacity-100 scale-100"
 										leaveTo="opacity-0 scale-95"
 									>
-										<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+										<Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 p-6 text-left align-middle shadow-xl transition-all">
 											<div className="flex items-center justify-between mb-6">
 												<Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
 													Instance Settings
 												</Dialog.Title>
 												<button
+													type="button"
 													onClick={() => setShowInstanceSettings(false)}
-													className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
+													className="p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 transition-colors"
 												>
-													<IconX className="w-5 h-5 text-zinc-500" />
+													<IconX className="w-5 h-5" stroke={1.5} />
 												</button>
 											</div>
 
 											<div className="space-y-4">
 												<div>
-													<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-														Roblox OAuth Configuration
-													</h3>
-
 													{usingEnvVars && (
 														<div className="mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
 															<p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
@@ -422,7 +569,7 @@ const Home: NextPage = () => {
 															</label>
 															<input
 																type="text"
-																value={robloxConfig.clientId}
+																value={externalConfig.clientId}
 																onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
 																placeholder="e.g. 23748326747865334"
 																disabled={usingEnvVars}
@@ -439,7 +586,7 @@ const Home: NextPage = () => {
 															</label>
 															<input
 																type="password"
-																value={robloxConfig.clientSecret}
+																value={externalConfig.clientSecret}
 																onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
 																placeholder="e.g. JHJD_NMIRHNSD$ER$6dj38"
 																disabled={usingEnvVars}
@@ -456,7 +603,7 @@ const Home: NextPage = () => {
 															</label>
 															<input
 																type="url"
-																value={robloxConfig.redirectUri}
+																value={externalConfig.redirectUri}
 																readOnly
 																placeholder="https://instance.planetaryapp.cloud/api/auth/roblox/callback"
 																className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm cursor-not-allowed"
@@ -466,11 +613,45 @@ const Home: NextPage = () => {
 
 														<div>
 															<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+																Discord Application ID
+															</label>
+															<input
+																type="text"
+																value={externalConfig.discordAppId}
+																onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppId: e.target.value }))}
+																placeholder="1234567890"
+																disabled={usingEnvVars}
+																className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+																	? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+																	: 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+																	}`}
+															/>
+														</div>
+
+														<div>
+															<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+																Discord Application Secret ID
+															</label>
+															<input
+																type="password"
+																value={externalConfig.discordAppSecret}
+																onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppSecret: e.target.value }))}
+																placeholder="e.g eYli_RL3dUJUb7ieBQXhp0lLs..."
+																disabled={usingEnvVars}
+																className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+																	? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+																	: 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+																	}`}
+															/>
+														</div>
+
+														<div>
+															<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
 																Redirect to workspace
 															</label>
 															<input
 																type="text"
-																value={robloxConfig.redirect_wid}
+																value={externalConfig.redirect_wid}
 																onChange={(e) => setRobloxConfig(prev => ({ ...prev, redirect_wid: e.target.value }))}
 																placeholder="35724790"
 																disabled={usingEnvVars}
@@ -494,7 +675,7 @@ const Home: NextPage = () => {
 													<label className="flex items-center cursor-pointer">
 														<input
 															type="checkbox"
-															checked={robloxConfig.oauthOnlyLogin}
+															checked={externalConfig.oauthOnlyLogin}
 															onChange={(e) => setRobloxConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
 															disabled={usingEnvVars}
 															className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
@@ -519,21 +700,23 @@ const Home: NextPage = () => {
 												</div>
 											)}
 
-											<div className="flex justify-end space-x-3 mt-6">
-												<Button
+											<div className="flex justify-end gap-3 mt-6">
+												<button
+													type="button"
 													onClick={() => setShowInstanceSettings(false)}
 													disabled={configLoading}
-													classoverride="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white"
+													className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 												>
 													Cancel
-												</Button>
+												</button>
 												<Button
 													onClick={saveRobloxConfig}
 													loading={configLoading}
 													disabled={configLoading || usingEnvVars}
-													classoverride={usingEnvVars ? "bg-zinc-300 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed" : ""}
+													workspace
+													classoverride={usingEnvVars ? "opacity-60 cursor-not-allowed" : undefined}
 												>
-													{usingEnvVars ? 'Using Env Vars' : 'Save Settings'}
+													{usingEnvVars ? "Using Env Vars" : "Save Settings"}
 												</Button>
 											</div>
 										</Dialog.Panel>

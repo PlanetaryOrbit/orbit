@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export const OAuthAvailable = () => {
+export const RobloxOAuthAvailable = () => {
   const [isAvailable, setIsAvailable] = useState(false);
   const [oauthOnly, setOauthOnly] = useState(false);
   const [loading, setLoading] = useState(true);

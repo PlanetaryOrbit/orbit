@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { withSessionRoute } from '@/lib/withSession';
 import prisma from '@/utils/database';
 import axios from 'axios';
-import * as noblox from 'noblox.js';
 import { getRobloxThumbnail } from '@/utils/roblox';
 
 export default withSessionRoute(handler);

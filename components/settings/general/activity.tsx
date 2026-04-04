@@ -46,14 +46,7 @@ const Activity: FC<props> = (props) => {
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleDay, setScheduleDay] = useState<string>("monday");
   const [scheduleFrequency, setScheduleFrequency] = useState<string>("weekly");
-  const [isCloudUser, setIsCloudUser] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsCloudUser(window.location.hostname.endsWith(".planetaryapp.cloud"));
-    }
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -449,16 +442,8 @@ const Activity: FC<props> = (props) => {
           </div>
         </div>
 
-        <div className={`mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700 relative ${isCloudUser ? "opacity-50 pointer-events-none" : ""}`}>
-          {isCloudUser && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-xl">
-              <div className="bg-white dark:bg-zinc-700 px-4 py-2 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-600">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  🚢 Shipping soon!
-                </p>
-              </div>
-            </div>
-          )}
+        <div className={`mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-700 relative`}>
+          
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -466,7 +451,7 @@ const Activity: FC<props> = (props) => {
               </label>
               <SwitchComponenet
                 checked={scheduleEnabled}
-                onChange={() => !isCloudUser && setScheduleEnabled(!scheduleEnabled)}
+                onChange={() => setScheduleEnabled(!scheduleEnabled)}
                 label=""
               />
             </div>
@@ -498,7 +483,7 @@ const Activity: FC<props> = (props) => {
                     />
                   </Listbox.Button>
                   <Listbox.Options className="absolute left-0 z-20 mt-2 w-full origin-top-left rounded-xl bg-white dark:text-white dark:bg-zinc-800 shadow-lg ring-1 ring-gray-300 focus-visible:outline-none overflow-clip">
-                    {["monday", "sunday"].map((day) => (
+                    {["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => (
                       <Listbox.Option
                         className={({ active }) =>
                           `${

@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         return res.status(400).json({ success: false, error: "Day and frequency are required when enabled" });
       }
 
-      const validDays = ["monday", "sunday"];
+      const validDays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       const validFrequencies = ["weekly", "biweekly", "monthly"];
 
       if (enabled && (!validDays.includes(day) || !validFrequencies.includes(frequency))) {

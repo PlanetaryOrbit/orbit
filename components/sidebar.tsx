@@ -34,6 +34,7 @@ import {
   IconClockFilled,
   IconTarget,
   IconDots,
+  IconGridDots,
 } from "@tabler/icons-react";
 import axios from "axios";
 import clsx from "clsx";
@@ -41,6 +42,150 @@ import clsx from "clsx";
 interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
+}
+
+function MobileWorkspaceSwitcher({
+  login,
+  workspace,
+  onSelect,
+  onGoHome,
+}: {
+  login: any;
+  workspace: any;
+  onSelect: (ws: any) => void;
+  onGoHome: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  const openSheet = () => {
+    setOpen(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+  };
+
+  const closeSheet = () => {
+    setVisible(false);
+    setTimeout(() => setOpen(false), 280);
+  };
+
+  const otherWorkspaces = login?.workspaces?.filter(
+    (ws: any) => ws.groupId !== workspace.groupId
+  ) ?? [];
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openSheet}
+        className="flex-1 min-w-0 flex items-center gap-2.5 rounded-2xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors duration-150 outline-none"
+      >
+        <img
+          src={workspace.groupThumbnail || "/favicon.png"}
+          alt=""
+          className="w-7 h-7 rounded-lg object-contain bg-zinc-100 dark:bg-zinc-800 shrink-0"
+        />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+            {workspace.groupName}
+          </p>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">Switch workspace</p>
+        </div>
+        <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={2} />
+      </button>
+
+      {open && (
+        <>
+          <div
+            className={clsx(
+              "fixed inset-0 z-[99995] bg-black/40 backdrop-blur-sm",
+              "transition-opacity duration-[280ms] ease-out",
+              visible ? "opacity-100" : "opacity-0"
+            )}
+            onClick={closeSheet}
+            aria-hidden
+          />
+
+          <div
+            ref={sheetRef}
+            className="fixed bottom-0 inset-x-0 z-[99996] bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl transition-transform duration-[280ms] ease-out"
+            style={{ transform: visible ? "translateY(0)" : "translateY(100%)" }}
+          >
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+            </div>
+
+            <div className="px-5 pt-3 pb-2 flex items-center justify-between">
+              <p className="text-base font-semibold text-zinc-900 dark:text-white">Workspaces</p>
+              <button
+                type="button"
+                onClick={() => { closeSheet(); onGoHome(); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors outline-none select-none"
+              >
+                <IconGridDots className="w-3.5 h-3.5" stroke={1.5} />
+                All workspaces
+              </button>
+            </div>
+
+            <div className="px-4 pb-3">
+              <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2 px-1">
+                Current
+              </p>
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60">
+                <img
+                  src={workspace.groupThumbnail || "/favicon.png"}
+                  alt=""
+                  className="w-9 h-9 rounded-xl object-contain bg-white dark:bg-zinc-700 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                    {workspace.groupName}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Active</p>
+                </div>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              </div>
+            </div>
+
+            {otherWorkspaces.length > 0 ? (
+              <div className="px-4 pb-4">
+                <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2 px-1">
+                  Switch to
+                </p>
+                <div className="space-y-1">
+                  {otherWorkspaces.map((ws: any) => (
+                    <button
+                      key={ws.groupId}
+                      type="button"
+                      onClick={() => { closeSheet(); onSelect(ws); }}
+                      className="w-full flex items-center gap-3 p-3 rounded-2xl text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors duration-150 outline-none select-none"
+                    >
+                      <img
+                        src={ws.groupThumbnail || "/placeholder.svg"}
+                        alt=""
+                        className="w-9 h-9 rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800 shrink-0"
+                      />
+                      <span className="flex-1 min-w-0 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
+                        {ws.groupName}
+                      </span>
+                      <IconChevronLeft className="w-4 h-4 text-zinc-400 rotate-180 shrink-0" stroke={1.5} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="px-5 pb-4">
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-3">
+                  No other workspaces available
+                </p>
+              </div>
+            )}
+            <div className="h-8" />
+          </div>
+        </>
+      )}
+    </>
+  );
 }
 
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
@@ -57,16 +202,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false); // Added for PWA check
   const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // Detect PWA Mode
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches) {
-      setIsStandalone(true);
-    }
-  }, []);
 
   const openMoreSheet = () => {
     setMobileMoreOpen(true);
@@ -80,6 +217,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     setTimeout(() => setMobileMoreOpen(false), 300);
   };
 
+  // Detect PWA Mode
   useEffect(() => {
     if (isMobileMenuOpen) document.body.classList.add("overflow-hidden");
     else document.body.classList.remove("overflow-hidden");
@@ -107,7 +245,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   ];
 
   const visiblePages = pages.filter((p) => p.accessible === undefined || p.accessible);
-
   const bottomBarPages = visiblePages.slice(0, 4);
   const morePages = visiblePages.slice(4);
 
@@ -172,8 +309,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     <>
       <div
         className={clsx(
-          "hidden fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
-          !isStandalone && "lg:flex", // Only show on large screens if NOT a PWA
+          "hidden lg:flex fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
           isCollapsed ? "w-[72px]" : "w-56"
         )}
       >
@@ -395,12 +531,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </aside>
       </div>
 
-      <nav className={clsx(
-        "fixed bottom-0 inset-x-0 z-[99990] bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/50 dark:border-zinc-800/80",
-        "pb-[env(safe-area-inset-bottom,24px)]", // Corrected padding for home bar
-        isStandalone ? "flex" : "lg:hidden"
-      )}>
-        <div className="flex items-stretch h-16 w-full">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-[99990] bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/50 dark:border-zinc-800/80 safe-area-bottom">
+        <div className="flex items-stretch h-16">
           {bottomBarPages.map((page) => {
             const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
             const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
@@ -474,26 +606,40 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               "lg:hidden fixed bottom-0 inset-x-0 z-[99992]",
               "bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl",
               "transition-transform duration-300 ease-out",
-              "pb-[env(safe-area-inset-bottom,20px)]", // Added padding to bottom sheet too
               mobileMoreVisible ? "translate-y-0" : "translate-y-full"
             )}
           >
-            <div className="pt-3 pb-1" />
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-zinc-100 dark:border-zinc-800">
-              <img
-                src={workspace.groupThumbnail || "/favicon.png"}
-                alt=""
-                className="w-8 h-8 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-800"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{workspace.groupName}</p>
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Workspace</p>
+            <div className="pt-3 pb-1 flex justify-center">
+              <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+            </div>
+
+            <div className="px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <MobileWorkspaceSwitcher
+                  login={login}
+                  workspace={workspace}
+                  onSelect={(ws) => {
+                    setWorkspace({
+                      ...workspace,
+                      groupId: ws.groupId,
+                      groupName: ws.groupName,
+                      groupThumbnail: ws.groupThumbnail,
+                    });
+                    router.push(`/workspace/${ws.groupId}`);
+                    closeMoreSheet();
+                  }}
+                  onGoHome={() => {
+                    closeMoreSheet();
+                    router.push("/");
+                  }}
+                />
+
+                <img
+                  src={login?.thumbnail || "/default-avatar.jpg"}
+                  alt=""
+                  className="w-9 h-9 rounded-xl object-cover shrink-0"
+                />
               </div>
-              <img
-                src={login?.thumbnail || "/default-avatar.jpg"}
-                alt=""
-                className="w-8 h-8 rounded-xl object-cover"
-              />
             </div>
 
             <div className="px-3 py-2 grid grid-cols-2 gap-1">

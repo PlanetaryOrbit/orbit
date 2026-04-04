@@ -821,11 +821,10 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
       <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-start gap-4">
-            <div className="bg-gradient-to-br from-[#ff0099]/20 to-[#ff0099]/10 p-3 rounded-lg flex-shrink-0">
-              <IconUsers className="w-6 h-6 text-[#ff0099]" />
+            <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-lg flex-shrink-0">
+              <IconUsers className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
@@ -838,98 +837,11 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           </div>
         </div>
 
-        <div className="flex gap-6">
-          {hasUseSavedViews() && (
-            <aside className="w-64 hidden md:block">
-              <div className="sticky top-8">
-                <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                      Saved Views
-                    </h4>
-                    {hasCreateViews() && (
-                      <button
-                        onClick={openSaveDialog}
-                        className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                      >
-                        <IconPlus className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    {savedViews.length === 0 && (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No saved views
-                      </p>
-                    )}
-                    {savedViews.map((v) => (
-                    <div
-                      key={v.id}
-                      className={`flex items-center justify-between gap-2 px-3 py-2 rounded-md ${
-                        selectedViewId === v.id
-                          ? "bg-zinc-50 dark:bg-zinc-800/40 border-l-4 border-[#ff0099]"
-                          : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
-                      }`}
-                      style={{ minWidth: 0 }}
-                    >
-                      <button
-                        onClick={() => {
-                          if (selectedViewId === v.id) {
-                            resetToDefault();
-                          } else {
-                            setSelectedViewId(v.id);
-                            applySavedView(v);
-                          }
-                        }}
-                        className="flex items-center gap-3 text-left w-full"
-                      >
-                        <span
-                          className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
-                          style={{ background: v.color || "#e5e7eb" }}
-                        >
-                          {v.icon ? (
-                            renderIcon(
-                              v.icon,
-                              "w-4 h-4 text-zinc-900 dark:text-zinc-700"
-                            )
-                          ) : (
-                            <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                              {(v.name || "").charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </span>
-
-                        <span className="text-sm font-medium truncate text-zinc-900 dark:text-white">
-                          {v.name}
-                        </span>
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        {hasDeleteViews() && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setViewToDelete(v.id);
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                            title="Delete View"
-                          >
-                            <IconX className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            </aside>
-          )}
+        <div className="flex md:flex-row flex-col md:gap-6">
+          
 
           {hasUseSavedViews() && (
-            <div className="md:hidden w-full mb-4">
+            <div className="md:w-64 w-full mb-4">
               <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1449,7 +1361,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                     <div className="mt-5 flex justify-end gap-2">
                       <button
                         type="button"
-                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
                         onClick={() => setIsOpen(false)}
                       >
                         Cancel
@@ -1537,7 +1449,6 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             "#f5f3ff",
                             "#fff2c0ff",
                             "#d1fae5",
-                            "#e0f2fe",
                             "#fee2e2",
                             "#fee7f6",
                             "#fcd7d7ff",
@@ -1558,7 +1469,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                               title={c}
                               className={`w-8 h-8 rounded-md border dark:border-zinc-600 ${
                                 saveColor === c
-                                  ? "ring-2 ring-offset-1 ring-[#ff0099] dark:ring-white/30"
+                                  ? "ring-2 ring-offset-1 ring-primary dark:ring-white/30"
                                   : ""
                               }`}
                               style={{ background: c }}
@@ -1581,7 +1492,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                                   title={opt.title || opt.key}
                                   className={`w-9 h-9 rounded-md flex items-center justify-center text-lg border dark:border-zinc-600 ${
                                     saveIcon === opt.key
-                                      ? "ring-2 ring-offset-1 ring-[#ff0099] dark:ring-white/30"
+                                      ? "ring-2 ring-offset-1 ring-primary dark:ring-white/30"
                                       : ""
                                   }`}
                                 >
@@ -1724,7 +1635,7 @@ const Filter: React.FC<{
       <div className="space-y-4">
         <button
           onClick={deleteFilter}
-          className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           Delete Filter
         </button>

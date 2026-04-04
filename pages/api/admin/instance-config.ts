@@ -26,13 +26,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
 		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
 		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
-		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
+		const envDiscordAppID = process.env.DISCORD_APPLICATION_ID;
+		const envDCClientSecret = process.env.DISCORD_SECRET;
+		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret));
 
 		if (usingEnvVars) {
 			return res.json({
 				robloxClientId: '••••••••',
 				robloxClientSecret: '••••••••',
 				robloxRedirectUri: envRedirectUri,
+				discordApplicationID: envDiscordAppID ? '••••••••' : '',
+				discordClientSecret: envDCClientSecret ? '••••••••' : '',
 				oauthOnlyLogin: envOAuthOnly,
 				redirectWorkspace: envWorkspaceRedirect,
 				redirectWID: envWorkspaceID,
@@ -43,7 +47,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
-					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace']
+					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace', 'discordAppID', 'discordAppSecret']
 				}
 			}
 		});
@@ -58,6 +62,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			robloxClientSecret: configMap.robloxClientSecret || '',
 			robloxRedirectUri: configMap.robloxRedirectUri || '',
 			oauthOnlyLogin: configMap.oauthOnlyLogin || false,
+			discordApplicationID: configMap.discordAppID,
+			discordClientSecret: configMap.discordAppSecret,
 			usingEnvVars: false,
 			redirectWorkspace: configMap.redirectWorkspace || ''
 		});
@@ -71,9 +77,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envClientId = process.env.ROBLOX_CLIENT_ID;
 		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
 		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
-		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
 		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
-		const usingEnvVars = !!(envClientId && envClientSecret && envRedirectUri);
+		const envDiscordAppID = process.env.DISCORD_APPLICATION_ID;
+		const envDCClientSecret = process.env.DISCORD_SECRET;
+		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret));
 
 		if (usingEnvVars) {
 			return res.status(403).json({ 
@@ -82,13 +89,15 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			});
 		}
 
-		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin, redirectWorkspaceID } = req.body;
+		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin, redirectWorkspaceID, discordAppId, discordSecret } = req.body;
 
 		try {
 			const updates = [
 				{ key: 'robloxClientId', value: typeof robloxClientId === 'string' ? robloxClientId.trim() : (robloxClientId || '') },
 				{ key: 'robloxClientSecret', value: typeof robloxClientSecret === 'string' ? robloxClientSecret.trim() : (robloxClientSecret || '') },
 				{ key: 'robloxRedirectUri', value: typeof robloxRedirectUri === 'string' ? robloxRedirectUri.trim() : (robloxRedirectUri || '') },
+				{ key: 'discordAppID', value: typeof discordAppId === 'string' ? discordAppId.trim() : (discordAppId || '') },
+				{ key: 'discordAppSecret', value: typeof discordSecret === 'string' ? discordSecret.trim() : (discordSecret || '') },
 				{ key: 'oauthOnlyLogin', value: oauthOnlyLogin || false }
 			];
 

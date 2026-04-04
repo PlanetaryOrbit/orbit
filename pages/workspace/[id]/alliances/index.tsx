@@ -3,7 +3,7 @@ import { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState, Fragment, useMemo } from "react";
+import { useState, Fragment, useMemo, useEffect } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
 import toast, { Toaster } from "react-hot-toast";
@@ -182,6 +182,13 @@ const Allies: pageWithLayout<pageProps> = (props) => {
     name: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (!showDeleteModal && allyToDelete) {
+      const t = setTimeout(() => setAllyToDelete(null), 300);
+      return () => clearTimeout(t);
+    }
+  }, [showDeleteModal, allyToDelete]);
+
   const BG_COLORS = [
     "bg-rose-300",
     "bg-lime-300",
@@ -232,134 +239,138 @@ const Allies: pageWithLayout<pageProps> = (props) => {
     <>
       <Toaster position="bottom-center" />
 
-      <div className="pagePadding bg-zinc-50 dark:bg-zinc-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <div>
-              <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-                Alliances
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Manage and view your group’s alliances with other communities
-              </p>
+      <div className="pagePadding">
+        <div className="max-w-5xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+              Alliances
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Manage and view your group's alliances with other communities
+            </p>
+          </header>
+
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
+                <IconUsers className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                  Allies
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Your group's alliance partners
+                </p>
+              </div>
             </div>
+            {canManageAlliances && (
+              <button
+                onClick={() => setIsOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <IconPlus className="w-4 h-4" />
+                New alliance
+              </button>
+            )}
           </div>
 
-          <div className="bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-70 rounded-xl shadow-sm overflow-hidden mb-6">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <IconUsers className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Allies
-                    </h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Manage your group alliances
-                    </p>
-                  </div>
-                </div>
-                {canManageAlliances && (
-                  <button
-                    onClick={() => setIsOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                  >
-                    <IconPlus className="w-4 h-4" />
-                    <span className="text-sm font-medium">New Alliance</span>
-                  </button>
-                )}
+          {allies.length === 0 ? (
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+                <IconClipboardList className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
               </div>
-
-              {allies.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="bg-white dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <IconClipboardList className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                      No Alliances
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                      You haven't created any allies yet
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                  {allies.map((ally: any) => (
-                    <div
-                      key={ally.id}
-                      className="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={ally.icon}
-                            className="w-12 h-12 rounded-full"
-                          />
-                          <div>
-                            <h3 className="text-sm font-medium text-zinc-900 dark:text-white">
-                              {ally.name}
-                            </h3>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                              Group ID: {ally.groupId}
-                            </p>
-                          </div>
-                        </div>
-                        {canManageAlliances && (
-                          <button
-                            onClick={() => {
-                              setAllyToDelete({ id: ally.id, name: ally.name });
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
-                          >
-                            <IconTrash className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {ally.reps.map((rep: any) => (
-                          <Tooltip
-                            key={rep.userid}
-                            orientation="top"
-                            tooltipText={rep.username}
-                          >
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
-                                rep.userid
-                              )} border-2 border-gray-200 dark:border-zinc-700 transition-transform overflow-hidden`}
-                            >
-                              <img
-                                src={rep.thumbnail}
-                                className="w-full h-full object-cover"
-                                alt={rep.username}
-                                style={{ background: "transparent" }}
-                              />
-                            </div>
-                          </Tooltip>
-                        ))}
-                      </div>
-                      {canManageSpecificAlly(ally) && (
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/workspace/${id}/alliances/manage/${ally.id}`
-                            )
-                          }
-                          className="flex items-center gap-3 p-2 rounded-lg dark:text-white hover:bg-zinc-50 dark:bg-zinc-600 dark:hover:bg-zinc-500 cursor-pointer"
-                        >
-                          Manage
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                No alliances yet
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Create your first alliance to connect with another community.
+              </p>
+              {canManageAlliances && (
+                <button
+                  onClick={() => setIsOpen(true)}
+                  className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  <IconPlus className="w-4 h-4" />
+                  New alliance
+                </button>
               )}
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              {allies.map((ally: any) => (
+                <div
+                  key={ally.id}
+                  className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5 flex items-start justify-between gap-4"
+                >
+                  <div className="min-w-0 flex-1 flex items-start gap-4">
+                    <img
+                      src={ally.icon}
+                      alt={ally.name}
+                      className="w-12 h-12 rounded-xl shrink-0 object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                        {ally.name}
+                      </h3>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        Group ID: {ally.groupId}
+                      </p>
+                      {ally.reps?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {ally.reps.map((rep: any) => (
+                            <Tooltip
+                              key={rep.userid}
+                              orientation="top"
+                              tooltipText={rep.username}
+                            >
+                              <div
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 ${getRandomBg(
+                                  rep.userid
+                                )} ring-2 ring-white dark:ring-zinc-800`}
+                              >
+                                <img
+                                  src={rep.thumbnail}
+                                  className="w-full h-full object-cover"
+                                  alt={rep.username}
+                                />
+                              </div>
+                            </Tooltip>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    {canManageSpecificAlly(ally) && (
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/workspace/${id}/alliances/manage/${ally.id}`
+                          )
+                        }
+                        className="px-4 py-2 text-sm font-medium rounded-xl bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      >
+                        Manage
+                      </button>
+                    )}
+                    {canManageAlliances && (
+                      <button
+                        onClick={() => {
+                          setAllyToDelete({ id: ally.id, name: ally.name });
+                          setShowDeleteModal(true);
+                        }}
+                        className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        aria-label="Delete alliance"
+                      >
+                        <IconTrash className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -392,15 +403,15 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium text-zinc-900 dark:text-white mb-4"
+                    className="text-lg font-semibold text-zinc-900 dark:text-white"
                   >
-                    Create New Ally
+                    Create alliance
                   </Dialog.Title>
 
-                  <div className="mt-2">
+                  <div className="mt-4">
                     <FormProvider {...form}>
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="space-y-4">
@@ -419,15 +430,15 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                               Representatives
                             </label>
                             {users.length < 1 ? (
-                              <p className="text-sm text-zinc-500">
-                                You don't have anyone who can represent yet
+                              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                                No users with rep permissions yet
                               </p>
                             ) : (
                               <>
-                                <p className="text-sm text-zinc-500 mb-2">
-                                  {reps.length} Reps Selected (Minimum 1)
+                                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
+                                  {reps.length} selected (minimum 1)
                                 </p>
-                                <div className="space-y-2 max-h-48 overflow-y-auto">
+                                <div className="space-y-2 max-h-48 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-600 p-2">
                                   {users.map((user: any) => (
                                     <label
                                       key={user.userid}
@@ -437,18 +448,17 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                                         type="checkbox"
                                         value={user.userid}
                                         onChange={handleCheckboxChange}
-                                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                                        className="rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-600"
                                       />
                                       <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 ${getRandomBg(
                                           user.userid
-                                        )} overflow-hidden`}
+                                        )}`}
                                       >
                                         <img
                                           src={user.thumbnail}
                                           className="w-full h-full object-cover"
                                           alt={user.username}
-                                          style={{ background: "transparent" }}
                                         />
                                       </div>
                                       <span className="text-sm text-zinc-900 dark:text-white">
@@ -469,17 +479,17 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                   <div className="mt-6 flex gap-3">
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-zinc-100 dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      className="flex-1 justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                      className="flex-1 justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
                       onClick={handleSubmit(onSubmit)}
                     >
-                      Create Alliance
+                      Create
                     </button>
                   </div>
                 </Dialog.Panel>
@@ -489,36 +499,76 @@ const Allies: pageWithLayout<pageProps> = (props) => {
         </Dialog>
       </Transition>
 
-      {showDeleteModal && allyToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-              Confirm Deletion
-            </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
-              Are you sure you want to delete the alliance{" "}
-              <strong>{allyToDelete.name}</strong>? This action cannot be
-              undone.
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setAllyToDelete(null);
-                }}
-                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeleteAlly}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Delete Alliance
-              </button>
+      {allyToDelete && (
+        <Transition appear show={showDeleteModal} as={Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-50"
+            onClose={() => setShowDeleteModal(false)}
+          >
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black/70" />
+            </Transition.Child>
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                        <IconTrash className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      </div>
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg font-semibold text-zinc-900 dark:text-white"
+                      >
+                        Delete alliance
+                      </Dialog.Title>
+                    </div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                      Are you sure you want to delete{" "}
+                      <span className="font-semibold text-zinc-900 dark:text-white">
+                        {allyToDelete.name}
+                      </span>
+                      ? This can't be undone.
+                    </p>
+                    <div className="mt-6 flex gap-3">
+                      <button
+                        type="button"
+                        className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                        onClick={() => setShowDeleteModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="flex-1 justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                        onClick={confirmDeleteAlly}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
             </div>
-          </div>
-        </div>
+          </Dialog>
+        </Transition>
       )}
     </>
   );

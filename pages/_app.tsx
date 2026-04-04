@@ -25,6 +25,7 @@ import { themeState } from "@/state/theme";
 import AuthProvider from "./AuthProvider";
 import axios from "axios";
 import { loginState } from "@/state";
+import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -62,8 +63,6 @@ function ColorThemeHandler() {
   const [workspace] = useRecoilState(workspacestate);
 
   useEffect(() => {
-    const defaultColor = "236, 72, 153";
-
     if (
       workspace &&
       workspace.groupTheme &&
@@ -72,57 +71,11 @@ function ColorThemeHandler() {
       const rgbValue = getRGBFromTailwindColor(workspace.groupTheme);
       document.documentElement.style.setProperty("--group-theme", rgbValue);
     } else {
-      document.documentElement.style.setProperty("--group-theme", defaultColor);
+      document.documentElement.style.setProperty("--group-theme", DEFAULT_THEME_RGB);
     }
   }, [workspace]);
 
   return null;
-}
-
-function getRGBFromTailwindColor(tw: any): string {
-  const fallback = "236, 72, 153";
-
-  if (!tw || typeof tw !== "string") {
-    if (tw !== null && tw !== undefined) {
-      console.warn("Invalid color value:", tw);
-    }
-    return fallback;
-  }
-
-  if (tw.startsWith("#")) {
-    const rgb = hexToRgb(tw);
-    return rgb !== null ? rgb : fallback;
-  }
-
-  const colorName = tw.replace("bg-", "");
-
-  if (colorName === "orbit") {
-    return "0, 112, 240";
-  }
-
-  const colorMap: Record<string, string> = {
-    "blue-500": "59, 130, 246",
-    "red-500": "239, 68, 68",
-    "red-700": "185, 28, 28",
-    "green-500": "34, 197, 94",
-    "green-600": "22, 163, 74",
-    "yellow-500": "234, 179, 8",
-    "orange-500": "249, 115, 22",
-    "purple-500": "168, 85, 247",
-    "pink-500": "236, 72, 153",
-    black: "0, 0, 0",
-    "gray-500": "107, 114, 128",
-  };
-
-  return colorMap[colorName] || fallback;
-}
-
-function hexToRgb(hex: string): string | null {
-  const shorthand = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthand, (_, r, g, b) => r + r + g + g + b + b);
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return null;
-  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
 }
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {

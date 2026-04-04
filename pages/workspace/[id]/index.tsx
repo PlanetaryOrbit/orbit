@@ -31,6 +31,7 @@ import {
 import clsx from "clsx"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { GetServerSideProps } from "next"
+import RandomMusic from "@/components/home/randommusic"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async ({ query }) => {
@@ -65,28 +66,28 @@ const Home: pageWithLayout = () => {
       icon: IconWall,
       title: "Wall",
       description: "Latest messages and announcements",
-      color: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
+      color: "text-blue-600 dark:text-blue-400",
     },
     sessions: {
       component: Sessions,
       icon: IconSpeakerphone,
       title: "Sessions",
       description: "Ongoing and upcoming sessions",
-      color: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
+      color: "text-violet-600 dark:text-violet-400",
     },
     notices: {
       component: Notices,
       icon: IconAlertTriangle,
       title: "Notices",
       description: "Staff currently on notice",
-      color: "bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20",
+      color: "text-pink-600 dark:text-pink-400",
     },
     documents: {
       component: Docs,
       icon: IconFileText,
       title: "Documents",
       description: "Latest workspace documents",
-      color: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
+      color: "text-amber-600 dark:text-amber-400",
     },
   }
 
@@ -120,9 +121,7 @@ const Home: pageWithLayout = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: detectedTimezone }),
-      }).catch(() => {
-		// no errors its gonan work amazing trust - famous last words
-      });
+      }).catch(() => {});
     }
   }, [workspace?.groupId, login?.userId])
 
@@ -135,44 +134,32 @@ const Home: pageWithLayout = () => {
 
   return (
     <div className="pagePadding">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div className="relative">
-            <div className="absolute -left-3 -top-3 w-20 h-20 bg-primary/5 rounded-full blur-2xl"></div>
-            <div className="relative">
-              <div
-                className={clsx(
-                  "transition-all duration-700 transform",
-                  titleVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
-                )}
-              >
-                <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
-                  Welcome back
-                </span>
-                <h1 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                  {text}
-                </h1>
-                <div
-                  className={clsx(
-                    "h-1 w-16 bg-gradient-to-r from-primary to-primary/30 rounded-full mb-3 transition-all duration-1000 transform",
-                    titleVisible ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0",
-                  )}
-                ></div>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md">
-                  Here's what's happening in your workspace today
-                </p>
-              </div>
-            </div>
+          <div
+            className={clsx(
+              "transition-all duration-500",
+              titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+            )}
+          >
+            <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
+              Welcome back
+            </span>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-1">
+              {text}
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              Here's what's happening in your workspace
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleRefresh}
-              className="p-2 rounded-full bg-white dark:bg-zinc-800 shadow-sm hover:shadow transition-all duration-200 text-zinc-500 dark:text-zinc-300 hover:text-primary dark:hover:text-primary"
+              className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
               aria-label="Refresh dashboard"
             >
               <IconRefresh className={clsx("w-5 h-5", refreshing && "animate-spin")} />
             </button>
-           
           </div>
         </div>
         {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
@@ -188,28 +175,31 @@ const Home: pageWithLayout = () => {
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
-
+		{Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("music_quote") && (
+          <div className="mb-8 z-0 relative">
+            <RandomMusic />
+          </div>
+        )}
         {loading ? (
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm p-12 text-center border border-zinc-100 dark:border-zinc-700">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-              <IconHome className="w-12 h-12 text-primary" />
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-12 text-center">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+              <IconHome className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
             </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                Hold on... your workspace is still loading or we're pushing an update 😋
-              </h3>
-              <div className="flex justify-center">
-                <div className="animate-pulse flex space-x-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                </div>
-              </div>
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+              Loading your workspace
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+              Hold on, we're getting everything ready
+            </p>
+            <div className="flex justify-center gap-1.5">
+              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse [animation-delay:150ms]" />
+              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse [animation-delay:300ms]" />
             </div>
           </div>
         ) : workspace.settings.widgets.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {workspace.settings.widgets.map((widget, index) => {
+            {workspace.settings.widgets.map((widget) => {
               const widgetConfig = widgets[widget]
               if (!widgetConfig) return null
               const Widget = widgetConfig.component
@@ -217,29 +207,31 @@ const Home: pageWithLayout = () => {
               return (
                 <div
                   key={widget}
-                  className={clsx(
-                    "bg-white dark:bg-zinc-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-zinc-100 dark:border-zinc-700",
-                    "transform hover:-translate-y-1",
-                  )}
+                  className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden"
                 >
-                  <div className={`px-6 py-5 ${widgetConfig.color} border-b border-zinc-100 dark:border-zinc-700`}>
+                  <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-700">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                        <Icon className="w-5 h-5 text-primary" />
+                      <div className={`w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center shrink-0 ${widgetConfig.color}`}>
+                        <Icon className="w-5 h-5" />
                       </div>
-                      <div>
-                        <div className="flex flex-row items-center gap-2">
-							<h2 className="text-lg font-bold text-zinc-900 dark:text-white">{widgetConfig.title}</h2>
-							{widgetConfig.beta && <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
-								BETA
-							</span>}
-						</div>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-300">{widgetConfig.description}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                            {widgetConfig.title}
+                          </h2>
+                          {widgetConfig.beta && (
+                            <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">
+                              BETA
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                          {widgetConfig.description}
+                        </p>
                       </div>
                     </div>
                   </div>
-
-                  <div className="p-6">
+                  <div className="p-5">
                     <Widget />
                   </div>
                 </div>
@@ -247,23 +239,22 @@ const Home: pageWithLayout = () => {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm p-12 text-center border border-zinc-100 dark:border-zinc-700">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-              <IconHome className="w-12 h-12 text-primary" />
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
+              <IconHome className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
             </div>
-            <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
-              Your dashboard is empty
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+              Dashboard is empty
             </h3>
-            <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-md mx-auto">
-              Add widgets to your workspace to see important information at a glance
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+              Add widgets in workspace settings to see updates at a glance.
             </p>
             <button
               onClick={() => (window.location.href = `/workspace/${workspace.groupId}/settings`)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-300 shadow-sm hover:shadow group"
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
             >
-              <IconPlus className="w-5 h-5" />
-              <span>Configure Dashboard</span>
-              <IconChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              <IconPlus className="w-4 h-4" />
+              Configure dashboard
             </button>
           </div>
         )}

@@ -42,6 +42,7 @@ const BG_COLORS: Record<string, string> = {
   gray: '#666666',
   black: '#000000',
   white: '#ffffff',
+  orbit: '#ff0099'
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
