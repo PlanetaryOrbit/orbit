@@ -103,27 +103,3 @@ ul[data-type="taskList"] {
 	  }
 	}
   }
-/* Force mobile layout when Orbit is opened as a PWA */
-@media all and (display-mode: standalone) {
-  /* Hide the Desktop Sidebar */
-  aside, 
-  [class*="Sidebar"], 
-  .desktop-sidebar {
-    display: none !important;
-  }
-
-  /* Show the Mobile/Bottom Navigation */
-  nav[class*="Mobile"], 
-  .mobile-nav, 
-  .bottom-nav {
-    display: flex !important;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-  }
-
-  /* Adjust body padding so content isn't hidden behind the bottom nav */
-  body {
-    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
-  }
-}
