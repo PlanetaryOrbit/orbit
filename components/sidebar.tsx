@@ -98,7 +98,7 @@ function MobileWorkspaceSwitcher({
         <>
           <div
             className={clsx(
-              "fixed inset-0 z-[99995] bg-black/40 backdrop-blur-sm",
+              "fixed inset-0 z-[99995] bg-black/40 backdrop-blur-sm rounded-3xl",
               "transition-opacity duration-[280ms] ease-out",
               visible ? "opacity-100" : "opacity-0"
             )}
@@ -202,8 +202,15 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches) {
+      setIsStandalone(true);
+    }
+  }, []);
 
   const openMoreSheet = () => {
     setMobileMoreOpen(true);
@@ -217,7 +224,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     setTimeout(() => setMobileMoreOpen(false), 300);
   };
 
-  // Detect PWA Mode
   useEffect(() => {
     if (isMobileMenuOpen) document.body.classList.add("overflow-hidden");
     else document.body.classList.remove("overflow-hidden");
@@ -309,7 +315,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     <>
       <div
         className={clsx(
-          "hidden lg:flex fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
+          "hidden fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
+          !isStandalone && "lg:flex",
           isCollapsed ? "w-[72px]" : "w-56"
         )}
       >
@@ -531,8 +538,16 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </aside>
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-[99990] bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200/50 dark:border-zinc-800/80 safe-area-bottom">
-        <div className="flex items-stretch h-16">
+      <nav
+        className={clsx(
+          "fixed bottom-0 inset-x-0 z-[99990]",
+          "bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl",
+          "border-t border-zinc-200/50 dark:border-zinc-800/80",
+          "pb-[env(safe-area-inset-bottom,24px)]",
+          isStandalone ? "flex" : "lg:hidden flex"
+        )}
+      >
+        <div className="flex items-stretch h-16 w-full">
           {bottomBarPages.map((page) => {
             const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
             const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
@@ -593,7 +608,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         <>
           <div
             className={clsx(
-              "lg:hidden fixed inset-0 z-[99991] bg-black/30 backdrop-blur-sm",
+              "fixed inset-0 z-[99991] bg-black/30 backdrop-blur-sm",
               "transition-opacity duration-300 ease-out",
               mobileMoreVisible ? "opacity-100" : "opacity-0"
             )}
@@ -603,9 +618,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
           <div
             className={clsx(
-              "lg:hidden fixed bottom-0 inset-x-0 z-[99992]",
+              "fixed bottom-0 inset-x-0 z-[99992]",
               "bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl",
               "transition-transform duration-300 ease-out",
+              "pb-[env(safe-area-inset-bottom,20px)]",
               mobileMoreVisible ? "translate-y-0" : "translate-y-full"
             )}
           >
