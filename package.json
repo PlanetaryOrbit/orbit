@@ -3,9 +3,9 @@
   "version": "2.1.10beta3",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:https": "next dev --experimental-https",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "dev:https": "next dev --experimental-https --webpack",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate"
