@@ -89,7 +89,7 @@
 
   <h2>🚀 One-Click Deploy</h2>
   <p>The fastest way to get started with Orbit is by deploying it to <strong>Vercel</strong> in just one click:</p>
-  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=prisma%20db%20push%20%26%26%20next%20build">
+  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
     <img src="https://vercel.com/button" alt="Deploy with Vercel" />
   </a>
   <p><strong>Required environment variables:</strong></p>
