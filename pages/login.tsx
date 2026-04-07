@@ -91,6 +91,17 @@ const Login: NextPage = () => {
 	}, [mode]);
 
 	useEffect(() => {
+		async function fetchMe() {
+			const userInfo = await axios.get('/api/@me')
+			if (userInfo.status == 200) {
+				Router.push('/')
+			}
+		}
+
+		fetchMe()
+	},[])
+
+	useEffect(() => {
 		console.log(isRobloxOAuth, oauthOnly)
 		return () => {
 			if (usernameCheckTimeout.current) {
