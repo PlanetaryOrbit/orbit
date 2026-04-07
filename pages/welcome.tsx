@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import { NextPage } from "next";
 import React, { useEffect, useState } from "react";
 import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
@@ -20,6 +20,7 @@ const Login: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isRegistered, setIsRegistered] = useState(false)
+	const [isMobile, setIsMobile] = useState(false); // ADDED: Mobile detection state
 	const methods = useForm<{ groupid: string }>();
 	const signupform = useForm<FormData>();
 	const { register, handleSubmit, formState: { errors } } = methods;
@@ -38,7 +39,16 @@ const Login: NextPage = () => {
 			}
 		}
 
-		checkLogin()
+		// ADDED: Device detection logic
+		const handleResize = () => {
+			setIsMobile(window.innerWidth < 768);
+		};
+		
+		handleResize(); // Initial check
+		checkLogin();
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
 	}, [])
 
 	async function createAccount() {
@@ -101,44 +111,29 @@ const Login: NextPage = () => {
 	};
 
 	const colors = [
-		"bg-pink-100",
-		"bg-rose-100",
-		"bg-orange-100",
-		"bg-amber-100",
-		"bg-lime-100",
-		"bg-emerald-100",
-		"bg-cyan-100",
-		"bg-sky-100",
-		"bg-indigo-100",
-		"bg-purple-100",
-		"bg-pink-400",
-		"bg-rose-400",
-		"bg-orange-400",
-		"bg-amber-400",
-		"bg-lime-400",
-		"bg-emerald-400",
-		"bg-cyan-400",
-		"bg-sky-400",
-		"bg-indigo-400",
-		"bg-violet-400",
-		"bg-orbit",
-		"bg-rose-600",
-		"bg-orange-600",
-		"bg-amber-600",
-		"bg-lime-600",
-		"bg-emerald-600",
-		"bg-cyan-600",
-		"bg-sky-600",
-		"bg-indigo-600",
-		"bg-violet-600",
+		"bg-pink-100", "bg-rose-100", "bg-orange-100", "bg-amber-100", "bg-lime-100",
+		"bg-emerald-100", "bg-cyan-100", "bg-sky-100", "bg-indigo-100", "bg-purple-100",
+		"bg-pink-400", "bg-rose-400", "bg-orange-400", "bg-amber-400", "bg-lime-400",
+		"bg-emerald-400", "bg-cyan-400", "bg-sky-400", "bg-indigo-400", "bg-violet-400",
+		"bg-orbit", "bg-rose-600", "bg-orange-600", "bg-amber-600", "bg-lime-600",
+		"bg-emerald-600", "bg-cyan-600", "bg-sky-600", "bg-indigo-600", "bg-violet-600",
 	];
 
 	return (
-		<div className="flex items-center justify-center bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center">
-			<p className="text-md -mt-1 text-white absolute top-4 left-4 xs:hidden md:text-6xl font-extrabold">
+		<div className={`flex items-center justify-center bg-infobg-light dark:bg-infobg-dark min-h-screen bg-no-repeat bg-cover bg-center ${isMobile ? 'p-6' : ''}`}>
+			{/* Welcome message: absolute positioning adjusted for mobile/pc */}
+			<p className={`font-extrabold text-white absolute transition-all duration-500 ${
+				isMobile 
+				? "top-6 left-6 text-3xl" 
+				: "top-10 left-10 text-6xl"
+			}`}>
 				👋 Welcome <br /> to <span className="text-pink-100 "> Orbit </span>
 			</p>
-			<div>
+
+			{/* Container: Expands on mobile, stays fixed size on PC */}
+			<div className={`w-full bg-white/5 backdrop-blur-lg border border-white/10 p-8 rounded-3xl shadow-2xl transition-all ${
+				isMobile ? "max-w-full mt-20" : "max-w-2xl"
+			}`}>
 				<Slider activeSlide={selectedSlide}>
 					<div>
 						<p className="font-bold text-2xl dark:text-white">Let's get started</p>
@@ -167,7 +162,8 @@ const Login: NextPage = () => {
 
 						<div className="mt-7">
 							<label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
-							<div className="grid grid-cols-10 gap-3 mt-2 mb-8">
+							{/* Grid: 6 columns on mobile, 10 on PC */}
+							<div className={`grid gap-3 mt-2 mb-8 ${isMobile ? 'grid-cols-6' : 'grid-cols-10'}`}>
 								{colors.map((color, i) => (
 									<button
 										key={i}
@@ -179,7 +175,7 @@ const Login: NextPage = () => {
 								))}
 							</div>
 						</div>
-						<div className="flex">
+						<div className={`flex ${isMobile ? 'flex-col gap-3' : ''}`}>
 							<button
 								type="button"
 								onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
@@ -196,7 +192,7 @@ const Login: NextPage = () => {
 										handleSubmit(nextSlide)();
 									}
 								}}
-								className="ml-auto bg-orbit py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
+								className={`${isMobile ? 'w-full' : 'ml-auto'} bg-orbit py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition`}
 							>
 								Continue
 							</button>
