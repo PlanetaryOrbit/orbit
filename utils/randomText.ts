@@ -47,6 +47,7 @@ const randomText = (name: string) => {
 		`Don't forget to hydrate, ${name} 💧`,
 		`Productivity levels: Rising steadily, Captain ${name} 📈`,
 		`It’s a good day to get stuff done, ${name} 🧠`
+		`Orbit is running smooth. Thanks for supporting our project, ${name} 🙌`
 	];
 
 	const nightOnlyTexts = [
@@ -79,6 +80,8 @@ const randomText = (name: string) => {
 		`You, me, and the moon. Let’s vibe, ${name} 🌕`,
 		`Insomniacs anonymous: Welcome, ${name} 😴💤`,
 		`Hope you're doing okay, ${name}. Remember to rest soon 🫶`
+		`Late shift? Stay sharp, ${name}🦉`
+		`Quiet hours are the best for deep management. Go get ’em, ${name}. ⌨️`
 	];
 
 	const hour = new Date().getHours();
