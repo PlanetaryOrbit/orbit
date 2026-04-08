@@ -29,7 +29,7 @@ export async function getRobloxUserInfo(id: number | bigint): Promise<RobloxUser
   }
 }
 
-export async function getRobloxThumbnail(id: number | bigint): Promise<string> {
+export async function getRobloxThumbnail(id: number | bigint): Promise<string | null> {
   try {
     const thumbnails = await withTimeout(
       noblox.getPlayerThumbnail(Number(id), "720x720", "png", false, "headshot")
@@ -37,7 +37,7 @@ export async function getRobloxThumbnail(id: number | bigint): Promise<string> {
     return thumbnails[0]?.imageUrl ?? "";
   } catch (error) {
     console.error(`Error getting thumbnail for user ${id}:`, error);
-    return "";
+    return null;
   }
 }
 

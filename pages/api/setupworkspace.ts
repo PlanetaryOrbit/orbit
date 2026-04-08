@@ -76,7 +76,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   try {
     // Get Roblox user ID first
-    let userid = (await getRobloxUserId(username, req.headers.origin).catch(
+    let userid = (await getRobloxUserId(username).catch(
       (e) => {
         console.error("Error getting Roblox user ID:", e);
         return null;

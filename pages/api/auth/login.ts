@@ -161,7 +161,6 @@ export async function handler(
 
     const id = (await getRobloxUserId(
       req.body.username,
-      req.headers.origin
     ).catch((e) => {
       console.error("Roblox API error:", e);
       return null;

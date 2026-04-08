@@ -135,8 +135,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.redirect('/login?error=invalid_user');
 		}
 
-		let thumbnail = await getRobloxThumbnail(userId);
-		if (!thumbnail) thumbnail = undefined;
+		let thumbnail = (await getRobloxThumbnail(userId)) || undefined;
 
 		const username = userInfo.preferred_username || userInfo.name;
 		const displayName = userInfo.nickname || username;

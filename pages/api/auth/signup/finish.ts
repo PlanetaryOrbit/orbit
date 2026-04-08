@@ -148,8 +148,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     req.session.userid = userid;
     await req.session.save();
 
-    let thumbnail = await getRobloxThumbnail(userid);
-    if (!thumbnail) thumbnail = undefined;
+    let thumbnail = (await getRobloxThumbnail(userid)) || undefined;
 
     const username = await noblox.getUsernameFromId(userid);
 
