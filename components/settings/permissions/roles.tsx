@@ -238,31 +238,30 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   const toggleGroupRole = async (id: string, role: Role) => {
-    const index = roles.findIndex((role: any) => role.id === id);
+    const index = roles.findIndex((r: any) => r.id === id);
     if (index === null) return;
     const rroles = Object.assign([] as typeof roles, roles);
 
     if (rroles[index].isOwnerRole) {
-      toast.error("Owner role group assignments cannot be modified.");
-      return;
+        toast.error("Owner role group assignments cannot be modified.");
+        return;
     }
 
-    if (rroles[index].groupRoles.includes(role.id)) {
-      rroles[index].groupRoles = rroles[index].groupRoles.filter(
-        (r) => r !== role.id
-      );
-    } else {
-      if (aroledoesincludegrouprole(id, role)) {
-        const assignedRole = roles.find(
-          (r) => r.id !== id && r.groupRoles.includes(role.id)
+    const roleIdStr = String(role.id);
+
+    if (rroles[index].groupRoles.map(String).includes(roleIdStr)) {
+        rroles[index].groupRoles = rroles[index].groupRoles.filter(
+            (r) => String(r) !== roleIdStr
         );
-        toast.error(`This rank is already assigned to another role.`);
-        return;
-      }
-      rroles[index].groupRoles.push(role.id);
+    } else {
+        if (aroledoesincludegrouprole(id, role)) {
+            toast.error(`This rank is already assigned to another role.`);
+            return;
+        }
+        rroles[index].groupRoles.push(roleIdStr as any);
     }
     setRoles(rroles);
-  };
+};
 
   const saveRole = async (id: string) => {
     const index = roles.findIndex((r: any) => r.id === id);
@@ -309,14 +308,15 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   const aroledoesincludegrouprole = (id: string, role: Role) => {
-    const rs = roles.filter((role: any) => role.id !== id);
+    const rs = roles.filter((r: any) => r.id !== id);
+    const roleIdStr = String(role.id);
     for (let i = 0; i < rs.length; i++) {
-      if (rs[i].groupRoles.includes(role.id)) {
-        return true;
-      }
+        if (rs[i].groupRoles.map(String).includes(roleIdStr)) {
+            return true;
+        }
     }
     return false;
-  };
+};
 
   return (
     <div className="space-y-4 mt-4">
@@ -615,11 +615,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                               aroledoesincludegrouprole(role.id, groupRole);
                             const assignedRole = isAssignedElsewhere
                               ? roles.find(
-                                  (r) =>
-                                    r.id !== role.id &&
-                                    r.groupRoles.includes(groupRole.id)
-                                )
-                              : null;
+                              (r) =>
+                                  r.id !== role.id &&
+                                  r.groupRoles.map(String).includes(String(groupRole.id))
+                              )
+                          : null;
                             return (
                               <label
                                 key={groupRole.id}
@@ -628,9 +628,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
-                                    checked={role.groupRoles.includes(
-                                      groupRole.id
-                                    )}
+                                    checked={role.groupRoles.map(String).includes(String(groupRole.id))}
                                     onChange={() =>
                                       toggleGroupRole(role.id, groupRole)
                                     }
