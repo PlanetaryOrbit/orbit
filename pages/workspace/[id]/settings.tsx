@@ -100,8 +100,17 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
 
   return {
     props: {
-      users: usersWithInfo,
-      roles,
+      users: usersWithInfo.map(u => ({
+            ...u,
+            roles: u.roles.map((r: any) => ({
+                ...r,
+                groupRoles: r.groupRoles.map((id: any) => id.toString())
+            }))
+        })),
+      roles: roles.map(r => ({
+        ...r,
+        groupRoles: r.groupRoles.map((id) => id.toString())
+      })),
       departments,
       grouproles,
       isAdmin,
@@ -247,21 +256,21 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
       )
     }
 
-	if (activeSection === "api") {
-	  const apiComponents = [...SECTIONS.api.components]
-	  const apiKeyIndex = apiComponents.findIndex(({ key }) => key.toLowerCase().includes("key"))
-	  if (apiKeyIndex > 0) {
-		const [apiKeyComponent] = apiComponents.splice(apiKeyIndex, 1)
-		apiComponents.unshift(apiKeyComponent)
-	  }
-	  return apiComponents.map(({ component: Component }, index) => (
-		<div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
-		  <div className="mb-4">
-			<Component triggerToast={toast} />
-		  </div>
-		</div>
-	  ))
-	}
+    if (activeSection === "api") {
+      const apiComponents = [...SECTIONS.api.components]
+      const apiKeyIndex = apiComponents.findIndex(({ key }) => key.toLowerCase().includes("key"))
+      if (apiKeyIndex > 0) {
+        const [apiKeyComponent] = apiComponents.splice(apiKeyIndex, 1)
+        apiComponents.unshift(apiKeyComponent)
+      }
+      return apiComponents.map(({ component: Component }, index) => (
+        <div key={index} className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4 sm:p-6 mb-4 last:mb-0">
+          <div className="mb-4">
+            <Component triggerToast={toast} />
+          </div>
+        </div>
+      ))
+    }
 
     const section = SECTIONS[activeSection as keyof typeof SECTIONS];
     const isServices = activeSection === "instance";

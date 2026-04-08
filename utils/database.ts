@@ -16,6 +16,10 @@ if (process.env.NODE_ENV === 'development') globalThis.pgPool = pool;
 const adapter = new PrismaPg(pool);
 const prisma = globalThis.prisma || new PrismaClient({ adapter });
 
+(BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+};
+
 if (process.env.NODE_ENV === 'development') globalThis.prisma = prisma
 
 export type { role, workspace, user, Session, SessionType, schedule, ActivitySession, document, wallPost, inactivityNotice, sessionUser, Quota, Ally, allyVisit, RoleMember };

@@ -11,7 +11,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ success: false, error: "Invalid request" });
   }
 
-  // Check if user has admin permission
   const user = await prisma.user.findFirst({
     where: { userid: userId },
     include: {
@@ -32,13 +31,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === "GET") {
     try {
-      const config = await getConfig("discord_webhook", workspaceId);
+      const config = await getConfig("roblox_opencloud", workspaceId);
       return res.status(200).json({
         success: true,
-        value: config || { enabled: false, url: "" },
+        value: config || { enabled: false, key: "" },
       });
     } catch (error) {
-      console.error("Error fetching discord webhook config:", error);
+      console.error("Error fetching OpenCloud config:", error);
       return res.status(500).json({ success: false, error: "Internal server error" });
     }
   }
@@ -49,26 +48,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const { enabled, url } = req.body;
+      const { enabled, key } = req.body;
 
       if (typeof enabled !== "boolean") {
         return res.status(400).json({ success: false, error: "Invalid enabled value" });
       }
 
-      if (enabled && (!url || typeof url !== "string")) {
-        return res.status(400).json({ success: false, error: "Webhook URL is required when enabled" });
+      if (enabled && (!key || typeof key !== "string")) {
+        return res.status(400).json({ success: false, error: "OpenCloud key is required when enabled" });
       }
 
-      if (enabled && url && !url.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+/)) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Invalid Discord webhook URL format" 
-        });
-      }
-
-      await setConfig("discord_webhook", {
+      await setConfig("roblox_opencloud", {
         enabled,
-        url: url || "",
+        key: key || "",
       }, workspaceId);
 
       return res.status(200).json({ success: true });

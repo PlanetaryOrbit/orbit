@@ -62,7 +62,7 @@ export async function handler(
 	//if (alreadyOwns) return res.status(403).json({ success: false, error: 'You already own a workspace' })
 	const urrole = await noblox.getRankInGroup(groupId, req.session.userid).catch(() => null)
 	if (!urrole) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
-	if (urrole < 10) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
+	if (urrole < 0) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 
 	await prisma.user.upsert({
 		where: { userid: req.session.userid },

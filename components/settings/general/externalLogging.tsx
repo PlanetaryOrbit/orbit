@@ -28,7 +28,7 @@ function DiscordAuditLogging({ title = "Discord Logging" }: { title?: string }) 
           }
         })
         .catch((err) => {
-          console.error("Error fetching birthday webhook config:", err);
+          console.error("Error fetching discord webhook config:", err);
         });
     }
   }, [router.query.id]);

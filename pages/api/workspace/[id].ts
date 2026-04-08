@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
+import {getConfig} from '@/utils/configEngine'
 import prisma, { role } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
@@ -15,7 +14,7 @@ type Data = {
 		groupId: number
 		groupThumbnail: string
 		groupName: string,
-		roles: role[],
+		roles: (Omit<role, 'groupRoles'> & { groupRoles: string[] })[]
 		yourRole: string | null,
 		yourPermission: string[]
 		groupTheme: string,
@@ -41,10 +40,10 @@ export async function handler(
 	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 	const { id } = req.query
 	const time = new Date()
-	
+
 	if (!id) return res.status(400).json({ success: false, error: 'No id provided' })
 	if (isNaN(Number(id))) return res.status(400).json({ success: false, error: 'Invalid id provided' })
-	
+
 	const [workspaceCount, workspace] = await Promise.all([
 		prisma.workspace.count(),
 		prisma.workspace.findUnique({
@@ -53,11 +52,11 @@ export async function handler(
 			}
 		})
 	]);
-	
+
 	if (!workspaceCount) return res.status(400).json({ success: false, error: 'Workspace not setup' })
 	if (!workspace) return res.status(400).json({ success: false, error: 'Workspace not found' })
 	console.log(`Workspace found after ${new Date().getTime() - time.getTime()}ms`)
-	
+
 	const [
 		themeconfig,
 		roles,
@@ -105,7 +104,7 @@ export async function handler(
 		getConfig('policies', workspace.groupId),
 		getConfig('home', workspace.groupId)
 	]);
-	
+
 	console.log(`All data fetched after ${new Date().getTime() - time.getTime()}ms`)
 
 	if (!user) return res.status(401).json({ success: false, error: 'Not logged in' })
@@ -113,7 +112,7 @@ export async function handler(
 
 	const sessionTypes = ["shift", "training", "event", "other"];
 	const sessionPermissions: Record<string, string> = {};
-	
+
 	sessionTypes.forEach(type => {
 		const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
 		sessionPermissions[`See ${typeCapitalized} Sessions`] = `sessions_${type}_see`;
@@ -176,27 +175,32 @@ export async function handler(
 		"Create API keys": "manage_apikeys",
 		"Manage features": "manage_features",
 		"Workspace customisation": "workspace_customisation",
-	};	
-	
+	};
+
 	const membership = user.workspaceMemberships[0];
 	const isAdmin = membership?.isAdmin || false;
-	
-	res.status(200).json({ success: true, permissions: user.roles[0].permissions, workspace: {
-		groupId: workspace.groupId,
-		groupThumbnail: groupLogo,
-		groupName: groupinfo.name,
-		yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
-		groupTheme: themeconfig,
-		roles: roles,
-		yourRole: user.roles[0].id,
-		settings: {
-			guidesEnabled: guidesConfig?.enabled || false,
-			leaderboardEnabled: leaderboardConfig?.enabled || false,
-			sessionsEnabled: sessionsConfig?.enabled || false,
-			alliesEnabled: alliesConfig?.enabled || false,
-			noticesEnabled: noticesConfig?.enabled || false,
-			policiesEnabled: policiesConfig?.enabled || false,
-			widgets: homeConfig?.widgets || []
+
+	res.status(200).json({
+		success: true, permissions: user.roles[0].permissions, workspace: {
+			groupId: workspace.groupId,
+			groupThumbnail: groupLogo,
+			groupName: groupinfo.name,
+			yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
+			groupTheme: themeconfig,
+			roles: roles.map(r => ({
+				...r,
+				groupRoles: r.groupRoles.map(id => id.toString())
+			})),
+			yourRole: user.roles[0].id,
+			settings: {
+				guidesEnabled: guidesConfig?.enabled || false,
+				leaderboardEnabled: leaderboardConfig?.enabled || false,
+				sessionsEnabled: sessionsConfig?.enabled || false,
+				alliesEnabled: alliesConfig?.enabled || false,
+				noticesEnabled: noticesConfig?.enabled || false,
+				policiesEnabled: policiesConfig?.enabled || false,
+				widgets: homeConfig?.widgets || []
+			}
 		}
-	} })
+	})
 }

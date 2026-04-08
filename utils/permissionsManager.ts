@@ -10,6 +10,7 @@ import * as noblox from "noblox.js";
 import { getConfig } from "./configEngine";
 import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
+import { getUsersWithinAGroupRoleset } from './roblox'
 
 const permissionsCache = new Map<string, { data: any; timestamp: number }>();
 const PERMISSIONS_CACHE_DURATION = 120000;
@@ -18,7 +19,7 @@ interface GroupCache {
   userRoleMap: Map<number, { robloxRoleId: number; username: string }>;
   builtAt: Date;
 }
- 
+
 const groupCacheStore = new Map<number, GroupCache>();
 
 type MiddlewareData = {
@@ -63,8 +64,7 @@ async function retryNobloxRequest<T>(
       if (attempt > 0) {
         const delayMs = initialDelay * Math.pow(2, attempt - 1);
         console.log(
-          `[retryNobloxRequest] Retrying after ${delayMs}ms (attempt ${
-            attempt + 1
+          `[retryNobloxRequest] Retrying after ${delayMs}ms (attempt ${attempt + 1
           }/${maxRetries})`
         );
         await delay(delayMs);
@@ -82,8 +82,7 @@ async function retryNobloxRequest<T>(
 
       if (isRateLimitError && attempt < maxRetries - 1) {
         console.log(
-          `[retryNobloxRequest] Rate limit hit, will retry (attempt ${
-            attempt + 1
+          `[retryNobloxRequest] Rate limit hit, will retry (attempt ${attempt + 1
           }/${maxRetries})`
         );
         continue;
@@ -103,29 +102,33 @@ async function buildGroupCache(
   ranks: noblox.Role[],
   batchSize = 5
 ): Promise<Map<number, { robloxRoleId: number; username: string }>> {
-  const internalMap = new Map<
-    number,
+  const internalMap = new Map<number,
     { robloxRoleId: number; username: string; _rank: number }
   >();
   const trackedRanks = ranks.filter((r) => r.rank !== 0);
- 
+
+  const apiKey = await getConfig("roblox_opencloud", groupID)
+
   console.log(
     `[update-group] Building cache: fetching ${trackedRanks.length} ranks in batches of ${batchSize}...`
   );
- 
+
   for (let i = 0; i < trackedRanks.length; i += batchSize) {
     const batch = trackedRanks.slice(i, i + batchSize);
- 
+
     const results = await Promise.allSettled(
       batch.map(async (rank) => {
         await delay(200);
-        const members = await retryNobloxRequest(() =>
-          noblox.getPlayers(groupID, rank.id)
-        );
-        return { rank, members };
+        console.log(`[update-group] Fetching roleset id=${rank.id} rank=${rank.rank} name=${rank.name}`);
+        const result = await getUsersWithinAGroupRoleset(groupID, rank.id, apiKey.key);
+        if (!result.success) {
+          console.log(result)
+          throw new Error(`Failed to fetch roleset ${rank.id}: ${result.message}`)
+        };
+        return { rank, members: result.data };
       })
     );
- 
+
     for (const result of results) {
       if (result.status === "rejected") {
         console.error(`[update-group] Batch fetch failed:`, result.reason);
@@ -133,20 +136,23 @@ async function buildGroupCache(
       }
       const { rank, members } = result.value;
       console.log(
-        `[update-group] Rank "${rank.name}" (${rank.id}): ${members.length} members`
+        `[update-group] Rank "${rank.name}" (id: ${rank.id}, rank: ${rank.rank}): ${members.length} members`
       );
       for (const member of members) {
-        const existing = internalMap.get(member.userId);
+        const userId = Number(member.user?.split("/")[1]);
+        if (!userId) continue;
+
+        const existing = internalMap.get(userId);
         if (!existing || rank.rank > existing._rank) {
-          internalMap.set(member.userId, {
+          internalMap.set(userId, {
             robloxRoleId: rank.id,
-            username: member.username,
+            username: "",
             _rank: rank.rank,
           });
         }
       }
     }
- 
+
     console.log(
       `[update-group] Cache progress: ${Math.min(
         i + batchSize,
@@ -154,13 +160,12 @@ async function buildGroupCache(
       )}/${trackedRanks.length} ranks processed`
     );
   }
- 
-  // Strip internal _rank field before storing
+
   const userRoleMap = new Map<number, { robloxRoleId: number; username: string }>();
   for (const [userId, { robloxRoleId, username }] of internalMap) {
     userRoleMap.set(userId, { robloxRoleId, username });
   }
- 
+
   groupCacheStore.set(groupID, { userRoleMap, builtAt: new Date() });
   console.log(
     `[update-group] Cache built: ${userRoleMap.size} unique users for group ${groupID}`
@@ -443,8 +448,7 @@ export function withPermissionCheckSsr(
 export async function checkGroupRoles(groupID: number) {
   try {
     console.log(`[update-group] Starting sync for group ${groupID}`);
- 
-    // ── 1. Refresh group info (name + logo) ───────────────────────────────
+
     try {
       const [logo, group] = await Promise.all([
         noblox.getLogo(groupID).catch(() => null),
@@ -464,23 +468,22 @@ export async function checkGroupRoles(groupID: number) {
     } catch (err) {
       console.error(`[update-group] Failed to update group info cache:`, err);
     }
- 
-    // ── 2. Migrate legacy isOwnerRole → isAdmin memberships ───────────────
+
     try {
       const ownerRoles = await prisma.role.findMany({
         where: { workspaceGroupId: groupID, isOwnerRole: true },
         include: { members: true },
       });
- 
+
       for (const ownerRole of ownerRoles) {
         console.log(
           `[update-group] Migrating ${ownerRole.members.length} users from owner role ${ownerRole.id}`
         );
- 
+
         let availableRoles = await prisma.role.findMany({
           where: { workspaceGroupId: groupID, id: { not: ownerRole.id } },
         });
- 
+
         if (availableRoles.length === 0) {
           const fallback = await prisma.role.create({
             data: {
@@ -496,8 +499,7 @@ export async function checkGroupRoles(groupID: number) {
             `[update-group] Created default fallback role for group ${groupID}`
           );
         }
- 
-        // Promote all owner-role members to isAdmin in parallel
+
         await Promise.allSettled(
           ownerRole.members.map((member) =>
             prisma.workspaceMember.upsert({
@@ -517,29 +519,30 @@ export async function checkGroupRoles(groupID: number) {
             })
           )
         );
- 
-        // Re-assign each member to the best matching workspace role
+
         for (const member of ownerRole.members) {
           let targetRole = availableRoles[0];
- 
+
           const userRank = await prisma.rank
             .findFirst({
               where: { userId: member.userid, workspaceGroupId: groupID },
             })
             .catch(() => null);
- 
+
           if (userRank) {
             const rankId = Number(userRank.rankId);
             const matched = await retryNobloxRequest(() =>
               noblox.getRole(groupID, rankId)
             )
               .then((info) =>
-                availableRoles.find((r) => r.groupRoles?.includes(info.id))
+                availableRoles.find((r) =>
+                  (r.groupRoles ?? []).map(Number).includes(info.id)
+                )
               )
               .catch(() => null);
             if (matched) targetRole = matched;
           }
- 
+
           await prisma.user
             .update({
               where: { userid: member.userid },
@@ -557,7 +560,7 @@ export async function checkGroupRoles(groupID: number) {
               )
             );
         }
- 
+
         await prisma.role
           .delete({ where: { id: ownerRole.id } })
           .catch((err) =>
@@ -567,7 +570,7 @@ export async function checkGroupRoles(groupID: number) {
             )
           );
       }
- 
+
       if (ownerRoles.length > 0) {
         console.log(
           `[update-group] Migrated ${ownerRoles.length} owner roles to isAdmin for group ${groupID}`
@@ -576,8 +579,7 @@ export async function checkGroupRoles(groupID: number) {
     } catch (err) {
       console.error(`[update-group] Failed to migrate owner roles:`, err);
     }
- 
-    // ── 3. Fetch Roblox roles + workspace roles + config in parallel ───────
+
     const rss = await retryNobloxRequest(() => noblox.getRoles(groupID)).catch(
       (err) => {
         console.error(`[update-group] Failed to get Roblox roles:`, err);
@@ -590,7 +592,7 @@ export async function checkGroupRoles(groupID: number) {
       );
       return;
     }
- 
+
     const [rs, config] = await Promise.all([
       prisma.role
         .findMany({ where: { workspaceGroupId: groupID } })
@@ -600,17 +602,17 @@ export async function checkGroupRoles(groupID: number) {
         }),
       getConfig("activity", groupID).catch(() => null),
     ]);
- 
+
     const minTrackedRole = config?.role ?? 0;
     const trackedRanks = rss.filter((r) => r.rank >= minTrackedRole);
- 
+
     console.log(
       `[update-group] Processing ${trackedRanks.length} tracked ranks for group ${groupID}`
     );
- 
+
     groupCacheStore.delete(groupID);
     const userRoleMap = await buildGroupCache(groupID, trackedRanks);
- 
+
     const [usersWithRoles, allRoleMembers] = await Promise.all([
       prisma.user.findMany({
         where: { roles: { some: { workspaceGroupId: groupID } } },
@@ -624,7 +626,7 @@ export async function checkGroupRoles(groupID: number) {
         where: { role: { workspaceGroupId: groupID } },
       }),
     ]);
- 
+
     const roleMemberIndex = new Map<
       string,
       (typeof allRoleMembers)[number]
@@ -632,23 +634,24 @@ export async function checkGroupRoles(groupID: number) {
     for (const rm of allRoleMembers) {
       roleMemberIndex.set(`${rm.roleId}:${rm.userId}`, rm);
     }
- 
+
     const usersInDbIndex = new Map(
       usersWithRoles.map((u) => [Number(u.userid), u])
     );
- 
+
     console.log(
       `[update-group] Loaded ${usersWithRoles.length} users and ${allRoleMembers.length} role memberships from DB`
     );
- 
+
     for (const [userId, { robloxRoleId, username }] of userRoleMap.entries()) {
       try {
-        const workspaceRole = rs.find((r) => r.groupRoles?.includes(robloxRoleId));
-        if (!workspaceRole || workspaceRole.isOwnerRole) continue;
- 
+        const workspaceRole = rs.find((r) =>
+          (r.groupRoles ?? []).map(Number).includes(robloxRoleId)
+        ); if (!workspaceRole || workspaceRole.isOwnerRole) continue;
+
         const userInDb = usersInDbIndex.get(userId);
         const hasRole = userInDb?.roles.some((r) => r.id === workspaceRole.id);
- 
+
         if (hasRole) {
           await prisma.user
             .update({
@@ -665,7 +668,7 @@ export async function checkGroupRoles(groupID: number) {
           console.log(
             `[update-group] Adding role "${workspaceRole.name}" to user ${userId} (RID: ${robloxRoleId})`
           );
- 
+
           await prisma.user
             .upsert({
               where: { userid: BigInt(userId) },
@@ -686,7 +689,7 @@ export async function checkGroupRoles(groupID: number) {
                 err
               )
             );
- 
+
           await prisma.roleMember
             .upsert({
               where: {
@@ -709,7 +712,7 @@ export async function checkGroupRoles(groupID: number) {
               )
             );
         }
- 
+
         await prisma.rank
           .upsert({
             where: {
@@ -735,19 +738,19 @@ export async function checkGroupRoles(groupID: number) {
         console.error(`[update-group] Error processing user ${userId}:`, err);
       }
     }
- 
+
     console.log(`[update-group] Starting role cleanup for group ${groupID}`);
- 
+
     for (const user of usersWithRoles) {
       const membership = user.workspaceMemberships[0];
       if (membership?.isAdmin) {
         console.log(`[update-group] Skipping admin ${user.userid}`);
         continue;
       }
- 
+
       const userId = Number(user.userid);
       const userRankData = userRoleMap.get(userId);
- 
+
       if (userRankData) {
         await prisma.rank
           .upsert({
@@ -771,15 +774,15 @@ export async function checkGroupRoles(groupID: number) {
             )
           );
       }
- 
+
       for (const userRole of user.roles) {
         if (userRole.isOwnerRole) continue;
         if (userRole.groupRoles === null || userRole.groupRoles === undefined)
           continue;
- 
+
         const rm = roleMemberIndex.get(`${userRole.id}:${user.userid}`);
         const isManual = rm?.manuallyAdded ?? false;
- 
+
         if (!userRankData) {
           if (isManual) {
             console.log(
@@ -793,7 +796,7 @@ export async function checkGroupRoles(groupID: number) {
           await removeRoleFromUser(user.userid, userRole.id);
           continue;
         }
- 
+
         if (userRole.groupRoles.length === 0) {
           if (isManual) continue;
           console.log(
@@ -802,10 +805,10 @@ export async function checkGroupRoles(groupID: number) {
           await removeRoleFromUser(user.userid, userRole.id);
           continue;
         }
- 
+
         const groupRoleIds = userRole.groupRoles.map((id: any) => Number(id));
         const qualifies = groupRoleIds.includes(userRankData.robloxRoleId);
- 
+
         if (!qualifies) {
           if (isManual) {
             console.log(
@@ -817,7 +820,7 @@ export async function checkGroupRoles(groupID: number) {
             `[update-group] Removing role "${userRole.name}" from ${user.userid} — rank ${userRankData.robloxRoleId} not in [${groupRoleIds.join(", ")}]`
           );
           await removeRoleFromUser(user.userid, userRole.id);
- 
+
           const remainingValid = user.roles.filter(
             (r) =>
               !r.isOwnerRole &&
@@ -843,7 +846,7 @@ export async function checkGroupRoles(groupID: number) {
         }
       }
     }
- 
+
     console.log(`[update-group] Completed sync for group ${groupID}`);
   } catch (err) {
     console.error(

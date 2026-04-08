@@ -1,3 +1,4 @@
+import axios from "axios";
 import noblox from "noblox.js";
 
 const TIMEOUT_MS = 12000;
@@ -39,6 +40,48 @@ export async function getRobloxThumbnail(id: number | bigint): Promise<string | 
     console.error(`Error getting thumbnail for user ${id}:`, error);
     return null;
   }
+}
+
+export async function getUsersWithinAGroupRoleset(
+    groupid: number,
+    roleid: number,
+    apiKey: string
+) {
+    try {
+        let allUsers: any[] = [];
+        let pageToken = "";
+        const rolePath = `groups/${groupid}/roles/${roleid}`;
+
+        do {
+            const res = await axios.get(
+                `https://apis.roblox.com/cloud/v2/groups/${groupid}/memberships`,
+                {
+                    params: {
+                        maxPageSize: 100,
+                        filter: `role == '${rolePath}'`,
+                        ...(pageToken ? { pageToken } : {}),
+                    },
+                    headers: {
+                        "x-api-key": apiKey,
+                    },
+                }
+            );
+
+            if (res.status !== 200) {
+                return { success: false, message: "Non-200 response", data: [] };
+            }
+
+            const { groupMemberships, nextPageToken } = res.data;
+            allUsers = allUsers.concat(groupMemberships || []);
+            pageToken = nextPageToken || "";
+
+        } while (pageToken !== "");
+
+        return { success: true, data: allUsers };
+    } catch (err) {
+        console.log(`ROBLOX API Error: ${err}`);
+        return { success: false, message: err, data: [] };
+    }
 }
 
 export async function getRobloxUserId(username: string): Promise<number> {
