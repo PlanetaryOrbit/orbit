@@ -23,7 +23,7 @@ const randomText = (name: string) => {
 		`New day, new tasks — let’s crush them, ${name} ✅`,
 		`Hello sunshine! ${name}, you’re glowing today ☀️`,
 		`Mission log: ${name} is online and operational 🛰️`,
-		`Don't just wake up, show up — let’s go ${name} 💼`
+		`Don't just wake up, show up — let’s go ${name} 💼`,
 	];
 
 	const afternoonOnlyTexts = [
@@ -46,7 +46,8 @@ const randomText = (name: string) => {
 		`Orbit’s still spinning and so are you, ${name} 🌀`,
 		`Don't forget to hydrate, ${name} 💧`,
 		`Productivity levels: Rising steadily, Captain ${name} 📈`,
-		`It’s a good day to get stuff done, ${name} 🧠`
+		`It’s a good day to get stuff done, ${name} 🧠`,
+		`Orbit is running smooth. Thanks for supporting our project, ${name} 🙌`,
 	];
 
 	const nightOnlyTexts = [
@@ -69,7 +70,7 @@ const randomText = (name: string) => {
 		`May your dreams be bug-free, ${name} 🐛💤`,
 		`Another day complete. Well played, ${name} 🎮`,
 		`Captain ${name}, mission complete for today 🚀`,
-		`Sending good energy for tomorrow, ${name} 🔮`
+		`Sending good energy for tomorrow, ${name} 🔮`,
 	];
 
 	const lateNightTexts = [
@@ -78,15 +79,17 @@ const randomText = (name: string) => {
 		`Late-night coding or existential scrolling, ${name}? 💻📱`,
 		`You, me, and the moon. Let’s vibe, ${name} 🌕`,
 		`Insomniacs anonymous: Welcome, ${name} 😴💤`,
-		`Hope you're doing okay, ${name}. Remember to rest soon 🫶`
+		`Hope you're doing okay, ${name}. Remember to rest soon 🫶`,
+		`Late shift? Stay sharp, ${name}🦉`,
+		`Quiet hours are the best for deep management. Go get ’em, ${name}. ⌨️`,
 	];
 
 	const hour = new Date().getHours();
 
 	if (hour >= 20) return randomTextFromArray(nightOnlyTexts);
-	if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);
-	if (hour >= 4) return randomTextFromArray(morningOnlyTexts);
-	return randomTextFromArray(lateNightTexts);
-};
+if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);
+if (hour >= 4) return randomTextFromArray(morningOnlyTexts);
+return randomTextFromArray(lateNightTexts);
+};  
 
 export default randomText;
