@@ -120,9 +120,9 @@ async function buildGroupCache(
       batch.map(async (rank) => {
         await delay(200);
         console.log(`[update-group] Fetching roleset id=${rank.id} rank=${rank.rank} name=${rank.name}`);
-        const result = await getUsersWithinAGroupRoleset(groupID, rank.id, apiKey.key);
+        const result = await getUsersWithinAGroupRoleset(groupID, rank.id, apiKey.key) as any;
         if (!result.success) {
-          console.log(result)
+          console.log(result.response)
           throw new Error(`Failed to fetch roleset ${rank.id}: ${result.message}`)
         };
         return { rank, members: result.data };

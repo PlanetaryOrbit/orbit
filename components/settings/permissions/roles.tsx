@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import clsx from "clsx";
+import key from "@/pages/api/workspace/[id]/settings/general/roblox/key";
 
 type Props = {
   setRoles: React.Dispatch<React.SetStateAction<role[]>>;
@@ -284,15 +285,34 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   const checkRoles = async () => {
-    const res = axios.post(
-      `/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`
-    );
-    toast.promise(res, {
-      loading: "Checking roles...",
-      success: "Roles updated!",
-      error: "Error updating roles",
-    });
-  };
+  try {
+    const keyres = await axios.get(`/api/workspace/${workspace.groupId}/settings/general/roblox/key`);
+
+    if (!keyres.data.success) {
+      return toast.error("An error occurred while checking your API key");
+    }
+
+    const { enabled, key } = keyres.data.value;
+
+    if (!enabled) {
+      return toast.error("Open Cloud API key is not configured");
+    }
+
+    if (!key || key.length === 0) {
+      return toast.error("Open Cloud API key cannot be empty.");
+    }
+  } catch (err) {
+    console.log(err);
+    return toast.error("An error occurred while checking your API key");
+  }
+
+  const res = axios.post(`/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`);
+  toast.promise(res, {
+    loading: "Checking roles...",
+    success: "Roles updated!",
+    error: "Error updating roles",
+  });
+};
 
   const deleteRole = async (id: string) => {
     const res = axios
