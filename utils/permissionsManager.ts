@@ -10,7 +10,7 @@ import * as noblox from "noblox.js";
 import { getConfig } from "./configEngine";
 import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
-import { getUsersWithinAGroupRoleset } from './roblox'
+import { getRobloxUserInfo, getUsersWithinAGroupRoleset } from './roblox'
 
 const permissionsCache = new Map<string, { data: any; timestamp: number }>();
 const PERMISSIONS_CACHE_DURATION = 120000;
@@ -159,6 +159,29 @@ async function buildGroupCache(
         trackedRanks.length
       )}/${trackedRanks.length} ranks processed`
     );
+  }
+
+  const userIds = Array.from(internalMap.keys());
+  console.log(`[update-group] Fetching usernames for ${userIds.length} users...`);
+
+  const usernameBatchSize = 50;
+  for (let i = 0; i < userIds.length; i += usernameBatchSize) {
+    const batch = userIds.slice(i, i + usernameBatchSize);
+
+    await Promise.allSettled(
+      batch.map(async (userId) => {
+        const entry = internalMap.get(userId);
+        if (!entry) return;
+        try {
+          const info = await getRobloxUserInfo(userId);
+          internalMap.set(userId, { ...entry, username: info.username });
+        } catch {
+          internalMap.set(userId, { ...entry, username: "" });
+        }
+      })
+    );
+
+    console.log(`[update-group] Usernames fetched: ${Math.min(i + usernameBatchSize, userIds.length)}/${userIds.length}`);
   }
 
   const userRoleMap = new Map<number, { robloxRoleId: number; username: string }>();
