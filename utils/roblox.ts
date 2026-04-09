@@ -1,5 +1,7 @@
 import axios from "axios";
 import noblox from "noblox.js";
+import { OpenCloud } from '@relatiohq/opencloud'
+import packageInfo from '@/package.json'
 
 const TIMEOUT_MS = 12000;
 
@@ -15,6 +17,15 @@ async function withTimeout<T>(promise: Promise<T>, ms = TIMEOUT_MS): Promise<T> 
 export interface RobloxUserInfo {
   username: string;
   displayName: string;
+}
+
+export async function initiateClient(apiKey: string) {
+  const Client = new OpenCloud({
+    apiKey,
+    userAgent: `${packageInfo.name}/${packageInfo.version}`
+  });
+
+  return Client
 }
 
 export async function getRobloxUserInfo(id: number | bigint): Promise<RobloxUserInfo> {
