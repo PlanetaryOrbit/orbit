@@ -173,7 +173,7 @@ async function buildGroupCache(
         const entry = internalMap.get(userId);
         if (!entry) return;
         try {
-          const info = await getRobloxUserInfo(userId);
+          const info = await getRobloxUserInfo(userId, apiKey.key);
           internalMap.set(userId, { ...entry, username: info.username });
         } catch {
           internalMap.set(userId, { ...entry, username: "" });
