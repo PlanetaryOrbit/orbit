@@ -2,6 +2,7 @@ import axios from "axios";
 import noblox from "noblox.js";
 import { OpenCloud } from '@relatiohq/opencloud'
 import packageInfo from '@/package.json'
+import apiKeys from "@/pages/api/workspace/[id]/settings/api-keys";
 
 const TIMEOUT_MS = 12000;
 
@@ -28,9 +29,10 @@ export async function initiateClient(apiKey: string) {
   return Client
 }
 
-export async function getRobloxUserInfo(id: number | bigint): Promise<RobloxUserInfo> {
+export async function getRobloxUserInfo(id: number | bigint, apiKey: string): Promise<RobloxUserInfo> {
+  const Client = await initiateClient(apiKey)
   try {
-    const userInfo = await withTimeout(noblox.getUserInfo(Number(id)));
+    const userInfo = await withTimeout(Client.users.get(id.toString()));
     return {
       username: userInfo.name ?? "Unknown User",
       displayName: userInfo.displayName ?? userInfo.name ?? "Unknown User",
@@ -68,7 +70,7 @@ export async function getUsersWithinAGroupRoleset(
                 `https://apis.roblox.com/cloud/v2/groups/${groupid}/memberships`,
                 {
                     params: {
-                        maxPageSize: 100,
+                        maxPageSize: 1000,
                         filter: `role == '${rolePath}'`,
                         ...(pageToken ? { pageToken } : {}),
                     },
@@ -105,8 +107,8 @@ export async function getRobloxUserId(username: string): Promise<number> {
 }
 
 // Keep individual exports
-export const getRobloxUsername = async (id: number | bigint) =>
-  (await getRobloxUserInfo(id)).username;
+export const getRobloxUsername = async (id: number | bigint, apiKey: string) =>
+  (await getRobloxUserInfo(id, apiKey)).username;
 
-export const getRobloxDisplayName = async (id: number | bigint) =>
-  (await getRobloxUserInfo(id)).displayName;
+export const getRobloxDisplayName = async (id: number | bigint, apiKey: string) =>
+  (await getRobloxUserInfo(id, apiKey)).displayName;
