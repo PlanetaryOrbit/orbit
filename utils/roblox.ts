@@ -29,10 +29,14 @@ export async function initiateClient(apiKey: string) {
   return Client
 }
 
-export async function getRobloxUserInfo(id: number | bigint, apiKey: string): Promise<RobloxUserInfo> {
-  const Client = await initiateClient(apiKey)
+export async function getRobloxUserInfo(id: number | bigint, apiKey?: string): Promise<RobloxUserInfo> {
+  const Client = apiKey ? await initiateClient(apiKey) : undefined;
   try {
-    const userInfo = await withTimeout(Client.users.get(id.toString()));
+    const userInfo = await withTimeout<any>(
+      Client
+        ? Client.users.get(id.toString()) 
+        : noblox.getUserInfo(Number(id))
+    );
     return {
       username: userInfo.name ?? "Unknown User",
       displayName: userInfo.displayName ?? userInfo.name ?? "Unknown User",
