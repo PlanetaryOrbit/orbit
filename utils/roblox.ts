@@ -111,8 +111,8 @@ export async function getRobloxUserId(username: string): Promise<number> {
 }
 
 // Keep individual exports
-export const getRobloxUsername = async (id: number | bigint, apiKey: string) =>
-  (await getRobloxUserInfo(id, apiKey)).username;
+export const getRobloxUsername = async (id: number | bigint, apiKey?: string) =>
+  (await getRobloxUserInfo(id, apiKey ? apiKey : undefined)).username;
 
-export const getRobloxDisplayName = async (id: number | bigint, apiKey: string) =>
-  (await getRobloxUserInfo(id, apiKey)).displayName;
+export const getRobloxDisplayName = async (id: number | bigint, apiKey?: string) =>
+  (await getRobloxUserInfo(id, apiKey ? apiKey : undefined)).displayName;
