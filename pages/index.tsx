@@ -713,7 +713,6 @@ const Home: NextPage = () => {
 													onClick={saveRobloxConfig}
 													loading={configLoading}
 													disabled={configLoading || usingEnvVars}
-													workspace
 													classoverride={usingEnvVars ? "opacity-60 cursor-not-allowed" : undefined}
 												>
 													{usingEnvVars ? "Using Env Vars" : "Save Settings"}
