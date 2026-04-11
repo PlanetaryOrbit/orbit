@@ -139,6 +139,6 @@ const home: FC<props> = (props) => {
   );
 };
 
-home.title = "Workspace Customisation";
+home.title = "Workspace Customization";
 
 export default home;
