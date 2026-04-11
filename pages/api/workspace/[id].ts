@@ -14,6 +14,7 @@ type Data = {
 		groupId: number
 		groupThumbnail: string
 		groupName: string,
+    customName: string,
 		roles: (Omit<role, 'groupRoles'> & { groupRoles: string[] })[]
 		yourRole: string | null,
 		yourPermission: string[]
@@ -185,6 +186,7 @@ export async function handler(
 			groupId: workspace.groupId,
 			groupThumbnail: groupLogo,
 			groupName: groupinfo.name,
+      customName: workspace.customName ?? "",
 			yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 			groupTheme: themeconfig,
 			roles: roles.map(r => ({

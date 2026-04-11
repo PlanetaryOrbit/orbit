@@ -1,11 +1,12 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from "@/types/settingsComponent";
 import { IconCheck } from "@tabler/icons-react";
 import clsx from "clsx";
+import { fetchworkspace } from "@/utils/configEngine";
 
 type props = {
   triggerToast: typeof toast;
@@ -45,6 +46,18 @@ const home: FC<props> = (props) => {
     "Music Quote": "music_quote"
   };
 
+  useEffect(() => {
+    async function fetchWorkspace() {
+      try {
+        const res = await axios.get(`/api/workspace/${workspace.groupId}`)
+        console.log(res)
+        setCustomName(res.data.workspace.customName)
+      } catch {}
+    }
+
+    fetchWorkspace()
+  })
+
   const toggle = (name: string) => {
     if (workspace.settings.widgets.includes(toggleAble[name])) {
       setWorkspace({
@@ -74,6 +87,7 @@ const home: FC<props> = (props) => {
       </p>
       <input
         type="text"
+        value={customName}
         placeholder={workspace.groupName ? workspace.groupName : "Unknown Workspace"}
         onChange={(e) => setCustomName(e.target.value)}
         className="w-full px-3 py-2.5 border rounded-xl text-sm bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] focus:border-[color:rgb(var(--group-theme))] transition-colors mb-4 "
