@@ -1,7 +1,7 @@
 {
   "name": "Orbit Dashboard",
   "short_name": "Orbit",
-  "description": "The ultimate management platform for gaming communities.",
+  "description": "The ultimate Roblox management tool.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
