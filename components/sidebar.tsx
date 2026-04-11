@@ -44,6 +44,10 @@ interface SidebarProps {
   setIsCollapsed: (value: boolean) => void;
 }
 
+function resolveWorkspaceName(customName: string | undefined, groupName: string): string {
+  return customName && customName.trim().length > 0 ? customName : groupName;
+}
+
 function MobileWorkspaceSwitcher({
   login,
   workspace,
@@ -87,7 +91,7 @@ function MobileWorkspaceSwitcher({
         />
         <div className="flex-1 min-w-0 text-left">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
-            {workspace.groupName}
+           {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
           </p>
           <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">Switch workspace</p>
         </div>
@@ -139,7 +143,8 @@ function MobileWorkspaceSwitcher({
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
-                    {workspace.groupName}
+                    {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
+
                   </p>
                   <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Active</p>
                 </div>
@@ -166,7 +171,7 @@ function MobileWorkspaceSwitcher({
                         className="w-9 h-9 rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800 shrink-0"
                       />
                       <span className="flex-1 min-w-0 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                        {ws.groupName}
+                        {resolveWorkspaceName(ws.customName, ws.groupName)}
                       </span>
                       <IconChevronLeft className="w-4 h-4 text-zinc-400 rotate-180 shrink-0" stroke={1.5} />
                     </button>
@@ -237,18 +242,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType;
     accessible?: boolean;
   }[] = [
-    { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
-    { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled, accessible: workspace.yourPermission.includes("view_wall") },
-    { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
-    { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
-    ...(noticesEnabled ? [{ name: "Notices", href: `/workspace/${workspace.groupId}/notices`, icon: IconClock, filledIcon: IconClockFilled, accessible: true }] : []),
-    ...(alliesEnabled ? [{ name: "Alliances", href: `/workspace/${workspace.groupId}/alliances`, icon: IconRosetteDiscountCheck, filledIcon: IconRosetteDiscountCheckFilled, accessible: true }] : []),
-    ...(sessionsEnabled ? [{ name: "Sessions", href: `/workspace/${workspace.groupId}/sessions`, icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
-    { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
-    ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
-    { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
-  ];
+      { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
+      { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled, accessible: workspace.yourPermission.includes("view_wall") },
+      { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+      { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
+      ...(noticesEnabled ? [{ name: "Notices", href: `/workspace/${workspace.groupId}/notices`, icon: IconClock, filledIcon: IconClockFilled, accessible: true }] : []),
+      ...(alliesEnabled ? [{ name: "Alliances", href: `/workspace/${workspace.groupId}/alliances`, icon: IconRosetteDiscountCheck, filledIcon: IconRosetteDiscountCheckFilled, accessible: true }] : []),
+      ...(sessionsEnabled ? [{ name: "Sessions", href: `/workspace/${workspace.groupId}/sessions`, icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
+      { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+      ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+      ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
+      { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
+    ];
 
   const visiblePages = pages.filter((p) => p.accessible === undefined || p.accessible);
   const bottomBarPages = visiblePages.slice(0, 4);
@@ -339,6 +344,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       groupId: selected.groupId,
                       groupName: selected.groupName,
                       groupThumbnail: selected.groupThumbnail,
+                      customName: selected.customName
                     });
                     router.push(`/workspace/${selected.groupId}`);
                   }
@@ -365,7 +371,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       <>
                         <div className="flex-1 min-w-0 text-left">
                           <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
-                            {workspace.groupName}
+                            {resolveWorkspaceName(login?.workspaces?.find((ws) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
+
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Workspace</p>
                         </div>
@@ -403,7 +410,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             {({ selected }) => (
                               <>
                                 <img src={ws.groupThumbnail || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                                <span className="flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">{ws.groupName}</span>
+                                <span className="flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">{resolveWorkspaceName(ws.customName, ws.groupName)}</span>
                                 {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))] shrink-0" stroke={2} />}
                               </>
                             )}
@@ -640,6 +647,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       groupId: ws.groupId,
                       groupName: ws.groupName,
                       groupThumbnail: ws.groupThumbnail,
+                      customName: ws.customName
                     });
                     router.push(`/workspace/${ws.groupId}`);
                     closeMoreSheet();

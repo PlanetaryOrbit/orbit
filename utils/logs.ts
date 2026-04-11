@@ -240,7 +240,7 @@ export async function logAudit(workspaceGroupId: number, userId: number | null, 
 			}
 		}
 
-		if (webhook.enabled && webhook.url.length > 1) {
+		if ( webhook && webhook.enabled && webhook.url.length > 1) {
 			if (webhook.enabled && webhook.url) {
 				try {
 					const userAction = getAction(action)

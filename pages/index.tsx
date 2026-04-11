@@ -322,7 +322,7 @@ const Home: NextPage = () => {
 								const showAsSingleBig = !showPinnedFeatured && others.length === 1
 
 								const renderCard = (
-									workspace: { groupId: number; groupName: string; groupThumbnail?: string },
+									workspace: { groupId: number; groupName: string; groupThumbnail?: string, customName?: string },
 									options: { featured: boolean; isPinnedHero?: boolean }
 								) => {
 									const isPinned = pinnedWorkspaceId === workspace.groupId
@@ -371,7 +371,10 @@ const Home: NextPage = () => {
 												<div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-zinc-900/20 to-transparent" />
 												<div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 flex items-end justify-between gap-3">
 													<h3 className="text-lg sm:text-xl font-bold text-white truncate drop-shadow-sm">
-														{workspace.groupName}
+														{workspace.customName ? workspace.customName.length > 0 ? 
+                            workspace.customName :
+                            workspace.groupName : 
+                            workspace.groupName}
 													</h3>
 													<span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm text-white group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shrink-0">
 														<IconChevronRight className="w-5 h-5" stroke={2} />

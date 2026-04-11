@@ -94,13 +94,14 @@ export async function handler(
 			dbuser.roles.map(async (role) => {
 				const workspace = await prisma.workspace.findUnique({
 					where: { groupId: role.workspaceGroupId },
-					select: { groupName: true, groupLogo: true, lastSynced: true }
+					select: { groupName: true, groupLogo: true, lastSynced: true, customName: true }
 				});
 
 				return {
 					groupId: role.workspaceGroupId,
 					groupThumbnail: workspace?.groupLogo,
 					groupName: workspace?.groupName,
+          customName: workspace?.customName
 				};
 			})
 		);

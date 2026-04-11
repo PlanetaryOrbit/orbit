@@ -11,6 +11,7 @@ model workspace {
   groupName         String?
   groupLogo         String?
   lastSynced        DateTime?
+  customName        String?
   adjustments       ActivityAdjustment[]
   activityHistory   ActivityHistory[]
   activityResets    ActivityReset[]

@@ -4,8 +4,9 @@ import { role } from "@prisma/client";
 import axios from "axios";
 export type workspaceinfo = {
 	groupId: number;
-				groupThumbnail: string;
-				groupName: string
+	groupThumbnail: string;
+	groupName: string;
+  customName: string;
 }
 
 export type LoginState = {
@@ -42,6 +43,7 @@ const workspacestate = atom({
 	default: {
 		groupId: typeof window !== 'undefined' ? parseInt(window.location.pathname.split('/')[2]) || 1 : 1,
 		groupThumbnail: '',
+    customName: '',
 		groupName: '',
 		yourPermission: [] as string[],
 		isAdmin: false,
