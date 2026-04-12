@@ -24,7 +24,7 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
   useEffect(() => {
     if (router.query.id) {
       axios
-        .get(`/api/workspace/${router.query.id}/settings/general/roblox/key`)
+        .get(`/api/workspace/${workspace.groupId}/settings/general/roblox/key`)
         .then((res) => {
           if (res.data.value) {
             setEnabled(res.data.value.enabled || false);
@@ -58,7 +58,7 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
 
     try {
       const response = await axios.post(
-        `/api/workspace/${router.query.id}/settings/general/roblox/test`,
+        `/api/workspace/${workspace.groupId}/settings/general/roblox/test`,
         { key: keyToTest }
       );
 
@@ -113,7 +113,7 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
     setLoading(true);
     try {
       await axios.patch(
-        `/api/workspace/${router.query.id}/settings/general/roblox/key`,
+        `/api/workspace/${workspace.groupId}/settings/general/roblox/key`,
         { enabled, key: ockey }
       );
       savedKey.current = ockey;
