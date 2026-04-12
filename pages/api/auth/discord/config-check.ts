@@ -35,8 +35,6 @@ export default async function handler(
 	  },
 	});
 
-  console.log(configs)
-
 	const configMap = configs.reduce((acc:any, config:any) => {
 	  acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
 	  return acc;

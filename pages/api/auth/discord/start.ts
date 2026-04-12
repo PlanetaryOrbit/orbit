@@ -24,14 +24,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
 				return acc;
 			}, {} as Record<string, any>);
-			clientId = clientId || configMap.robloxClientId;
+			clientId = clientId || configMap.discordAppID;
 		} catch (error) {
 			console.error('Failed to fetch OAuth config from database:', error);
 		}
 	}
 
 	if (!clientId) {
-		console.error('Missing Roblox OAuth configuration');
+		console.error('Missing Discord OAuth configuration');
 		return res.status(500).json({ error: 'OAuth configuration error' });
 	}
 
