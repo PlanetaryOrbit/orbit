@@ -52,10 +52,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 		});
 
-		const configMap = configs.reduce((acc, config) => {
+		const configMap = configs.reduce((acc:any, config:any) => {
 			acc[config.key] = config.value;
 			return acc;
-		}, {} as Record<string, any>);
+		}, {} as Record<string, any>);  
 
 		return res.json({
 			robloxClientId: configMap.robloxClientId || '',

@@ -181,6 +181,7 @@ const Home: NextPage = () => {
 	const loadRobloxConfig = async () => {
 		try {
 			const response = await axios.get('/api/admin/instance-config')
+      console.log(response)
 			const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret } = response.data
 			const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 			const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
@@ -211,8 +212,9 @@ const Home: NextPage = () => {
 				robloxClientSecret: externalConfig.clientSecret,
 				robloxRedirectUri: externalConfig.redirectUri,
 				oauthOnlyLogin: externalConfig.oauthOnlyLogin,
-				redirectWorkspaceID: externalConfig.redirect_wid
-
+				redirectWorkspaceID: externalConfig.redirect_wid,
+        discordAppId: externalConfig.discordAppId,
+        discordSecret: externalConfig.discordAppSecret
 			})
 			setSaveMessage('Settings saved successfully!')
 			setTimeout(() => setSaveMessage(''), 3000)

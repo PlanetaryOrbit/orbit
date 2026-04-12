@@ -102,7 +102,6 @@ const Login: NextPage = () => {
 	},[])
 
 	useEffect(() => {
-		console.log(isRobloxOAuth, oauthOnly)
 		return () => {
 			if (usernameCheckTimeout.current) {
 				clearTimeout(usernameCheckTimeout.current);

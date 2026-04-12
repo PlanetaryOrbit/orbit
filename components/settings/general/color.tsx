@@ -260,14 +260,14 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
               <input
                 type="color"
                 value={
-                  selectedColor.startsWith("#")
-                    ? selectedColor
-                    : customHex
+                  String(selectedColor).startsWith("#")
+                  ? selectedColor
+                  : customHex
                 }
                 onChange={(e) => handleCustomColorChange(e.target.value)}
                 className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
               />
-              {selectedColor.startsWith("#") && (
+              {String(selectedColor).startsWith("#") && (
                 <span className="text-xs text-primary font-medium">Active</span>
               )}
             </label>
@@ -276,7 +276,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
               <input
                 type="text"
                 value={
-                  selectedColor.startsWith("#")
+                  String(selectedColor).startsWith("#")
                     ? selectedColor
                     : customHex
                 }
