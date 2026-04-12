@@ -43,7 +43,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
 
   useEffect(() => {
     if (workspace?.groupTheme) {
-      setSelectedColor(workspace.groupTheme);
+      setSelectedColor(String(workspace.groupTheme)); // ← wrap in String()
       setCustomHex(getHexFromTheme(workspace.groupTheme));
     }
   }, [workspace?.groupTheme]);
@@ -261,8 +261,8 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                 type="color"
                 value={
                   String(selectedColor).startsWith("#")
-                  ? selectedColor
-                  : customHex
+                    ? selectedColor
+                    : customHex
                 }
                 onChange={(e) => handleCustomColorChange(e.target.value)}
                 className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
