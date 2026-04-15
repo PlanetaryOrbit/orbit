@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "2.1.10beta3",
+  "version": "2.1.10beta4",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
