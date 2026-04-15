@@ -6,10 +6,10 @@ import noblox from 'noblox.js';
 import { createHash } from 'crypto';
 import sharp from 'sharp';
 
-type CacheEntry = { 
-  buffer: Buffer; 
-  etag: string; 
-  mtime: number; 
+type CacheEntry = {
+  buffer: Buffer;
+  etag: string;
+  mtime: number;
   lastRefresh: number;
   metadata: { color?: string; resolution: number };
 };
@@ -47,7 +47,7 @@ const BG_COLORS: Record<string, string> = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userid, color, res: resParam } = req.query;
-  
+
   if (!userid || Array.isArray(userid)) return res.status(400).end('Invalid userId');
   if (!/^[0-9]+$/.test(userid)) return res.status(400).end('Invalid userId');
   const userIdNum = Number(userid);
@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let sourceResolution: number;
   let fetchFromRoblox: boolean;
-  
+
   if (ROBLOX_RESOLUTIONS.includes(resolution)) {
     sourceResolution = resolution;
     fetchFromRoblox = true;
@@ -83,8 +83,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const colorLower = color.toLowerCase();
     if (BG_COLORS[colorLower]) {
       bgColor = colorLower;
+    } else if (/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(colorLower)) {
+      bgColor = colorLower.startsWith('#') ? colorLower : `#${colorLower}`;
     } else {
-      return res.status(400).end('Invalid color (supported: blue, purple, green, red, orange, yellow, pink, gray, black, white)');
+      return res.status(400).end('Invalid color (use a preset name or a hex like #fff or #aabbcc)');
     }
   }
 
@@ -92,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const baseFileName = `${userIdNum}_${sourceResolution}.png`;
   const avatarPath = path.join(avatarDir, baseFileName);
   const resolved = path.resolve(avatarPath);
-  
+
   if (!resolved.startsWith(path.resolve(avatarDir) + path.sep)) {
     return res.status(400).end('Invalid userId');
   }
@@ -109,22 +111,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       setCommonHeaders(res, mem);
       res.setHeader('Content-Length', mem.buffer.length.toString());
       res.end(mem.buffer);
-      
+
       if (Date.now() - mem.lastRefresh > STALE_AFTER_MS) {
-        triggerBackgroundRefresh(userIdNum, avatarPath, cacheKey, bgColor, resolution).catch(() => {});
+        triggerBackgroundRefresh(userIdNum, avatarPath, cacheKey, bgColor, resolution).catch(() => { });
       }
       return;
     }
 
-    await fs.mkdir(avatarDir, { recursive: true }).catch(() => {});
+    await fs.mkdir(avatarDir, { recursive: true }).catch(() => { });
 
     let baseBuffer: Buffer | null = null;
     let diskStat: any = null;
-    
+
     try {
       baseBuffer = await fs.readFile(avatarPath);
       diskStat = await fs.stat(avatarPath);
-    } catch {}
+    } catch { }
 
     if (fetchFromRoblox || !baseBuffer || (diskStat && Date.now() - diskStat.mtimeMs > STALE_AFTER_MS)) {
       baseBuffer = await fetchAndPersist(userIdNum, avatarPath, sourceResolution);
@@ -132,10 +134,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const needsProcessing = resolution !== sourceResolution || bgColor;
-    const processedBuffer = needsProcessing 
+    const processedBuffer = needsProcessing
       ? await processImage(baseBuffer, bgColor, resolution, sourceResolution)
       : baseBuffer;
-    
+
     const etag = computeETag(processedBuffer);
     const now = Date.now();
     const entry: CacheEntry = {
@@ -145,18 +147,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       lastRefresh: now,
       metadata: { color: bgColor, resolution }
     };
-    
+
     touch(cacheKey, entry);
-    
+
     if (isNotModified(req, entry)) {
       setCommonHeaders(res, entry);
       return res.status(304).end();
     }
-    
+
     setCommonHeaders(res, entry);
     res.setHeader('Content-Length', processedBuffer.length.toString());
     res.end(processedBuffer);
-    
+
   } catch (e) {
     console.error('Avatar error serving', userIdNum, e);
     res.status(404).end('Not found');
@@ -164,8 +166,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function processImage(
-  buffer: Buffer, 
-  bgColor?: string, 
+  buffer: Buffer,
+  bgColor?: string,
   targetResolution: number = 180,
   sourceResolution: number = 180
 ): Promise<Buffer> {
@@ -179,11 +181,10 @@ async function processImage(
     });
   }
 
-  // Add background color if specified
-  if (bgColor && BG_COLORS[bgColor]) {
-    const hexColor = BG_COLORS[bgColor];
+  if (bgColor) {
+    const hexColor = BG_COLORS[bgColor] ?? bgColor; // use preset or raw hex
     const rgb = hexToRgb(hexColor);
-    
+
     pipeline = pipeline.flatten({
       background: rgb
     });
@@ -193,7 +194,11 @@ async function processImage(
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  let normalized = hex.replace(/^#/, '');
+  if (normalized.length === 3) {
+    normalized = normalized.split('').map(c => c + c).join('');
+  }
+  const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
@@ -215,34 +220,34 @@ function setCommonHeaders(res: NextApiResponse, entry: CacheEntry) {
 function isNotModified(req: NextApiRequest, entry: CacheEntry): boolean {
   const inm = req.headers['if-none-match'];
   if (inm && inm === entry.etag) return true;
-  
+
   const ims = req.headers['if-modified-since'];
   if (ims) {
     const since = Date.parse(ims);
     if (!Number.isNaN(since) && entry.mtime <= since) return true;
   }
-  
+
   return false;
 }
 
 async function fetchAndPersist(userId: number, filePath: string, resolution: number = 180): Promise<Buffer> {
   const remoteUrl = await getRemoteAvatarUrl(userId, resolution);
-  const response = await axios.get(remoteUrl, { 
-    responseType: 'arraybuffer', 
-    timeout: 12000 
+  const response = await axios.get(remoteUrl, {
+    responseType: 'arraybuffer',
+    timeout: 12000
   });
   const buf = Buffer.from(response.data);
-  
+
   if (ROBLOX_RESOLUTIONS.includes(resolution)) {
-    fs.writeFile(filePath, buf).catch(() => {});
+    fs.writeFile(filePath, buf).catch(() => { });
   }
-  
+
   return buf;
 }
 
 async function triggerBackgroundRefresh(
-  userId: number, 
-  filePath: string, 
+  userId: number,
+  filePath: string,
   cacheKey: string,
   bgColor?: string,
   targetResolution: number = 180
@@ -255,14 +260,14 @@ async function triggerBackgroundRefresh(
     } else {
       sourceResolution = 720;
     }
-    
+
     const baseBuffer = await fetchAndPersist(userId, filePath, sourceResolution);
-    
+
     const needsProcessing = targetResolution !== sourceResolution || bgColor;
     const processedBuffer = needsProcessing
       ? await processImage(baseBuffer, bgColor, targetResolution, sourceResolution)
       : baseBuffer;
-    
+
     const now = Date.now();
     const entry: CacheEntry = {
       buffer: processedBuffer,
@@ -271,7 +276,7 @@ async function triggerBackgroundRefresh(
       lastRefresh: now,
       metadata: { color: bgColor, resolution: targetResolution }
     };
-    
+
     touch(cacheKey, entry);
     console.log('Avatar refreshed', userId, `(${targetResolution}x${targetResolution}${bgColor ? `, ${bgColor}` : ''})`);
   } catch (e) {
@@ -283,7 +288,7 @@ async function getRemoteAvatarUrl(userid: number, resolution: number = 180): Pro
   try {
     const thumbnails = await noblox.getPlayerThumbnail([userid], resolution as any, 'png', false, 'headshot');
     if (thumbnails && thumbnails[0]?.imageUrl) return thumbnails[0].imageUrl;
-  } catch {}
-  
+  } catch { }
+
   return `https://www.roblox.com/headshot-thumbnail/image?userId=${userid}&width=${resolution}&height=${resolution}&format=png`;
 }
