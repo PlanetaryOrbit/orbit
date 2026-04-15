@@ -670,7 +670,7 @@ const Home: NextPage = () => {
 
 													<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
 														Need a hand? Check our documentation at{' '}
-														<a href="https://docs.planetaryapp.us/workspace/oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+														<a href="https://docs.planetaryapp.us/workspace/roblox-oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
 															docs.planetaryapp.us
 														</a>
 													</p>
