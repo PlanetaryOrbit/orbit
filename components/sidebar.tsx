@@ -548,7 +548,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <nav
         className={clsx(
           "fixed bottom-0 inset-x-0 z-[99990]",
-          "bg-white/60 dark:bg-zinc-950/95 backdrop-blur-xl",
+          "bg-white/60 dark:bg-zinc-950/60 backdrop-blur-xl",
           "border-t border-zinc-200/50 dark:border-zinc-800/80",
           "pb-[env(safe-area-inset-bottom,24px)]",
           isStandalone ? "flex" : "lg:hidden flex"
