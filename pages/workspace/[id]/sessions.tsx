@@ -14,6 +14,7 @@ import {
   IconClock,
   IconUserCircle,
   IconX,
+  IconBan,
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
@@ -483,12 +484,18 @@ const WeeklyCalendar: React.FC<{
                                   session.type.slice(1)}
                               </span>
                             )}
-                            {isConcluded && (
+                            {session.cancelled && (
+                              <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-xs font-medium">
+                                <IconBan className="w-3 h-3" />
+                                Cancelled
+                              </span>
+                            )}
+                            {isConcluded && !session.cancelled && (
                               <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
                                 Concluded
                               </span>
                             )}
-                            {!isConcluded && statues && statues.has(session.id) && statues.get(session.id) !== "Open" && (
+                            {!isConcluded && !session.cancelled && statues && statues.has(session.id) && statues.get(session.id) !== "Open" && (
                               <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
                                 {statues.get(session.id)}
                               </span>
@@ -1002,12 +1009,18 @@ const Home: pageWithLayout<pageProps> = (props) => {
                                 session.type.slice(1)}
                             </span>
                           )}
-                          {isConcluded && (
+                          {session.cancelled && (
+                            <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
+                              <IconBan className="w-3 h-3" />
+                              Cancelled
+                            </span>
+                          )}
+                          {isConcluded && !session.cancelled && (
                             <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
                               Concluded
                             </span>
                           )}
-                          {!isConcluded && statues?.has(session.id) && statues.get(session.id) !== "Open" && (
+                          {!isConcluded && !session.cancelled && statues?.has(session.id) && statues.get(session.id) !== "Open" && (
                             <span className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
                               {statues.get(session.id)}
                             </span>

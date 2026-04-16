@@ -271,9 +271,11 @@ model Session {
   scheduleId       String?       @db.Uuid
   name             String?
   type             String?
-  archived         Boolean?      @default(false)
-  archiveStartDate DateTime?
-  archiveEndDate   DateTime?
+  archived             Boolean?      @default(false)
+  archiveStartDate     DateTime?
+  archiveEndDate       DateTime?
+  cancelled            Boolean?      @default(false)
+  cancellationReason   String?
   owner            user?         @relation(fields: [ownerId], references: [userid])
   schedule         schedule?     @relation(fields: [scheduleId], references: [id])
   sessionType      SessionType   @relation(fields: [sessionTypeId], references: [id])

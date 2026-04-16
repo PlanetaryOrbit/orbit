@@ -9,6 +9,8 @@ import {
   IconUserPlus,
   IconUserMinus,
   IconUserCheck,
+  IconBan,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -85,6 +87,9 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isCancelExpanded, setIsCancelExpanded] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
   const router = useRouter();
   const login = useRecoilValue(loginState);
   const workspace = useRecoilValue(workspacestate);
@@ -122,6 +127,27 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const refreshSessionData = async () => {
     onUpdate?.();
     setRefreshKey((prev) => prev + 1);
+  };
+
+  const handleCancelSession = async () => {
+    if (!cancelReason.trim()) return;
+    try {
+      setIsCancelling(true);
+      await axios.patch(
+        `/api/workspace/${router.query.id}/sessions/${session.id}/cancel`,
+        { reason: cancelReason.trim() }
+      );
+      session.cancelled = true;
+      session.cancellationReason = cancelReason.trim();
+      setIsCancelExpanded(false);
+      setCancelReason("");
+      toast.success("Session cancelled");
+      refreshSessionData();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to cancel session");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   useEffect(() => {
@@ -408,12 +434,18 @@ const SessionModal: React.FC<SessionModalProps> = ({
                       session.type.slice(1)}
                   </span>
                 )}
-                {isConcluded && (
+                {session.cancelled && (
+                  <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-xs font-medium">
+                    <IconBan className="w-3 h-3" />
+                    Cancelled
+                  </span>
+                )}
+                {isConcluded && !session.cancelled && (
                   <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
                     Concluded
                   </span>
                 )}
-                {!isConcluded && currentStatus && currentStatus !== "Open" && (
+                {!isConcluded && !session.cancelled && currentStatus && currentStatus !== "Open" && (
                   <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
                     {currentStatus}
                   </span>
@@ -570,6 +602,65 @@ const SessionModal: React.FC<SessionModalProps> = ({
           />
 
           <ActivityLogsSection sessionId={session.id} refreshKey={refreshKey} />
+
+          {session.cancelled && session.cancellationReason && (
+            <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/10 p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <IconBan className="w-4 h-4 text-red-500" />
+                <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                  Cancellation Reason
+                </span>
+              </div>
+              <p className="text-sm text-red-600 dark:text-red-300">
+                {session.cancellationReason}
+              </p>
+            </div>
+          )}
+
+          {canManage && !session.cancelled && (
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-4">
+              {!isCancelExpanded ? (
+                <button
+                  onClick={() => setIsCancelExpanded(true)}
+                  className="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                >
+                  <IconBan className="w-4 h-4" />
+                  Cancel this session
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <IconAlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                      Cancel Session
+                    </span>
+                  </div>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Reason for cancellation..."
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 resize-none"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCancelSession}
+                      disabled={!cancelReason.trim() || isCancelling}
+                      className="px-4 py-1.5 text-sm font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isCancelling ? "Cancelling…" : "Confirm Cancel"}
+                    </button>
+                    <button
+                      onClick={() => { setIsCancelExpanded(false); setCancelReason(""); }}
+                      className="px-4 py-1.5 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      Keep Session
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
