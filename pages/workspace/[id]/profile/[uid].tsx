@@ -1080,7 +1080,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   href={`https://www.roblox.com/users/${user.userid}/profile`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full border border-zinc-300 bg-white text-xs font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-colors whitespace-nowrap text-xs sm:text-sm font-semibold"
                 >
                   <IconExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">View on Roblox</span>

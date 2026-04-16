@@ -212,18 +212,55 @@ export function InformationTab({
     setEditing(false);
   };
 
+  const joinTenure = user.joinDate
+    ? (() => {
+        const days = Math.floor((Date.now() - new Date(user.joinDate).getTime()) / 86400000);
+        if (days < 30) return `${days}d`;
+        if (days < 365) return `${Math.floor(days / 30)}mo`;
+        const y = Math.floor(days / 365);
+        const m = Math.floor((days % 365) / 30);
+        return m > 0 ? `${y}y ${m}mo` : `${y}y`;
+      })()
+    : null;
+
+  const Field = ({
+    icon: Icon,
+    label,
+    children,
+  }: {
+    icon: React.ElementType;
+    label: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex items-start gap-3 py-4">
+      <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
+          {label}
+        </p>
+        {children}
+      </div>
+    </div>
+  );
+
+  const NullValue = ({ label }: { label: string }) => (
+    <span className="text-sm text-zinc-400 dark:text-zinc-500 italic">{label}</span>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-        <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
           Information
         </h3>
         {canEdit && !editing && (
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
           >
-            <IconPencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <IconPencil className="w-3.5 h-3.5" />
             Edit
           </button>
         )}
@@ -231,17 +268,17 @@ export function InformationTab({
           <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleCancel}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition flex-1 sm:flex-initial"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition flex-1 sm:flex-initial"
             >
-              <IconX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <IconX className="w-3.5 h-3.5" />
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg text-white bg-[#ff0099] hover:bg-[#ff0099]/90 transition flex-1 sm:flex-initial"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition flex-1 sm:flex-initial disabled:opacity-60"
             >
-              <IconCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <IconCheck className="w-3.5 h-3.5" />
               Save
             </button>
           </div>
@@ -249,381 +286,221 @@ export function InformationTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-[#ff0099]/10 rounded-lg">
-                <IconUser className="w-5 h-5 text-[#ff0099]" />
+        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50">
+          <Field icon={IconUser} label="Username">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+              @{user.username}
+            </p>
+          </Field>
+
+          <Field icon={IconId} label="User ID">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
+              {user.userid}
+            </p>
+          </Field>
+
+          <Field icon={IconUser} label="Discord ID">
+            {editing ? (
+              <input
+                type="text"
+                value={discordId}
+                onChange={(e) => setDiscordId(e.target.value)}
+                placeholder="Enter Discord ID"
+                className="w-full px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            ) : workspaceMember?.discordId ? (
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
+                {workspaceMember.discordId}
+              </p>
+            ) : (
+              <NullValue label="Not linked" />
+            )}
+          </Field>
+
+          <Field icon={IconCalendar} label="Birthday">
+            {editing ? (
+              <div className="flex gap-2">
+                <select
+                  value={birthdayMonth}
+                  onChange={(e) => setBirthdayMonth(e.target.value)}
+                  className="flex-1 px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">Month</option>
+                  {monthNames.slice(1).map((month, idx) => (
+                    <option key={idx + 1} value={idx + 1}>{month}</option>
+                  ))}
+                </select>
+                <select
+                  value={birthdayDay}
+                  onChange={(e) => setBirthdayDay(e.target.value)}
+                  className="flex-1 px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Username
-                </p>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  {user.username}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <IconId className="w-5 h-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  User ID
-                </p>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
-                  {user.userid}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-indigo-500/10 rounded-lg">
-                <IconUser className="w-5 h-5 text-indigo-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Discord ID
-                </p>
-                {editing ? (
-                  <input
-                    type="text"
-                    value={discordId}
-                    onChange={(e) => setDiscordId(e.target.value)}
-                    placeholder="Enter Discord ID"
-                    className="w-full px-2 py-1 text-sm rounded-lg bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
-                  />
-                ) : (
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {workspaceMember?.discordId || "Not linked"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-pink-500/10 rounded-lg">
-                <IconCalendar className="w-5 h-5 text-pink-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Birthday
-                </p>
-                {editing ? (
-                  <div className="flex gap-2">
-                    <select
-                      value={birthdayMonth}
-                      onChange={(e) => setBirthdayMonth(e.target.value)}
-                      className="flex-1 px-2 py-1 text-sm rounded-lg bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
-                    >
-                      <option value="">Month</option>
-                      {monthNames.slice(1).map((month, idx) => (
-                        <option key={idx + 1} value={idx + 1}>
-                          {month}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={birthdayDay}
-                      onChange={(e) => setBirthdayDay(e.target.value)}
-                      className="flex-1 px-2 py-1 text-sm rounded-lg bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
-                    >
-                      <option value="">Day</option>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                        <option key={day} value={day}>
-                          {day}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {user.birthdayDay && user.birthdayMonth
-                      ? `${monthNames[user.birthdayMonth]} ${user.birthdayDay}`
-                      : "Not set"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+            ) : user.birthdayDay && user.birthdayMonth ? (
+              <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                {monthNames[user.birthdayMonth]} {user.birthdayDay}
+              </p>
+            ) : (
+              <NullValue label="Not set" />
+            )}
+          </Field>
         </div>
-        <div className="space-y-3">
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <IconClock className="w-5 h-5 text-purple-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Timezone
+
+        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50">
+          <Field icon={IconClock} label="Timezone">
+            {editing ? (
+              <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
+                <div className="relative">
+                  <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-200 dark:border-zinc-600">
+                    <span className={`block truncate ${selectedTimezone ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
+                      {selectedTimezone || "Select timezone..."}
+                    </span>
+                  </Listbox.Button>
+                  <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
+                      <Listbox.Option value="" className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-400"}`}>Not set</Listbox.Option>
+                      {commonTimezones.map((tz) => (
+                        <Listbox.Option key={tz} value={tz} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>{tz}</Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </Transition>
+                </div>
+              </Listbox>
+            ) : workspaceMember?.timezone ? (
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  {workspaceMember.timezone}
                 </p>
-                {editing ? (
-                  <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
-                    <div className="relative">
-                      <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-300 dark:border-zinc-600">
-                        <span className={`block truncate ${selectedTimezone ? 'text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500'}`}>
-                          {selectedTimezone || "Select timezone..."}
-                        </span>
-                      </Listbox.Button>
-                      <Transition
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                      >
-                        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
-                          <Listbox.Option
-                            value=""
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 px-3 ${
-                                active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-400 dark:text-zinc-500"
-                              }`
-                            }
-                          >
-                            Not set
-                          </Listbox.Option>
-                          {commonTimezones.map((tz) => (
-                            <Listbox.Option
-                              key={tz}
-                              className={({ active }) =>
-                                `relative cursor-pointer select-none py-2 px-3 ${
-                                  active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-900 dark:text-white"
-                                }`
-                              }
-                              value={tz}
-                            >
-                              {tz}
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </Listbox>
-                ) : (
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {workspaceMember?.timezone || "Not set"}
-                  </p>
+                {localTime && (
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400">
+                    {isNight ? <IconMoon className="w-3 h-3" /> : <IconSun className="w-3 h-3" />}
+                    {localTime}
+                  </span>
                 )}
               </div>
-            </div>
-          </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4 relative z-40">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <IconBriefcase className="w-5 h-5 text-emerald-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Department{selectedDepartments.length !== 1 ? 's' : ''}
-                </p>
-                {editing ? (
-                  <div className="space-y-2">
-                    {availableDepartments.length > 0 ? (
-                      <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple by="id">
-                        <div className="relative">
-                          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-white dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50">
-                            <span className="block truncate text-zinc-900 dark:text-white">
-                              {selectedDepartments.length === 0
-                                ? "Select departments..."
-                                : selectedDepartments.length === 1
-                                ? selectedDepartments[0].name
-                                : `${selectedDepartments.length} departments selected`
-                              }
-                            </span>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                              <IconChevronDown className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-                            </span>
-                          </Listbox.Button>
-                          <Transition
-                            as={Fragment}
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                          >
-                            <Listbox.Options className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
-                              {availableDepartments.map((dept) => (
-                                <Listbox.Option
-                                  key={dept.id}
-                                  className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-3 pr-9 ${
-                                      active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-900 dark:text-white"
-                                    }`
-                                  }
-                                  value={dept}
-                                >
-                                  {({ selected }) => (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        <div 
-                                          className="w-3 h-3 rounded-full border border-zinc-300 dark:border-zinc-600 flex-shrink-0" 
-                                          style={{ backgroundColor: dept.color || "#6b7280" }}
-                                        />
-                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                          {dept.name}
-                                        </span>
-                                      </div>
-                                      {selected && (
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#ff0099]">
-                                          <IconCheck className="h-5 w-5" aria-hidden="true" />
-                                        </span>
-                                      )}
-                                    </>
-                                  )}
-                                </Listbox.Option>
-                              ))}
-                            </Listbox.Options>
-                          </Transition>
-                        </div>
-                      </Listbox>
-                    ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                        No departments available.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {selectedDepartments.length > 0 ? (
-                      selectedDepartments.map((dept) => (
-                        <div key={dept.id} className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full border border-zinc-300 dark:border-zinc-600" 
-                            style={{ backgroundColor: dept.color || "#6b7280" }}
-                          />
-                          <span className="text-sm font-semibold text-zinc-900 dark:text-white">
-                            {dept.name}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                        Not assigned
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-cyan-500/10 rounded-lg">
-                <IconUserCheck className="w-5 h-5 text-cyan-500" />
-              </div>
-              <div className="flex-1 min-w-0 relative z-10">
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">
-                  Line Manager
-                </p>
-                {editing ? (
-                  <Combobox value={selectedManager} onChange={setSelectedManager}>
-                    <div className="relative">
-                      <Combobox.Input
-                        className="relative w-full cursor-text rounded-lg bg-white dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50"
-                        displayValue={(manager: any) => manager?.username || ""}
-                        onChange={(event) => setManagerQuery(event.target.value)}
-                        placeholder="Search or select manager..."
-                      />
-                      <Transition
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                        afterLeave={() => setManagerQuery("")}
-                      >
-                        <Combobox.Options className="absolute z-50 mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
-                          <Combobox.Option
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 px-3 ${
-                                active ? "bg-[#ff0099]/10 text-[#ff0099]" : "text-zinc-900 dark:text-white"
-                              }`
-                            }
-                            value={null}
-                          >
+            ) : (
+              <NullValue label="Not set" />
+            )}
+          </Field>
+
+          <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`}>
+            {editing ? (
+              availableDepartments.length > 0 ? (
+                <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple by="id">
+                  <div className="relative z-40">
+                    <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-200 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                      <span className="block truncate text-sm text-zinc-900 dark:text-white">
+                        {selectedDepartments.length === 0 ? "Select departments..." : selectedDepartments.length === 1 ? selectedDepartments[0].name : `${selectedDepartments.length} selected`}
+                      </span>
+                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                        <IconChevronDown className="h-4 w-4 text-zinc-400" />
+                      </span>
+                    </Listbox.Button>
+                    <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                      <Listbox.Options className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
+                        {availableDepartments.map((dept) => (
+                          <Listbox.Option key={dept.id} value={dept} className={({ active }) => `relative cursor-pointer select-none py-2 pl-3 pr-9 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>
                             {({ selected }) => (
-                              <span className={selected ? "font-semibold" : ""}>
-                                None
-                              </span>
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: dept.color || "#6b7280" }} />
+                                  <span className={selected ? "font-medium" : ""}>{dept.name}</span>
+                                </div>
+                                {selected && <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary"><IconCheck className="h-4 w-4" /></span>}
+                              </>
                             )}
-                          </Combobox.Option>
-                          {filteredManagers.length === 0 && managerQuery !== "" ? (
-                            <div className="py-2 px-3 text-zinc-500 dark:text-zinc-400 text-sm">
-                              No members found.
-                            </div>
-                          ) : (
-                            filteredManagers.map((member) => (
-                              <Combobox.Option
-                                key={member.userid}
-                                className={({ active }) =>
-                                  `relative cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${
-                                    active ? "bg-[#ff0099]/10" : ""
-                                  }`
-                                }
-                                value={member}
-                              >
-                                {({ selected }) => (
-                                  <>
-                                    <img
-                                      src={member.picture}
-                                      className="w-6 h-6 rounded-full"
-                                      alt={member.username}
-                                    />
-                                    <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>
-                                      {member.username}
-                                    </span>
-                                  </>
-                                )}
-                              </Combobox.Option>
-                            ))
-                          )}
-                        </Combobox.Options>
-                      </Transition>
-                    </div>
-                  </Combobox>
-                ) : selectedManager || initialLineManager ? (
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`rounded-full w-6 h-6 flex items-center justify-center ${getRandomBg(
-                        (selectedManager || initialLineManager)?.userid || "")}`}>
-                      <img
-                        src={(selectedManager || initialLineManager)?.picture}
-                        className="rounded-full w-6 h-6 object-cover border border-white dark:border-zinc-800"
-                        alt={(selectedManager || initialLineManager)?.username}
-                      />
-                    </div>
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                      {(selectedManager || initialLineManager)?.username}
-                    </p>
+                          </Listbox.Option>
+                        ))}
+                      </Listbox.Options>
+                    </Transition>
                   </div>
-                ) : (
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    Not assigned
-                  </p>
+                </Listbox>
+              ) : (
+                <NullValue label="No departments available" />
+              )
+            ) : selectedDepartments.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedDepartments.map((dept) => (
+                  <span
+                    key={dept.id}
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                    style={{ backgroundColor: dept.color || "#6b7280" }}
+                  >
+                    {dept.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <NullValue label="Not assigned" />
+            )}
+          </Field>
+
+          <Field icon={IconUserCheck} label="Line Manager">
+            {editing ? (
+              <Combobox value={selectedManager} onChange={setSelectedManager}>
+                <div className="relative z-10">
+                  <Combobox.Input
+                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-sm border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    displayValue={(manager: any) => manager?.username || ""}
+                    onChange={(e) => setManagerQuery(e.target.value)}
+                    placeholder="Search manager..."
+                  />
+                  <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0" afterLeave={() => setManagerQuery("")}>
+                    <Combobox.Options className="absolute z-50 mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
+                      <Combobox.Option value={null} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>
+                        {({ selected }) => <span className={selected ? "font-semibold" : ""}>None</span>}
+                      </Combobox.Option>
+                      {filteredManagers.length === 0 && managerQuery !== "" ? (
+                        <div className="py-2 px-3 text-zinc-500 text-sm">No members found.</div>
+                      ) : filteredManagers.map((member) => (
+                        <Combobox.Option key={member.userid} value={member} className={({ active }) => `cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${active ? "bg-primary/10" : ""}`}>
+                          {({ selected }) => (
+                            <>
+                              <img src={member.picture} className="w-5 h-5 rounded-full" alt={member.username} />
+                              <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>{member.username}</span>
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))}
+                    </Combobox.Options>
+                  </Transition>
+                </div>
+              </Combobox>
+            ) : (selectedManager || initialLineManager) ? (
+              <div className="flex items-center gap-2">
+                <div className={`rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center overflow-hidden ${getRandomBg((selectedManager || initialLineManager)?.userid || "")}`}>
+                  <img src={(selectedManager || initialLineManager)?.picture} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
+                </div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  {(selectedManager || initialLineManager)?.username}
+                </p>
+              </div>
+            ) : (
+              <NullValue label="Not assigned" />
+            )}
+          </Field>
+
+          <Field icon={IconCalendar} label="Join Date">
+            {user.joinDate ? (
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  {new Date(user.joinDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                </p>
+                {joinTenure && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                    {joinTenure}
+                  </span>
                 )}
               </div>
-            </div>
-          </div>
-          {user.joinDate && (
-            <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-emerald-500/10 rounded-lg">
-                  <IconCalendar className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    Join Date
-                  </p>
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {new Date(user.joinDate).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+            ) : (
+              <NullValue label="Unknown" />
+            )}
+          </Field>
         </div>
       </div>
     </div>
