@@ -165,7 +165,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     activeUsers.push({
       userId: Number(user.userId),
       username: u?.username || "Unknown",
-      picture: u?.picture || "",
+      picture: `/api/workspace/${workspaceId}/avatar/${Number(user.userId)}`,
     });
   }
   for (const session of inactiveSession) {
@@ -176,7 +176,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       from: session.startTime,
       to: session.endTime!,
       username: u?.username || "Unknown",
-      picture: u?.picture || "",
+      picture: `/api/workspace/${workspaceId}/avatar/${Number(session.userId)}`,
     });
   }
 
@@ -255,7 +255,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         userId: min.userId,
         username: found?.username || "Unknown",
         ms: minSum,
-        picture: found?.picture || "Unknown",
+        picture: `/api/workspace/${workspaceId}/avatar/${min.userId}`,
       });
       processedUserIds.add(min.userId);
     }
@@ -275,7 +275,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       userId: userId,
       username: user.username || "Unknown",
       ms: 0,
-      picture: user.picture || "Unknown",
+      picture: `/api/workspace/${workspaceId}/avatar/${userId}`,
     });
   }
 

@@ -322,23 +322,32 @@ const Activity: pageWithLayout = () => {
 	return (
 		<div className="pagePadding">
 			<div className="max-w-7xl mx-auto">
-				<div className="flex items-center gap-3 mb-6">
-					<div>
-						<h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-							Activity Dashboard
-						</h1>
-						<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-							Monitor your performance and track detailed activity metrics
-						</p>
-					</div>
+			<div className="flex items-center gap-4 mb-8">
+				{myData?.picture && (
+					<img
+						src={myData.picture}
+						alt={myData.username}
+						className="w-14 h-14 rounded-full ring-2 ring-primary/20 shadow-md flex-shrink-0 object-cover"
+					/>
+				)}
+				<div>
+					<h1 className="text-2xl font-semibold text-zinc-900 dark:text-white leading-tight">
+						Activity Dashboard
+					</h1>
+					<p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+						{myData
+							? `Welcome back, ${myData.username} — here's your activity summary`
+							: "Monitor your performance and track detailed activity metrics"}
+					</p>
 				</div>
+			</div>
 
 				{leaderboardEnabled && topStaff.length > 0 && (
 					<>
 						<div className="mb-8">
 							{leaderboardStyle === "podium" ? (
 								<>
-									<div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-6 shadow-sm mb-8">
+									<div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 shadow-sm mb-8">
 										<div className="flex items-center gap-3 mb-6">
 											<div className="bg-primary/10 p-3 rounded-xl">
 												<IconTrophy className="w-6 h-6 text-primary" />
@@ -495,7 +504,7 @@ const Activity: pageWithLayout = () => {
 								</>
 							) : (
 								<>
-									<div className="bg-white dark:bg-zinc-800 border border-white/10 rounded-xl p-4 shadow-sm mb-8">
+									<div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 shadow-sm mb-8">
 										<div className="flex items-center gap-3 mb-4">
 											<div className="bg-primary/10 p-3 rounded-xl">
 												<IconTrophy className="w-6 h-6 text-primary" />
@@ -589,127 +598,119 @@ const Activity: pageWithLayout = () => {
 					</>
 				)}
 
-				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
-					<div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
-						<div className="flex items-center justify-between mb-4 lg:mb-6">
-							<div className="min-w-0 flex-1">
-								<h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
-									Active Time
-								</h3>
-							</div>
-							<div className="bg-emerald-500/20 p-2 lg:p-3 rounded-lg">
-								<IconClock className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400" />
-							</div>
-						</div>
-						<div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
-							{myData ? myData.minutes : 0}
-						</div>
-						<div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
-							Time spent
+			<div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+				<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 border border-zinc-200 dark:border-zinc-700">
+					<div className="flex items-center justify-between mb-5">
+						<span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+							Active Time
+						</span>
+						<div className="bg-primary/10 p-2 rounded-lg">
+							<IconClock className="w-4 h-4 text-primary" />
 						</div>
 					</div>
-
-					{idleTimeEnabled && (
-						<div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
-							<div className="flex items-center justify-between mb-4 lg:mb-6">
-								<div className="min-w-0 flex-1">
-									<h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
-										Idle Time
-									</h3>
-								</div>
-								<div className="bg-blue-500/20 p-2 lg:p-3 rounded-lg">
-									<IconMoon className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
-								</div>
-							</div>
-							<div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
-								{myData ? myData.idleTime : 0}
-							</div>
-							<div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
-								Time spent away from keyboard
-							</div>
-						</div>
-					)}
-
-					<div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
-						<div className="flex items-center justify-between mb-4 lg:mb-6">
-							<div className="min-w-0 flex-1">
-								<h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
-									Messages
-								</h3>
-							</div>
-							<div className="bg-purple-500/20 p-2 lg:p-3 rounded-lg">
-								<IconMessageCircle2 className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
-							</div>
-						</div>
-						<div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
-							{myData ? myData.messages : 0}
-						</div>
-						<div className="text-xs lg:text-sm text-zinc-500 dark:text-zinc-400">
-							Chat messages
-						</div>
+					<div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
+						{formatMinutes(myData ? myData.minutes : 0)}
 					</div>
-
-					<div className="bg-white dark:bg-zinc-800 rounded-xl p-4 lg:p-6 border border-white/10 min-w-0">
-						<div className="flex items-center justify-between mb-4 lg:mb-6">
-							<div className="min-w-0 flex-1">
-								<h3 className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-300 uppercase tracking-wide truncate">
-									Total Sessions
-								</h3>
-							</div>
-							<div className="bg-orange-500/20 p-2 lg:p-3 rounded-lg">
-								<IconPlayerPlay className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400" />
-							</div>
-						</div>
-						<div className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-zinc-900 dark:text-white">
-							{myData ? myData.totalPlaySessions : 0}
-						</div>
-						<div className="text-sm text-zinc-500 dark:text-zinc-400">
-							Play sessions
-						</div>
+					<div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">
+						Time spent in-game
 					</div>
 				</div>
 
-				{myData && (
-					<div className="mb-8">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							<div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-								<div className="flex items-center justify-between mb-4">
-									<div>
-										<h3 className="text-sm font-medium text-blue-100 uppercase tracking-wide">
-											Sessions Hosted
-										</h3>
-									</div>
-									<div className="bg-white/20 p-3 rounded-lg">
-										<IconUsers className="w-6 h-6 text-white" />
-									</div>
-								</div>
-								<div className="text-4xl font-bold mb-2 text-white">
-									{myData.sessionsHosted}
-								</div>
-								<div className="text-sm text-blue-100">Sessions you Hosted</div>
+				{idleTimeEnabled && (
+					<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 border border-zinc-200 dark:border-zinc-700">
+						<div className="flex items-center justify-between mb-5">
+							<span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+								Idle Time
+							</span>
+							<div className="bg-primary/10 p-2 rounded-lg">
+								<IconMoon className="w-4 h-4 text-primary" />
 							</div>
-
-							<div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
-								<div className="flex items-center justify-between mb-4">
-									<div>
-										<h3 className="text-sm font-medium text-emerald-100 uppercase tracking-wide">
-											Sessions Attended
-										</h3>
-									</div>
-									<div className="bg-white/20 p-3 rounded-lg">
-										<IconChartBar className="w-6 h-6 text-white" />
-									</div>
-								</div>
-								<div className="text-4xl font-bold mb-2 text-white">
-									{myData.sessionsAttended}
-								</div>
-								<div className="text-sm text-emerald-100">
-									Sessions you participated in
-								</div>
-							</div>
+						</div>
+						<div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
+							{formatMinutes(myData ? myData.idleTime : 0)}
+						</div>
+						<div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">
+							Away from keyboard
 						</div>
 					</div>
 				)}
+
+				<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 border border-zinc-200 dark:border-zinc-700">
+					<div className="flex items-center justify-between mb-5">
+						<span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+							Messages
+						</span>
+						<div className="bg-primary/10 p-2 rounded-lg">
+							<IconMessageCircle2 className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+					<div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
+						{myData ? myData.messages.toLocaleString() : 0}
+					</div>
+					<div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">
+						Chat messages sent
+					</div>
+				</div>
+
+				<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 border border-zinc-200 dark:border-zinc-700">
+					<div className="flex items-center justify-between mb-5">
+						<span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+							Play Sessions
+						</span>
+						<div className="bg-primary/10 p-2 rounded-lg">
+							<IconPlayerPlay className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+					<div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
+						{myData ? myData.totalPlaySessions : 0}
+					</div>
+					<div className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">
+						Total play sessions
+					</div>
+				</div>
+			</div>
+
+			{myData && (
+				<div className="mb-8">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+							<div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full" />
+							<div className="absolute -right-1 -bottom-8 w-16 h-16 bg-white/10 rounded-full" />
+							<div className="relative flex items-center justify-between mb-5">
+								<span className="text-xs font-semibold text-blue-100 uppercase tracking-wider">
+									Sessions Hosted
+								</span>
+								<div className="bg-white/20 p-2.5 rounded-lg">
+									<IconUsers className="w-5 h-5 text-white" />
+								</div>
+							</div>
+							<div className="relative text-4xl font-bold text-white tabular-nums mb-1">
+								{myData.sessionsHosted}
+							</div>
+							<div className="relative text-sm text-blue-100">Sessions you led</div>
+						</div>
+
+						<div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+							<div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full" />
+							<div className="absolute -right-1 -bottom-8 w-16 h-16 bg-white/10 rounded-full" />
+							<div className="relative flex items-center justify-between mb-5">
+								<span className="text-xs font-semibold text-emerald-100 uppercase tracking-wider">
+									Sessions Attended
+								</span>
+								<div className="bg-white/20 p-2.5 rounded-lg">
+									<IconChartBar className="w-5 h-5 text-white" />
+								</div>
+							</div>
+							<div className="relative text-4xl font-bold text-white tabular-nums mb-1">
+								{myData.sessionsAttended}
+							</div>
+							<div className="relative text-sm text-emerald-100">
+								Sessions you participated in
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 
 				{myQuotas.length > 0 && (
 					<div className="bg-white dark:bg-zinc-800 rounded-xl p-5 shadow-sm mb-6">
@@ -1294,6 +1295,13 @@ const BG_COLORS = [
 	"bg-green-200",
 	"bg-red-200",
 ];
+
+function formatMinutes(minutes: number): string {
+	if (minutes < 60) return `${minutes}m`;
+	const h = Math.floor(minutes / 60);
+	const m = minutes % 60;
+	return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
 
 function getRandomBg(userid: string, username?: string) {
 	const key = `${userid ?? ""}:${username ?? ""}`;

@@ -14,7 +14,7 @@ import toast, { Toaster } from "react-hot-toast"
 import * as noblox from "noblox.js"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import prisma from "@/utils/database"
-import { getUsername, getDisplayName } from "@/utils/userinfoEngine"
+import { getUsername, getDisplayName, getThumbnail } from "@/utils/userinfoEngine"
 import { useState, useEffect } from "react"
 import clsx from "clsx"
 
@@ -80,7 +80,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
   const usersWithInfo = await Promise.all(
     users.map(async (user) => {
       const username = user.username || (await getUsername(user.userid))
-      const thumbnail = user.picture || ""
+      const thumbnail = user.picture || getThumbnail(user.userid)
       const displayName = user.username || (await getDisplayName(user.userid))
       return {
         ...user,

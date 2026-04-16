@@ -34,7 +34,7 @@ const workspace: LayoutProps = ({ children }) => {
 			}
 		}
 		if (router.query.id) getworkspace();
-	}, [router.query.id, setWorkspace, router]);
+	}, [router.query.id, setWorkspace]);
 
 	useEffect(() => {
 		if (workspace && workspace.groupTheme) {
