@@ -1149,7 +1149,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </button>
                   <button
                     onClick={() => {
-                      setType("fire");
+                      setType("termination");
                       setIsOpen(true);
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all"
