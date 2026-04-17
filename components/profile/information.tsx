@@ -149,6 +149,8 @@ export function InformationTab({
   const [localTime, setLocalTime] = useState("");
   const [isNight, setIsNight] = useState(false);
   const [managerQuery, setManagerQuery] = useState("");
+  const [deptOpen, setDeptOpen] = useState(false);
+  const deptDropdownRef = React.useRef<HTMLDivElement>(null);
 
   const workspaceId = router.query.id as string;
   const canEdit = isUser || isAdmin || canEditMembers;
@@ -156,11 +158,11 @@ export function InformationTab({
   const filteredManagers = managerQuery === ""
     ? allMembers.filter((m) => m.userid !== user.userid).slice(0, 5)
     : allMembers
-        .filter((m) => 
-          m.userid !== user.userid &&
-          m.username.toLowerCase().includes(managerQuery.toLowerCase())
-        )
-        .slice(0, 5);
+      .filter((m) =>
+        m.userid !== user.userid &&
+        m.username.toLowerCase().includes(managerQuery.toLowerCase())
+      )
+      .slice(0, 5);
 
   useEffect(() => {
     const updateTime = () => {
@@ -191,7 +193,7 @@ export function InformationTab({
           discordId: discordId || null,
         }
       );
-      
+
       toast.success("Information updated!");
       setEditing(false);
       router.replace(router.asPath);
@@ -214,13 +216,13 @@ export function InformationTab({
 
   const joinTenure = user.joinDate
     ? (() => {
-        const days = Math.floor((Date.now() - new Date(user.joinDate).getTime()) / 86400000);
-        if (days < 30) return `${days}d`;
-        if (days < 365) return `${Math.floor(days / 30)}mo`;
-        const y = Math.floor(days / 365);
-        const m = Math.floor((days % 365) / 30);
-        return m > 0 ? `${y}y ${m}mo` : `${y}y`;
-      })()
+      const days = Math.floor((Date.now() - new Date(user.joinDate).getTime()) / 86400000);
+      if (days < 30) return `${days}d`;
+      if (days < 365) return `${Math.floor(days / 30)}mo`;
+      const y = Math.floor(days / 365);
+      const m = Math.floor((days % 365) / 30);
+      return m > 0 ? `${y}y ${m}mo` : `${y}y`;
+    })()
     : null;
 
   const Field = ({
@@ -391,35 +393,58 @@ export function InformationTab({
           <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`}>
             {editing ? (
               availableDepartments.length > 0 ? (
-                <Listbox value={selectedDepartments} onChange={setSelectedDepartments} multiple by="id">
-                  <div className="relative z-40">
-                    <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-200 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                      <span className="block truncate text-sm text-zinc-900 dark:text-white">
-                        {selectedDepartments.length === 0 ? "Select departments..." : selectedDepartments.length === 1 ? selectedDepartments[0].name : `${selectedDepartments.length} selected`}
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <IconChevronDown className="h-4 w-4 text-zinc-400" />
-                      </span>
-                    </Listbox.Button>
-                    <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                      <Listbox.Options className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none">
-                        {availableDepartments.map((dept) => (
-                          <Listbox.Option key={dept.id} value={dept} className={({ active }) => `relative cursor-pointer select-none py-2 pl-3 pr-9 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>
-                            {({ selected }) => (
-                              <>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: dept.color || "#6b7280" }} />
-                                  <span className={selected ? "font-medium" : ""}>{dept.name}</span>
-                                </div>
-                                {selected && <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary"><IconCheck className="h-4 w-4" /></span>}
-                              </>
+                <div className="relative z-40" ref={deptDropdownRef}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDeptOpen((o) => !o);
+                    }}
+                    className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-200 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm text-zinc-900 dark:text-white"
+                  >
+                    {selectedDepartments.length === 0
+                      ? "Select departments..."
+                      : selectedDepartments.length === 1
+                        ? selectedDepartments[0].name
+                        : `${selectedDepartments.length} selected`}
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                      <IconChevronDown className="h-4 w-4 text-zinc-400" />
+                    </span>
+                  </button>
+
+                  {deptOpen && (
+                    <div className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
+                      {availableDepartments.map((dept) => {
+                        const isSelected = selectedDepartments.some((d) => d.id === dept.id);
+                        return (
+                          <div
+                            key={dept.id}
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // <-- this is the key, prevents blur closing dropdown
+                              setSelectedDepartments((prev) =>
+                                isSelected
+                                  ? prev.filter((d) => d.id !== dept.id)
+                                  : [...prev, dept]
+                              );
+                            }}
+                            className="relative cursor-pointer select-none py-2 pl-3 pr-9 flex items-center gap-2 hover:bg-primary/10 hover:text-primary text-zinc-900 dark:text-white"
+                          >
+                            <div
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: dept.color || "#6b7280" }}
+                            />
+                            <span className={isSelected ? "font-medium" : ""}>{dept.name}</span>
+                            {isSelected && (
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary">
+                                <IconCheck className="h-4 w-4" />
+                              </span>
                             )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </Listbox>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <NullValue label="No departments available" />
               )
