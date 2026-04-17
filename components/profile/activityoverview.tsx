@@ -268,76 +268,64 @@ export function ActivityOverview({
   }, [data, isDark]);
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <IconPlayerPlay className="w-5 h-5 text-primary" />
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 p-5 backdrop-blur-sm">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/70 rounded-t-xl" />
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <IconPlayerPlay className="w-4 h-4 text-primary" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                Activity
-              </p>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                Activity Metrics
-              </h2>
-            </div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+              Activity
+            </p>
           </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+          <div>
+            <div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
               {displayMinutes}
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
               minutes of activity
             </p>
           </div>
         </div>
 
-        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <IconUsers className="w-5 h-5 text-primary" />
+        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 p-5 backdrop-blur-sm">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/70 rounded-t-xl" />
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <IconUsers className="w-4 h-4 text-primary" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                Messages
-              </p>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                Messages Sent
-              </h2>
-            </div>
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+              Messages
+            </p>
           </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+          <div>
+            <div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
               {messages}
             </div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              messages during this period
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+              messages this period
             </p>
           </div>
         </div>
 
         {idleTimeEnabled && (
-          <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <IconClock className="w-5 h-5 text-primary" />
+          <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 p-5 backdrop-blur-sm">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/70 rounded-t-xl" />
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-1.5 bg-primary/10 rounded-md">
+                <IconClock className="w-4 h-4 text-primary" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Idle time
-                </p>
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  Idle Time
-                </h2>
-              </div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                Idle Time
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-1">
+            <div>
+              <div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
                 {idleTime}
               </div>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
                 minutes idle
               </p>
             </div>
@@ -345,13 +333,13 @@ export function ActivityOverview({
         )}
       </div>
 
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 p-6 border-b border-zinc-200 dark:border-zinc-700">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <IconCalendarTime className="w-5 h-5 text-primary" />
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
+          <div className="p-1.5 bg-primary/10 rounded-md">
+            <IconCalendarTime className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
               Activity Timeline
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -359,23 +347,21 @@ export function ActivityOverview({
             </p>
           </div>
         </div>
-        <div className="p-4 md:p-6">
+        <div className="p-5">
           {sortedTimeline.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-8 max-w-md mx-auto">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <IconClipboardList className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                  No Activity
-                </h3>
-                <p className="text-sm text-zinc-900 dark:text-white mb-4">
-                  No activity or adjustments have been recorded yet
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
+                <IconClipboardList className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No activity yet</p>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                  Sessions and adjustments will appear here
                 </p>
               </div>
             </div>
           ) : (
-            <ol className="relative border-l border-gray-200 ml-3 mt-3">
+            <ol className="relative border-l border-zinc-200 dark:border-zinc-700 ml-3 space-y-1">
               {sortedTimeline.map((item: TimelineItem) => {
                 if (item.__type === "session") {
                   const isLive = item.active && !item.endTime;
@@ -392,112 +378,89 @@ export function ActivityOverview({
                       );
 
                   return (
-                    <div key={`session-${item.id}`}>
-                      <li className="mb-6 ml-6">
-                        <span
-                          className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
-                            isLive
-                              ? "bg-green-500 animate-pulse"
-                              : "bg-primary"
-                          } rounded-full ring-4 ring-white`}
-                        >
-                          {isLive ? (
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
-                          ) : (
-                            <img
-                              className="rounded-full"
-                              src={
-                                item.user.picture ? item.user.picture : avatar
-                              }
-                              alt="timeline avatar"
-                            />
-                          )}
-                        </span>
-                        <div
-                          onClick={() => !isLive && fetchSession(item.id)}
-                          className={`p-4 ${
-                            isLive
-                              ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"
-                              : "bg-zinc-50 dark:bg-zinc-500 border-zinc-100"
-                          } rounded-lg border ${
-                            !isLive
-                              ? "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors"
-                              : ""
-                          }`}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                                Activity Session
-                              </p>
-                              {isLive && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                  LIVE
-                                </span>
-                              )}
-                            </div>
-                            <time className="text-xs text-zinc-500 dark:text-white">
-                              {isLive ? (
-                                <>
-                                  Started at{" "}
-                                  {moment(item.startTime).format("HH:mm")} •{" "}
-                                  {sessionDuration}m
-                                </>
-                              ) : (
-                                <>
-                                  {moment(item.startTime).format("HH:mm")} -{" "}
-                                  {moment(item.endTime).format("HH:mm")} on{" "}
-                                  {moment(item.startTime).format("DD MMM YYYY")} •{" "}
-                                  {sessionDuration}m
-                                </>
-                              )}
-                            </time>
-                          </div>
-                          {isLive && (
-                            <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                              Currently active in game
+                    <li key={`session-${item.id}`} className="mb-5 ml-5">
+                      <span
+                        className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
+                          isLive
+                            ? "bg-green-500 animate-pulse"
+                            : "bg-primary"
+                        } rounded-full ring-4 ring-white dark:ring-zinc-800`}
+                      >
+                        {isLive ? (
+                          <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                        ) : (
+                          <img
+                            className="rounded-full w-full h-full object-cover"
+                            src={item.user.picture ? item.user.picture : avatar}
+                            alt="timeline avatar"
+                          />
+                        )}
+                      </span>
+                      <div
+                        onClick={() => !isLive && fetchSession(item.id)}
+                        className={`rounded-lg border transition-all duration-150 ${
+                          isLive
+                            ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50"
+                            : "bg-zinc-50 dark:bg-zinc-700/40 border-zinc-200 dark:border-zinc-700/60 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/70 hover:border-zinc-300 dark:hover:border-zinc-600"
+                        } px-4 py-3`}
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                              Activity Session
                             </p>
-                          )}n                        </div>
-                      </li>
-                    </div>
+                            {isLive && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 shrink-0">
+                                LIVE
+                              </span>
+                            )}
+                          </div>
+                          <time className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0 tabular-nums">
+                            {isLive ? (
+                              <>Started {moment(item.startTime).format("HH:mm")} · {sessionDuration}m</>
+                            ) : (
+                              <>{moment(item.startTime).format("HH:mm")}–{moment(item.endTime).format("HH:mm")} · {moment(item.startTime).format("D MMM")} · {sessionDuration}m</>
+                            )}
+                          </time>
+                        </div>
+                        {isLive && (
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                            Currently active in game
+                          </p>
+                        )}
+                      </div>
+                    </li>
                   );
                 }
                 if (item.__type === "adjustment") {
                   const positive = item.minutes > 0;
                   return (
-                    <div key={`adjust-${item.id}`}>
-                      <li className="mb-6 ml-6">
-                        <span
-                          className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
-                            positive ? "bg-green-500" : "bg-red-500"
-                          } rounded-full ring-4 ring-white text-white text-xs font-bold`}
-                        >
-                          {positive ? "+" : "-"}
-                        </span>
-                        <div className="p-4 bg-zinc-50 dark:bg-zinc-600 rounded-lg border border-zinc-100 dark:border-zinc-600">
-                          <div className="flex justify-between items-center mb-1">
-                            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-                              Manual Adjustment
-                            </p>
-                            <time className="text-xs text-zinc-500 dark:text-zinc-300">
-                              {moment(item.createdAt).format(
-                                "DD MMM YYYY, HH:mm"
-                              )}
-                            </time>
-                          </div>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-200">
-                            {positive ? "Awarded" : "Removed"}{" "}
-                            {Math.abs(item.minutes)} minutes by{" "}
-                            {item.actor?.username || "Unknown"}
+                    <li key={`adjust-${item.id}`} className="mb-5 ml-5">
+                      <span
+                        className={`flex absolute -left-3 justify-center items-center w-6 h-6 ${
+                          positive ? "bg-emerald-500" : "bg-red-500"
+                        } rounded-full ring-4 ring-white dark:ring-zinc-800 text-white text-xs font-bold`}
+                      >
+                        {positive ? "+" : "−"}
+                      </span>
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/40 px-4 py-3">
+                        <div className="flex justify-between items-start gap-3">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                            Manual Adjustment
                           </p>
-                          {item.reason && (
-                            <p className="text-xs italic text-zinc-500 dark:text-zinc-400 mt-1">
-                              Reason: {item.reason}
-                            </p>
-                          )}
+                          <time className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0 tabular-nums">
+                            {moment(item.createdAt).format("D MMM YYYY, HH:mm")}
+                          </time>
                         </div>
-                      </li>
-                    </div>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          <span className={positive ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-red-600 dark:text-red-400 font-medium"}>
+                            {positive ? "+" : "−"}{Math.abs(item.minutes)} min
+                          </span>
+                          {" "}by {item.actor?.username || "Unknown"}
+                          {item.reason && <span className="text-zinc-400 dark:text-zinc-500"> · {item.reason}</span>}
+                        </p>
+                      </div>
+                    </li>
                   );
                 }
               })}

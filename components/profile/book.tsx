@@ -299,342 +299,279 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
     return null;
   };
 
+  const entryAccent: Record<string, string> = {
+    note: "border-l-zinc-400 dark:border-l-zinc-500",
+    warning: "border-l-amber-400 dark:border-l-amber-500",
+    promotion: "border-l-primary",
+    demotion: "border-l-red-400 dark:border-l-red-500",
+    rank_change: "border-l-blue-400 dark:border-l-blue-500",
+    termination: "border-l-red-600 dark:border-l-red-600",
+  };
+
+  const entryBadge: Record<string, string> = {
+    note: "bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300",
+    warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+    promotion: "bg-primary/10 text-primary",
+    demotion: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300",
+    rank_change: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300",
+    termination: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-6 space-y-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-              <IconClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
-                Add Entry
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                Log performance, rank changes, warnings, and other important updates.
-              </p>
-            </div>
+    <div className="space-y-5">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
+          <div className="p-1.5 bg-primary/10 rounded-md">
+            <IconPencil className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Add Entry</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Log performance, rank changes, warnings, and updates.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-3">
+          <div>
+            <label htmlFor="type" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+              Entry Type
+            </label>
+            <select
+              id="type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+            >
+              {logbookPermissions?.note && <option value="note">Note</option>}
+              {logbookPermissions?.warning && <option value="warning">Warning</option>}
+              {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
+              {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
+              {rankGunEnabled && logbookPermissions?.rank && (
+                <option value="rank_change">Rank Change</option>
+              )}
+              {logbookPermissions?.termination && <option value="termination">Termination</option>}
+            </select>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-zinc-700 mb-1 dark:text-white"
-              >
-                Type
-              </label>
-              <select
-                id="type"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="block w-full rounded-lg border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              >
-                {logbookPermissions?.note && <option value="note">Note</option>}
-                {logbookPermissions?.warning && <option value="warning">Warning</option>}
-                {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
-                {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
-                {rankGunEnabled && logbookPermissions?.rank && (
-                  <option value="rank_change">Rank Change</option>
-                )}
-                {logbookPermissions?.termination && <option value="termination">Termination</option>}
-              </select>
-            </div>
-
-            {rankGunEnabled &&
-              logbookPermissions?.rank &&
-              (type === "promotion" ||
-                type === "demotion" ||
-                type === "rank_change" ||
-                type === "termination") && (
-                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <IconRocket className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                      Ranking Integration Active
-                    </h3>
-                  </div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    {type === "promotion" &&
-                      "This will automatically promote the user in the Roblox group."}
-                    {type === "demotion" &&
-                      "This will automatically demote the user in the Roblox group."}
-                    {type === "rank_change" &&
-                      "This will automatically change the user's rank to the specified rank."}
-                    {type === "termination" &&
-                      "This will automatically terminate the user and remove them from the workspace."}
+          {rankGunEnabled &&
+            logbookPermissions?.rank &&
+            (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
+              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-900/20">
+                <IconRocket className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-0.5">Ranking Integration Active</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    {type === "promotion" && "This will automatically promote the user in the Roblox group."}
+                    {type === "demotion" && "This will automatically demote the user in the Roblox group."}
+                    {type === "rank_change" && "This will automatically change the user's rank to the specified rank."}
+                    {type === "termination" && "This will automatically terminate the user and remove them from the workspace."}
                   </p>
                 </div>
-              )}
-
-            {rankGunEnabled &&
-              !logbookPermissions?.rank &&
-              (type === "promotion" ||
-                type === "demotion" ||
-                type === "rank_change" ||
-                type === "termination") && (
-                <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                      Entry Only - No Automatic Rank Action
-                    </h3>
-                  </div>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    This will create a logbook entry but will not automatically change the user's rank. You need the "Logbook - Use Ranking" permission to execute automatic rank changes.
-                  </p>
-                </div>
-              )}
-
-            {type === "rank_change" && (
-              <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Target Rank
-                </label>
-                {loadingRanks ? (
-                  <div className="flex items-center gap-2 p-3 text-sm text-zinc-500 dark:text-zinc-400">
-                    <div className="animate-spin w-4 h-4 border-2 border-zinc-300 border-t-primary rounded-full"></div>
-                    Loading ranks...
-                  </div>
-                ) : (
-                  <select
-                    value={targetRank}
-                    onChange={(e) => setTargetRank(e.target.value)}
-                    className="block w-full rounded-lg border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  >
-                    <option value="">Select a rank...</option>
-                    {ranks
-                      .filter((rank) => rank.rank > 0)
-                      .map((rank) => (
-                        <option key={rank.id} value={rank.id}>
-                          {rank.name}
-                        </option>
-                      ))}
-                  </select>
-                )}
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  Select the rank that the user should be set to.
-                </p>
               </div>
             )}
 
-            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-4 rounded-lg">
-              <label
-                htmlFor="note"
-                className="block text-sm font-medium text-zinc-700 dark:text-white mb-1"
-              >
-                Note
+          {rankGunEnabled &&
+            !logbookPermissions?.rank &&
+            (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
+              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20">
+                <IconAlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-0.5">Entry Only — No Rank Action</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    You need the "Logbook — Use Ranking" permission to execute automatic rank changes.
+                  </p>
+                </div>
+              </div>
+            )}
+
+          {type === "rank_change" && (
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+                Target Rank
               </label>
-              <textarea
-                id="note"
-                rows={4}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Enter your note here..."
-                className="block w-full rounded-lg border-gray-300 dark:border-zinc-500 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              />
-            </div>
-            <button
-              onClick={addNote}
-              disabled={isSubmitting}
-              className="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {rankGunEnabled &&
-                  (type === "promotion" ||
-                    type === "demotion" ||
-                    type === "rank_change" ||
-                    type === "termination")
-                    ? "Executing..."
-                    : "Adding..."}
-                </>
-              ) : rankGunEnabled &&
-                logbookPermissions?.rank &&
-                (type === "promotion" ||
-                  type === "demotion" ||
-                  type === "rank_change" ||
-                  type === "termination") ? (
-                `Add Note & ${
-                  type === "rank_change"
-                    ? "Change Rank"
-                    : type === "promotion"
-                    ? "Promote"
-                    : type === "demotion"
-                    ? "Demote"
-                    : "Terminate"
-                }`
+              {loadingRanks ? (
+                <div className="flex items-center gap-2 py-2 text-sm text-zinc-400 dark:text-zinc-500">
+                  <div className="animate-spin w-4 h-4 border-2 border-zinc-200 dark:border-zinc-700 border-t-primary rounded-full" />
+                  Loading ranks...
+                </div>
               ) : (
-                "Add Note"
+                <select
+                  value={targetRank}
+                  onChange={(e) => setTargetRank(e.target.value)}
+                  className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                >
+                  <option value="">Select a rank...</option>
+                  {ranks
+                    .filter((rank) => rank.rank > 0)
+                    .map((rank) => (
+                      <option key={rank.id} value={rank.id}>
+                        {rank.name}
+                      </option>
+                    ))}
+                </select>
               )}
-            </button>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="note" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+              Note
+            </label>
+            <textarea
+              id="note"
+              rows={4}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter your note here..."
+              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition placeholder:text-zinc-400 dark:placeholder:text-zinc-500 resize-none"
+            />
           </div>
+
+          <button
+            onClick={addNote}
+            disabled={isSubmitting}
+            className="w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                {rankGunEnabled && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
+                  ? "Executing..."
+                  : "Adding..."}
+              </>
+            ) : rankGunEnabled && logbookPermissions?.rank && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") ? (
+              `Add Note & ${type === "rank_change" ? "Change Rank" : type === "promotion" ? "Promote" : type === "demotion" ? "Demote" : "Terminate"}`
+            ) : (
+              "Add Note"
+            )}
+          </button>
         </div>
       </div>
 
       {logbookPermissions?.view && (
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-6 space-y-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-              <IconClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <IconClipboardList className="w-4 h-4 text-primary" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-white">
-                History
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                A timeline of all notes, rank changes, and terminations for this member.
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">History</h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Notes, rank changes, and terminations for this member.
               </p>
             </div>
           </div>
 
-          {localBook.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-8 max-w-md mx-auto">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <IconClipboardList className="w-8 h-8 text-primary" />
+          <div className="p-5">
+            {localBook.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
+                  <IconClipboardList className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
                 </div>
-                <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                  No Notes
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-                  No notes have been added to this user's book yet
-                </p>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No entries yet</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Logbook entries will appear here</p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {localBook.map((entry: any) => {
-                const rankChangeText = getRankChangeText(entry);
-                return (
-                  <div
-                    key={entry.id}
-                    className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg"
-                  >
-                    <div className="flex-shrink-0">{getIcon(entry.type)}</div>
-                    <div className="flex-grow min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-1">
-                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                          <span
-                            className={`text-xs sm:text-sm font-medium ${
-                              entry.redacted
-                                ? "line-through opacity-60 text-zinc-500 dark:text-zinc-300"
-                                : "text-zinc-900 dark:text-white"
-                            }`}
-                          >
-                            {getEntryTitle(entry.type)}
-                          </span>
-                          {rankChangeText && (
-                            <span className="text-xs dark:bg-blue-100 bg-blue-900 dark:text-blue-800 text-blue-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-                              {rankChangeText}
+            ) : (
+              <div className="space-y-2">
+                {localBook.map((entry: any) => {
+                  const rankChangeText = getRankChangeText(entry);
+                  const accent = entryAccent[entry.type] || entryAccent.note;
+                  const badge = entryBadge[entry.type] || entryBadge.note;
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`flex gap-3 p-3.5 rounded-xl border border-zinc-100 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 border-l-2 ${accent}`}
+                    >
+                      <div className="flex-shrink-0 mt-0.5">{getIcon(entry.type)}</div>
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badge}`}>
+                              {getEntryTitle(entry.type)}
                             </span>
+                            {rankChangeText && (
+                              <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded font-medium whitespace-nowrap">
+                                {rankChangeText}
+                              </span>
+                            )}
+                            {entry.redacted && (
+                              <span className="text-xs bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400 px-1.5 py-0.5 rounded">
+                                Redacted
+                              </span>
+                            )}
+                          </div>
+                          <time className="text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap shrink-0">
+                            {moment(entry.createdAt).format("D MMM YYYY")}
+                          </time>
+                        </div>
+                        <p className={`text-sm leading-relaxed ${entry.redacted ? "line-through opacity-50 text-zinc-500 dark:text-zinc-400" : "text-zinc-700 dark:text-zinc-300"}`}>
+                          {entry.reason}
+                        </p>
+                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                          Logged by {entry.admin?.username || "Unknown"}
+                          {entry.redacted && entry.redactedByUser?.username && (
+                            <> · Redacted by {entry.redactedByUser.username} on {entry.redactedAt ? moment(entry.redactedAt).format("D MMM YYYY") : "Unknown"}</>
+                          )}
+                        </p>
+                      </div>
+                      {(logbookPermissions?.redact || isOwner(workspace)) && (
+                        <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
+                          {logbookPermissions?.redact && (
+                            <button
+                              onClick={() => redactEntry(entry)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40 transition-colors"
+                            >
+                              <IconAlertTriangle className="w-3.5 h-3.5" />
+                              {entry.redacted ? "Undo" : "Redact"}
+                            </button>
+                          )}
+                          {isOwner(workspace) && (
+                            <button
+                              onClick={() => deleteEntry(entry)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-white bg-red-500 hover:bg-red-600 transition-colors"
+                            >
+                              <IconTrash className="w-3.5 h-3.5" />
+                              Delete
+                            </button>
                           )}
                         </div>
-                        <time className="text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
-                          {moment(entry.createdAt).format("DD MMM YYYY")}
-                        </time>
-                      </div>
-                      <p
-                        className={`text-sm ${
-                          entry.redacted
-                            ? "line-through opacity-60 text-zinc-500 dark:text-zinc-300 mb-1"
-                            : "text-zinc-600 dark:text-zinc-300 mb-1"
-                        }`}
-                      >
-                        {entry.reason}
-                      </p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Logged by {entry.admin?.username || "Unknown"}
-                      </p>
-
-                      {entry.redacted && (
-                        <p className="text-xs text-zinc-400 dark:text-zinc-300 mt-2">
-                          Redacted by{" "}
-                          {entry.redactedByUser?.username ||
-                            (entry.redactedBy
-                              ? entry.redactedBy.toString()
-                              : "Unknown")}{" "}
-                          on{" "}
-                          {entry.redactedAt
-                            ? moment(entry.redactedAt).format("DD MMM YYYY")
-                            : "Unknown"}
-                        </p>
                       )}
                     </div>
-                    <div className="flex-shrink-0 flex flex-col items-end justify-start gap-2">
-                      {logbookPermissions?.redact && (
-                        <button
-                          onClick={() => redactEntry(entry)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-zinc-700 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 transition-colors"
-                        >
-                          <IconAlertTriangle className="w-4 h-4 mr-2" />
-                          {entry.redacted ? "Undo" : "Redact"}
-                        </button>
-                      )}
-                      {isOwner(workspace) && (
-                        <button
-                          onClick={() => deleteEntry(entry)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
-                        >
-                          <IconTrash className="w-4 h-4 mr-2" />
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       )}
+
       {showRedactModal && redactTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl p-6 w-full max-w-sm text-center">
+            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+              <IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
               {redactTarget.redacted ? "Undo Redaction" : "Redact Entry"}
             </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
               {redactTarget.redacted
-                ? "Un-redacting will make the entry visible again."
-                : "Mark this entry as redacted? This will cross it out for viewers."}
+                ? "Un-redacting will make this entry visible again."
+                : "This will cross out the entry for all viewers."}
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowRedactModal(false);
-                  setRedactTarget(null);
-                }}
-                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+                onClick={() => { setShowRedactModal(false); setRedactTarget(null); }}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRedact}
-                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                className="flex-1 px-4 py-2 text-sm font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
               >
                 {redactTarget.redacted ? "Undo" : "Redact"}
               </button>
@@ -644,28 +581,25 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
       )}
 
       {showDeleteModal && deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-              Confirm Deletion
-            </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
-              Are you sure you want to permanently delete this entry? This
-              action cannot be undone.
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl p-6 w-full max-w-sm text-center">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+              <IconTrash className="w-5 h-5 text-red-500 dark:text-red-400" />
+            </div>
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">Delete Entry</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+              This action is permanent and cannot be undone.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteTarget(null);
-                }}
-                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+                onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteEntry}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className="flex-1 px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
               >
                 Delete
               </button>

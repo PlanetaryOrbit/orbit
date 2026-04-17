@@ -112,202 +112,134 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
     }
   };
 
-  return (
-    <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-      <div className="p-4 sm:p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-              <IconCalendarTime className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Inactivity Notices
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                Record and review approved time off for this member.
-              </p>
-            </div>
-          </div>
-          {canRecordNotices && !showCreateForm && (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-primary text-white text-xs sm:text-sm rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap flex-shrink-0"
-            >
-              <IconPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Add Record
-            </button>
-          )}
-        </div>
+  const typeButtons: { type: typeof selectedType; label: string; icon: React.ElementType }[] = [
+    { type: "holiday", label: "Holiday", icon: IconCalendarTime },
+    { type: "sickness", label: "Sickness", icon: IconBug },
+    { type: "personal", label: "Personal", icon: IconHome },
+    { type: "school", label: "School", icon: IconBook },
+    { type: "other", label: "Other", icon: IconPlus },
+  ];
 
+  const statusConfig = {
+    approved: { color: "border-l-emerald-400 dark:border-l-emerald-500", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+    declined: { color: "border-l-red-400 dark:border-l-red-500", badge: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300" },
+    pending: { color: "border-l-amber-400 dark:border-l-amber-500", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+  };
+
+  const getStatusConfig = (notice: any) => {
+    if (notice.approved) return statusConfig.approved;
+    if (notice.reviewed || notice.revoked) return statusConfig.declined;
+    return statusConfig.pending;
+  };
+
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-1.5 bg-primary/10 rounded-md flex-shrink-0">
+            <IconCalendarTime className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Inactivity Notices</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Record and review approved time off for this member.</p>
+          </div>
+        </div>
+        {canRecordNotices && !showCreateForm && (
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors shrink-0"
+          >
+            <IconPlus className="w-3.5 h-3.5" />
+            Add Record
+          </button>
+        )}
+      </div>
+
+      <div className="p-5 space-y-4">
         {canRecordNotices && showCreateForm && (
-          <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-3 sm:p-4 mb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                Create Notices Record
-              </h3>
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">New Record</p>
               <button
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setReason("");
-                  setStartTime("");
-                  setEndTime("");
-                  setSelectedType("");
-                }}
-                className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 flex-shrink-0"
+                onClick={() => { setShowCreateForm(false); setReason(""); setStartTime(""); setEndTime(""); setSelectedType(""); }}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
               >
                 <IconX className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Type
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => {
-                    setSelectedType("holiday");
-                    setReason("Holiday");
-                  }}
-                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 sm:gap-2 ${
-                    selectedType === "holiday"
-                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                >
-                  <IconCalendarTime className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-400" />
-                  Holiday
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedType("sickness");
-                    setReason("Sickness");
-                  }}
-                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 sm:gap-2 ${
-                    selectedType === "sickness"
-                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                >
-                  <IconBug className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-400" />
-                  Sickness
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedType("personal");
-                    setReason("Personal");
-                  }}
-                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 sm:gap-2 ${
-                    selectedType === "personal"
-                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                >
-                  <IconHome className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-400" />
-                  Personal
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedType("school");
-                    setReason("School");
-                  }}
-                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 sm:gap-2 ${
-                    selectedType === "school"
-                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                >
-                  <IconBook className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-400" />
-                  School
-                </button>
-
-                <button
-                  onClick={() => {
-                    setSelectedType("other");
-                    setReason("");
-                  }}
-                  className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 sm:gap-2 ${
-                    selectedType === "other"
-                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                >
-                  <IconPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-600 dark:text-zinc-400" />
-                  Other
-                </button>
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-2">Type</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {typeButtons.map(({ type, label, icon: Icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => { setSelectedType(type); setReason(type !== "other" ? label : ""); }}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                      selectedType === type
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Start Date
-                </label>
+                <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">Start Date</label>
                 <input
                   type="date"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                  className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  End Date
-                </label>
+                <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">End Date</label>
                 <input
                   type="date"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
                   min={startTime || moment().format("YYYY-MM-DD")}
+                  className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                 />
               </div>
             </div>
 
             {selectedType !== "" && (
-              <div className="mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                  Reason for Inactivity
-                </label>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">Reason</label>
                 {selectedType !== "other" ? (
-                  <div className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
-                    {TYPE_LABELS[selectedType] ?? reason}
+                  <div className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white">
+                    {TYPE_LABELS[selectedType]}
                   </div>
                 ) : (
                   <textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none"
                     rows={3}
-                    placeholder="Please provide a brief explanation for the inactivity period..."
+                    placeholder="Brief explanation for the inactivity period..."
+                    className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                   />
                 )}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex gap-2">
               <button
                 onClick={createNotice}
-                disabled={
-                  isCreating || !reason.trim() || !startTime || !endTime
-                }
-                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isCreating || !reason.trim() || !startTime || !endTime}
+                className="flex-1 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isCreating ? "Adding..." : "Add Record"}
               </button>
               <button
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setReason("");
-                  setStartTime("");
-                  setEndTime("");
-                  setSelectedType("");
-                }}
-                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-zinc-100 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-500"
+                onClick={() => { setShowCreateForm(false); setReason(""); setStartTime(""); setEndTime(""); setSelectedType(""); }}
+                className="flex-1 py-2 text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
               >
                 Cancel
               </button>
@@ -316,30 +248,31 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
         )}
 
         {(canApproveNotices || canManageNotices) && localNotices.filter((n) => !n.reviewed).length > 0 && (
-          <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md flex items-center justify-between">
-            <div className="text-sm text-yellow-800 dark:text-yellow-300">
+          <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
               {localNotices.filter((n) => !n.reviewed).length} pending notice(s)
-              for this user
-            </div>
-            <div>
-              <button
-                onClick={() =>
-                  router.push(`/workspace/${router.query.id}/notices`)
-                }
-                className="px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 rounded-md text-sm"
-              >
-                Manage
-              </button>
-            </div>
+            </p>
+            <button
+              onClick={() => router.push(`/workspace/${router.query.id}/notices`)}
+              className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline shrink-0"
+            >
+              Manage →
+            </button>
           </div>
         )}
 
         {localNotices.length === 0 ? (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-            No inactivity notices found.
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
+              <IconCalendarTime className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No notices yet</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Inactivity notices will appear here</p>
+            </div>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {localNotices.map((notice: any) => {
               const now = new Date();
               const isActive =
@@ -348,64 +281,44 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
                 notice.endTime &&
                 new Date(notice.startTime) <= now &&
                 new Date(notice.endTime) >= now;
+              const cfg = getStatusConfig(notice);
               return (
                 <div
                   key={notice.id}
-                  className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-lg"
+                  className={`flex items-start justify-between gap-3 px-4 py-3 rounded-xl border border-zinc-100 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 border-l-2 ${cfg.color}`}
                 >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="flex-shrink-0">{getStatusIcon(notice)}</div>
-                    <div className="flex-grow min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-1">
-                        <span
-                          className={`text-xs sm:text-sm font-medium ${
-                            notice.approved
-                              ? "text-green-600 dark:text-green-400"
-                              : notice.reviewed
-                              ? "text-red-600 dark:text-red-400"
-                              : "text-yellow-600 dark:text-yellow-400"
-                          }`}
-                        >
+                  <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <div className="mt-0.5 shrink-0">{getStatusIcon(notice)}</div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${cfg.badge}`}>
                           {getStatusText(notice)}
                         </span>
-                        <span className="text-xs text-zinc-500 dark:text-zinc-300 whitespace-nowrap">
-                          {moment(notice.startTime).format("DD MMM YYYY")} -{" "}
-                          {moment(notice.endTime).format("DD MMM YYYY")}
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
+                          {moment(notice.startTime).format("D MMM YYYY")} – {moment(notice.endTime).format("D MMM YYYY")}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 break-words">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-300 break-words leading-relaxed">
                         {notice.reason}
                       </p>
                     </div>
                   </div>
                   {isActive && canManageNotices && (
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        onClick={async () => {
-                          try {
-                            const workspaceId =
-                              router.query.id ?? workspace.groupId;
-                            await axios.post(
-                              `/api/workspace/${workspaceId}/activity/notices/update`,
-                              {
-                                id: notice.id,
-                                status: "cancel",
-                              }
-                            );
-                            setLocalNotices((prev) =>
-                              prev.filter((n) => n.id !== notice.id)
-                            );
-                            toast.success("Notice revoked");
-                          } catch (e) {
-                            console.error(e);
-                            toast.error("Failed to revoke notice");
-                          }
-                        }}
-                        className="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/60 whitespace-nowrap w-full sm:w-auto"
-                      >
-                        Revoke
-                      </button>
-                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const workspaceId = router.query.id ?? workspace.groupId;
+                          await axios.post(`/api/workspace/${workspaceId}/activity/notices/update`, { id: notice.id, status: "cancel" });
+                          setLocalNotices((prev) => prev.filter((n) => n.id !== notice.id));
+                          toast.success("Notice revoked");
+                        } catch (e) {
+                          toast.error("Failed to revoke notice");
+                        }
+                      }}
+                      className="shrink-0 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    >
+                      Revoke
+                    </button>
                   )}
                 </div>
               );

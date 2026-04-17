@@ -134,150 +134,159 @@ const Login: NextPage = () => {
 	];
 
 	return (
-		<div className="flex items-center justify-center bg-infobg-light dark:bg-infobg-dark h-screen bg-no-repeat bg-cover bg-center">
-			<p className="text-md -mt-1 text-white absolute top-4 left-4 xs:hidden md:text-6xl font-extrabold">
-				👋 Welcome <br /> to <span className="text-pink-100 "> Orbit </span>
-			</p>
-			<div>
-				<Slider activeSlide={selectedSlide}>
-					<div>
-						<p className="font-bold text-2xl dark:text-white">Let's get started</p>
-						<p className="text-md -mt-1 text-zinc-500 dark:text-zinc-200">
-							To configure your Orbit instance, we'll need some information
-						</p>
-						<FormProvider {...methods}>
-							<form className="mt-2" onSubmit={handleSubmit(nextSlide)}>
-								<Input
-									placeholder="35724790"
-									label="Group ID"
-									id="groupid"
-									{...register("groupid", {
-										required: {
-											value: true,
-											message: "This field is required"
-										},
-										pattern: {
-											value: /^\d+$/,
-											message: "Group ID must be a number"
-										}
-									})}
-								/>
-							</form>
-						</FormProvider>
+		<div className="min-h-screen bg-infobg-light dark:bg-infobg-dark bg-no-repeat bg-cover bg-center flex flex-col">
+			<div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
+				<p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
+					👋 Welcome <br /> to <span className="text-pink-100">Orbit</span>
+				</p>
+			</div>
 
-						<div className="mt-7">
-							<label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
-							<div className="grid grid-cols-10 gap-3 mt-2 mb-8">
-								{colors.map((color, i) => (
-									<button
-										key={i}
-										type="button"
-										onClick={() => setSelectedColor(color)}
-										className={`aspect-square rounded-lg transform transition-all ease-in-out ${color} ${selectedColor === color ? "ring-4 ring-black dark:ring-white ring-offset-2" : "hover:scale-105"
-											}`}
+			<div className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
+				<div className="w-full max-w-md">
+					<Slider activeSlide={selectedSlide}>
+						<div>
+							<p className="font-bold text-2xl dark:text-white">Let&apos;s get started</p>
+							<p className="text-sm mt-1 text-zinc-500 dark:text-zinc-200">
+								To configure your Orbit instance, we&apos;ll need some information
+							</p>
+							<FormProvider {...methods}>
+								<form className="mt-4" onSubmit={handleSubmit(nextSlide)}>
+									<Input
+										placeholder="35724790"
+										label="Group ID"
+										id="groupid"
+										{...register("groupid", {
+											required: {
+												value: true,
+												message: "This field is required"
+											},
+											pattern: {
+												value: /^\d+$/,
+												message: "Group ID must be a number"
+											}
+										})}
 									/>
-								))}
+								</form>
+							</FormProvider>
+
+							<div className="mt-5">
+								<label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
+								<div className="grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 mb-6">
+									{colors.map((color, i) => (
+										<button
+											key={i}
+											type="button"
+											onClick={() => setSelectedColor(color)}
+											className={`aspect-square rounded-lg transform transition-all ease-in-out ${color} ${
+												selectedColor === color
+													? "ring-2 ring-black dark:ring-white ring-offset-2"
+													: "hover:scale-105"
+											}`}
+										/>
+									))}
+								</div>
+							</div>
+
+							<div className="flex gap-3">
+								<button
+									type="button"
+									onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
+									className="border-orbit border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition"
+								>
+									Docs
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										if (isRegistered) {
+											Router.push('/');
+										} else {
+											handleSubmit(nextSlide)();
+										}
+									}}
+									className="ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
+								>
+									Continue
+								</button>
 							</div>
 						</div>
-						<div className="flex">
-							<button
-								type="button"
-								onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
-								className="border-orbit border-2 py-3 text-sm rounded-xl px-6 text-zinc-600 dark:text-white font-bold hover:bg-orbit/80 dark:hover:bg-blue-400 transition"
-							>
-								Documentation
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									if (isRegistered) {
-										Router.push('/');
-									} else {
-										handleSubmit(nextSlide)();
-									}
-								}}
-								className="ml-auto bg-orbit py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
-							>
-								Continue
-							</button>
-						</div>
-					</div>
-					{!isRegistered && <div>
-						<p className="font-bold text-2xl dark:text-white" id="2">
-							Make your Orbit account
-						</p>
-						<p className="text-md -mt-1 text-zinc-500 dark:text-zinc-200">
-							You need to create an Orbit account to continue
-						</p>
-						<FormProvider {...signupform}>
-							<form onSubmit={signupform.handleSubmit(createAccount)}>
-								<Input
-									{...signupform.register("username", {
-										required: "Username is required"
-									})}
-									label="Roblox Username"
-								/>
-								{signupform.formState.errors.username && (
-									<p className="text-red-500 text-sm mt-1">
-										{signupform.formState.errors.username.message}
-									</p>
-								)}
 
-								<Input
-									type="password"
-									{...signupform.register("password", {
-										required: "Password is required",
-										minLength: {
-											value: 8,
-											message: "Password must be at least 8 characters"
-										}
-									})}
-									label="Password"
-								/>
-								{signupform.formState.errors.password && (
-									<p className="text-red-500 text-sm mt-1">
-										{signupform.formState.errors.password.message}
-									</p>
-								)}
+						{!isRegistered && (
+							<div>
+								<p className="font-bold text-2xl dark:text-white">Make your Orbit account</p>
+								<p className="text-sm mt-1 text-zinc-500 dark:text-zinc-200">
+									You need to create an Orbit account to continue
+								</p>
+								<FormProvider {...signupform}>
+									<form className="mt-4" onSubmit={signupform.handleSubmit(createAccount)}>
+										<Input
+											{...signupform.register("username", {
+												required: "Username is required"
+											})}
+											label="Roblox Username"
+										/>
+										{signupform.formState.errors.username && (
+											<p className="text-red-500 text-sm mt-1">
+												{signupform.formState.errors.username.message}
+											</p>
+										)}
 
-								<Input
-									type="password"
-									{...signupform.register("verifypassword", {
-										required: "Please verify your password",
-										validate: value =>
-											value === signupform.getValues('password') ||
-											"Passwords do not match"
-									})}
-									label="Verify password"
-								/>
-								{signupform.formState.errors.verifypassword && (
-									<p className="text-red-500 text-sm mt-1">
-										{signupform.formState.errors.verifypassword.message}
-									</p>
-								)}
-							</form>
-						</FormProvider>
+										<Input
+											type="password"
+											{...signupform.register("password", {
+												required: "Password is required",
+												minLength: {
+													value: 8,
+													message: "Password must be at least 8 characters"
+												}
+											})}
+											label="Password"
+										/>
+										{signupform.formState.errors.password && (
+											<p className="text-red-500 text-sm mt-1">
+												{signupform.formState.errors.password.message}
+											</p>
+										)}
 
-						<div className="mt-7 flex">
-							<button
-								type="button"
-								onClick={() => setSelectedSlide(0)}
-								className="bg-orbit ml-auto py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
-							>
-								Back
-							</button>
-							<button
-								type="button"
-								onClick={signupform.handleSubmit(createAccount)}
-								disabled={isLoading}
-								className={`ml-4 bg-orbit py-3 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
-									}`}
-							>
-								{isLoading ? 'Creating...' : 'Continue'}
-							</button>
-						</div>
-					</div>}
-				</Slider>
+										<Input
+											type="password"
+											{...signupform.register("verifypassword", {
+												required: "Please verify your password",
+												validate: value =>
+													value === signupform.getValues('password') ||
+													"Passwords do not match"
+											})}
+											label="Verify password"
+										/>
+										{signupform.formState.errors.verifypassword && (
+											<p className="text-red-500 text-sm mt-1">
+												{signupform.formState.errors.verifypassword.message}
+											</p>
+										)}
+									</form>
+								</FormProvider>
+
+								<div className="mt-6 flex gap-3">
+									<button
+										type="button"
+										onClick={() => setSelectedSlide(0)}
+										className="bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition"
+									>
+										Back
+									</button>
+									<button
+										type="button"
+										onClick={signupform.handleSubmit(createAccount)}
+										disabled={isLoading}
+										className={`ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+									>
+										{isLoading ? 'Creating...' : 'Continue'}
+									</button>
+								</div>
+							</div>
+						)}
+					</Slider>
+				</div>
 			</div>
 		</div>
 	);

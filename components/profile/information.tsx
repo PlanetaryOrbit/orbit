@@ -89,6 +89,32 @@ type InformationTabProps = {
   canEditMembers?: boolean;
 };
 
+const Field = ({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex items-start gap-3 py-4">
+    <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+      <Icon className="w-3.5 h-3.5 text-primary" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
+        {label}
+      </p>
+      {children}
+    </div>
+  </div>
+);
+
+const NullValue = ({ label }: { label: string }) => (
+  <span className="text-sm text-zinc-400 dark:text-zinc-500 italic">{label}</span>
+);
+
 const monthNames = [
   "",
   "January",
@@ -222,32 +248,6 @@ export function InformationTab({
         return m > 0 ? `${y}y ${m}mo` : `${y}y`;
       })()
     : null;
-
-  const Field = ({
-    icon: Icon,
-    label,
-    children,
-  }: {
-    icon: React.ElementType;
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <div className="flex items-start gap-3 py-4">
-      <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
-        <Icon className="w-3.5 h-3.5 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
-          {label}
-        </p>
-        {children}
-      </div>
-    </div>
-  );
-
-  const NullValue = ({ label }: { label: string }) => (
-    <span className="text-sm text-zinc-400 dark:text-zinc-500 italic">{label}</span>
-  );
 
   return (
     <div className="space-y-5">
@@ -461,7 +461,7 @@ export function InformationTab({
                         <Combobox.Option key={member.userid} value={member} className={({ active }) => `cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${active ? "bg-primary/10" : ""}`}>
                           {({ selected }) => (
                             <>
-                              <img src={member.picture} className="w-5 h-5 rounded-full" alt={member.username} />
+                              <img src={`/api/workspace/${router.query.id}/avatar/${member.userid}`} className="w-5 h-5 rounded-full object-cover" alt={member.username} />
                               <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>{member.username}</span>
                             </>
                           )}
@@ -474,7 +474,7 @@ export function InformationTab({
             ) : (selectedManager || initialLineManager) ? (
               <div className="flex items-center gap-2">
                 <div className={`rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center overflow-hidden ${getRandomBg((selectedManager || initialLineManager)?.userid || "")}`}>
-                  <img src={(selectedManager || initialLineManager)?.picture} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
+                  <img src={`/api/workspace/${router.query.id}/avatar/${(selectedManager || initialLineManager)?.userid}`} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
                 </div>
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">
                   {(selectedManager || initialLineManager)?.username}
