@@ -65,7 +65,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Error updating birthday webhook config:", error);
+      console.error("Error updating Opencloud Key config:", error);
       return res.status(500).json({ success: false, error: "Internal server error" });
     }
   }
