@@ -12,6 +12,7 @@ type User = {
 	displayname: string
 	thumbnail: string
 	registered: boolean
+  isFirstLogin: boolean,
 	birthdayDay?: number | null
 	birthdayMonth?: number | null
 	discordUser?: {
@@ -81,6 +82,7 @@ export async function handler(
 		registered: dbuser?.registered || false,
 		birthdayDay: dbuser?.birthdayDay ?? null,
 		birthdayMonth: dbuser?.birthdayMonth ?? null,
+    isFirstLogin: dbuser?.isFirstLogin ?? true,
 		discordUser: dbuser?.discordUser ? {
 			discordUserId: dbuser.discordUser.discordUserId.toString(),
 			username: dbuser.discordUser.username,

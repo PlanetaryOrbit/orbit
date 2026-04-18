@@ -17,6 +17,7 @@ export type LoginState = {
 	canMakeWorkspace: boolean;
 	workspaces: workspaceinfo[];
 	isOwner: boolean;
+  isFirstLogin: boolean,
 	discordUser?: {
 		discordUserId: string
 		username: string
@@ -31,6 +32,7 @@ const loginState = atom<LoginState>({
 		username: '',
 		displayname: '',
 		thumbnail: '',
+    isFirstLogin: true,
 		canMakeWorkspace: false,
 		workspaces: [] as workspaceinfo[],
 		isOwner: false,

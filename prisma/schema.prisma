@@ -59,6 +59,7 @@ model user {
   picture              String?
   username             String?
   registered           Boolean?
+  isFirstLogin         Boolean? @default(true)
   birthdayDay          Int?
   birthdayMonth        Int?
   discordUser          DiscordUser?

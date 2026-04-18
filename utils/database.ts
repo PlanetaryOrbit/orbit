@@ -3,12 +3,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
 declare global {
-    var prisma: PrismaClient;
-    var pgPool: Pool;
+  var prisma: PrismaClient;
+  var pgPool: Pool;
 }
 
 const pool = globalThis.pgPool || new Pool({
-    connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
 });
 
 if (process.env.NODE_ENV === 'development') globalThis.pgPool = pool;
@@ -17,7 +17,7 @@ const adapter = new PrismaPg(pool);
 const prisma = globalThis.prisma || new PrismaClient({ adapter });
 
 (BigInt.prototype as any).toJSON = function () {
-    return this.toString();
+  return this.toString();
 };
 
 if (process.env.NODE_ENV === 'development') globalThis.prisma = prisma
