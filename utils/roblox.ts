@@ -65,13 +65,24 @@ export async function getUsersWithinAGroupRoleset(
     apiKey: string
 ) {
     try {
+        const safeGroupId = Number(groupid);
+        const safeRoleId = Number(roleid);
+        if (
+            !Number.isSafeInteger(safeGroupId) ||
+            !Number.isSafeInteger(safeRoleId) ||
+            safeGroupId <= 0 ||
+            safeRoleId <= 0
+        ) {
+            return { success: false, message: "Invalid group or role id", data: [] };
+        }
+
         let allUsers: any[] = [];
         let pageToken = "";
-        const rolePath = `groups/${groupid}/roles/${roleid}`;
+        const rolePath = `groups/${safeGroupId}/roles/${safeRoleId}`;
 
         do {
             const res = await axios.get(
-                `https://apis.roblox.com/cloud/v2/groups/${groupid}/memberships`,
+                `https://apis.roblox.com/cloud/v2/groups/${safeGroupId}/memberships`,
                 {
                     params: {
                         maxPageSize: 1000,
