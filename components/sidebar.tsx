@@ -275,6 +275,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       thumbnail: "",
       workspaces: [],
       isOwner: false,
+      isFirstLogin: false
     });
     router.push("/login");
   };

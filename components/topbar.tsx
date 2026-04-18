@@ -31,7 +31,8 @@ const Topbar: NextPage = () => {
 			canMakeWorkspace: false,
 			thumbnail: '',
 			workspaces: [],
-			isOwner: false
+			isOwner: false,
+      isFirstLogin: false
 		});
 		router.push('/login');
 	}

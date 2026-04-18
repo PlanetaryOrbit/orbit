@@ -868,7 +868,7 @@ const Home: NextPage = () => {
                                 type="button"
                                 onClick={async () => {
                                   setShowOnboarding(false)
-                                  await axios.post('/api/user/firstLogin').catch(() => { })
+                                  Onboarded()
                                 }}
                                 className="flex-1 py-2.5 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
                               >
