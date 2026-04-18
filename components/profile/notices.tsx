@@ -307,8 +307,13 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
                     <button
                       onClick={async () => {
                         try {
-                          const workspaceId = router.query.id ?? workspace.groupId;
-                          await axios.post(`/api/workspace/${workspaceId}/activity/notices/update`, { id: notice.id, status: "cancel" });
+                          const routeWorkspaceId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+                          const workspaceIdCandidate = routeWorkspaceId ?? workspace.groupId;
+                          const safeWorkspaceId =
+                            typeof workspaceIdCandidate === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(workspaceIdCandidate)
+                              ? workspaceIdCandidate
+                              : workspace.groupId;
+                          await axios.post(`/api/workspace/${encodeURIComponent(safeWorkspaceId)}/activity/notices/update`, { id: notice.id, status: "cancel" });
                           setLocalNotices((prev) => prev.filter((n) => n.id !== notice.id));
                           toast.success("Notice revoked");
                         } catch (e) {
