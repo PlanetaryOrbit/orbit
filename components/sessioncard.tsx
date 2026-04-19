@@ -132,9 +132,16 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const handleCancelSession = async () => {
     if (!cancelReason.trim()) return;
     try {
+      const workspaceIdRaw = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+      const workspaceId = typeof workspaceIdRaw === "string" ? workspaceIdRaw : "";
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(workspaceId)) {
+        toast.error("Invalid workspace id");
+        return;
+      }
+
       setIsCancelling(true);
       await axios.patch(
-        `/api/workspace/${router.query.id}/sessions/${session.id}/cancel`,
+        `/api/workspace/${workspaceId}/sessions/${session.id}/cancel`,
         { reason: cancelReason.trim() }
       );
       session.cancelled = true;
