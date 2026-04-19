@@ -9,7 +9,11 @@
 	<img src="https://img.shields.io/github/contributors/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099"></img>
 	<img src="https://img.shields.io/github/license/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099&link=https%3A%2F%2Fwww.gnu.org%2Flicenses%2Fgpl-3.0.en.html"></img>
 	<img src="https://img.shields.io/github/v/tag/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099"></img>
-	<img src="https://img.shields.io/github/forks/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img>
+	<img src="https://img.shields.io/github/forks/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img><br>
+  <img src="https://img.shields.io/github/last-commit/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img>
+  <img src="https://img.shields.io/discord/1348101138670682156?style=for-the-badge&logo=discord&logoColor=white&label=Discord%20Server&color=7289da"></img>
+  
+
     <h1>Orbit by Team Planetary</h1>
   </div>
   <ul>
