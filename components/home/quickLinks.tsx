@@ -77,7 +77,7 @@ export default function QuickLinks() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {quickLinks.map((post) => (
               <button
                 type="button"
@@ -99,11 +99,11 @@ export default function QuickLinks() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-zinc-900/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 flex items-end justify-between gap-2">
-                    <h3 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-sm">
+                    <h3 className="text-xl sm:text-sm font-bold text-white truncate drop-shadow-sm">
                       {post.name}
                     </h3>
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm text-white group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shrink-0">
-                      <IconChevronRight className="w-3.5 h-3.5" stroke={2} />
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shrink-0">
+                      <IconChevronRight className="w-5 h-5" stroke={2} />
                     </span>
                   </div>
                 </div>
