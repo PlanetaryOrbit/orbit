@@ -32,6 +32,7 @@ import clsx from "clsx"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { GetServerSideProps } from "next"
 import RandomMusic from "@/components/home/randommusic"
+import QuickLinks from "@/components/home/quickLinks"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async ({ query }) => {
@@ -121,7 +122,7 @@ const Home: pageWithLayout = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: detectedTimezone }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [workspace?.groupId, login?.userId])
 
@@ -175,9 +176,14 @@ const Home: pageWithLayout = () => {
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
-		{Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("music_quote") && (
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("music_quote") && (
           <div className="mb-8 z-0 relative">
             <RandomMusic />
+          </div>
+        )}
+        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("quick_links") && (
+          <div className="mb-8 z-0 relative">
+            <QuickLinks />
           </div>
         )}
         {loading ? (

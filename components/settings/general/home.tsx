@@ -42,6 +42,7 @@ const home: FC<props> = (props) => {
     "Latest documents": "documents",
     "Inactivity Notices": "notices",
     "Upcoming Birthdays": "birthdays",
+    "Quick Links": "quick_links",
     "New Team Members": "new_members",
     "Music Quote": "music_quote"
   };
