@@ -11,7 +11,9 @@
 	<img src="https://img.shields.io/github/v/tag/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099"></img>
 	<img src="https://img.shields.io/github/forks/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img><br>
   <img src="https://img.shields.io/github/last-commit/planetaryorbit/orbit?style=for-the-badge&color=FF0099"></img>
-  <img src="https://img.shields.io/discord/1348101138670682156?style=for-the-badge&logo=discord&logoColor=white&label=Discord%20Server&color=7289da"></img>
+  <a href="https://discord.com/invite/ubGPWb3r">
+    <img src="https://img.shields.io/discord/1348101138670682156?style=for-the-badge&logo=discord&logoColor=white&label=Discord%20Server&color=7289da">
+  </a>
   </div>
   <h1>Orbit by Team Planetary</h1>
   <ul>
