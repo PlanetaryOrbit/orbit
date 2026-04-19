@@ -353,7 +353,7 @@ export function InformationTab({
           </Field>
         </div>
 
-        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50">
+        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50 overflow-visible">
           <Field icon={IconClock} label="Timezone">
             {editing ? (
               <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
@@ -364,7 +364,7 @@ export function InformationTab({
                     </span>
                   </Listbox.Button>
                   <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
+                    <Listbox.Options className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
                       <Listbox.Option value="" className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-400"}`}>Not set</Listbox.Option>
                       {commonTimezones.map((tz) => (
                         <Listbox.Option key={tz} value={tz} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>{tz}</Listbox.Option>
@@ -393,7 +393,7 @@ export function InformationTab({
           <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`}>
             {editing ? (
               availableDepartments.length > 0 ? (
-                <div className="relative z-40" ref={deptDropdownRef}>
+                <div className="relative" ref={deptDropdownRef}>
                   <button
                     type="button"
                     onMouseDown={(e) => {
@@ -413,14 +413,14 @@ export function InformationTab({
                   </button>
 
                   {deptOpen && (
-                    <div className="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
+                    <div className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
                       {availableDepartments.map((dept) => {
                         const isSelected = selectedDepartments.some((d) => d.id === dept.id);
                         return (
                           <div
                             key={dept.id}
                             onMouseDown={(e) => {
-                              e.preventDefault(); // <-- this is the key, prevents blur closing dropdown
+                              e.preventDefault();
                               setSelectedDepartments((prev) =>
                                 isSelected
                                   ? prev.filter((d) => d.id !== dept.id)
@@ -468,7 +468,7 @@ export function InformationTab({
           <Field icon={IconUserCheck} label="Line Manager">
             {editing ? (
               <Combobox value={selectedManager} onChange={setSelectedManager}>
-                <div className="relative z-10">
+                <div className="relative">
                   <Combobox.Input
                     className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-sm border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                     displayValue={(manager: any) => manager?.username || ""}
@@ -476,7 +476,7 @@ export function InformationTab({
                     placeholder="Search manager..."
                   />
                   <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0" afterLeave={() => setManagerQuery("")}>
-                    <Combobox.Options className="absolute z-50 mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
+                    <Combobox.Options className="absolute z-[200] mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
                       <Combobox.Option value={null} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>
                         {({ selected }) => <span className={selected ? "font-semibold" : ""}>None</span>}
                       </Combobox.Option>
