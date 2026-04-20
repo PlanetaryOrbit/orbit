@@ -37,7 +37,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
       },
     },
   });
-  
+
   const membership = currentUser?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const userPermissions = currentUser?.roles?.[0]?.permissions || [];
@@ -101,17 +101,21 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
   return {
     props: {
       users: usersWithInfo.map(u => ({
-            ...u,
-            roles: u.roles.map((r: any) => ({
-                ...r,
-                groupRoles: r.groupRoles.map((id: any) => id.toString())
-            }))
-        })),
+        ...u,
+        roles: u.roles.map((r: any) => ({
+          ...r,
+          groupRoles: r.groupRoles.map((id: any) => id.toString())
+        }))
+      })),
       roles: roles.map(r => ({
         ...r,
         groupRoles: r.groupRoles.map((id) => id.toString())
       })),
-      departments,
+      departments: departments.map(d => ({
+        ...d,
+        createdAt: d.createdAt ? d.createdAt.toISOString() : null,
+        updatedAt: d.updatedAt ? d.updatedAt.toISOString() : null,
+      })),
       grouproles,
       isAdmin,
       userPermissions,
