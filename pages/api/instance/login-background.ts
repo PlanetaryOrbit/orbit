@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		let themeRgb: string | null = null;
 		const redirectWid = typeof redirectConfig?.value === 'string' ? parseInt(redirectConfig.value, 10) : null;
 		if (redirectWid && !isNaN(redirectWid)) {
-			const themeColor = await getConfig('customization', redirectWid);
+			const themeColor = await getConfig('theme', redirectWid);
 			if (themeColor) themeRgb = getRGBFromTailwindColor(themeColor);
 		}
 
