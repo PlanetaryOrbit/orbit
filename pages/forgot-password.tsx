@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import axios from "axios";
 import Link from "next/link";
@@ -39,6 +39,16 @@ const ForgotPassword: NextPage = () => {
 	const [resetThumbnail, setResetThumbnail] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [showCopyright, setShowCopyright] = useState(false);
+	const [loginBg, setLoginBg] = useState<string | null>(null);
+
+	useEffect(() => {
+		axios.get('/api/instance/login-background').then((res) => {
+			if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl)
+			if (res.data.themeRgb) {
+				document.documentElement.style.setProperty('--group-theme', res.data.themeRgb)
+			}
+		}).catch(() => {})
+	}, []);
 
 	const usernameForm = useForm<FormData>();
 	const passwordForm = useForm<ResetPasswordData>();
@@ -74,22 +84,35 @@ const ForgotPassword: NextPage = () => {
 
 	return (
 		<>
-			<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
-				<div
-					className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
-					aria-hidden
-				/>
-				<div className="fixed inset-0 bg-gradient-to-br from-orbit/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+		<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
+			{loginBg ? (
+				<>
+					<div
+						className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+						style={{ backgroundImage: `url(${loginBg})` }}
+						aria-hidden
+					/>
+					<div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
+				</>
+			) : (
+				<>
+					<div
+						className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
+						aria-hidden
+					/>
+					<div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+				</>
+			)}
 
 				<div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
 					<div className="max-w-md">
 						<span className="inline-flex items-center gap-2 text-zinc-400 text-sm font-medium tracking-wide uppercase mb-6">
-							<span className="w-8 h-px bg-orbit rounded-full" />
+							<span className="w-8 h-px bg-primary rounded-full" />
 							Account
 						</span>
 						<h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
 							Reset your{" "}
-							<span className="text-transparent bg-clip-text bg-gradient-to-r from-orbit to-pink-400">
+							<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
 								password
 							</span>
 						</h1>
@@ -107,7 +130,7 @@ const ForgotPassword: NextPage = () => {
 							</span>
 							<div className="flex-1 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
 								<div
-									className="h-full bg-orbit rounded-full transition-all duration-500 ease-out"
+									className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
 									style={{ width: `${((selectedSlide + 1) / 4) * 100}%` }}
 								/>
 							</div>
@@ -133,11 +156,12 @@ const ForgotPassword: NextPage = () => {
 												})}
 											/>
 											<div className="flex gap-3">
-												<Link href="/login" className="text-sm text-orbit hover:text-orbit/80 transition-colors">Remember password?</Link>
-												<Button
-													type="submit"
-													classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-												>
+											<Link href="/login" className="text-sm text-primary hover:text-primary/80 transition-colors">Remember password?</Link>
+										<Button
+												type="submit"
+												classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+												workspace
+											>
 													Continue
 												</Button>
 											</div>
@@ -169,7 +193,7 @@ const ForgotPassword: NextPage = () => {
 										</div>
 										<div className="min-w-0 flex-1 pt-0.5">
 											<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-												Are you really <span className="text-orbit">{resetDisplayName || "this user"}</span>?
+												Are you really <span className="text-primary">{resetDisplayName || "this user"}</span>?
 											</h2>
 											<p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
 												Confirm this is your Roblox account. Next, we’ll ask you to add a verification code to your profile.
@@ -179,7 +203,8 @@ const ForgotPassword: NextPage = () => {
 									<div className="w-full">
 										<Button
 											type="button"
-											classoverride="w-full px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm hover:bg-orbit/90"
+											classoverride="w-full px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+										workspace
 											onPress={() => setSelectedSlide(2)}
 										>
 											Yes, continue
@@ -210,12 +235,13 @@ const ForgotPassword: NextPage = () => {
 										>
 											Back
 										</Button>
-										<Button
-											classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-											onPress={async () => {
-												setError(null);
-												try {
-													const response = await axios.post("/api/auth/reset/verify");
+									<Button
+										classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+										workspace
+										onPress={async () => {
+											setError(null);
+											try {
+												const response = await axios.post("/api/auth/reset/verify");
 													if (response.data.success) {
 														setSelectedSlide(3);
 													}
@@ -266,11 +292,12 @@ const ForgotPassword: NextPage = () => {
 												>
 													Back
 												</Button>
-												<Button
-													type="submit"
-													classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-												>
-													Reset password
+										<Button
+											type="submit"
+											classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+											workspace
+										>
+											Reset password
 												</Button>
 											</div>
 											<p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">

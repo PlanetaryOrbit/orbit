@@ -31,6 +31,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret));
 
 		if (usingEnvVars) {
+			const bgConfig = await prisma.instanceConfig.findUnique({ where: { key: 'loginBackground' } });
 			return res.json({
 				robloxClientId: '••••••••',
 				robloxClientSecret: '••••••••',
@@ -40,6 +41,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				oauthOnlyLogin: envOAuthOnly,
 				redirectWorkspace: envWorkspaceRedirect,
 				redirectWID: envWorkspaceID,
+				loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
 				usingEnvVars: true
 			});
 		}
@@ -47,7 +49,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
-					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace', 'discordAppID', 'discordAppSecret']
+					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace', 'discordAppID', 'discordAppSecret', 'loginBackground']
 				}
 			}
 		});
@@ -65,7 +67,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			discordApplicationID: configMap.discordAppID,
 			discordClientSecret: configMap.discordAppSecret,
 			usingEnvVars: false,
-			redirectWorkspace: configMap.redirectWorkspace || ''
+			redirectWorkspace: configMap.redirectWorkspace || '',
+			loginBackground: typeof configMap.loginBackground === 'string' ? configMap.loginBackground : null
 		});
 		} catch (error) {
 		console.error('Failed to fetch instance config:', error);

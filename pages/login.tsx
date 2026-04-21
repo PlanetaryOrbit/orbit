@@ -57,6 +57,7 @@ const Login: NextPage = () => {
 	} = signupMethods;
 
 	const [loading, setLoading] = useState(false);
+	const [loginBg, setLoginBg] = useState<string | null>(null);
 	const [mode, setMode] = useState<"login" | "signup" | "link">("login");
 	const [signupStep, setSignupStep] = useState<0 | 1 | 2 | 3>(0);
 	const [signupThumbnail, setSignupThumbnail] = useState("");
@@ -98,7 +99,18 @@ const Login: NextPage = () => {
 			}
 		}
 
+		async function fetchBackground() {
+			try {
+				const res = await axios.get('/api/instance/login-background')
+				if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl)
+				if (res.data.themeRgb) {
+					document.documentElement.style.setProperty('--group-theme', res.data.themeRgb)
+				}
+			} catch {}
+		}
+
 		fetchMe()
+		fetchBackground()
 	},[])
 
 	useEffect(() => {
@@ -314,23 +326,36 @@ const Login: NextPage = () => {
 
 	return (
 		<>
-			<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
-				<Toaster position="bottom-center" />
-				<div
-					className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
-					aria-hidden
-				/>
-				<div className="fixed inset-0 bg-gradient-to-br from-orbit/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+		<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
+			<Toaster position="bottom-center" />
+			{loginBg ? (
+				<>
+					<div
+						className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+						style={{ backgroundImage: `url(${loginBg})` }}
+						aria-hidden
+					/>
+					<div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
+				</>
+			) : (
+				<>
+					<div
+						className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
+						aria-hidden
+					/>
+					<div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+				</>
+			)}
 
 				<div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
 					<div className="max-w-md">
 						<span className="inline-flex items-center gap-2 text-zinc-400 text-sm font-medium tracking-wide uppercase mb-6">
-							<span className="w-8 h-px bg-orbit rounded-full" />
+							<span className="w-8 h-px bg-primary rounded-full" />
 							Account
 						</span>
 						<h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
 							Welcome to{" "}
-							<span className="text-transparent bg-clip-text bg-gradient-to-r from-orbit to-pink-400">
+							<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
 								Orbit
 							</span>
 						</h1>
@@ -356,7 +381,7 @@ const Login: NextPage = () => {
 												key={m}
 												onClick={() => setMode(m as any)}
 												className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${isActive
-														? "text-orbit border-orbit"
+														? "text-primary border-primary"
 														: "text-zinc-500 dark:text-zinc-400 border-transparent hover:text-zinc-700 dark:hover:text-zinc-300"
 													}`}
 												type="button"
@@ -367,7 +392,7 @@ const Login: NextPage = () => {
 										);
 									})
 								) : (
-									<span className="pb-3 px-1 text-sm font-medium text-orbit border-b-2 border-orbit -mb-px">
+									<span className="pb-3 px-1 text-sm font-medium text-primary border-b-2 border-primary -mb-px">
 										Link
 									</span>
 								)}
@@ -412,7 +437,7 @@ const Login: NextPage = () => {
 														type="checkbox"
 														checked={showPassword}
 														onChange={() => setShowPassword((v) => !v)}
-														className="rounded border-zinc-300 dark:border-zinc-600 text-orbit focus:ring-orbit/30"
+														className="rounded border-zinc-300 dark:border-zinc-600 text-primary focus:ring-primary/30"
 													/>
 													<label
 														htmlFor="show-password"
@@ -424,13 +449,14 @@ const Login: NextPage = () => {
 												<div className="flex flex-wrap items-center justify-between gap-3 pt-1">
 													<Link
 														href="/forgot-password"
-														className="text-sm text-orbit hover:text-orbit/80 transition-colors"
+														className="text-sm text-primary hover:text-primary/80 transition-colors"
 													>
 														Forgot password?
 													</Link>
 													<Button
 														type="submit"
-														classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm hover:bg-orbit/90"
+														classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+												workspace
 														loading={loading}
 														disabled={loading}
 													>
@@ -554,7 +580,7 @@ const Login: NextPage = () => {
 															{...signupUsernameProps}
 														/>
 														{usernameCheckLoading && (
-															<p className="text-sm text-orbit mt-1">
+															<p className="text-sm text-primary mt-1">
 																Checking username...
 															</p>
 														)}
@@ -640,7 +666,7 @@ const Login: NextPage = () => {
 												</div>
 												<div className="min-w-0 flex-1 pt-0.5">
 													<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-														Is <span className="text-orbit">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
+														Is <span className="text-primary">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
 													</h2>
 													<p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
 														Confirm this is your Roblox account, then choose a password.

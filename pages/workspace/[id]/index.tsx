@@ -60,6 +60,7 @@ const Home: pageWithLayout = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [titleVisible, setTitleVisible] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [banner, setBanner] = useState<string | null>(null)
 
   const widgets: Record<string, WidgetConfig> = {
     wall: {
@@ -126,6 +127,14 @@ const Home: pageWithLayout = () => {
     }
   }, [workspace?.groupId, login?.userId])
 
+  useEffect(() => {
+    if (!workspace?.groupId) return;
+    fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
+      .then((r) => r.json())
+      .then((data) => { if (data.banner) setBanner(data.banner) })
+      .catch(() => { });
+  }, [workspace?.groupId])
+
   const handleRefresh = () => {
     setRefreshing(true)
     setTimeout(() => {
@@ -136,33 +145,69 @@ const Home: pageWithLayout = () => {
   return (
     <div className="pagePadding">
       <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div
-            className={clsx(
-              "transition-all duration-500",
-              titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-            )}
-          >
-            <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
-              Welcome back
-            </span>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-1">
-              {text}
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Here's what's happening in your workspace
-            </p>
+        {banner ? (
+          <div className="relative w-full h-44 md:h-56 rounded-2xl overflow-hidden mb-8 border border-zinc-200 dark:border-zinc-700">
+            <img
+              src={banner}
+              alt="Workspace banner"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/10 to-transparent" />
+            <div className="absolute inset-0 flex items-end justify-between px-6 pb-5">
+              <div
+                className={clsx(
+                  "transition-all duration-500",
+                  titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+                )}
+              >
+                <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
+                  Welcome back
+                </span>
+                <h1 className="text-2xl font-semibold tracking-tight text-white mb-0.5">
+                  {text}
+                </h1>
+                <p className="text-sm text-white/60">
+                  Here's what's happening in your workspace
+                </p>
+              </div>
+              <button
+                onClick={handleRefresh}
+                className="p-2.5 rounded-xl bg-zinc-950/30 backdrop-blur-sm text-white/70 hover:text-white hover:bg-zinc-950/50 transition-colors shrink-0"
+                aria-label="Refresh dashboard"
+              >
+                <IconRefresh className={clsx("w-5 h-5", refreshing && "animate-spin")} />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleRefresh}
-              className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              aria-label="Refresh dashboard"
+        ) : (
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div
+              className={clsx(
+                "transition-all duration-500",
+                titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+              )}
             >
-              <IconRefresh className={clsx("w-5 h-5", refreshing && "animate-spin")} />
-            </button>
+              <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
+                Welcome back
+              </span>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-1">
+                {text}
+              </h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Here's what's happening in your workspace
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                aria-label="Refresh dashboard"
+              >
+                <IconRefresh className={clsx("w-5 h-5", refreshing && "animate-spin")} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
           <div className="mb-8 z-0 relative">
             <NewToTeam />

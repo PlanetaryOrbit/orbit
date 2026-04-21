@@ -6,7 +6,7 @@ import Topbar from "@/components/topbar"
 import Router, { useRouter } from "next/router"
 import { loginState } from "@/state"
 import { Transition, Dialog } from "@headlessui/react"
-import { useState, useEffect, Fragment, useRef } from "react"
+import { useState, useEffect, Fragment, useRef, useCallback } from "react"
 import Button from "@/components/button"
 import axios from "axios"
 import Input from "@/components/input"
@@ -20,45 +20,49 @@ import clsx from "clsx"
 const PINNED_WORKSPACE_KEY = "orbit-pinned-workspace"
 
 const Home: NextPage = () => {
-  const [login, setLogin] = useRecoilState(loginState)
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingSlide, setOnboardingSlide] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const methods = useForm()
-  const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
-  const [isOwner, setIsOwner] = useState(false)
-  const [showInstanceSettings, setShowInstanceSettings] = useState(false)
-  const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
-  const [externalConfig, setRobloxConfig] = useState({
-    clientId: '',
-    clientSecret: '',
-    redirectUri: '',
-    redirect_wid: '',
-    discordAppId: '',
-    discordAppSecret: '',
-    authOnlyLogin: false
-  })
-  const [configLoading, setConfigLoading] = useState(false)
-  const [saveMessage, setSaveMessage] = useState('')
-  const [usingEnvVars, setUsingEnvVars] = useState(false)
-  const [settings, setSettings] = useState(true)
-  const features = [
-    { title: "Workspaces", desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking." },
-    { title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control." },
-    { title: "Sessions", desc: "Log and track sessions, attendance, and host activity all in one place." },
-  ]
-  const slides = [
-    { icon: IconBuildingSkyscraper, title: "Workspaces", desc: "Each Roblox group gets its own workspace — your team's central hub for everything.", note: undefined },
-    { icon: IconUsersGroup, title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control.", note: undefined },
-    { icon: IconCalendarEvent, title: "Sessions", desc: "Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.", note: undefined },
-    { icon: IconChartBar, title: "Activity & Quotas", desc: "Monitor member activity over time. Set quotas and see who's contributing.", note: undefined },
-    { icon: IconFileText, title: "Documents & Policies", desc: "Write internal documents and require policy acknowledgments from your members.", note: undefined },
-    { icon: IconServerCog, title: "Staff Management", desc: "Manage all of your staff effortlessly from the views.", note: undefined },
-    { icon: IconUserCog, title: "Staff Notices", desc: "See, monitor, approve or deny staff notices, all made in one place.", note: undefined },
-    { icon: IconClockCog, title: "Leaderboard", desc: "See how you have been doing, and see who is on the leaderboard.", note: undefined },
-    { icon: IconRocket, title: "You're all set! 🎉", desc: "That's everything. Jump into your workspace and start exploring.", note: "More features are added regularly — keep an eye out for updates." },
-  ]
+	const [login, setLogin] = useRecoilState(loginState)
+	const [loading, setLoading] = useState(false)
+	const methods = useForm()
+	const router = useRouter()
+	const [isOpen, setIsOpen] = useState(false)
+	const [isOwner, setIsOwner] = useState(false)
+	const [showInstanceSettings, setShowInstanceSettings] = useState(false)
+	const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
+	const [externalConfig, setRobloxConfig] = useState({
+		clientId: '',
+		clientSecret: '',
+		redirectUri: '',
+		redirect_wid: '',
+		discordAppId: '',
+		discordAppSecret: '',
+		oauthOnlyLogin: false
+	})
+	const [configLoading, setConfigLoading] = useState(false)
+	const [saveMessage, setSaveMessage] = useState('')
+	const [usingEnvVars, setUsingEnvVars] = useState(false)
+	const [settings, setSettings] = useState(true)
+	const [showOnboarding, setShowOnboarding] = useState(false)
+	const [onboardingSlide, setOnboardingSlide] = useState(0)
+	const [loginBackground, setLoginBackground] = useState<string | null>(null)
+	const [bgUploading, setBgUploading] = useState(false)
+	const bgFileInputRef = useRef<HTMLInputElement>(null)
+
+	const features = [
+		{ title: "Workspaces", desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking." },
+		{ title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control." },
+		{ title: "Sessions", desc: "Log and track sessions, attendance, and host activity all in one place." },
+	]
+	const slides = [
+		{ icon: IconBuildingSkyscraper, title: "Workspaces", desc: "Each Roblox group gets its own workspace — your team's central hub for everything.", note: undefined },
+		{ icon: IconUsersGroup, title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control.", note: undefined },
+		{ icon: IconCalendarEvent, title: "Sessions", desc: "Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.", note: undefined },
+		{ icon: IconChartBar, title: "Activity & Quotas", desc: "Monitor member activity over time. Set quotas and see who's contributing.", note: undefined },
+		{ icon: IconFileText, title: "Documents & Policies", desc: "Write internal documents and require policy acknowledgments from your members.", note: undefined },
+		{ icon: IconServerCog, title: "Staff Management", desc: "Manage all of your staff effortlessly from the views.", note: undefined },
+		{ icon: IconUserCog, title: "Staff Notices", desc: "See, monitor, approve or deny staff notices, all made in one place.", note: undefined },
+		{ icon: IconClockCog, title: "Leaderboard", desc: "See how you have been doing, and see who is on the leaderboard.", note: undefined },
+		{ icon: IconRocket, title: "You're all set! 🎉", desc: "That's everything. Jump into your workspace and start exploring.", note: "More features are added regularly — keep an eye out for updates." },
+	]
 
   const gotoWorkspace = (id: number) => {
     router.push(`/workspace/${id}`)
@@ -203,20 +207,21 @@ const Home: NextPage = () => {
     try {
       const response = await axios.get('/api/admin/instance-config')
       console.log(response)
-      const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret } = response.data
-      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-      const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
+		const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret, loginBackground: bg } = response.data
+		const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+		const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
 
-      setRobloxConfig({
-        clientId: robloxClientId || '',
-        clientSecret: robloxClientSecret || '',
-        redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
-        discordAppId: discordApplicationID,
-        discordAppSecret: discordClientSecret,
-        authOnlyLogin: oauthOnlyLogin || false,
-        redirect_wid: redirectWorkspace
-      })
-      setUsingEnvVars(envVars || false)
+		setRobloxConfig({
+			clientId: robloxClientId || '',
+			clientSecret: robloxClientSecret || '',
+			redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
+			discordAppId: discordApplicationID,
+			discordAppSecret: discordClientSecret,
+			oauthOnlyLogin: oauthOnlyLogin || false,
+			redirect_wid: redirectWorkspace
+		})
+		setUsingEnvVars(envVars || false)
+		setLoginBackground(bg || null)
 
     } catch (error) {
       console.error('Failed to load OAuth config:', error)
@@ -232,27 +237,57 @@ const Home: NextPage = () => {
         robloxClientId: externalConfig.clientId,
         robloxClientSecret: externalConfig.clientSecret,
         robloxRedirectUri: externalConfig.redirectUri,
-        oauthOnlyLogin: externalConfig.authOnlyLogin,
+        oauthOnlyLogin: externalConfig.oauthOnlyLogin,
         redirectWorkspaceID: externalConfig.redirect_wid,
         discordAppId: externalConfig.discordAppId,
         discordSecret: externalConfig.discordAppSecret
-      })
-      setSaveMessage('Settings saved successfully!')
-      setTimeout(() => setSaveMessage(''), 3000)
-    } catch (error) {
-      console.error('Failed to save OAuth config:', error)
-      setSaveMessage('Failed to save settings. Please try again.')
-      setTimeout(() => setSaveMessage(''), 3000)
-    } finally {
-      setConfigLoading(false)
-    }
-  }
+			})
+			setSaveMessage('Settings saved successfully!')
+			setTimeout(() => setSaveMessage(''), 3000)
+		} catch (error) {
+			console.error('Failed to save OAuth config:', error)
+			setSaveMessage('Failed to save settings. Please try again.')
+			setTimeout(() => setSaveMessage(''), 3000)
+		} finally {
+			setConfigLoading(false)
+		}
+	}
 
   const Onboarded = async () => {
-   try {
-    await axios.post('/api/user/firstLogin')
-   } catch { }
+    try {
+      await axios.post('/api/user/firstLogin')
+    } catch { }
   }
+
+  const uploadBackground = useCallback(async (file: File) => {
+    setBgUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('background', file)
+      const res = await axios.post('/api/admin/upload-background', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setLoginBackground(res.data.url)
+      toast.success('Background image updated!')
+    } catch {
+      toast.error('Failed to upload background image.')
+    } finally {
+      setBgUploading(false)
+    }
+  }, [])
+
+  const removeBackground = useCallback(async () => {
+    setBgUploading(true)
+    try {
+      await axios.delete('/api/admin/upload-background')
+      setLoginBackground(null)
+      toast.success('Background image removed.')
+    } catch {
+      toast.error('Failed to remove background image.')
+    } finally {
+      setBgUploading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (isOwner) return
@@ -571,8 +606,8 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 p-6 text-left align-middle shadow-xl transition-all">
-                      <div className="flex items-center justify-between mb-6">
+                    <Dialog.Panel className="w-full max-w-lg transform rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 text-left align-middle shadow-xl transition-all flex flex-col max-h-[90vh]">
+                      <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
                         <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
                           Instance Settings
                         </Dialog.Title>
@@ -585,104 +620,106 @@ const Home: NextPage = () => {
                         </button>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="overflow-y-auto px-6 pb-2 space-y-4">
                         <div>
                           {usingEnvVars && (
-                            <div className="mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                            <div className="mb-3 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                               <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                                 🔒 Using Environment Variables
                               </p>
-                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
                                 Database configuration is disabled.
                               </p>
                             </div>
                           )}
 
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Client ID
-                              </label>
-                              <input
-                                type="text"
-                                value={externalConfig.clientId}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
-                                placeholder="e.g. 23748326747865334"
-                                disabled={usingEnvVars}
-                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
-                                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                  : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
-                                  }`}
-                              />
+                          <div className="space-y-2.5">
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Client ID
+                                </label>
+                                <input
+                                  type="text"
+                                  value={externalConfig.clientId}
+                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
+                                  placeholder="23748326747865334"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Client Secret
+                                </label>
+                                <input
+                                  type="password"
+                                  value={externalConfig.clientSecret}
+                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
+                                  placeholder="JHJD_NMIRHNSD$ER$6dj38"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Client Secret
-                              </label>
-                              <input
-                                type="password"
-                                value={externalConfig.clientSecret}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
-                                placeholder="e.g. JHJD_NMIRHNSD$ER$6dj38"
-                                disabled={usingEnvVars}
-                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
-                                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                  : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
-                                  }`}
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Redirect URI <span className="text-xs text-zinc-500">(auto-generated)</span>
+                              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                Redirect URI <span className="text-zinc-400 dark:text-zinc-500">(auto-generated)</span>
                               </label>
                               <input
                                 type="url"
                                 value={externalConfig.redirectUri}
                                 readOnly
                                 placeholder="https://instance.planetaryapp.cloud/api/auth/roblox/callback"
-                                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm cursor-not-allowed"
+                                className="w-full px-3 py-1.5 border border-zinc-300 dark:border-zinc-600 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm cursor-not-allowed"
                                 title="This field is automatically generated based on your current domain"
                               />
                             </div>
 
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Discord Application ID
-                              </label>
-                              <input
-                                type="text"
-                                value={externalConfig.discordAppId}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppId: e.target.value }))}
-                                placeholder="1234567890"
-                                disabled={usingEnvVars}
-                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
-                                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                  : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
-                                  }`}
-                              />
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Discord App ID
+                                </label>
+                                <input
+                                  type="text"
+                                  value={externalConfig.discordAppId}
+                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppId: e.target.value }))}
+                                  placeholder="1234567890"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Discord App Secret
+                                </label>
+                                <input
+                                  type="password"
+                                  value={externalConfig.discordAppSecret}
+                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppSecret: e.target.value }))}
+                                  placeholder="eYli_RL3dUJUb7ieBQXhp0lLs…"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                                Discord Application Secret ID
-                              </label>
-                              <input
-                                type="password"
-                                value={externalConfig.discordAppSecret}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppSecret: e.target.value }))}
-                                placeholder="e.g eYli_RL3dUJUb7ieBQXhp0lLs..."
-                                disabled={usingEnvVars}
-                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
-                                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                  : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
-                                  }`}
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
                                 Redirect to workspace
                               </label>
                               <input
@@ -691,7 +728,7 @@ const Home: NextPage = () => {
                                 onChange={(e) => setRobloxConfig(prev => ({ ...prev, redirect_wid: e.target.value }))}
                                 placeholder="35724790"
                                 disabled={usingEnvVars}
-                                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
                                   ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
                                   : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
@@ -699,60 +736,117 @@ const Home: NextPage = () => {
                             </div>
                           </div>
 
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                            Need a hand? Check our documentation at{' '}
-                            <a href="https://docs.planetaryapp.us/workspace/roblox-oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              docs.planetaryapp.us
-                            </a>
-                          </p>
-                        </div>
+												<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+													Need a hand? Check our documentation at{' '}
+													<a href="https://docs.planetaryapp.us/workspace/roblox-oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+														docs.planetaryapp.us
+													</a>
+												</p>
+											</div>
 
-                        <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={externalConfig.authOnlyLogin}
-                              onChange={(e) => setRobloxConfig(prev => ({ ...prev, authOnlyLogin: e.target.checked }))}
-                              disabled={usingEnvVars}
-                              className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
-                                }`}
-                            />
-                            <span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
-                              Enforce OAuth login
-                            </span>
-                          </label>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
-                            When enabled, users will only see the Roblox OAuth login button.
-                          </p>
-                        </div>
-                      </div>
+											<div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+												<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+													Login Page Background
+												</label>
+												{loginBackground ? (
+													<div className="relative mb-2 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-600 h-28 bg-zinc-100 dark:bg-zinc-800">
+														<img
+															src={loginBackground}
+															alt="Custom login background"
+															className="w-full h-full object-cover"
+														/>
+													</div>
+												) : (
+													<div className="mb-2 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-600 h-28 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50">
+														<svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+															<path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18M3.75 3.75h16.5A.75.75 0 0121 4.5v13.5a.75.75 0 01-.75.75H3.75A.75.75 0 013 18V4.5a.75.75 0 01.75-.75z" />
+														</svg>
+														<span className="text-xs">No custom background set</span>
+													</div>
+												)}
+												<input
+													ref={bgFileInputRef}
+													type="file"
+													accept="image/jpeg,image/png,image/webp,image/gif"
+													className="hidden"
+													onChange={(e) => {
+														const file = e.target.files?.[0]
+														if (file) uploadBackground(file)
+														e.target.value = ''
+													}}
+												/>
+												<div className="flex gap-2">
+													<button
+														type="button"
+														disabled={bgUploading}
+														onClick={() => bgFileInputRef.current?.click()}
+														className="flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+													>
+														{bgUploading ? 'Uploading…' : loginBackground ? 'Replace Image' : 'Upload Image'}
+													</button>
+													{loginBackground && (
+														<button
+															type="button"
+															disabled={bgUploading}
+															onClick={removeBackground}
+															className="px-3 py-2 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+														>
+															Remove
+														</button>
+													)}
+												</div>
+												<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
+													Replaces the default gradient on the login page. Max 5 MB (JPEG, PNG, WebP, GIF).
+												</p>
+											</div>
 
-                      {saveMessage && (
-                        <div className={`mt-4 p-3 rounded-md text-sm ${saveMessage.includes('successfully')
-                          ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                          : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                          }`}>
-                          {saveMessage}
-                        </div>
-                      )}
+											<div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+													<label className="flex items-center cursor-pointer">
+														<input
+															type="checkbox"
+															checked={externalConfig.oauthOnlyLogin}
+															onChange={(e) => setRobloxConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
+															disabled={usingEnvVars}
+															className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
+																}`}
+														/>
+														<span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+															Enforce OAuth login
+														</span>
+													</label>
+													<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
+														When enabled, users will only see the Roblox OAuth login button.
+													</p>
+												</div>
+											</div>
 
-                      <div className="flex justify-end gap-3 mt-6">
-                        <button
-                          type="button"
-                          onClick={() => setShowInstanceSettings(false)}
-                          disabled={configLoading}
-                          className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Cancel
-                        </button>
-                        <Button
-                          onClick={saveRobloxConfig}
-                          loading={configLoading}
-                          disabled={configLoading || usingEnvVars}
-                          classoverride={usingEnvVars ? "opacity-60 cursor-not-allowed" : undefined}
-                        >
-                          {usingEnvVars ? "Using Env Vars" : "Save Settings"}
-                        </Button>
+                      <div className="px-6 pt-3 pb-5 shrink-0 border-t border-zinc-100 dark:border-zinc-700/60">
+                        {saveMessage && (
+                          <div className={`mb-3 p-2.5 rounded-md text-sm ${saveMessage.includes('successfully')
+                            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                            }`}>
+                            {saveMessage}
+                          </div>
+                        )}
+                        <div className="flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowInstanceSettings(false)}
+                            disabled={configLoading}
+                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Cancel
+                          </button>
+                          <Button
+                            onClick={saveRobloxConfig}
+                            loading={configLoading}
+                            disabled={configLoading || usingEnvVars}
+                            classoverride={usingEnvVars ? "opacity-60 cursor-not-allowed" : undefined}
+                          >
+                            {usingEnvVars ? "Using Env Vars" : "Save Settings"}
+                          </Button>
+                        </div>
                       </div>
                     </Dialog.Panel>
                   </Transition.Child>
