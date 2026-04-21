@@ -69,6 +69,7 @@ import {
   IconSpeakerphone,
   IconPencil,
   IconDeviceFloppy,
+  IconTrash,
 } from "@tabler/icons-react";
 
 type User = {
@@ -841,78 +842,69 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           
 
           {hasUseSavedViews() && (
-            <div className="md:w-64 w-full mb-4">
-              <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-md flex items-center justify-center bg-zinc-100 dark:bg-zinc-700/30 text-zinc-700 dark:text-zinc-200">
-                    <IconUsers className="w-4 h-4" />
+            <div className="md:w-56 w-full shrink-0">
+              <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-700/60">
+                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Views
                   </span>
-                  <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                    {savedViews.find((s) => s.id === selectedViewId)?.name ||
-                      "Views"}
-                  </span>
+                  {hasCreateViews() && (
+                    <button
+                      onClick={openSaveDialog}
+                      title="Create View"
+                      className="p-1 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
+                    >
+                      <IconPlus className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                {hasCreateViews() && (
-                  <button
-                    onClick={openSaveDialog}
-                    title="Create View"
-                    className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                  >
-                    <IconPlus className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-2 mt-3">
-                {savedViews.length === 0 && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    No saved views
-                  </p>
-                )}
-                {savedViews.map((v) => (
-                  <div
-                    key={v.id}
-                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded-md ${
-                      selectedViewId === v.id
-                        ? "bg-zinc-50 dark:bg-zinc-800/40 border-l-4 border-[#ff0099]"
-                        : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
-                    }`}
-                    style={{ minWidth: 0 }}
-                  >
-                    <button
-                      onClick={() => {
-                        if (selectedViewId === v.id) resetToDefault();
-                        else {
-                          setSelectedViewId(v.id);
-                          applySavedView(v);
-                        }
-                      }}
-                      className="flex items-center gap-3 text-left w-full"
+                <div className="p-1.5 space-y-0.5">
+                  {savedViews.length === 0 && (
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 px-2 py-3 text-center">
+                      No saved views
+                    </p>
+                  )}
+                  {savedViews.map((v) => (
+                    <div
+                      key={v.id}
+                      className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
+                        selectedViewId === v.id
+                          ? "bg-primary/8 dark:bg-primary/10"
+                          : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
+                      }`}
                     >
-                      <span
-                        className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
-                        style={{ background: v.color || "#e5e7eb" }}
+                      <button
+                        onClick={() => {
+                          if (selectedViewId === v.id) resetToDefault();
+                          else {
+                            setSelectedViewId(v.id);
+                            applySavedView(v);
+                          }
+                        }}
+                        className="flex items-center gap-2.5 text-left w-full px-2 py-1.5 min-w-0"
                       >
-                        {v.icon ? (
-                          renderIcon(
-                            v.icon,
-                            "w-4 h-4 text-zinc-900 dark:text-white"
-                          )
-                        ) : (
-                          <span className="text-sm font-medium text-zinc-900 dark:text-white">
-                            {(v.name || "").charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </span>
+                        <span
+                          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-zinc-800"
+                          style={{ background: v.color || "#e5e7eb" }}
+                        >
+                          {v.icon ? (
+                            renderIcon(v.icon, "w-3.5 h-3.5")
+                          ) : (
+                            <span className="text-xs font-semibold">
+                              {(v.name || "").charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                        <span className={`text-sm truncate font-medium ${
+                          selectedViewId === v.id
+                            ? "text-primary"
+                            : "text-zinc-700 dark:text-zinc-300"
+                        }`}>
+                          {v.name}
+                        </span>
+                      </button>
 
-                      <span className="text-sm font-medium truncate text-zinc-900 dark:text-white">
-                        {v.name}
-                      </span>
-                    </button>
-
-                    <div className="flex items-center gap-1">
                       {hasDeleteViews() && (
                         <button
                           onClick={(e) => {
@@ -920,17 +912,16 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             setViewToDelete(v.id);
                             setShowDeleteModal(true);
                           }}
-                          className="p-1.5 rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 mr-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition"
                           title="Delete View"
                         >
-                          <IconX className="w-4 h-4" />
+                          <IconX className="w-3 h-3" />
                         </button>
                       )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
             </div>
           )}
 
@@ -947,7 +938,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             selectedViewId !== null && !isEditMode
                               ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
                               : open
-                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
+                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-primary/50"
                               : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                           }`}
                         >
@@ -968,7 +959,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             <div className="space-y-3">
                               <button
                                 onClick={newfilter}
-                                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-[#ff0099] hover:bg-[#ff0099]/90 transition-all"
+                                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-all"
                               >
                                 <IconPlus className="w-4 h-4" />
                                 Add Filter
@@ -1011,7 +1002,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             selectedViewId !== null && !isEditMode
                               ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
                               : open
-                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-[#ff0099]/50"
+                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-primary/50"
                               : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
                           }`}
                         >
@@ -1068,7 +1059,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       type="text"
                       value={searchQuery}
                       onChange={(e) => updateSearchQuery(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-[6px] border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/50 focus:border-transparent transition-all"
+                      className="block w-full pl-10 pr-3 py-[6px] border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
                       placeholder="Search staff..."
                     />
                   </div>
@@ -1090,7 +1081,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             <img
                               src={u.thumbnail}
                               alt={u.username}
-                              className="w-6 h-6 rounded-full bg-[#ff0099]"
+                              className="w-6 h-6 rounded-full bg-primary"
                             />
                             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
                               {u.username}
@@ -1527,28 +1518,32 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           </Dialog>
         </Transition>
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-                Confirm Deletion
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
-                Are you sure you want to delete this saved view? This action
-                cannot be undone.
-              </p>
-              <div className="flex justify-center gap-4">
+          <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm">
+              <div className="p-6">
+                <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+                  <IconTrash className="w-5 h-5 text-red-500" />
+                </div>
+                <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                  Delete view?
+                </h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  This saved view will be permanently removed. This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-2 px-6 pb-5">
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setViewToDelete(null);
                   }}
-                  className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteSavedView}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
                 >
                   Delete
                 </button>
