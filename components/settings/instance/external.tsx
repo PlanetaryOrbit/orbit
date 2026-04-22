@@ -84,6 +84,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
     { value: "", label: "None" },
     { value: "rankgun", label: "RankGun" },
     { value: "upraise", label: "Upraise" },
+    { value: "opencloudranking", label: "Integrated Ranking"}
   ];
 
   const inputClass = clsx(

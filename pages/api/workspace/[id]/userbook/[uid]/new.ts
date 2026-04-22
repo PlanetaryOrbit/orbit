@@ -2,16 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma, { SessionType, document } from "@/utils/database";
+import * as rbx from '@/utils/roblox'
 import { logAudit } from "@/utils/logs";
 import { withSessionRoute } from "@/lib/withSession";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { RankGunAPI, getRankGun } from "@/utils/rankgun";
 
-import {
-  getUsername,
-  getThumbnail,
-  getDisplayName,
-} from "@/utils/userinfoEngine";
 import * as noblox from "noblox.js";
 type Data = {
   success: boolean;
@@ -29,10 +25,10 @@ async function checkPermissionForType(req: NextApiRequest, type: string, workspa
     termination: "logbook_termination",
     rank_change: "logbook_promotion",
   };
-  
+
   const requiredPermission = permissionMap[type];
   if (!requiredPermission) return false;
-  
+
   const user = await prisma.user.findFirst({
     where: { userid: BigInt(req.session.userid) },
     include: {
@@ -40,12 +36,12 @@ async function checkPermissionForType(req: NextApiRequest, type: string, workspa
       workspaceMemberships: { where: { workspaceGroupId } },
     },
   });
-  
+
   if (!user || !user.roles.length) return false;
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
   if (isAdmin) return true;
-  
+
   return user.roles[0].permissions.includes(requiredPermission);
 }
 
@@ -57,12 +53,12 @@ async function hasRankUsersPermission(req: NextApiRequest, workspaceGroupId: num
       workspaceMemberships: { where: { workspaceGroupId } },
     },
   });
-  
+
   if (!user) return false;
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
   if (isAdmin) return true;
-  
+
   return user.roles.some(role => role.permissions.includes("rank_users"));
 }
 
@@ -105,7 +101,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       error: "You cannot perform actions on yourself.",
     });
   }
-
+  const opencloudKey = await getConfig("roblox_opencloud", workspaceGroupId)
   const rankGun = await getRankGun(workspaceGroupId);
   const canUseRankGun = await hasRankUsersPermission(req, workspaceGroupId);
   let rankBefore: number | null = null;
@@ -177,8 +173,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   if (
-    rankGun &&
-    canUseRankGun &&
+    ((rankGun && canUseRankGun) || opencloudKey) &&
     (type === "promotion" ||
       type === "demotion" ||
       type === "rank_change" ||
@@ -190,18 +185,47 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       switch (type) {
         case "promotion":
-          if (rankGunAPI) {
+          if (rankGunAPI && rankGun) {
             result = await rankGunAPI.promoteUser(userId, rankGun.workspaceId);
+          } else if (opencloudKey) {
+            result = rbx.promoteUser(userId, workspaceGroupId, opencloudKey)
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: "No ranking provider configured."
+            });
           }
           break;
         case "demotion":
-          if (rankGunAPI) {
+          if (rankGunAPI && rankGun) {
             result = await rankGunAPI.demoteUser(userId, rankGun.workspaceId);
+          } else if (opencloudKey) {
+            result = await rbx.demoteUser(
+              userId,
+              workspaceGroupId,
+              opencloudKey
+            );
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: "No ranking provider configured."
+            });
           }
           break;
         case "termination":
-          if (rankGunAPI) {
+          if (rankGunAPI && rankGun) {
             result = await rankGunAPI.terminateUser(userId, rankGun.workspaceId);
+          } else if (opencloudKey) {
+            result = await rbx.terminateUser(
+              userId,
+              workspaceGroupId,
+              opencloudKey
+            );
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: "No ranking provider configured."
+            });
           }
           break;
         case "rank_change":
@@ -257,209 +281,220 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           if (rankGunAPI) {
             result = await rankGunAPI.setUserRank(
               userId,
-              rankGun.workspaceId,
+              rankGun ? rankGun.workspaceId : "",
               parseInt(targetRank)
             );
-          }
-          break;
-      }
-
-      if (result && !result.success) {
-        // Log the full result for debugging so we can see RankGun's response shape
-        console.error("RankGun returned an error result:", result);
-        let errorMessage = result.error || "Ranking operation failed.";
-        if (typeof errorMessage === "object") {
-          try {
-            errorMessage = JSON.stringify(errorMessage);
-          } catch (e) {
-            errorMessage = String(errorMessage);
-          }
-        }
-        return res.status(400).json({
-          success: false,
-          error: String(errorMessage),
-        });
-      }
-
-      if (type === "termination" && result?.success) {
-        try {
-          if (BigInt(userId) === req.session.userid) {
+          } else if (opencloudKey) {
+            result = await rbx.terminateUser(
+              userId,
+              workspaceGroupId,
+              opencloudKey
+            );
+          } else {
             return res.status(400).json({
               success: false,
-              error: "You cannot terminate yourself.",
+              error: "No ranking provider configured."
+            });
+            break;
+          }
+
+          if (result && !result.success) {
+            // Log the full result for debugging so we can see RankGun's response shape
+            console.error("RankGun returned an error result:", result);
+            let errorMessage = result.error || "Ranking operation failed.";
+            if (typeof errorMessage === "object") {
+              try {
+                errorMessage = JSON.stringify(errorMessage);
+              } catch (e) {
+                errorMessage = String(errorMessage);
+              }
+            }
+            return res.status(400).json({
+              success: false,
+              error: String(errorMessage),
             });
           }
 
-          const currentUser = await prisma.user.findFirst({
-            where: {
-              userid: BigInt(userId),
-            },
-            include: {
-              roles: {
-                where: {
-                  workspaceGroupId: workspaceGroupId,
-                },
-              },
-            },
-          });
+          if (type === "termination" && result?.success) {
+            try {
+              if (BigInt(userId) === req.session.userid) {
+                return res.status(400).json({
+                  success: false,
+                  error: "You cannot terminate yourself.",
+                });
+              }
 
-          if (currentUser && currentUser.roles.length > 0) {
-            for (const role of currentUser.roles) {
-              await prisma.user.update({
+              const currentUser = await prisma.user.findFirst({
                 where: {
                   userid: BigInt(userId),
                 },
-                data: {
+                include: {
                   roles: {
-                    disconnect: {
-                      id: role.id,
+                    where: {
+                      workspaceGroupId: workspaceGroupId,
                     },
                   },
                 },
               });
+
+              if (currentUser && currentUser.roles.length > 0) {
+                for (const role of currentUser.roles) {
+                  await prisma.user.update({
+                    where: {
+                      userid: BigInt(userId),
+                    },
+                    data: {
+                      roles: {
+                        disconnect: {
+                          id: role.id,
+                        },
+                      },
+                    },
+                  });
+                }
+              }
+
+              await prisma.rank.deleteMany({
+                where: {
+                  userId: BigInt(userId),
+                  workspaceGroupId: workspaceGroupId,
+                },
+              });
+
+              const userbook = await prisma.userBook.create({
+                data: {
+                  userId: BigInt(userId),
+                  type,
+                  workspaceGroupId: workspaceGroupId,
+                  reason: notes,
+                  adminId: BigInt(req.session.userid),
+                  rankBefore,
+                  rankAfter: 1,
+                  rankNameBefore,
+                  rankNameAfter,
+                },
+                include: {
+                  admin: true,
+                },
+              });
+
+              try {
+                await logAudit(
+                  workspaceGroupId,
+                  req.session.userid || null,
+                  "userbook.create",
+                  `userbook:${userbook.id}`,
+                  {
+                    type,
+                    userId,
+                    adminId: req.session.userid,
+                    rankBefore,
+                    rankAfter: 1,
+                    rankNameBefore,
+                    rankNameAfter,
+                  }
+                );
+              } catch (e) { }
+
+              return res.status(200).json({
+                success: true,
+                log: JSON.parse(
+                  JSON.stringify(userbook, (key, value) =>
+                    typeof value === "bigint" ? value.toString() : value
+                  )
+                ),
+                terminated: true,
+              });
+            } catch (terminationError) {
+              return res.status(500).json({
+                success: false,
+                error: "Failed to remove user from workspace",
+              });
             }
           }
 
-          await prisma.rank.deleteMany({
-            where: {
-              userId: BigInt(userId),
-              workspaceGroupId: workspaceGroupId,
-            },
-          });
-
-          const userbook = await prisma.userBook.create({
-            data: {
-              userId: BigInt(userId),
-              type,
-              workspaceGroupId: workspaceGroupId,
-              reason: notes,
-              adminId: BigInt(req.session.userid),
-              rankBefore,
-              rankAfter: 1,
-              rankNameBefore,
-              rankNameAfter,
-            },
-            include: {
-              admin: true,
-            },
-          });
-
           try {
-            await logAudit(
-              workspaceGroupId,
-              req.session.userid || null,
-              "userbook.create",
-              `userbook:${userbook.id}`,
-              {
-                type,
-                userId,
-                adminId: req.session.userid,
-                rankBefore,
-                rankAfter: 1,
-                rankNameBefore,
-                rankNameAfter,
-              }
-            );
-          } catch (e) {}
+            const newRank = await noblox.getRankInGroup(workspaceGroupId, userId);
+            rankAfter = newRank;
+            const newRankInfo = await noblox.getRole(workspaceGroupId, newRank);
+            rankNameAfter = newRankInfo?.name || null;
 
-          return res.status(200).json({
-            success: true,
-            log: JSON.parse(
-              JSON.stringify(userbook, (key, value) =>
-                typeof value === "bigint" ? value.toString() : value
-              )
-            ),
-            terminated: true,
-          });
-        } catch (terminationError) {
-          return res.status(500).json({
-            success: false,
-            error: "Failed to remove user from workspace",
-          });
-        }
-      }
-
-      try {
-        const newRank = await noblox.getRankInGroup(workspaceGroupId, userId);
-        rankAfter = newRank;
-        const newRankInfo = await noblox.getRole(workspaceGroupId, newRank);
-        rankNameAfter = newRankInfo?.name || null;
-
-        await prisma.rank.upsert({
-          where: {
-            userId_workspaceGroupId: {
-              userId: BigInt(userId),
-              workspaceGroupId: workspaceGroupId,
-            },
-          },
-          update: {
-            rankId: BigInt(newRank),
-          },
-          create: {
-            userId: BigInt(userId),
-            workspaceGroupId: workspaceGroupId,
-            rankId: BigInt(newRank),
-          },
-        });
-
-        const rankInfo = await noblox.getRole(workspaceGroupId, newRank);
-        if (rankInfo) {
-          const role = await prisma.role.findFirst({
-            where: {
-              workspaceGroupId: workspaceGroupId,
-              groupRoles: {
-                hasSome: [rankInfo.id],
-              },
-            },
-          });
-
-          if (role) {
-            const currentUser = await prisma.user.findFirst({
+            await prisma.rank.upsert({
               where: {
-                userid: BigInt(userId),
-              },
-              include: {
-                roles: {
-                  where: {
-                    workspaceGroupId: workspaceGroupId,
-                  },
+                userId_workspaceGroupId: {
+                  userId: BigInt(userId),
+                  workspaceGroupId: workspaceGroupId,
                 },
+              },
+              update: {
+                rankId: BigInt(newRank),
+              },
+              create: {
+                userId: BigInt(userId),
+                workspaceGroupId: workspaceGroupId,
+                rankId: BigInt(newRank),
               },
             });
 
-            if (currentUser && currentUser.roles.length > 0) {
-              for (const oldRole of currentUser.roles) {
+            const rankInfo = await noblox.getRole(workspaceGroupId, newRank);
+            if (rankInfo) {
+              const role = await prisma.role.findFirst({
+                where: {
+                  workspaceGroupId: workspaceGroupId,
+                  groupRoles: {
+                    hasSome: [rankInfo.id],
+                  },
+                },
+              });
+
+              if (role) {
+                const currentUser = await prisma.user.findFirst({
+                  where: {
+                    userid: BigInt(userId),
+                  },
+                  include: {
+                    roles: {
+                      where: {
+                        workspaceGroupId: workspaceGroupId,
+                      },
+                    },
+                  },
+                });
+
+                if (currentUser && currentUser.roles.length > 0) {
+                  for (const oldRole of currentUser.roles) {
+                    await prisma.user.update({
+                      where: {
+                        userid: BigInt(userId),
+                      },
+                      data: {
+                        roles: {
+                          disconnect: {
+                            id: oldRole.id,
+                          },
+                        },
+                      },
+                    });
+                  }
+                }
+
                 await prisma.user.update({
                   where: {
                     userid: BigInt(userId),
                   },
                   data: {
                     roles: {
-                      disconnect: {
-                        id: oldRole.id,
+                      connect: {
+                        id: role.id,
                       },
                     },
                   },
                 });
               }
             }
-
-            await prisma.user.update({
-              where: {
-                userid: BigInt(userId),
-              },
-              data: {
-                roles: {
-                  connect: {
-                    id: role.id,
-                  },
-                },
-              },
-            });
+          } catch (rankUpdateError) {
+            console.error("Error updating user rank in database:", rankUpdateError);
           }
-        }
-      } catch (rankUpdateError) {
-        console.error("Error updating user rank in database:", rankUpdateError);
       }
     } catch (error: any) {
       let errorMessage =
@@ -513,7 +548,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         rankNameAfter,
       }
     );
-  } catch (e) {}
+  } catch (e) { }
 
   res.status(200).json({
     success: true,

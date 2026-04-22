@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { getConfig } from "@/utils/configEngine";
 
 export default withPermissionCheck(handler, "admin");
 
@@ -41,6 +42,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res
           .status(400)
           .json({ message: "RankGun requires both API key and workspace ID" });
+      }
+    }
+
+    if (rankingProvider == "opencloudranking") {
+      const keyConfig = await getConfig("roblox_opencloud", Number(workspaceId))
+      if (!keyConfig) {
+        return res.status(400).json({
+          message: "This workspace does not possess any API keys."
+        })
+      } else if (!keyConfig.enabled) {
+        return res.status(400).json({
+          message: "Opencloud keys are not active."
+        })
       }
     }
 
