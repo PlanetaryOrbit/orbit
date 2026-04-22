@@ -506,39 +506,75 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </>
                   )}
                 </Menu.Button>
-                <Menu.Items className="absolute bottom-full left-0 mb-2 py-2 rounded-2xl z-50 min-w-[11rem] w-full max-w-[14rem] bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg shadow-zinc-200/50 dark:shadow-zinc-950/50 border border-zinc-200/50 dark:border-zinc-800/80 overflow-hidden">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        type="button"
-                        onClick={toggleTheme}
-                        className={clsx(
-                          "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl mx-2 transition-colors duration-150 whitespace-nowrap text-left",
-                          active ? "bg-zinc-100/80 dark:bg-zinc-800/60" : "text-zinc-700 dark:text-zinc-200"
-                        )}
-                      >
-                        {theme === "dark" ? <IconSun className="w-4 h-4 shrink-0" stroke={1.5} /> : <IconMoon className="w-4 h-4 shrink-0" stroke={1.5} />}
-                        {theme === "dark" ? "Light mode" : "Dark mode"}
-                      </button>
-                    )}
-                  </Menu.Item>
-                  <div className="my-1.5 mx-2 h-px bg-zinc-200/80 dark:bg-zinc-700/60" />
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        type="button"
-                        onClick={logout}
-                        className={clsx(
-                          "w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl mx-2 transition-colors duration-150 whitespace-nowrap text-left",
-                          "text-red-600 dark:text-red-400",
-                          active && "bg-red-50/80 dark:bg-red-950/40"
-                        )}
-                      >
-                        <IconLogout className="w-4 h-4 shrink-0" stroke={1.5} />
-                        Logout
-                      </button>
-                    )}
-                  </Menu.Item>
+                <Menu.Items className="absolute bottom-full left-0 mb-2 z-50 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-200/60 dark:shadow-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 overflow-hidden focus:outline-none">
+                  <div className="px-3 pt-3 pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={login?.thumbnail || "/placeholder.svg"}
+                        alt=""
+                        className="w-9 h-9 rounded-xl object-cover shrink-0 ring-2 ring-zinc-100 dark:ring-zinc-800"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">{login?.displayname}</p>
+                        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">@{login?.username}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mx-3 mb-1.5 h-px bg-zinc-100 dark:bg-zinc-800" />
+
+                  <div className="px-1.5 pb-1.5 space-y-0.5">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          type="button"
+                          onClick={toggleTheme}
+                          className={clsx(
+                            "w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left",
+                            active
+                              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                              : "text-zinc-700 dark:text-zinc-300"
+                          )}
+                        >
+                          <span className={clsx(
+                            "flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
+                            active ? "bg-zinc-200/70 dark:bg-zinc-700" : "bg-zinc-100 dark:bg-zinc-800"
+                          )}>
+                            {theme === "dark"
+                              ? <IconSun className="w-3.5 h-3.5" stroke={2} />
+                              : <IconMoon className="w-3.5 h-3.5" stroke={2} />}
+                          </span>
+                          {theme === "dark" ? "Light mode" : "Dark mode"}
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
+
+                  <div className="mx-3 mb-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+
+                  <div className="px-1.5 pb-2 pt-1">
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          type="button"
+                          onClick={logout}
+                          className={clsx(
+                            "w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left",
+                            "text-red-600 dark:text-red-400",
+                            active && "bg-red-50 dark:bg-red-950/40"
+                          )}
+                        >
+                          <span className={clsx(
+                            "flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
+                            active ? "bg-red-100 dark:bg-red-900/40" : "bg-red-50 dark:bg-red-950/30"
+                          )}>
+                            <IconLogout className="w-3.5 h-3.5" stroke={2} />
+                          </span>
+                          Sign out
+                        </button>
+                      )}
+                    </Menu.Item>
+                  </div>
                 </Menu.Items>
               </Menu>
             </div>
