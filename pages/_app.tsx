@@ -61,19 +61,24 @@ function ThemeHandler() {
 
 function ColorThemeHandler() {
   const [workspace] = useRecoilState(workspacestate);
+  const theme = useRecoilValue(themeState);
 
   useEffect(() => {
-    if (
-      workspace &&
-      workspace.groupTheme &&
-      typeof workspace.groupTheme === "string"
-    ) {
-      const rgbValue = getRGBFromTailwindColor(workspace.groupTheme);
-      document.documentElement.style.setProperty("--group-theme", rgbValue);
-    } else {
-      document.documentElement.style.setProperty("--group-theme", DEFAULT_THEME_RGB);
-    }
-  }, [workspace]);
+    const isDark = theme === "dark";
+    const darkTheme = (workspace as any)?.groupDarkTheme;
+    const lightTheme = workspace?.groupTheme;
+
+    const active = isDark && darkTheme && typeof darkTheme === "string"
+      ? darkTheme
+      : lightTheme && typeof lightTheme === "string"
+        ? lightTheme
+        : null;
+
+    document.documentElement.style.setProperty(
+      "--group-theme",
+      active ? getRGBFromTailwindColor(active) : DEFAULT_THEME_RGB
+    );
+  }, [workspace, theme]);
 
   return null;
 }

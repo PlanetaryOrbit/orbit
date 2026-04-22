@@ -50,6 +50,7 @@ const workspacestate = atom({
 		yourPermission: [] as string[],
 		isAdmin: false,
 		groupTheme: '',
+		groupDarkTheme: '',
 		roles: [] as role[],
 		yourRole: '',
 		settings: {

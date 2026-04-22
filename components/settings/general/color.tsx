@@ -5,7 +5,7 @@ import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import type { FC } from "@/types/settingsComponent";
-import { IconCheck, IconPalette } from "@tabler/icons-react";
+import { IconCheck, IconMoon, IconPalette, IconSun } from "@tabler/icons-react";
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getRGBFromTailwindColor, getHexFromTheme } from "@/utils/themeColor";
@@ -28,6 +28,9 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   const [selectedColor, setSelectedColor] = useState<string>(
     workspace?.groupTheme || ""
   );
+  const [selectedDarkColor, setSelectedDarkColor] = useState<string>(
+    (workspace as any)?.groupDarkTheme || ""
+  );
   const [sessionColors, setSessionColors] = useState<SessionColors>({
     recurring: "bg-blue-500",
     shift: "bg-green-500",
@@ -39,14 +42,23 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   const [customHex, setCustomHex] = useState<string>(
     workspace?.groupTheme ? getHexFromTheme(workspace.groupTheme) : "#ec4899"
   );
+  const [customDarkHex, setCustomDarkHex] = useState<string>(
+    (workspace as any)?.groupDarkTheme ? getHexFromTheme((workspace as any).groupDarkTheme) : "#ec4899"
+  );
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveDarkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (workspace?.groupTheme) {
-      setSelectedColor(String(workspace.groupTheme)); // ← wrap in String()
+      setSelectedColor(String(workspace.groupTheme));
       setCustomHex(getHexFromTheme(workspace.groupTheme));
     }
-  }, [workspace?.groupTheme]);
+    const darkTheme = (workspace as any)?.groupDarkTheme;
+    if (darkTheme) {
+      setSelectedDarkColor(String(darkTheme));
+      setCustomDarkHex(getHexFromTheme(darkTheme));
+    }
+  }, [workspace?.groupTheme, (workspace as any)?.groupDarkTheme]);
 
   useEffect(() => {
     loadSessionColors();
@@ -58,8 +70,20 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
       if (!prev) return prev;
       return { ...prev, groupTheme: color };
     });
-    const rgbValue = getRGBFromTailwindColor(color);
-    document.documentElement.style.setProperty("--group-theme", rgbValue);
+    if (document.documentElement.classList.contains('light') || !document.documentElement.classList.contains('dark')) {
+      document.documentElement.style.setProperty("--group-theme", getRGBFromTailwindColor(color));
+    }
+  }, [setWorkspace]);
+
+  const applyDarkColorLocally = useCallback((color: string) => {
+    setSelectedDarkColor(color);
+    setWorkspace((prev) => {
+      if (!prev) return prev;
+      return { ...prev, groupDarkTheme: color } as any;
+    });
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.style.setProperty("--group-theme", getRGBFromTailwindColor(color));
+    }
   }, [setWorkspace]);
 
   const saveColorToServer = useCallback(
@@ -74,11 +98,29 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
           triggerToast.success("Workspace color updated successfully!");
         } else {
           triggerToast.error("Failed to update color.");
-          handleRevert();
         }
       } catch (error) {
         triggerToast.error("Something went wrong.");
-        handleRevert();
+      }
+    },
+    [workspace?.groupId, triggerToast]
+  );
+
+  const saveDarkColorToServer = useCallback(
+    async (darkColor: string) => {
+      if (!workspace?.groupId) return;
+      try {
+        const res = await axios.patch(
+          `/api/workspace/${workspace.groupId}/settings/general/color`,
+          { darkColor }
+        );
+        if (res.status === 200) {
+          triggerToast.success("Dark mode color updated!");
+        } else {
+          triggerToast.error("Failed to update dark mode color.");
+        }
+      } catch (error) {
+        triggerToast.error("Something went wrong.");
       }
     },
     [workspace?.groupId, triggerToast]
@@ -87,12 +129,7 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   const handleRevert = () => {
     const previousColor = workspace?.groupTheme || "bg-pink-500";
     setSelectedColor(previousColor);
-    setWorkspace((prev) => ({
-      ...prev,
-      groupTheme: previousColor,
-    }));
-    const rgbValue = getRGBFromTailwindColor(previousColor);
-    document.documentElement.style.setProperty("--group-theme", rgbValue);
+    setWorkspace((prev) => ({ ...prev, groupTheme: previousColor }));
   };
 
   const handleCustomColorChange = useCallback(
@@ -108,9 +145,23 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     [applyColorLocally, saveColorToServer]
   );
 
+  const handleCustomDarkColorChange = useCallback(
+    (hex: string) => {
+      setCustomDarkHex(hex);
+      applyDarkColorLocally(hex);
+      if (saveDarkTimeoutRef.current) clearTimeout(saveDarkTimeoutRef.current);
+      saveDarkTimeoutRef.current = setTimeout(() => {
+        saveDarkTimeoutRef.current = null;
+        saveDarkColorToServer(hex);
+      }, 600);
+    },
+    [applyDarkColorLocally, saveDarkColorToServer]
+  );
+
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (saveDarkTimeoutRef.current) clearTimeout(saveDarkTimeoutRef.current);
     };
   }, []);
 
@@ -135,6 +186,11 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   const updateColor = (color: string) => {
     applyColorLocally(color);
     saveColorToServer(color);
+  };
+
+  const updateDarkColor = (color: string) => {
+    applyDarkColorLocally(color);
+    saveDarkColorToServer(color);
   };
 
   const updateSessionColor = async (
@@ -241,13 +297,13 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     <div className="ml-0 space-y-8">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <IconPalette size={20} className="text-primary" />
+          <IconSun size={20} className="text-primary" />
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
             Workspace Theme
           </h3>
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
-          Choose a color theme for your workspace
+          Choose a color theme for your workspace (light mode)
         </p>
 
         <div className="mb-6 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
@@ -333,6 +389,115 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
           ))}
         </div>
       </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <IconMoon size={20} className="text-primary" />
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+            Dark Mode Theme
+          </h3>
+        </div>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
+          Optionally set a different accent color for dark mode. If not set, the light mode color is used.
+        </p>
+
+        <div className="mb-6 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
+          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
+            Custom color (color wheel + hex)
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">Pick:</span>
+              <input
+                type="color"
+                value={
+                  String(selectedDarkColor).startsWith("#")
+                    ? selectedDarkColor
+                    : customDarkHex
+                }
+                onChange={(e) => handleCustomDarkColorChange(e.target.value)}
+                className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
+              />
+              {String(selectedDarkColor).startsWith("#") && (
+                <span className="text-xs text-primary font-medium">Active</span>
+              )}
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">Hex:</span>
+              <input
+                type="text"
+                value={
+                  String(selectedDarkColor).startsWith("#")
+                    ? selectedDarkColor
+                    : customDarkHex
+                }
+                onChange={(e) => setCustomDarkHex(e.target.value)}
+                onBlur={() => {
+                  const raw = customDarkHex.trim();
+                  const hex = raw.startsWith("#") ? raw : `#${raw}`;
+                  if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                    const fullHex =
+                      hex.length === 4
+                        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+                        : hex;
+                    setCustomDarkHex(fullHex);
+                    applyDarkColorLocally(fullHex);
+                    if (saveDarkTimeoutRef.current) {
+                      clearTimeout(saveDarkTimeoutRef.current);
+                      saveDarkTimeoutRef.current = null;
+                    }
+                    saveDarkColorToServer(fullHex);
+                  }
+                }}
+                placeholder="#ec4899"
+                className={clsx(
+                  "w-28 px-3 py-2 rounded-lg text-sm border-2",
+                  "bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600",
+                  "text-zinc-900 dark:text-white",
+                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                )}
+              />
+            </label>
+            {selectedDarkColor && (
+              <button
+                onClick={() => {
+                  setSelectedDarkColor('');
+                  setCustomDarkHex('#ec4899');
+                  setWorkspace((prev) => ({ ...prev, groupDarkTheme: '' } as any));
+                  saveDarkColorToServer('');
+                }}
+                className="text-xs text-zinc-400 hover:text-red-500 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+            Click the color square to open the color wheel, or type a hex code (e.g. #ec4899).
+          </p>
+        </div>
+
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Or pick a preset:</p>
+        <div className="grid grid-cols-10 gap-3">
+          {colors.map((color, i) => (
+            <button
+              key={i}
+              onClick={() => updateDarkColor(color)}
+              className={clsx(
+                "relative aspect-square rounded-lg transition-transform hover:scale-105 z-0",
+                color
+              )}
+            >
+              {selectedDarkColor === color && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 rounded-lg">
+                  <IconCheck size={16} className="text-white" />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <div className="flex items-center gap-2 mb-2">
           <IconPalette size={20} className="text-primary" />

@@ -8,7 +8,6 @@ import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { useRouter } from "next/router";
 import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
-import { getRGBFromTailwindColor } from "@/utils/themeColor";
 import { useEffect, useState } from "react";
 import clsx from 'clsx';
 import { HelpProvider, HelpFloatingButton } from "@/components/HelpFloatingButton";
@@ -36,12 +35,6 @@ const workspace: LayoutProps = ({ children }) => {
 		if (router.query.id) getworkspace();
 	}, [router.query.id, setWorkspace]);
 
-	useEffect(() => {
-		if (workspace && workspace.groupTheme) {
-			const rgb = getRGBFromTailwindColor(workspace.groupTheme);
-			document.documentElement.style.setProperty("--group-theme", rgb);
-		}
-	}, [workspace]);
 
 	return (
 		<div className="h-screen bg-zinc-50 dark:bg-zinc-900">

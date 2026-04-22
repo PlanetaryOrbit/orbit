@@ -60,6 +60,7 @@ export async function handler(
 
 	const [
 		themeconfig,
+		darkThemeConfig,
 		roles,
 		groupinfo,
 		groupLogo,
@@ -73,6 +74,7 @@ export async function handler(
 		homeConfig
 	] = await Promise.all([
 		getConfig('customization', workspace.groupId),
+		getConfig('darkTheme', workspace.groupId),
 		prisma.role.findMany({
 			where: {
 				workspaceGroupId: workspace.groupId
@@ -189,6 +191,7 @@ export async function handler(
       customName: workspace.customName ?? "",
 			yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 			groupTheme: themeconfig,
+			groupDarkTheme: darkThemeConfig,
 			roles: roles.map(r => ({
 				...r,
 				groupRoles: r.groupRoles.map(id => id.toString())

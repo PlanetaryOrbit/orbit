@@ -19,26 +19,29 @@ export async function handler(
 	}
 
 	const workspaceId = parseInt(req.query.id as string);
-	const color = req.body.color;
+	const { color, darkColor } = req.body as { color?: string; darkColor?: string };
 
-	if (!workspaceId || !color) {
+	if (!workspaceId || (!color && !darkColor)) {
 		return res.status(400).json({ success: false, error: 'Missing workspace ID or color' });
 	}
 
 	try {
-		try {
+		if (color) {
 			const before = await getConfig('theme', workspaceId);
 			await setConfig('theme', color, workspaceId);
 			try {
 				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'theme', { before, after: color });
 			} catch (e) {}
-			return res.status(200).json({ success: true });
-		} catch (error) {
-			console.error('Failed to save theme color:', error);
-			return res.status(500).json({ success: false, error: 'Server error' });
 		}
+		if (darkColor !== undefined) {
+			const beforeDark = await getConfig('darkTheme', workspaceId);
+			await setConfig('darkTheme', darkColor, workspaceId);
+			try {
+				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'darkTheme', { before: beforeDark, after: darkColor });
+			} catch (e) {}
+		}
+		return res.status(200).json({ success: true });
 	} catch (error) {
-		console.error('Failed to save theme color:', error);
 		return res.status(500).json({ success: false, error: 'Server error' });
 	}
 }
