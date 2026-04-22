@@ -30,8 +30,6 @@ async function getBanner(req: NextApiRequest, res: NextApiResponse) {
 const ALLOWED_MIME_TYPES: Record<string, string> = {
 	'image/jpeg': 'image/jpeg',
 	'image/png': 'image/png',
-	'image/webp': 'image/webp',
-	'image/gif': 'image/gif',
 };
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
