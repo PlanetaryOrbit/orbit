@@ -6,18 +6,18 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/router";
 import { IconCheck, IconCloud, IconX } from "@tabler/icons-react";
 import Button from "@/components/button";
+import { ServiceCard, ServiceToggle } from "../instance/ServiceCard";
 
 type KeyStatus = "verified" | "failed" | "Saved" | null;
 
 function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
-  const [workspace, setWorkspace] = useRecoilState(workspacestate);
+  const [workspace] = useRecoilState(workspacestate);
   const router = useRouter();
   const [enabled, setEnabled] = useState(false);
   const [ockey, setockey] = useState("");
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
   const [keyStatus, setKeyStatus] = useState<KeyStatus>(null);
-
   const testedKey = useRef<string | null>(null);
   const savedKey = useRef<string>("");
 
@@ -38,7 +38,7 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
           console.error("Error fetching OpenCloud key config:", err);
         });
     }
-  }, [router.query.id]);
+  }, [router.query.id, workspace.groupId]);
 
   const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -55,22 +55,16 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
       5: "Invalid API key",
       400: "API key is not provided in a valid format.",
     };
-
     try {
-      const response = await axios.post(
-        `/api/workspace/${workspace.groupId}/settings/general/roblox/test`,
-        { key: keyToTest }
-      );
-
+      const response = await axios.post(`/api/workspace/${workspace.groupId}/settings/general/roblox/test`, { key: keyToTest });
       if (response.data.success) {
         testedKey.current = keyToTest;
         setKeyStatus("verified");
         return true;
-      } else {
-        setKeyStatus("failed");
-        toast.error("API key is invalid");
-        return false;
       }
+      setKeyStatus("failed");
+      toast.error("API key is invalid");
+      return false;
     } catch (error: any) {
       const code = error?.response?.data?.code;
       const message = error?.response?.data?.message;
@@ -97,27 +91,21 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
         toast.error("Please enter an Open Cloud API key first");
         return;
       }
-
       if (ockey !== testedKey.current) {
         setTesting(true);
         toast.loading("Testing key before saving...", { id: "pre-save-test" });
         const valid = await testKey(ockey);
         setTesting(false);
         toast.dismiss("pre-save-test");
-
         if (!valid) return;
         toast.success("API key is valid");
       }
     }
-
     setLoading(true);
     try {
-      await axios.patch(
-        `/api/workspace/${workspace.groupId}/settings/general/roblox/key`,
-        { enabled, key: ockey }
-      );
+      await axios.patch(`/api/workspace/${workspace.groupId}/settings/general/roblox/key`, { enabled, key: ockey });
       savedKey.current = ockey;
-      setKeyStatus("Saved")
+      setKeyStatus("Saved");
       toast.success("Open Cloud API key saved!");
     } catch (error) {
       console.error("Error saving Open Cloud API key:", error);
@@ -128,104 +116,73 @@ function OpenCloud({ title = "Open Cloud" }: { title?: string }) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start gap-4">
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))] shrink-0">
-          <IconCloud className="w-6 h-6" stroke={1.5} />
+    <ServiceCard
+      icon={IconCloud}
+      title={title}
+      description="Use Roblox Open Cloud for deeper integration with your group."
+      footer={
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={loading || testing} workspace>
+            <span className="inline-flex items-center gap-2">
+              <IconCheck className="h-4 w-4" stroke={1.5} />
+              {loading ? "Saving…" : testing ? "Testing…" : "Save"}
+            </span>
+          </Button>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-            {title}
-          </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Integrate your workspace with the newest Roblox Cloud API
+      }
+    >
+      <ServiceToggle
+        enabled={enabled}
+        onToggle={() => setEnabled(!enabled)}
+        label="Enable Open Cloud for this workspace"
+      />
+      {enabled && (
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">API key</label>
+            <input
+              type="text"
+              value={ockey}
+              onChange={handleKeyChange}
+              placeholder="Open Cloud API key"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 transition-colors focus:border-[color:rgb(var(--group-theme))] focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleTest}
+              disabled={testing || loading || !ockey}
+              className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+            >
+              {testing ? "Testing…" : "Test key"}
+            </button>
+            {keyStatus === "verified" && (
+              <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
+                <IconCheck className="h-4 w-4" stroke={2} />
+                Verified
+              </span>
+            )}
+            {keyStatus === "Saved" && (
+              <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
+                <IconCheck className="h-4 w-4" stroke={2} />
+                Saved
+              </span>
+            )}
+            {keyStatus === "failed" && (
+              <span className="inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
+                <IconX className="h-4 w-4" stroke={2} />
+                Invalid
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Requires <b className="text-zinc-700 dark:text-zinc-200">group:read</b> and{" "}
+            <b className="text-zinc-700 dark:text-zinc-200">group:write</b>.
           </p>
         </div>
-      </div>
-
-      <div className="space-y-5">
-        <div className="flex items-center justify-between p-5 bg-zinc-50/80 dark:bg-zinc-900/50 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50">
-          <div>
-            <p className="font-medium text-zinc-900 dark:text-white">{title}</p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Integrate your workspace with the newest Roblox Cloud API
-            </p>
-          </div>
-          <button
-            onClick={() => setEnabled(!enabled)}
-            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-              enabled
-                ? "bg-[color:rgb(var(--group-theme))]"
-                : "bg-zinc-300 dark:bg-zinc-600"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
-                enabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </div>
-
-        {enabled && (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Open Cloud Key
-              </label>
-              <input
-                type="text"
-                value={ockey}
-                onChange={handleKeyChange}
-                placeholder="Enter Open Cloud Key"
-                className="w-full px-3 py-2.5 border rounded-xl text-sm bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] focus:border-[color:rgb(var(--group-theme))] transition-colors"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleTest}
-                disabled={testing || loading || !ockey}
-                className="px-4 py-2.5 text-sm font-medium rounded-xl bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-white hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {testing ? "Testing..." : "Test Key"}
-              </button>
-
-              {keyStatus === "verified" && (
-                <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
-                  <IconCheck className="w-4 h-4" stroke={2} />
-                  Key verified
-                </span>
-              )}
-              {keyStatus === "Saved" && (
-                <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
-                  <IconCheck className="w-4 h-4" stroke={2} />
-                  Key saved &amp; verified
-                </span>
-              )}
-              {keyStatus === "failed" && (
-                <span className="flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
-                  <IconX className="w-4 h-4" stroke={2} />
-                  Key invalid
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              The key must have <b className="font-bold">group:read</b> and{" "}
-              <b className="font-bold">group:write</b> permissions.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-end pt-6 border-t border-zinc-200/80 dark:border-zinc-700/80">
-        <Button onClick={handleSave} disabled={loading || testing} workspace>
-          <span className="inline-flex items-center gap-2">
-            <IconCheck className="w-4 h-4" stroke={1.5} />
-            {loading ? "Saving..." : testing ? "Testing..." : "Save Settings"}
-          </span>
-        </Button>
-      </div>
-    </div>
+      )}
+    </ServiceCard>
   );
 }
 

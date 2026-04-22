@@ -279,6 +279,21 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
     const section = SECTIONS[activeSection as keyof typeof SECTIONS];
     const isServices = activeSection === "instance";
 
+    if (isServices) {
+      return (
+        <div className="grid min-w-0 auto-rows-min gap-4 sm:grid-cols-2">
+          {section.components.map(({ component: Component, title, key }) => {
+            const componentProps: any = { triggerToast: toast, isSidebarExpanded, title };
+            return (
+              <div key={key} className="min-w-0">
+                <Component {...componentProps} />
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     return section.components.map(({ component: Component, title, key }, index) => {
       const componentProps: any = { triggerToast: toast };
 
@@ -290,17 +305,6 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
           activeSection === "activity" &&
           !isAdmin &&
           !userPermissions.includes("workspace_customisation");
-      }
-
-      if (isServices) {
-        return (
-          <div
-            key={index}
-            className="bg-white dark:bg-zinc-800/80 dark:border dark:border-zinc-700/50 rounded-2xl shadow-sm shadow-zinc-200/50 dark:shadow-none p-6 sm:p-8 mb-6 last:mb-0"
-          >
-            <Component {...componentProps} title={title} />
-          </div>
-        );
       }
 
       return (
