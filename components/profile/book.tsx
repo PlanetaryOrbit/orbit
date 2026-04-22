@@ -40,7 +40,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
   const [text, setText] = useState("");
   const [type, setType] = useState("note");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rankGunEnabled, setRankGunEnabled] = useState(false);
+  const [rankingEnabled, setRankingEnabled] = useState(false);
   const [targetRank, setTargetRank] = useState("");
   const [ranks, setRanks] = useState<
     Array<{ id: number; name: string; rank: number }>
@@ -58,8 +58,10 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
         const response = await axios.get(
           `/api/workspace/${id}/external/ranking`
         );
-        setRankGunEnabled(response.data.rankGunEnabled);
-        return response.data.rankGunEnabled;
+        setRankingEnabled(
+          response.data.rankGunEnabled ? response.data.rankGunEnabled : response.data.openCloudEnabled ? response.data.rankGunEnabled : false
+        );
+        return response.data.rankGunEnabled ? response.data.rankGunEnabled : response.data.openCloudEnabled ? response.data.rankGunEnabled : false;
       } catch (error) {
         return false;
       }
@@ -137,7 +139,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
         toast.success("User terminated successfully!");
       } else {
         const isRankGunAction =
-          rankGunEnabled &&
+          rankingEnabled &&
           (type === "promotion" ||
             type === "demotion" ||
             type === "rank_change");
@@ -347,14 +349,14 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
               {logbookPermissions?.warning && <option value="warning">Warning</option>}
               {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
               {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
-              {rankGunEnabled && logbookPermissions?.rank && (
+              {rankingEnabled && logbookPermissions?.rank && (
                 <option value="rank_change">Rank Change</option>
               )}
               {logbookPermissions?.termination && <option value="termination">Termination</option>}
             </select>
           </div>
 
-          {rankGunEnabled &&
+          {rankingEnabled &&
             logbookPermissions?.rank &&
             (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
               <div className="flex items-start gap-2.5 p-3 rounded-lg border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-900/20">
@@ -371,7 +373,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
               </div>
             )}
 
-          {rankGunEnabled &&
+          {rankingEnabled &&
             !logbookPermissions?.rank &&
             (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
               <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20">
@@ -436,11 +438,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
             {isSubmitting ? (
               <>
                 <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                {rankGunEnabled && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
+                {rankingEnabled && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
                   ? "Executing..."
                   : "Adding..."}
               </>
-            ) : rankGunEnabled && logbookPermissions?.rank && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") ? (
+            ) : rankingEnabled && logbookPermissions?.rank && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") ? (
               `Add Note & ${type === "rank_change" ? "Change Rank" : type === "promotion" ? "Promote" : type === "demotion" ? "Demote" : "Terminate"}`
             ) : (
               "Add Note"

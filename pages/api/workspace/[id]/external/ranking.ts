@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { getRankGun } from "@/utils/rankgun";
+import { getConfig } from "@/utils/configEngine";
 
 export default withPermissionCheck(handler, "rank_users");
 
@@ -21,14 +22,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const workspaceGroupId = parseInt(id as string);
     const rankGun = await getRankGun(workspaceGroupId);
+    const openCloudConfig = await getConfig("roblox_opencloud", workspaceGroupId)
     return res.status(200).json({
       success: true,
       rankGunEnabled: !!rankGun,
+      openCloudEnabled: !!openCloudConfig.enabled
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      error: "Failed to check RankGun configuration",
+      error: "Failed to check External configuration",
     });
   }
 }
