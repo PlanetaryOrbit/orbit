@@ -19,6 +19,7 @@ type Data = {
 		yourRole: string | null,
 		yourPermission: string[]
 		groupTheme: string,
+		groupDarkTheme: string,
 		settings: {
 			guidesEnabled: boolean
 			leaderboardEnabled: boolean
@@ -73,6 +74,7 @@ export async function handler(
 	const groupName = workspace.groupName || 'Unknown Group';
 	const groupLogo = workspace.groupLogo || '';
 	const themeconfig = await getConfig('theme', workspace.groupId);
+	const darkThemeConfig = await getConfig('darkTheme', workspace.groupId);
 	const sessionTypes = ["shift", "training", "event", "other"];
 	const sessionPermissions: Record<string, string> = {};
 	
@@ -149,6 +151,7 @@ export async function handler(
 		groupName: groupName,
 		yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
+		groupDarkTheme: darkThemeConfig,
 		roles: workspace.roles,
 		yourRole: user.roles[0].id,
 		settings: {

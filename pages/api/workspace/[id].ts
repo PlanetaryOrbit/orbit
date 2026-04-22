@@ -19,6 +19,7 @@ type Data = {
 		yourRole: string | null,
 		yourPermission: string[]
 		groupTheme: string,
+		groupDarkTheme: string,
 		settings: {
 			guidesEnabled: boolean
 			leaderboardEnabled: boolean
