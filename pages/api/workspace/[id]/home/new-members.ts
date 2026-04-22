@@ -27,26 +27,36 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
 				create: { workspaceGroupId, userId: userid, joinDate: new Date() },
 				update: {},
 			});
-		} catch (e) {
-			// ignore constraint errors
-		}
+		} catch (e) {}
 	}
 
 	const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
 
-	const recent = await prisma.workspaceMember.findMany({
-		where: { workspaceGroupId, joinDate: { gte: cutoff } },
-		include: { user: { select: { userid: true, username: true, picture: true } } },
-		orderBy: { joinDate: 'desc' }
-	});
+	const recent = await prisma.$queryRaw<Array<{
+		userid: bigint;
+		username: string | null;
+		picture: string | null;
+		joinDate: Date | null;
+		introNote: string | null;
+		introSong: string | null;
+	}>>`
+		SELECT u.userid, u.username, u.picture, wm."joinDate", wm."introNote", wm."introSong"
+		FROM "workspaceMember" wm
+		JOIN "user" u ON u.userid = wm."userId"
+		WHERE wm."workspaceGroupId" = ${workspaceGroupId}
+		  AND wm."joinDate" >= ${cutoff}
+		ORDER BY wm."joinDate" DESC
+	`;
 
 	res.json({
 		success: true,
 		members: recent.map(r => ({
-		userid: r.user.userid.toString(),
-		username: r.user.username || r.user.userid.toString(),
-		picture: r.user.picture,
-		joinDate: r.joinDate,
+			userid: r.userid.toString(),
+			username: r.username || r.userid.toString(),
+			picture: r.picture,
+			joinDate: r.joinDate,
+			introNote: r.introNote ?? null,
+			introSong: r.introSong ?? null,
 		}))
 	});
 });
