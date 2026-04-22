@@ -280,23 +280,40 @@ export default function NewToTeam() {
                   )}
                   {song ? (
                     <button
+                      type="button"
                       onClick={() => togglePlay(m)}
-                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full pl-0.5 pr-1.5 py-0.5 shadow-sm whitespace-nowrap max-w-[88px] hover:bg-zinc-700/90 transition-colors group"
-                      title={`${song.title} – ${song.artist}`}
+                      className={`absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0.5 shadow-sm hover:bg-zinc-700/90 group ${
+                        isPlaying ? 'pl-0.5 pr-1' : 'px-0.5'
+                      }`}
+                      style={{
+                        maxWidth: isPlaying ? 'min(400px, calc(100vw - 2rem))' : 88,
+                        minWidth: isPlaying ? 'auto' : 80,
+                        transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1)',
+                      }}
+                      title={isPlaying ? 'Pause' : `${song.title} – ${song.artist}`}
                     >
                       <img src={song.artwork} alt="" className="w-4 h-4 rounded-full shrink-0 object-cover" />
-                      <span className="text-[10px] text-white truncate ml-0.5 max-w-[52px]">{song.title}</span>
-                      <span className="shrink-0 ml-0.5">
+                      {!isPlaying && (
+                        <span className="text-[10px] text-white ml-0.5 min-w-0 max-w-[52px] truncate">
+                          {song.title}
+                        </span>
+                      )}
+                      {isPlaying && (
+                        <span className="text-[10px] text-white px-0.5 whitespace-nowrap min-w-0">
+                          {song.title}
+                        </span>
+                      )}
+                      <span className="shrink-0">
                         {isPlaying
                           ? <IconPlayerPause className="w-2.5 h-2.5 text-primary" />
-                          : <IconPlayerPlay className="w-2.5 h-2.5 text-zinc-400 group-hover:text-white" />
+                          : <IconPlayerPlay className="w-2.5 h-2.5 text-zinc-300 group-hover:text-white" />
                         }
                       </span>
                     </button>
                   ) : m.introNote ? (
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-sm whitespace-nowrap max-w-[88px]">
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-sm whitespace-nowrap">
                       <IconMusic className="w-2.5 h-2.5 text-primary shrink-0" />
-                      <span className="text-[10px] text-white truncate">{m.introNote}</span>
+                      <span className="text-[10px] text-white">{m.introNote.slice(0, 15)}</span>
                     </div>
                   ) : null}
                 </div>
@@ -304,8 +321,8 @@ export default function NewToTeam() {
                   {m.username}
                 </div>
                 {m.introNote && song && (
-                  <div className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500 truncate w-full text-center" title={m.introNote}>
-                    {m.introNote}
+                  <div className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500 w-full text-center" title={m.introNote}>
+                    {m.introNote.slice(0, 15)}
                   </div>
                 )}
               </div>
@@ -418,7 +435,7 @@ export default function NewToTeam() {
                   type="text"
                   value={editNote}
                   onChange={e => setEditNote(e.target.value)}
-                  maxLength={100}
+                  maxLength={15}
                   placeholder="Say something to the team…"
                   className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors placeholder-zinc-400"
                 />
