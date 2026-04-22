@@ -7,17 +7,35 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
   if (!req.session.userid) return res.status(401).end();
 
   const url = req.query.url as string;
-  if (!url || !url.startsWith('https://audio-ssl.itunes.apple.com/')) {
+  if (!url) {
     return res.status(400).end('Invalid URL');
   }
 
-  const upstream = await axios.get(url, {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return res.status(400).end('Invalid URL');
+  }
+
+  if (
+    parsedUrl.protocol !== 'https:' ||
+    parsedUrl.hostname !== 'audio-ssl.itunes.apple.com' ||
+    parsedUrl.username ||
+    parsedUrl.password ||
+    (parsedUrl.port !== '' && parsedUrl.port !== '443')
+  ) {
+    return res.status(400).end('Invalid URL');
+  }
+
+  const upstream = await axios.get(parsedUrl.toString(), {
     responseType: 'stream',
     headers: {
       'User-Agent': 'Mozilla/5.0',
       'Accept': 'audio/*,*/*',
     },
     timeout: 15000,
+    maxRedirects: 0,
   });
 
   res.setHeader('Content-Type', upstream.headers['content-type'] || 'audio/mp4');
