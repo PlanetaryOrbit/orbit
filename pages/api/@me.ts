@@ -19,6 +19,11 @@ type User = {
     discordUserId: string
     username: string
     avatar: string | null
+  } | null,
+  googleUser?: {
+    username: string,
+    avatar: string | null,
+    email: string | null  // add | null
   } | null
 }
 
@@ -67,7 +72,7 @@ export async function handler(
   const [dbuser, username, displayname] = await Promise.all([
     prisma.user.findUnique({
       where: { userid: userId },
-      include: { roles: true, discordUser: true }
+      include: { roles: true, discordUser: true, googleUser: true }
     }),
     getUsername(userId),
     getDisplayName(userId)
@@ -88,6 +93,11 @@ export async function handler(
       username: dbuser.discordUser.username,
       avatar: dbuser.discordUser.avatar,
     } : null,
+    googleUser: dbuser?.googleUser ? {
+      avatar: dbuser.googleUser.avatar ?? null,
+      email: dbuser.googleUser.email ?? null,
+      username: dbuser.googleUser.username
+    } : null
   }
 
   let roles: any[] = [];

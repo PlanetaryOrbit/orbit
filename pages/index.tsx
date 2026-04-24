@@ -28,13 +28,16 @@ const Home: NextPage = () => {
 	const [isOwner, setIsOwner] = useState(false)
 	const [showInstanceSettings, setShowInstanceSettings] = useState(false)
 	const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
-	const [externalConfig, setRobloxConfig] = useState({
+	const [externalConfig, setExternalConfig] = useState({
 		clientId: '',
 		clientSecret: '',
 		redirectUri: '',
 		redirect_wid: '',
 		discordAppId: '',
 		discordAppSecret: '',
+    google_id: '',
+    google_secret: '',
+    google_email_filtration: '',
 		oauthOnlyLogin: false
 	})
 	const [configLoading, setConfigLoading] = useState(false)
@@ -199,7 +202,7 @@ const Home: NextPage = () => {
     if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
-      setRobloxConfig(prev => ({ ...prev, redirectUri: autoRedirectUri }))
+      setExternalConfig(prev => ({ ...prev, redirectUri: autoRedirectUri }))
     }
   }, [])
 
@@ -207,18 +210,21 @@ const Home: NextPage = () => {
     try {
       const response = await axios.get('/api/admin/instance-config')
       console.log(response)
-		const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret, loginBackground: bg } = response.data
+		const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret, loginBackground: bg, google_id, google_secret, google_email_filtration } = response.data
 		const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
 		const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
 
-		setRobloxConfig({
+		setExternalConfig({
 			clientId: robloxClientId || '',
 			clientSecret: robloxClientSecret || '',
 			redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
 			discordAppId: discordApplicationID,
 			discordAppSecret: discordClientSecret,
 			oauthOnlyLogin: oauthOnlyLogin || false,
-			redirect_wid: redirectWorkspace
+			redirect_wid: redirectWorkspace,
+      google_id,
+      google_secret,
+      google_email_filtration
 		})
 		setUsingEnvVars(envVars || false)
 		setLoginBackground(bg || null)
@@ -240,7 +246,10 @@ const Home: NextPage = () => {
         oauthOnlyLogin: externalConfig.oauthOnlyLogin,
         redirectWorkspaceID: externalConfig.redirect_wid,
         discordAppId: externalConfig.discordAppId,
-        discordSecret: externalConfig.discordAppSecret
+        discordSecret: externalConfig.discordAppSecret,
+        google_id: externalConfig.google_id,
+        google_secret: externalConfig.google_secret,
+        google_email_filtration: externalConfig.google_secret
 			})
 			setSaveMessage('Settings saved successfully!')
 			setTimeout(() => setSaveMessage(''), 3000)
@@ -642,7 +651,7 @@ const Home: NextPage = () => {
                                 <input
                                   type="text"
                                   value={externalConfig.clientId}
-                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientId: e.target.value }))}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, clientId: e.target.value }))}
                                   placeholder="23748326747865334"
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
@@ -658,7 +667,7 @@ const Home: NextPage = () => {
                                 <input
                                   type="password"
                                   value={externalConfig.clientSecret}
-                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, clientSecret: e.target.value }))}
                                   placeholder="JHJD_NMIRHNSD$ER$6dj38"
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
@@ -691,7 +700,7 @@ const Home: NextPage = () => {
                                 <input
                                   type="text"
                                   value={externalConfig.discordAppId}
-                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppId: e.target.value }))}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, discordAppId: e.target.value }))}
                                   placeholder="1234567890"
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
@@ -707,7 +716,42 @@ const Home: NextPage = () => {
                                 <input
                                   type="password"
                                   value={externalConfig.discordAppSecret}
-                                  onChange={(e) => setRobloxConfig(prev => ({ ...prev, discordAppSecret: e.target.value }))}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, discordAppSecret: e.target.value }))}
+                                  placeholder="eYli_RL3dUJUb7ieBQXhp0lLs…"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Google App ID
+                                </label>
+                                <input
+                                  type="text"
+                                  value={externalConfig.google_id}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, google_id: e.target.value }))}
+                                  placeholder="1234567890"
+                                  disabled={usingEnvVars}
+                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    }`}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                  Google App Secret
+                                </label>
+                                <input
+                                  type="password"
+                                  value={externalConfig.google_secret}
+                                  onChange={(e) => setExternalConfig(prev => ({ ...prev, google_secret: e.target.value }))}
                                   placeholder="eYli_RL3dUJUb7ieBQXhp0lLs…"
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
@@ -725,7 +769,7 @@ const Home: NextPage = () => {
                               <input
                                 type="text"
                                 value={externalConfig.redirect_wid}
-                                onChange={(e) => setRobloxConfig(prev => ({ ...prev, redirect_wid: e.target.value }))}
+                                onChange={(e) => setExternalConfig(prev => ({ ...prev, redirect_wid: e.target.value }))}
                                 placeholder="35724790"
                                 disabled={usingEnvVars}
                                 className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
@@ -805,7 +849,7 @@ const Home: NextPage = () => {
 														<input
 															type="checkbox"
 															checked={externalConfig.oauthOnlyLogin}
-															onChange={(e) => setRobloxConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
+															onChange={(e) => setExternalConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
 															disabled={usingEnvVars}
 															className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
 																}`}

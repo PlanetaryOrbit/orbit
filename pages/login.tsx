@@ -15,6 +15,7 @@ import { IconX } from "@tabler/icons-react";
 import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import toast, { Toaster } from "react-hot-toast";
+import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 
 type LoginForm = { username: string; password: string };
 type SignupForm = {
@@ -40,6 +41,7 @@ const Login: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState);
 	const { isAvailable: isRobloxOAuth, oauthOnly } = RobloxOAuthAvailable();
 	const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
+  const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable()
 
 	const loginMethods = useForm<LoginForm>();
 	const signupMethods = useForm<SignupForm>();
@@ -312,7 +314,13 @@ const Login: NextPage = () => {
 		if (error) {
 			if (error == "discord-not-linked") {
 				toast.error("This account isn't linked to any Orbit account.")
-			} else {
+			} else if (error == "google-not-linked") {
+        toast.error("Your Google account is not linked.")
+      } else if (error == "state-mismatch") {
+        toast.error("We detected a state mismatch, OAuth process was discontinued.")
+      } else if (error == "missing_params") {
+        toast.error("Not enough params were provided.")
+      }else {
 				toast.error("There was an error while logging in.")
 			}
 			errorToastShown.current = true
@@ -464,7 +472,7 @@ const Login: NextPage = () => {
 													</Button>
 												</div>
 
-												{(isRobloxOAuth || isDiscordOAuth) && (
+												{(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
 													<>
 														<div className="relative my-6">
 															<div className="absolute inset-0 flex items-center">
@@ -509,6 +517,23 @@ const Login: NextPage = () => {
 																	className="w-5 h-5 mr-2 dark:invert-0 invert"
 																/>
 																Continue with Discord
+															</button>)
+														}
+                            {
+															isGoogleOAuth && (<button
+																type="button"
+																onClick={() =>
+																	(window.location.href = "/api/auth/google/start")
+																}
+																disabled={loading}
+																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+															>
+																<img
+																	src="/google.svg"
+																	alt="Google"
+																	className="w-5 h-5 mr-2 dark:invert-0 invert"
+																/>
+																Continue with Google
 															</button>)
 														}
 													</>

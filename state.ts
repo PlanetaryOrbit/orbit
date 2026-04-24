@@ -22,7 +22,12 @@ export type LoginState = {
 		discordUserId: string
 		username: string
 		avatar: string | null
-	} | null
+	} | null,
+  googleUser?: {
+    username: string,
+    avatar: string | null,
+    email: string | null  // add | null
+  } | null
 }
 
 const loginState = atom<LoginState>({
@@ -36,7 +41,8 @@ const loginState = atom<LoginState>({
 		canMakeWorkspace: false,
 		workspaces: [] as workspaceinfo[],
 		isOwner: false,
-		discordUser: null
+		discordUser: null,
+    googleUser: null
 	},
 });
 

@@ -23,7 +23,7 @@ export default function Document() {
             "script-src-attr 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
             "font-src 'self' https://fonts.gstatic.com https://fonts.intercomcdn.com; " +
-            "img-src 'self' data: https: blob:; " + 
+            "img-src 'self' data: https: blob: https://lh3.googleusercontent.com; " + 
             "media-src 'self' https://audio-ssl.itunes.apple.com; " +
             "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://uranus.planetaryapp.cloud wss://*.intercom.io wss:; " +
             "frame-src 'self' https://widget.intercom.io; " +
