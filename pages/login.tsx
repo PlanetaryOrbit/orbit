@@ -479,7 +479,7 @@ const Login: NextPage = () => {
 																<span className="w-full border-t border-zinc-200 dark:border-zinc-600" />
 															</div>
 															<div className="relative flex justify-center text-xs">
-																<span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">
+																<span className="bg-zinc-100 dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">
 																	or
 																</span>
 															</div>
