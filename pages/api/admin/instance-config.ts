@@ -30,7 +30,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envDCClientSecret = process.env.DISCORD_SECRET;
     const envGoogleClientID = process.env.GOOGLE_APP_ID;
     const envGoogleClientSecret = process.env.GOOGLE_SECRET;
-		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret));
+    const envGoogleEmailFiltration = process.env.GOOGLE_EMAIL_FILTRATION;
+		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
 
 		if (usingEnvVars) {
 			const bgConfig = await prisma.instanceConfig.findUnique({ where: { key: 'loginBackground' } });
@@ -45,6 +46,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				redirectWID: envWorkspaceID,
         google_id: envGoogleClientID ? '••••••••' : '',
         google_secret: envGoogleClientID ? '••••••••' : '',
+        google_email_filtration: envGoogleEmailFiltration || null,
 				loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
 				usingEnvVars: true
 			});
@@ -53,7 +55,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const configs = await prisma.instanceConfig.findMany({
 			where: {
 				key: {
-					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace', 'discordAppID', 'discordAppSecret', 'loginBackground', 'google_id', 'google_secret']
+					in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin', 'redirectWorkspace', 'discordAppID', 'discordAppSecret', 'loginBackground', 'google_id', 'google_secret', 'google_email_filtration']
 				}
 			}
 		});
@@ -74,6 +76,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			redirectWorkspace: configMap.redirectWorkspace || '',
       google_id: configMap.google_id || '',
       google_secret: configMap.google_secret || '',
+      google_email_filtration: configMap.google_email_filtration,
 			loginBackground: typeof configMap.loginBackground === 'string' ? configMap.loginBackground : null
 		});
 		} catch (error) {
@@ -91,7 +94,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const envDCClientSecret = process.env.DISCORD_SECRET;
     const envGoogleClientID = process.env.GOOGLE_APP_ID;
     const envGoogleClientSecret = process.env.GOOGLE_SECRET;
-		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret));
+    const envGoogleEmailFiltration = process.env.GOOGLE_EMAIL_FILTRATION;
+		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
 
 		if (usingEnvVars) {
 			return res.status(403).json({ 
@@ -100,7 +104,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			});
 		}
 
-		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin, redirectWorkspaceID, discordAppId, discordSecret, google_id, google_secret } = req.body;
+		const { robloxClientId, robloxClientSecret, robloxRedirectUri, oauthOnlyLogin, redirectWorkspaceID, discordAppId, discordSecret, google_id, google_secret, google_email_filtration } = req.body;
 
 		try {
 			const updates = [
@@ -111,7 +115,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 				{ key: 'discordAppSecret', value: typeof discordSecret === 'string' ? discordSecret.trim() : (discordSecret || '') },
 				{ key: 'oauthOnlyLogin', value: oauthOnlyLogin || false },
         { key: 'google_id', value: typeof google_id === 'string' ? google_id.trim() : (google_id || '') },
-        { key: 'google_secret', value: typeof google_secret === 'string' ? google_secret.trim() : (google_id || '') }
+        { key: 'google_secret', value: typeof google_secret === 'string' ? google_secret.trim() : (google_id || '') },
+        { key: 'google_email_filtration', value: typeof google_email_filtration === 'string' ? google_email_filtration.trim() : (google_email_filtration || '') },
 			];
 
 			if (redirectWorkspaceID) {

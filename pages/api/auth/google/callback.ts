@@ -38,11 +38,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let clientId: string | undefined = process.env.GOOGLE_APP_ID;
   let clientSecret: string | undefined = process.env.GOOGLE_SECRET;
+  let emailFiltration: string | undefined = process.env.GOOGLE_EMAIL_FILTRATION;
 
   if (!clientId || !clientSecret) {
     try {
       const configs = await prisma.instanceConfig.findMany({
-        where: { key: { in: ['google_id', 'google_secret'] } },
+        where: { key: { in: ['google_id', 'google_secret', 'google_email_filtration'] } },
       });
 
       const configMap = configs.reduce((acc, config) => {
@@ -53,6 +54,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       clientId = clientId || configMap.google_id;
       clientSecret = clientSecret || configMap.google_secret;
+      emailFiltration = emailFiltration || configMap.google_email_filtration
     } catch (err) {
       console.error('Failed to fetch OAuth config from database:', err);
     }
@@ -96,6 +98,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     const displayName = profile.names?.[0]?.displayName ?? 'Unknown';
     const avatar = profile.photos?.[0]?.url ?? null;
     const email = profile.emailAddresses?.[0]?.value ?? null;
+
+    if (emailFiltration) {
+      if (!email?.includes(emailFiltration)) {
+        return res.redirect('/login?error=unauthorized-domain');
+      }
+    }
 
     const hasEntry = await prisma.googleUser.findUnique({
       where: { googleUserId: googleId },

@@ -249,7 +249,7 @@ const Home: NextPage = () => {
         discordSecret: externalConfig.discordAppSecret,
         google_id: externalConfig.google_id,
         google_secret: externalConfig.google_secret,
-        google_email_filtration: externalConfig.google_secret
+        google_email_filtration: externalConfig.google_email_filtration.startsWith('@') ? externalConfig.google_email_filtration : `@${externalConfig.google_email_filtration}`
 			})
 			setSaveMessage('Settings saved successfully!')
 			setTimeout(() => setSaveMessage(''), 3000)
@@ -761,7 +761,22 @@ const Home: NextPage = () => {
                                 />
                               </div>
                             </div>
-
+                            <div>
+                              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                                Google email domain filtration
+                              </label>
+                              <input
+                                type="text"
+                                value={externalConfig.google_email_filtration}
+                                onChange={(e) => setExternalConfig(prev => ({ ...prev, google_email_filtration: e.target.value }))}
+                                placeholder="@domain.com"
+                                disabled={usingEnvVars}
+                                className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${usingEnvVars
+                                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                  : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                  }`}
+                              />
+                            </div>
                             <div>
                               <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
                                 Redirect to workspace

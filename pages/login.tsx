@@ -320,7 +320,9 @@ const Login: NextPage = () => {
         toast.error("We detected a state mismatch, OAuth process was discontinued.")
       } else if (error == "missing_params") {
         toast.error("Not enough params were provided.")
-      }else {
+      } else if (error == "unauthorized-domain") {
+        toast.error("This domain is not allowed to sign in.")
+      } else {
 				toast.error("There was an error while logging in.")
 			}
 			errorToastShown.current = true
