@@ -51,18 +51,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    const openCloudKey = await getConfig("roblox_opencloud", workspaceId)
-
-    const rankInfo = await getUserRank(BigInt(userId.toString()), BigInt(workspaceId), openCloudKey && openCloudKey.enabled ? openCloudKey.key : null);
-
-    
-
     if (!user) {
       return res.status(400).json({
         success: false,
         error: "User does not exist."
       })
     };
+
+    const openCloudKey = await getConfig("roblox_opencloud", workspaceId)
+
+    const rankInfo = await getUserRank(BigInt(userId.toString()), BigInt(workspaceId), openCloudKey && openCloudKey.enabled ? openCloudKey.key : null);
 
     return res.status(200).send({
       success: true,
