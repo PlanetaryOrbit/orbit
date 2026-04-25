@@ -4,7 +4,7 @@ import { initiateClient } from "@/utils/roblox"
 import { getConfig } from "@/utils/configEngine"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" })
+  if (req.method !== "PATCH") return res.status(405).json({ success: false, error: "Method not allowed" })
 
   const apiKey = req.headers.authorization?.replace("Bearer ", "")
   if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
