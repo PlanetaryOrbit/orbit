@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { roleid, userid } = req.body
   if (!userid && userid.length > 0) return res.status(400).json({ success: false, error: "Missing user ID in request body." });
-  if (!roleid && roleid.length > 0) return res.status(400).json({ success: false, error: "Missing rankid in request body." })
+  if (!roleid && roleid.length > 0) return res.status(400).json({ success: false, error: "Missing roleid in request body." })
 
   try {
     // Validate API key
