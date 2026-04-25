@@ -20,54 +20,54 @@ import clsx from "clsx"
 const PINNED_WORKSPACE_KEY = "orbit-pinned-workspace"
 
 const Home: NextPage = () => {
-	const [login, setLogin] = useRecoilState(loginState)
-	const [loading, setLoading] = useState(false)
-	const methods = useForm()
-	const router = useRouter()
-	const [isOpen, setIsOpen] = useState(false)
-	const [isOwner, setIsOwner] = useState(false)
-	const [showInstanceSettings, setShowInstanceSettings] = useState(false)
-	const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
-	const [externalConfig, setExternalConfig] = useState({
-		clientId: '',
-		clientSecret: '',
-		redirectUri: '',
-		redirect_wid: '',
-		discordAppId: '',
-		discordAppSecret: '',
+  const [login, setLogin] = useRecoilState(loginState)
+  const [loading, setLoading] = useState(false)
+  const methods = useForm()
+  const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
+  const [showInstanceSettings, setShowInstanceSettings] = useState(false)
+  const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null)
+  const [externalConfig, setExternalConfig] = useState({
+    clientId: '',
+    clientSecret: '',
+    redirectUri: '',
+    redirect_wid: '',
+    discordAppId: '',
+    discordAppSecret: '',
     google_id: '',
     google_secret: '',
     google_email_filtration: '',
-		oauthOnlyLogin: false
-	})
-	const [configLoading, setConfigLoading] = useState(false)
-	const [saveMessage, setSaveMessage] = useState('')
-	const [usingEnvVars, setUsingEnvVars] = useState(false)
-	const [settings, setSettings] = useState(true)
-	const [showOnboarding, setShowOnboarding] = useState(false)
-	const [onboardingSlide, setOnboardingSlide] = useState(0)
-	const [loginBackground, setLoginBackground] = useState<string | null>(null)
-	const [bgUploading, setBgUploading] = useState(false)
-	const bgFileInputRef = useRef<HTMLInputElement>(null)
-  const isOAuthConfigValid = (externalConfig.discordAppId.trim().length > 0 && externalConfig.discordAppSecret.trim().length > 0) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0 ) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) || (externalConfig.google_id.trim().length > 0 && externalConfig.google_secret.trim().length > 0)
+    oauthOnlyLogin: false
+  })
+  const [configLoading, setConfigLoading] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
+  const [usingEnvVars, setUsingEnvVars] = useState(false)
+  const [settings, setSettings] = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingSlide, setOnboardingSlide] = useState(0)
+  const [loginBackground, setLoginBackground] = useState<string | null>(null)
+  const [bgUploading, setBgUploading] = useState(false)
+  const bgFileInputRef = useRef<HTMLInputElement>(null)
+  const isOAuthConfigValid = (externalConfig.discordAppId.trim().length > 0 && externalConfig.discordAppSecret.trim().length > 0) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) || (externalConfig.google_id.trim().length > 0 && externalConfig.google_secret.trim().length > 0)
 
 
-	const features = [
-		{ title: "Workspaces", desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking." },
-		{ title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control." },
-		{ title: "Sessions", desc: "Log and track sessions, attendance, and host activity all in one place." },
-	]
-	const slides = [
-		{ icon: IconBuildingSkyscraper, title: "Workspaces", desc: "Each Roblox group gets its own workspace — your team's central hub for everything.", note: undefined },
-		{ icon: IconUsersGroup, title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control.", note: undefined },
-		{ icon: IconCalendarEvent, title: "Sessions", desc: "Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.", note: undefined },
-		{ icon: IconChartBar, title: "Activity & Quotas", desc: "Monitor member activity over time. Set quotas and see who's contributing.", note: undefined },
-		{ icon: IconFileText, title: "Documents & Policies", desc: "Write internal documents and require policy acknowledgments from your members.", note: undefined },
-		{ icon: IconServerCog, title: "Staff Management", desc: "Manage all of your staff effortlessly from the views.", note: undefined },
-		{ icon: IconUserCog, title: "Staff Notices", desc: "See, monitor, approve or deny staff notices, all made in one place.", note: undefined },
-		{ icon: IconClockCog, title: "Leaderboard", desc: "See how you have been doing, and see who is on the leaderboard.", note: undefined },
-		{ icon: IconRocket, title: "You're all set! 🎉", desc: "That's everything. Jump into your workspace and start exploring.", note: "More features are added regularly — keep an eye out for updates." },
-	]
+  const features = [
+    { title: "Workspaces", desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking." },
+    { title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control." },
+    { title: "Sessions", desc: "Log and track sessions, attendance, and host activity all in one place." },
+  ]
+  const slides = [
+    { icon: IconBuildingSkyscraper, title: "Workspaces", desc: "Each Roblox group gets its own workspace — your team's central hub for everything.", note: undefined },
+    { icon: IconUsersGroup, title: "Roles & Departments", desc: "Organise your team into departments and assign roles for fine-grained access control.", note: undefined },
+    { icon: IconCalendarEvent, title: "Sessions", desc: "Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.", note: undefined },
+    { icon: IconChartBar, title: "Activity & Quotas", desc: "Monitor member activity over time. Set quotas and see who's contributing.", note: undefined },
+    { icon: IconFileText, title: "Documents & Policies", desc: "Write internal documents and require policy acknowledgments from your members.", note: undefined },
+    { icon: IconServerCog, title: "Staff Management", desc: "Manage all of your staff effortlessly from the views.", note: undefined },
+    { icon: IconUserCog, title: "Staff Notices", desc: "See, monitor, approve or deny staff notices, all made in one place.", note: undefined },
+    { icon: IconClockCog, title: "Leaderboard", desc: "See how you have been doing, and see who is on the leaderboard.", note: undefined },
+    { icon: IconRocket, title: "You're all set! 🎉", desc: "That's everything. Jump into your workspace and start exploring.", note: "More features are added regularly — keep an eye out for updates." },
+  ]
 
   const gotoWorkspace = (id: number) => {
     router.push(`/workspace/${id}`)
@@ -212,24 +212,24 @@ const Home: NextPage = () => {
     try {
       const response = await axios.get('/api/admin/instance-config')
       console.log(response)
-		const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret, loginBackground: bg, google_id, google_secret, google_email_filtration } = response.data
-		const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-		const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
+      const { robloxClientId, robloxClientSecret, oauthOnlyLogin, usingEnvVars: envVars, redirectWorkspace, discordApplicationID, discordClientSecret, loginBackground: bg, google_id, google_secret, google_email_filtration } = response.data
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+      const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`
 
-		setExternalConfig({
-			clientId: robloxClientId || '',
-			clientSecret: robloxClientSecret || '',
-			redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
-			discordAppId: discordApplicationID,
-			discordAppSecret: discordClientSecret,
-			oauthOnlyLogin: oauthOnlyLogin || false,
-			redirect_wid: redirectWorkspace,
-      google_id,
-      google_secret,
-      google_email_filtration
-		})
-		setUsingEnvVars(envVars || false)
-		setLoginBackground(bg || null)
+      setExternalConfig({
+        clientId: robloxClientId || '',
+        clientSecret: robloxClientSecret || '',
+        redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
+        discordAppId: discordApplicationID || '',        // was missing the fallback
+        discordAppSecret: discordClientSecret || '',     // was missing the fallback
+        oauthOnlyLogin: oauthOnlyLogin || false,
+        redirect_wid: redirectWorkspace || '',           // was missing the fallback
+        google_id: google_id || '',
+        google_secret: google_secret || '',
+        google_email_filtration: google_email_filtration || ''
+      })
+      setUsingEnvVars(envVars || false)
+      setLoginBackground(bg || null)
 
     } catch (error) {
       console.error('Failed to load OAuth config:', error)
@@ -252,17 +252,17 @@ const Home: NextPage = () => {
         google_id: externalConfig.google_id,
         google_secret: externalConfig.google_secret,
         google_email_filtration: externalConfig.google_email_filtration ? externalConfig.google_email_filtration.startsWith('@') ? externalConfig.google_email_filtration : `@${externalConfig.google_email_filtration}` : ''
-			})
-			setSaveMessage('Settings saved successfully!')
-			setTimeout(() => setSaveMessage(''), 3000)
-		} catch (error) {
-			console.error('Failed to save OAuth config:', error)
-			setSaveMessage('Failed to save settings. Please try again.')
-			setTimeout(() => setSaveMessage(''), 3000)
-		} finally {
-			setConfigLoading(false)
-		}
-	}
+      })
+      setSaveMessage('Settings saved successfully!')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } catch (error) {
+      console.error('Failed to save OAuth config:', error)
+      setSaveMessage('Failed to save settings. Please try again.')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } finally {
+      setConfigLoading(false)
+    }
+  }
 
   const Onboarded = async () => {
     try {
@@ -325,13 +325,13 @@ const Home: NextPage = () => {
 
   // workaround to prevent people from staying locked out of their instance
   useEffect(() => {
-  if (!isOAuthConfigValid) {
-    setExternalConfig(prev => ({
-      ...prev,
-      oauthOnlyLogin: false
-    }))
-  }
-}, [isOAuthConfigValid])
+    if (!isOAuthConfigValid) {
+      setExternalConfig(prev => ({
+        ...prev,
+        oauthOnlyLogin: false
+      }))
+    }
+  }, [isOAuthConfigValid])
 
   return (
     <div>
@@ -807,73 +807,73 @@ const Home: NextPage = () => {
                             </div>
                           </div>
 
-												<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-													Need a hand? Check our documentation at{' '}
-													<a href="https://docs.planetaryapp.us/workspace/roblox-oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-														docs.planetaryapp.us
-													</a>
-												</p>
-											</div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                            Need a hand? Check our documentation at{' '}
+                            <a href="https://docs.planetaryapp.us/workspace/roblox-oauth" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              docs.planetaryapp.us
+                            </a>
+                          </p>
+                        </div>
 
-											<div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-												<label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-													Login Page Background
-												</label>
-												{loginBackground ? (
-													<div className="relative mb-2 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-600 h-28 bg-zinc-100 dark:bg-zinc-800">
-														<img
-															src={loginBackground}
-															alt="Custom login background"
-															className="w-full h-full object-cover"
-														/>
-													</div>
-												) : (
-													<div className="mb-2 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-600 h-28 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50">
-														<svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-															<path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18M3.75 3.75h16.5A.75.75 0 0121 4.5v13.5a.75.75 0 01-.75.75H3.75A.75.75 0 013 18V4.5a.75.75 0 01.75-.75z" />
-														</svg>
-														<span className="text-xs">No custom background set</span>
-													</div>
-												)}
-												<input
-													ref={bgFileInputRef}
-													type="file"
-													accept="image/jpeg,image/png,image/webp,image/gif"
-													className="hidden"
-													onChange={(e) => {
-														const file = e.target.files?.[0]
-														if (file) uploadBackground(file)
-														e.target.value = ''
-													}}
-												/>
-												<div className="flex gap-2">
-													<button
-														type="button"
-														disabled={bgUploading}
-														onClick={() => bgFileInputRef.current?.click()}
-														className="flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-													>
-														{bgUploading ? 'Uploading…' : loginBackground ? 'Replace Image' : 'Upload Image'}
-													</button>
-													{loginBackground && (
-														<button
-															type="button"
-															disabled={bgUploading}
-															onClick={removeBackground}
-															className="px-3 py-2 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-														>
-															Remove
-														</button>
-													)}
-												</div>
-												<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
-													Replaces the default gradient on the login page. Max 5 MB (JPEG, PNG, WebP, GIF).
-												</p>
-											</div>
+                        <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                            Login Page Background
+                          </label>
+                          {loginBackground ? (
+                            <div className="relative mb-2 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-600 h-28 bg-zinc-100 dark:bg-zinc-800">
+                              <img
+                                src={loginBackground}
+                                alt="Custom login background"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="mb-2 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-600 h-28 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50">
+                              <svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18M3.75 3.75h16.5A.75.75 0 0121 4.5v13.5a.75.75 0 01-.75.75H3.75A.75.75 0 013 18V4.5a.75.75 0 01.75-.75z" />
+                              </svg>
+                              <span className="text-xs">No custom background set</span>
+                            </div>
+                          )}
+                          <input
+                            ref={bgFileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) uploadBackground(file)
+                              e.target.value = ''
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={bgUploading}
+                              onClick={() => bgFileInputRef.current?.click()}
+                              className="flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {bgUploading ? 'Uploading…' : loginBackground ? 'Replace Image' : 'Upload Image'}
+                            </button>
+                            {loginBackground && (
+                              <button
+                                type="button"
+                                disabled={bgUploading}
+                                onClick={removeBackground}
+                                className="px-3 py-2 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
+                            Replaces the default gradient on the login page. Max 5 MB (JPEG, PNG, WebP, GIF).
+                          </p>
+                        </div>
 
-											<div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-													<label className="flex items-center cursor-pointer">
-														<input
+                        <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                          <label className="flex items-center cursor-pointer">
+                            <input
                               type="checkbox"
                               checked={externalConfig.oauthOnlyLogin}
                               onChange={(e) =>
@@ -883,21 +883,20 @@ const Home: NextPage = () => {
                                 }))
                               }
                               disabled={usingEnvVars || !isOAuthConfigValid}
-                              className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${
-                                usingEnvVars || !isOAuthConfigValid
+                              className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars || !isOAuthConfigValid
                                   ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed'
                                   : 'bg-white dark:bg-zinc-700'
-                              }`}
+                                }`}
                             />
-														<span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
-															Enforce OAuth login
-														</span>
-													</label>
-													<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
-														When enabled, users will only see the OAuth login options.
-													</p>
-												</div>
-											</div>
+                            <span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                              Enforce OAuth login
+                            </span>
+                          </label>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
+                            When enabled, users will only see the OAuth login options.
+                          </p>
+                        </div>
+                      </div>
 
                       <div className="px-6 pt-3 pb-5 shrink-0 border-t border-zinc-100 dark:border-zinc-700/60">
                         {saveMessage && (
