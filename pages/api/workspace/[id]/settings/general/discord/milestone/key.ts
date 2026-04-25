@@ -7,8 +7,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = parseInt(req.query.id as string);
   const userId = req.session.userid;
 
-  console.log(userId, workspaceId, req)
-
   if (!userId || isNaN(workspaceId)) {
     return res.status(400).json({ success: false, error: "Invalid request" });
   }

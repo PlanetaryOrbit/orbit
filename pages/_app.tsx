@@ -117,7 +117,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
       {!loading && (
         <Layout>
-          <Component {...pageProps} />
+          <div className="pb-8 sm:pb-0">
+            <Component {...pageProps} />
+          </div>
         </Layout>
       )}
     </RecoilRoot>

@@ -91,7 +91,7 @@ function MobileWorkspaceSwitcher({
         />
         <div className="flex-1 min-w-0 text-left">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
-           {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
+            {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
           </p>
           <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">Switch workspace</p>
         </div>
@@ -113,7 +113,10 @@ function MobileWorkspaceSwitcher({
           <div
             ref={sheetRef}
             className="fixed bottom-0 inset-x-0 z-[99996] bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl transition-transform duration-[280ms] ease-out"
-            style={{ transform: visible ? "translateY(0)" : "translateY(100%)" }}
+            style={{
+              transform: visible ? "translateY(0)" : "translateY(100%)",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
           >
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
@@ -144,7 +147,6 @@ function MobileWorkspaceSwitcher({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
                     {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
-
                   </p>
                   <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Active</p>
                 </div>
@@ -185,7 +187,6 @@ function MobileWorkspaceSwitcher({
                 </p>
               </div>
             )}
-            <div className="h-8" />
           </div>
         </>
       )}
@@ -208,12 +209,30 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [safeAreaBottom, setSafeAreaBottom] = useState(0);
   const workspaceListboxWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches) {
-      setIsStandalone(true);
+    if (typeof window !== "undefined") {
+      // Detect standalone (PWA) mode
+      if (window.matchMedia("(display-mode: standalone)").matches) {
+        setIsStandalone(true);
+      }
+
+      // Read the actual safe-area-inset-bottom value via CSS
+      const readSafeArea = () => {
+        const el = document.createElement("div");
+        el.style.cssText =
+          "position:fixed;bottom:0;left:0;width:1px;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;";
+        document.body.appendChild(el);
+        const h = el.getBoundingClientRect().height;
+        document.body.removeChild(el);
+        setSafeAreaBottom(h);
+      };
+      readSafeArea();
+      window.addEventListener("resize", readSafeArea);
+      return () => window.removeEventListener("resize", readSafeArea);
     }
   }, []);
 
@@ -242,18 +261,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType;
     accessible?: boolean;
   }[] = [
-      { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
-      { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled, accessible: workspace.yourPermission.includes("view_wall") },
-      { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
-      { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
-      ...(noticesEnabled ? [{ name: "Notices", href: `/workspace/${workspace.groupId}/notices`, icon: IconClock, filledIcon: IconClockFilled, accessible: true }] : []),
-      ...(alliesEnabled ? [{ name: "Alliances", href: `/workspace/${workspace.groupId}/alliances`, icon: IconRosetteDiscountCheck, filledIcon: IconRosetteDiscountCheckFilled, accessible: true }] : []),
-      ...(sessionsEnabled ? [{ name: "Sessions", href: `/workspace/${workspace.groupId}/sessions`, icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
-      { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
-      ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-      ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
-      { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
-    ];
+    { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
+    { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled, accessible: workspace.yourPermission.includes("view_wall") },
+    { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
+    { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
+    ...(noticesEnabled ? [{ name: "Notices", href: `/workspace/${workspace.groupId}/notices`, icon: IconClock, filledIcon: IconClockFilled, accessible: true }] : []),
+    ...(alliesEnabled ? [{ name: "Alliances", href: `/workspace/${workspace.groupId}/alliances`, icon: IconRosetteDiscountCheck, filledIcon: IconRosetteDiscountCheckFilled, accessible: true }] : []),
+    ...(sessionsEnabled ? [{ name: "Sessions", href: `/workspace/${workspace.groupId}/sessions`, icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
+    { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
+    ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
+    ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
+    { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
+  ];
 
   const visiblePages = pages.filter((p) => p.accessible === undefined || p.accessible);
   const bottomBarPages = visiblePages.slice(0, 4);
@@ -317,8 +336,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   }, [workspace.groupId, noticesEnabled, workspace.yourPermission]);
 
+  // Height of the bottom nav bar content (icon + label area), excluding safe area
+  const NAV_CONTENT_HEIGHT = 64; // h-16 = 64px
+
   return (
     <>
+      {/* ── Desktop sidebar ── */}
       <div
         className={clsx(
           "hidden fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
@@ -373,7 +396,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         <div className="flex-1 min-w-0 text-left">
                           <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
                             {resolveWorkspaceName(login?.workspaces?.find((ws) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
-
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Workspace</p>
                         </div>
@@ -582,15 +604,33 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </aside>
       </div>
 
+      {/* ── Mobile bottom nav ──
+          Key fixes:
+          1. Use inline style for paddingBottom with env(safe-area-inset-bottom) so iOS
+             actually respects the home indicator area.
+          2. Add WebkitTransform + transform: translateZ(0) so iOS renders this on its
+             own GPU layer — prevents it from disappearing when the keyboard/search bar appears.
+          3. The inner content row is always h-16 (fixed); the safe-area padding is ONLY
+             on the outer nav element, so Chrome's dynamic toolbar never clips the buttons.
+      -->*/}
       <nav
         className={clsx(
           "fixed bottom-0 inset-x-0 z-[99990]",
-          "bg-white/60 dark:bg-zinc-950/60 backdrop-blur-xl",
+          "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl",
           "border-t border-zinc-200/50 dark:border-zinc-800/80",
-          "pb-[env(safe-area-inset-bottom,24px)]",
-          isStandalone ? "flex" : "lg:hidden flex"
+          isStandalone ? "flex flex-col" : "lg:hidden flex flex-col"
         )}
+        style={{
+          // Force GPU compositing — prevents iOS from dropping this layer when
+          // the browser chrome (URL bar / search bar) animates in or out.
+          WebkitTransform: "translateZ(0)",
+          transform: "translateZ(0)",
+          // Safe area inset handled here, NOT as a Tailwind class, so it reliably
+          // picks up the actual device value on both iOS Safari and Chrome Android.
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
       >
+        {/* Fixed-height content row — always 64px, never squished by safe-area */}
         <div className="flex items-stretch h-16 w-full">
           {bottomBarPages.map((page) => {
             const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
@@ -605,6 +645,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 key={page.name}
                 type="button"
                 onClick={() => gotopage(page.href)}
+                style={{ WebkitTapHighlightColor: "transparent" }}
                 className={clsx(
                   "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
                   isActive
@@ -634,6 +675,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <button
               type="button"
               onClick={openMoreSheet}
+              style={{ WebkitTapHighlightColor: "transparent" }}
               className={clsx(
                 "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
                 mobileMoreOpen
@@ -648,6 +690,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </div>
       </nav>
 
+      {/* Spacer so page content isn't hidden under the fixed bottom nav.
+          Height = 64px content + actual safe area bottom inset. */}
+      <div
+        className={clsx(isStandalone ? "block" : "lg:hidden block")}
+        style={{
+          height: `calc(64px + env(safe-area-inset-bottom, 0px))`,
+          flexShrink: 0,
+        }}
+        aria-hidden
+      />
+
+      {/* ── "More" bottom sheet ── */}
       {mobileMoreOpen && (
         <>
           <div
@@ -665,9 +719,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               "fixed bottom-0 inset-x-0 z-[99992]",
               "bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl",
               "transition-transform duration-300 ease-out",
-              "pb-[env(safe-area-inset-bottom,20px)]",
               mobileMoreVisible ? "translate-y-0" : "translate-y-full"
             )}
+            style={{
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              WebkitTransform: mobileMoreVisible ? "translateY(0) translateZ(0)" : "translateY(100%) translateZ(0)",
+              transform: mobileMoreVisible ? "translateY(0) translateZ(0)" : "translateY(100%) translateZ(0)",
+            }}
           >
             <div className="pt-3 pb-1 flex justify-center">
               <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
@@ -717,6 +775,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     key={page.name}
                     type="button"
                     onClick={() => gotopage(page.href)}
+                    style={{ WebkitTapHighlightColor: "transparent" }}
                     className={clsx(
                       "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors duration-150 select-none outline-none",
                       isActive
@@ -745,6 +804,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <button
                 type="button"
                 onClick={toggleTheme}
+                style={{ WebkitTapHighlightColor: "transparent" }}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors select-none outline-none"
               >
                 {theme === "dark" ? <IconSun className="w-5 h-5 shrink-0" stroke={1.5} /> : <IconMoon className="w-5 h-5 shrink-0" stroke={1.5} />}
@@ -754,6 +814,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <button
                 type="button"
                 onClick={logout}
+                style={{ WebkitTapHighlightColor: "transparent" }}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/30 transition-colors select-none outline-none"
               >
                 <IconLogout className="w-5 h-5 shrink-0" stroke={1.5} />
@@ -761,7 +822,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </button>
             </div>
 
-            <div className="h-20" />
+            {/* Extra bottom padding so content clears the safe area */}
+            <div className="h-6" />
           </div>
         </>
       )}
