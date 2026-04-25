@@ -19,6 +19,12 @@ export interface RobloxUserInfo {
   displayName: string;
 }
 
+export interface UserRankInfo {
+  rank: number;
+  roleName: string;
+  roleId: string;
+}
+
 export async function initiateClient(apiKey: string) {
   const Client = new OpenCloud({
     apiKey,
@@ -26,6 +32,70 @@ export async function initiateClient(apiKey: string) {
   });
 
   return Client
+}
+
+export interface UserRankInfo {
+  rank: number;
+  roleName: string;
+  roleId: string;
+}
+
+export async function getUserRank(
+  userid: bigint,
+  groupid: bigint,
+  apiKey?: string
+): Promise<UserRankInfo | null> {
+  const Client = apiKey ? await initiateClient(apiKey) : undefined;
+
+  try {
+    if (Client) {
+      // OpenCloud path
+      const memberships = await withTimeout<any>(
+        Client.groups.listGroupMemberships(groupid.toString(), {
+          filter: `user == 'users/${userid}'`,
+        })
+      );
+
+      if (!memberships.groupMemberships || memberships.groupMemberships.length === 0) {
+        return null;
+      }
+
+      const membership = memberships.groupMemberships[0];
+      const roleId = membership.role.split("/").pop();
+
+      if (!roleId) {
+        return null;
+      }
+
+      const groupRole = await withTimeout<any>(
+        Client.groups.getGroupRole(groupid.toString(), roleId)
+      );
+
+      return {
+        rank: groupRole.rank,
+        roleName: groupRole.displayName ?? groupRole.name,
+        roleId,
+      };
+    } else {
+      const [rank, roles] = await withTimeout<any>(
+        Promise.all([
+          noblox.getRankInGroup(Number(groupid), Number(userid)),
+          noblox.getRoles(Number(groupid)),
+        ])
+      );
+
+      const role = roles.find((r: any) => r.rank === rank);
+
+      return {
+        rank,
+        roleName: role?.name ?? "Unknown",
+        roleId: role?.id?.toString() ?? "",
+      };
+    }
+  } catch (error) {
+    console.error(`Error getting rank for user ${userid} in group ${groupid}:`, error);
+    return null;
+  }
 }
 
 export async function getRobloxUserInfo(id: number | bigint, apiKey?: string): Promise<RobloxUserInfo> {
