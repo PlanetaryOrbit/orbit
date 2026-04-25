@@ -16,6 +16,7 @@ import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import toast, { Toaster } from "react-hot-toast";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
+import { OAuthAvailable } from "@/hooks/useOAuth";
 
 type LoginForm = { username: string; password: string };
 type SignupForm = {
@@ -39,9 +40,10 @@ function getAvatarBgColor(displayName: string): string {
 
 const Login: NextPage = () => {
 	const [login, setLogin] = useRecoilState(loginState);
-	const { isAvailable: isRobloxOAuth, oauthOnly } = RobloxOAuthAvailable();
+	const { isAvailable: isRobloxOAuth } = RobloxOAuthAvailable();
+	const { oauthOnly, isAvailable: isOAuthAvailable } = OAuthAvailable();
 	const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
-  const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable()
+	const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
 
 	const loginMethods = useForm<LoginForm>();
 	const signupMethods = useForm<SignupForm>();
@@ -65,18 +67,17 @@ const Login: NextPage = () => {
 	const [signupThumbnail, setSignupThumbnail] = useState("");
 	const [signupDisplayName, setSignupDisplayName] = useState("");
 	const [verificationCode, setVerificationCode] = useState("");
-	const [verificationError, setVerificationError] = useState<string | null>(
-		null
-	);
+	const [verificationError, setVerificationError] = useState<string | null>(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showCopyright, setShowCopyright] = useState(false);
 	const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
-	const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
-		null
-	);
+	const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
-	const errorToastShown = useRef(false)
+	const errorToastShown = useRef(false);
 	const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
+
+	// true when oauthOnly is set AND at least one provider is actually configured
+	const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
 
 	useEffect(() => {
 		loginMethods.reset();
@@ -95,25 +96,25 @@ const Login: NextPage = () => {
 
 	useEffect(() => {
 		async function fetchMe() {
-			const userInfo = await axios.get('/api/@me')
+			const userInfo = await axios.get('/api/@me');
 			if (userInfo.status == 200) {
-				Router.push('/')
+				Router.push('/');
 			}
 		}
 
 		async function fetchBackground() {
 			try {
-				const res = await axios.get('/api/instance/login-background')
-				if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl)
+				const res = await axios.get('/api/instance/login-background');
+				if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl);
 				if (res.data.themeRgb) {
-					document.documentElement.style.setProperty('--group-theme', res.data.themeRgb)
+					document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
 				}
 			} catch {}
 		}
 
-		fetchMe()
-		fetchBackground()
-	},[])
+		fetchMe();
+		fetchBackground();
+	}, []);
 
 	useEffect(() => {
 		return () => {
@@ -138,10 +139,7 @@ const Login: NextPage = () => {
 		} catch (e: any) {
 			const errorMessage = e?.response?.data?.error;
 			if (errorMessage) {
-				setErrSignup("username", {
-					type: "custom",
-					message: errorMessage,
-				});
+				setErrSignup("username", { type: "custom", message: errorMessage });
 				setUsernameAvailable(false);
 			}
 		} finally {
@@ -181,27 +179,15 @@ const Login: NextPage = () => {
 			} catch (e: any) {
 				setLoading(false);
 				if (e.response.status === 404) {
-					setErrLogin("username", {
-						type: "custom",
-						message: e.response.data.error,
-					});
+					setErrLogin("username", { type: "custom", message: e.response.data.error });
 					return;
 				}
 				if (e.response.status === 401) {
-					setErrLogin("password", {
-						type: "custom",
-						message: e.response.data.error,
-					});
+					setErrLogin("password", { type: "custom", message: e.response.data.error });
 					return;
 				}
-				setErrLogin("username", {
-					type: "custom",
-					message: "Something went wrong",
-				});
-				setErrLogin("password", {
-					type: "custom",
-					message: "Something went wrong",
-				});
+				setErrLogin("username", { type: "custom", message: "Something went wrong" });
+				setErrLogin("password", { type: "custom", message: "Something went wrong" });
 				return;
 			}
 			const { data: res } = req;
@@ -213,8 +199,7 @@ const Login: NextPage = () => {
 
 			if (status === 404 || status === 401) {
 				setErrLogin("username", { type: "custom", message: msg });
-				if (status === 401)
-					setErrLogin("password", { type: "custom", message: msg });
+				if (status === 401) setErrLogin("password", { type: "custom", message: msg });
 			} else {
 				setErrLogin("username", { type: "custom", message: msg });
 				setErrLogin("password", { type: "custom", message: msg });
@@ -224,16 +209,9 @@ const Login: NextPage = () => {
 		}
 	};
 
-	const onSubmitSignup: SubmitHandler<SignupForm> = async ({
-		username,
-		password,
-		verifypassword,
-	}) => {
+	const onSubmitSignup: SubmitHandler<SignupForm> = async ({ username, password, verifypassword }) => {
 		if (password !== verifypassword) {
-			setErrSignup("verifypassword", {
-				type: "validate",
-				message: "Passwords must match",
-			});
+			setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
 			return;
 		}
 		setLoading(true);
@@ -266,96 +244,97 @@ const Login: NextPage = () => {
 			if (data.success) Router.push("/");
 			else setVerificationError("Verification failed. Please try again.");
 		} catch (e: any) {
-			const errorMessage =
-				e?.response?.data?.error || "Verification not found. Please try again.";
+			const errorMessage = e?.response?.data?.error || "Verification not found. Please try again.";
 			setVerificationError(errorMessage);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const StepButtons = ({
-		backStep,
-		forwardLabel,
-		onForward,
-	}: {
-		backStep?: () => void;
-		forwardLabel: string;
-		onForward: () => void;
-	}) => (
-		<div className="flex gap-4">
-			{backStep && (
-				<Button
-					onPress={backStep}
-					type="button"
-					classoverride="flex-1"
-					loading={loading}
-					disabled={loading}
-				>
-					Back
-				</Button>
-			)}
-			<Button
-				onPress={onForward}
-				classoverride="flex-1"
-				loading={loading}
-				disabled={loading}
-			>
-				{forwardLabel}
-			</Button>
-		</div>
-	);
-
 	useEffect(() => {
-		if (!Router.isReady || errorToastShown.current) return
+		if (!Router.isReady || errorToastShown.current) return;
 
-		const { error, action, ...rest } = Router.query
+		const { error, action, ...rest } = Router.query;
 
 		if (error) {
 			if (error == "discord-not-linked") {
-				toast.error("This account isn't linked to any Orbit account.")
+				toast.error("This account isn't linked to any Orbit account.");
 			} else if (error == "google-not-linked") {
-        toast.error("Your Google account is not linked.")
-      } else if (error == "state-mismatch") {
-        toast.error("We detected a state mismatch, OAuth process was discontinued.")
-      } else if (error == "missing_params") {
-        toast.error("Not enough params were provided.")
-      } else if (error == "unauthorized-domain") {
-        toast.error("This domain is not allowed to sign in.")
-      } else {
-				toast.error("There was an error while logging in.")
+				toast.error("Your Google account is not linked.");
+			} else if (error == "state-mismatch") {
+				toast.error("We detected a state mismatch, OAuth process was discontinued.");
+			} else if (error == "missing_params") {
+				toast.error("Not enough params were provided.");
+			} else if (error == "unauthorized-domain") {
+				toast.error("This domain is not allowed to sign in.");
+			} else {
+				toast.error("There was an error while logging in.");
 			}
-			errorToastShown.current = true
-			Router.replace(
-				{ pathname: Router.pathname, query: rest },
-				undefined,
-				{ shallow: true }
-			)
+			errorToastShown.current = true;
+			Router.replace({ pathname: Router.pathname, query: rest }, undefined, { shallow: true });
 		}
-	}, [Router.isReady, Router.query])
+	}, [Router.isReady, Router.query]);
+
+	const OAuthButtons = ({ className }: { className?: string }) => (
+		<div className={`flex flex-col gap-3 ${className ?? ""}`}>
+			{isRobloxOAuth && (
+				<button
+					type="button"
+					onClick={() => (window.location.href = "/api/auth/roblox/start")}
+					disabled={loading}
+					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+				>
+					<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+					Continue with Roblox
+				</button>
+			)}
+			{isDiscordOAuth && (
+				<button
+					type="button"
+					onClick={() => (window.location.href = "/api/auth/discord/start")}
+					disabled={loading}
+					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+				>
+					<img src="/discord.svg" alt="Discord" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+					Continue with Discord
+				</button>
+			)}
+			{isGoogleOAuth && (
+				<button
+					type="button"
+					onClick={() => (window.location.href = "/api/auth/google/start")}
+					disabled={loading}
+					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
+				>
+					<img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+					Continue with Google
+				</button>
+			)}
+		</div>
+	);
 
 	return (
 		<>
-		<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
-			<Toaster position="bottom-center" />
-			{loginBg ? (
-				<>
-					<div
-						className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-						style={{ backgroundImage: `url(${loginBg})` }}
-						aria-hidden
-					/>
-					<div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
-				</>
-			) : (
-				<>
-					<div
-						className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
-						aria-hidden
-					/>
-					<div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
-				</>
-			)}
+			<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
+				<Toaster position="bottom-center" />
+				{loginBg ? (
+					<>
+						<div
+							className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+							style={{ backgroundImage: `url(${loginBg})` }}
+							aria-hidden
+						/>
+						<div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
+					</>
+				) : (
+					<>
+						<div
+							className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
+							aria-hidden
+						/>
+						<div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+					</>
+				)}
 
 				<div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
 					<div className="max-w-md">
@@ -384,16 +363,17 @@ const Login: NextPage = () => {
 
 							<div className="flex gap-6 mb-8 border-b border-zinc-200 dark:border-zinc-600 -mx-1">
 								{mode !== "link" ? (
-									["login", ...(oauthOnly ? [] : ["signup"])].map((m) => {
+									["login", ...(effectiveOAuthOnly ? [] : ["signup"])].map((m) => {
 										const isActive = mode === m;
 										return (
 											<button
 												key={m}
 												onClick={() => setMode(m as any)}
-												className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${isActive
+												className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${
+													isActive
 														? "text-primary border-primary"
 														: "text-zinc-500 dark:text-zinc-400 border-transparent hover:text-zinc-700 dark:hover:text-zinc-300"
-													}`}
+												}`}
 												type="button"
 												disabled={loading}
 											>
@@ -414,10 +394,12 @@ const Login: NextPage = () => {
 										Sign in
 									</h2>
 									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-										Use your username and password to continue.
+										{effectiveOAuthOnly
+											? "Use one of the options below to sign in."
+											: "Use your username and password to continue."}
 									</p>
 
-									{!oauthOnly && (
+									{!effectiveOAuthOnly && (
 										<FormProvider {...loginMethods}>
 											<form
 												onSubmit={submitLogin(onSubmitLogin)}
@@ -428,18 +410,14 @@ const Login: NextPage = () => {
 													label="Username"
 													placeholder="Username"
 													id="username"
-													{...regLogin("username", {
-														required: "This field is required",
-													})}
+													{...regLogin("username", { required: "This field is required" })}
 												/>
 												<Input
 													label="Password"
 													placeholder="Password"
 													type={showPassword ? "text" : "password"}
 													id="password"
-													{...regLogin("password", {
-														required: "This field is required",
-													})}
+													{...regLogin("password", { required: "This field is required" })}
 												/>
 												<div className="flex items-center gap-2">
 													<input
@@ -466,7 +444,6 @@ const Login: NextPage = () => {
 													<Button
 														type="submit"
 														classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-												workspace
 														loading={loading}
 														disabled={loading}
 													>
@@ -486,81 +463,14 @@ const Login: NextPage = () => {
 																</span>
 															</div>
 														</div>
-
-														{
-															isRobloxOAuth && (<button
-																type="button"
-																onClick={() =>
-																	(window.location.href = "/api/auth/roblox/start")
-																}
-																disabled={loading}
-																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-															>
-																<img
-																	src="/roblox.svg"
-																	alt="Roblox"
-																	className="w-5 h-5 mr-2 dark:invert-0 invert"
-																/>
-																Continue with Roblox
-															</button>)
-														}
-														{
-															isDiscordOAuth && (<button
-																type="button"
-																onClick={() =>
-																	(window.location.href = "/api/auth/discord/start")
-																}
-																disabled={loading}
-																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-															>
-																<img
-																	src="/discord.svg"
-																	alt="Roblox"
-																	className="w-5 h-5 mr-2 dark:invert-0 invert"
-																/>
-																Continue with Discord
-															</button>)
-														}
-                            {
-															isGoogleOAuth && (<button
-																type="button"
-																onClick={() =>
-																	(window.location.href = "/api/auth/google/start")
-																}
-																disabled={loading}
-																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-															>
-																<img
-																	src="/google.svg"
-																	alt="Google"
-																	className="w-5 h-5 mr-2 dark:invert-0 invert"
-																/>
-																Continue with Google
-															</button>)
-														}
+														<OAuthButtons />
 													</>
 												)}
 											</form>
 										</FormProvider>
 									)}
 
-									{isRobloxOAuth && oauthOnly && (
-										<button
-											type="button"
-											onClick={() =>
-												(window.location.href = "/api/auth/roblox/start")
-											}
-											disabled={loading}
-											className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-										>
-											<img
-												src="/roblox.svg"
-												alt="Roblox"
-												className="w-5 h-5 mr-2 dark:invert-0 invert"
-											/>
-											Continue with Roblox
-										</button>
-									)}
+									{effectiveOAuthOnly && <OAuthButtons />}
 								</>
 							)}
 
@@ -575,7 +485,7 @@ const Login: NextPage = () => {
 												Choose a username to get started.
 											</p>
 
-											{!oauthOnly && (
+											{!effectiveOAuthOnly && (
 												<FormProvider {...signupMethods}>
 													<form
 														onSubmit={async (e) => {
@@ -607,9 +517,7 @@ const Login: NextPage = () => {
 															{...signupUsernameProps}
 														/>
 														{usernameCheckLoading && (
-															<p className="text-sm text-primary mt-1">
-																Checking username...
-															</p>
+															<p className="text-sm text-primary mt-1">Checking username...</p>
 														)}
 														{!usernameCheckLoading && usernameAvailable === true && (
 															<p className="text-sm text-emerald-500 dark:text-emerald-400 mt-1">
@@ -637,7 +545,7 @@ const Login: NextPage = () => {
 
 											{isRobloxOAuth && (
 												<>
-													{!oauthOnly && (
+													{!effectiveOAuthOnly && (
 														<div className="relative my-6">
 															<div className="absolute inset-0 flex items-center">
 																<span className="w-full border-t border-zinc-200 dark:border-zinc-600" />
@@ -649,20 +557,13 @@ const Login: NextPage = () => {
 															</div>
 														</div>
 													)}
-
 													<button
 														type="button"
-														onClick={() =>
-															(window.location.href = "/api/auth/roblox/start")
-														}
+														onClick={() => (window.location.href = "/api/auth/roblox/start")}
 														disabled={loading}
 														className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
 													>
-														<img
-															src="/roblox.svg"
-															alt="Roblox"
-															className="w-5 h-5 mr-2 dark:invert-0 invert"
-														/>
+														<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
 														Sign up with Roblox
 													</button>
 												</>
@@ -743,14 +644,10 @@ const Login: NextPage = () => {
 														id="signup-password"
 														{...regSignup("password", {
 															required: "Password is required",
-															minLength: {
-																value: 7,
-																message: "Password must be at least 7 characters",
-															},
+															minLength: { value: 7, message: "Password must be at least 7 characters" },
 															pattern: {
 																value: /^(?=.*[0-9!@#$%^&*])/,
-																message:
-																	"Password must contain at least one number or special character",
+																message: "Password must contain at least one number or special character",
 															},
 														})}
 													/>
@@ -762,8 +659,7 @@ const Login: NextPage = () => {
 														{...regSignup("verifypassword", {
 															required: "Please verify your password",
 															validate: (value) =>
-																value === getSignupValues("password") ||
-																"Passwords must match",
+																value === getSignupValues("password") || "Passwords must match",
 														})}
 													/>
 													<div className="flex gap-3 pt-1">
@@ -797,20 +693,13 @@ const Login: NextPage = () => {
 																	</span>
 																</div>
 															</div>
-
 															<button
 																type="button"
-																onClick={() =>
-																	(window.location.href = "/api/auth/roblox/start")
-																}
+																onClick={() => (window.location.href = "/api/auth/roblox/start")}
 																disabled={loading}
 																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
 															>
-																<img
-																	src="/roblox.svg"
-																	alt="Roblox"
-																	className="w-5 h-5 mr-2"
-																/>
+																<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
 																Sign up with Roblox
 															</button>
 														</>
@@ -837,14 +726,12 @@ const Login: NextPage = () => {
 											</p>
 											<ul className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 space-y-1 list-disc list-inside">
 												<li>Go to your Roblox profile</li>
-												<li>Click “Edit Profile”</li>
+												<li>Click "Edit Profile"</li>
 												<li>Paste the code into your Bio / About section</li>
 												<li>Save and click Verify below</li>
 											</ul>
 											{verificationError && (
-												<p className="text-center text-red-500 text-sm mb-4">
-													{verificationError}
-												</p>
+												<p className="text-center text-red-500 text-sm mb-4">{verificationError}</p>
 											)}
 											<div className="flex gap-3">
 												<Button
@@ -868,6 +755,7 @@ const Login: NextPage = () => {
 									)}
 								</>
 							)}
+
 							{mode === "link" && (
 								<>
 									<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
@@ -876,8 +764,6 @@ const Login: NextPage = () => {
 									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
 										Link your account for faster access
 									</p>
-
-									
 								</>
 							)}
 						</div>
@@ -895,13 +781,8 @@ const Login: NextPage = () => {
 				</div>
 			</div>
 
-			<Dialog
-				open={showCopyright}
-				onClose={() => setShowCopyright(false)}
-				className="relative z-50"
-			>
+			<Dialog open={showCopyright} onClose={() => setShowCopyright(false)} className="relative z-50">
 				<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
 				<div className="fixed inset-0 flex items-center justify-center p-4">
 					<Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
 						<div className="flex items-center justify-between mb-4">
@@ -915,7 +796,6 @@ const Login: NextPage = () => {
 								<IconX className="w-5 h-5 text-zinc-500" />
 							</button>
 						</div>
-
 						<div className="space-y-4">
 							<div>
 								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
@@ -925,7 +805,6 @@ const Login: NextPage = () => {
 									Copyright © 2026 Planetary. All rights reserved.
 								</p>
 							</div>
-
 							<div>
 								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
 									Original Tovy features and code:

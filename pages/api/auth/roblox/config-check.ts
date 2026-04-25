@@ -13,13 +13,11 @@ export default async function handler(
     const envClientId = process.env.ROBLOX_CLIENT_ID;
     const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
     const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
-    const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
     const hasEnvCredentials = !!(envClientId && envClientSecret && envRedirectUri);
 
     if (hasEnvCredentials) {
       return res.json({
-        available: true,
-        oauthOnly: envOAuthOnly,
+        available: envClientId.length > 0 && envClientSecret.length > 0 && envRedirectUri.length > 0 ,
         configured: {
           clientId: true,
           clientSecret: true,
@@ -46,11 +44,9 @@ export default async function handler(
     const clientSecret = configMap.robloxClientSecret;
     const redirectUri = configMap.robloxRedirectUri;
     const available = !!(clientId && clientSecret && redirectUri);
-    const oauthOnly = configMap.oauthOnlyLogin || false;
 
     return res.json({
       available,
-      oauthOnly,
       configured: {
         clientId: !!clientId,
         clientSecret: !!clientSecret,

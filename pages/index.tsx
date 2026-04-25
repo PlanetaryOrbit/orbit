@@ -249,7 +249,7 @@ const Home: NextPage = () => {
         discordSecret: externalConfig.discordAppSecret,
         google_id: externalConfig.google_id,
         google_secret: externalConfig.google_secret,
-        google_email_filtration: externalConfig.google_email_filtration.startsWith('@') ? externalConfig.google_email_filtration : `@${externalConfig.google_email_filtration}`
+        google_email_filtration: externalConfig.google_email_filtration ? externalConfig.google_email_filtration.startsWith('@') ? externalConfig.google_email_filtration : `@${externalConfig.google_email_filtration}` : ''
 			})
 			setSaveMessage('Settings saved successfully!')
 			setTimeout(() => setSaveMessage(''), 3000)

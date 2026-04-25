@@ -1,25 +1,24 @@
 import { useState, useEffect } from "react";
 
-export const RobloxOAuthAvailable = () => {
+export const OAuthAvailable = () => {
+  const [oauthOnly, setOauthOnly] = useState(false);
   const [isAvailable, setIsAvailable] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkOAuthConfig = async () => {
       try {
-        const response = await fetch("/api/auth/roblox/config-check");
+        const response = await fetch("/api/auth/oauth/check");
         const data = await response.json();
-        setIsAvailable(data.available || false);
+        setOauthOnly(data.oauthOnly || false);
+        setIsAvailable(data.isAvailable)
       } catch (error) {
         console.error("Failed to check OAuth config:", error);
-        setIsAvailable(false);
-      } finally {
-        setLoading(false);
+        setOauthOnly(false);
       }
     };
 
     checkOAuthConfig();
   }, []);
 
-  return { isAvailable, loading };
-};
+  return { oauthOnly, isAvailable };
+}
