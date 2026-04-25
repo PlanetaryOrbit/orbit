@@ -49,6 +49,8 @@ const Home: NextPage = () => {
 	const [loginBackground, setLoginBackground] = useState<string | null>(null)
 	const [bgUploading, setBgUploading] = useState(false)
 	const bgFileInputRef = useRef<HTMLInputElement>(null)
+  const isOAuthConfigValid = (externalConfig.discordAppId.trim().length > 0 && externalConfig.discordAppSecret.trim().length > 0) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0 ) || (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) || (externalConfig.google_id.trim().length > 0 && externalConfig.google_secret.trim().length > 0)
+
 
 	const features = [
 		{ title: "Workspaces", desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking." },
@@ -320,6 +322,16 @@ const Home: NextPage = () => {
   const nextSlide = () => {
     setOnboardingSlide(onboardingSlide + 1)
   }
+
+  // workaround to prevent people from staying locked out of their instance
+  useEffect(() => {
+  if (!isOAuthConfigValid) {
+    setExternalConfig(prev => ({
+      ...prev,
+      oauthOnlyLogin: false
+    }))
+  }
+}, [isOAuthConfigValid])
 
   return (
     <div>
@@ -862,19 +874,27 @@ const Home: NextPage = () => {
 											<div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
 													<label className="flex items-center cursor-pointer">
 														<input
-															type="checkbox"
-															checked={externalConfig.oauthOnlyLogin}
-															onChange={(e) => setExternalConfig(prev => ({ ...prev, oauthOnlyLogin: e.target.checked }))}
-															disabled={usingEnvVars}
-															className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${usingEnvVars ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed' : 'bg-white dark:bg-zinc-700'
-																}`}
-														/>
+                              type="checkbox"
+                              checked={externalConfig.oauthOnlyLogin}
+                              onChange={(e) =>
+                                setExternalConfig(prev => ({
+                                  ...prev,
+                                  oauthOnlyLogin: e.target.checked
+                                }))
+                              }
+                              disabled={usingEnvVars || !isOAuthConfigValid}
+                              className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${
+                                usingEnvVars || !isOAuthConfigValid
+                                  ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed'
+                                  : 'bg-white dark:bg-zinc-700'
+                              }`}
+                            />
 														<span className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
 															Enforce OAuth login
 														</span>
 													</label>
 													<p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
-														When enabled, users will only see the Roblox OAuth login button.
+														When enabled, users will only see the OAuth login options.
 													</p>
 												</div>
 											</div>
