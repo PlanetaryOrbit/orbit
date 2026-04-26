@@ -989,29 +989,29 @@ const Profile: pageWithLayout<pageProps> = ({
     <div className="pagePadding">
       <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-6 shadow-sm mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative flex-shrink-0">
-              <div
-                className={`rounded-xl h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center ${getRandomBg(
-                  user.userid
-                )}`}
-              >
-                <img
-                  src={info.avatar}
-                  className="rounded-xl h-16 w-16 sm:h-20 sm:w-20 object-cover border-2 border-white"
-                  alt={`${info.displayName}'s avatar`}
-                  style={{ background: "transparent" }}
-                />
+        <div className="mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white to-zinc-50/80 shadow-sm dark:border-zinc-600/50 dark:from-zinc-800 dark:to-zinc-800/90 dark:shadow-none">
+          <div className="flex flex-col gap-5 p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
+              <div className="relative flex-shrink-0">
+                <div
+                  className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl shadow-lg ring-2 ring-white dark:ring-zinc-700/80 sm:h-24 sm:w-24 ${getRandomBg(
+                    user.userid
+                  )}`}
+                >
+                  <img
+                    src={info.avatar}
+                    className="h-full w-full object-cover"
+                    alt={`${info.displayName}'s avatar`}
+                    style={{ background: "transparent" }}
+                  />
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-lg bg-primary shadow ring-2 ring-white dark:ring-zinc-800 sm:h-7 sm:w-7">
+                  <IconUserCircle className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
+                </div>
               </div>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-primary rounded-lg flex items-center justify-center">
-                <IconUserCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-              </div>
-            </div>
-            <div className="flex-1 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white truncate">
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="truncate text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
                     {info.displayName}
                   </h1>
                   {(() => {
@@ -1030,63 +1030,66 @@ const Profile: pageWithLayout<pageProps> = ({
                           className="flex-shrink-0"
                           title={`On notice: ${activeNotice.reason || "N/A"}`}
                         >
-                          <IconBeach className="w-5 h-5 text-amber-500" />
+                          <IconBeach className="h-5 w-5 text-amber-500" />
                         </div>
                       );
                     }
                     return null;
                   })()}
                 </div>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
-                  @{info.username}
+                <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="text-zinc-400 dark:text-zinc-500">@</span>
+                  {info.username}
                 </p>
                 {memberRoleName && (
-                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-                    {memberRoleName}
+                  <p className="pt-0.5">
+                    <span className="inline-flex max-w-full items-center rounded-md border border-zinc-200/90 bg-zinc-100/90 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:border-zinc-600/80 dark:bg-zinc-700/50 dark:text-zinc-200">
+                      <span className="truncate">{memberRoleName}</span>
+                    </span>
                   </p>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                {workspaceMember &&
-                  workspaceMember.timezone &&
-                  (() => {
-                    const userHour = new Date().toLocaleString("en-US", {
-                      timeZone: workspaceMember.timezone,
-                      hour: "numeric",
-                      hour12: false,
-                    });
-                    const hour = parseInt(userHour);
-                    const isDay = hour >= 6 && hour < 18;
+            </div>
+            <div className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:justify-end sm:gap-2.5">
+              {workspaceMember &&
+                workspaceMember.timezone &&
+                (() => {
+                  const userHour = new Date().toLocaleString("en-US", {
+                    timeZone: workspaceMember.timezone,
+                    hour: "numeric",
+                    hour12: false,
+                  });
+                  const hour = parseInt(userHour);
+                  const isDay = hour >= 6 && hour < 18;
 
-                    return (
-                      <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-primary/40">
-                        {isDay ? (
-                          <IconSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
-                        ) : (
-                          <IconMoon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-100" />
-                        )}
-                        <span className="text-xs sm:text-sm font-semibold tabular-nums">
-                          {currentTime.toLocaleTimeString("en-US", {
-                            timeZone: workspaceMember.timezone,
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
-                        </span>
-                      </div>
-                    );
-                  })()}
-                <a
-                  href={`https://www.roblox.com/users/${user.userid}/profile`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-zinc-900 text-white shadow-sm border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-colors whitespace-nowrap text-xs sm:text-sm font-semibold"
-                >
-                  <IconExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">View on Roblox</span>
-                  <span className="sm:hidden">Roblox</span>
-                </a>
-              </div>
+                  return (
+                    <div className="inline-flex h-9 items-center gap-2 rounded-full border border-zinc-200/90 bg-zinc-100/90 px-3 text-zinc-800 dark:border-zinc-600/70 dark:bg-zinc-700/40 dark:text-zinc-100">
+                      {isDay ? (
+                        <IconSun className="h-4 w-4 shrink-0 text-amber-500" />
+                      ) : (
+                        <IconMoon className="h-4 w-4 shrink-0 text-sky-300" />
+                      )}
+                      <span className="text-xs font-medium tabular-nums sm:text-sm">
+                        {currentTime.toLocaleTimeString("en-US", {
+                          timeZone: workspaceMember.timezone,
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                    </div>
+                  );
+                })()}
+              <a
+                href={`https://www.roblox.com/users/${user.userid}/profile`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 items-center gap-2 rounded-full bg-primary px-3.5 text-sm font-medium text-white shadow-sm transition-[filter] hover:brightness-105 active:brightness-95 sm:px-4"
+              >
+                <IconExternalLink className="h-4 w-4 shrink-0 opacity-95" />
+                <span className="hidden sm:inline">View on Roblox</span>
+                <span className="sm:hidden">Roblox</span>
+              </a>
             </div>
           </div>
         </div>

@@ -83,7 +83,7 @@ const ExternalServices: React.FC<ExternalServicesProps> & { title: string } = ({
   const rankingProviders = [
     { value: "", label: "None" },
     { value: "rankgun", label: "RankGun" },
-    { value: "upraise", label: "Upraise" },
+    { value: "BloxyServices", label: "BloxyServices" },
     { value: "opencloudranking", label: "Integrated Ranking"}
   ];
 
