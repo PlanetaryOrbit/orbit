@@ -32,8 +32,12 @@ const Button: FC<Props> = ({
       onClick={onPress || onClick}
       disabled={disabled}
       className={twMerge(
-        compact ? "py-2 px-4" : "py-3 px-5",
-        "transition rounded-lg text-sm text-white focus-visible:outline-none",
+        "inline-flex items-center justify-center transition rounded-lg text-sm text-white focus-visible:outline-none",
+        compact
+          ? "min-h-0 py-1.5 px-3.5"
+          : workspace
+            ? "min-h-0 py-2 px-4"
+            : "min-h-0 py-2.5 px-5",
         workspace
           ? "bg-primary hover:bg-primary/80 focus-visible:bg-primary/80 disabled:bg-primary/50 dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-white dark:disabled:bg-zinc-700/50"
           : "bg-orbit hover:bg-orbit/80 focus-visible:bg-orbit/80 disabled:bg-orbit/50 dark:bg-white dark:text-black dark:hover:bg-zinc-300 dark:disabled:bg-white/50",

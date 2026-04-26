@@ -15,7 +15,6 @@ import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import clsx from "clsx";
-import key from "@/pages/api/workspace/[id]/settings/general/roblox/key";
 
 type Props = {
   setRoles: React.Dispatch<React.SetStateAction<role[]>>;
@@ -292,13 +291,13 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
       return toast.error("An error occurred while checking your API key");
     }
 
-    const { enabled, key } = keyres.data.value;
+    const { enabled, keySet } = keyres.data.value;
 
     if (!enabled) {
       return toast.error("Open Cloud API key is not configured");
     }
 
-    if (!key || key.length === 0) {
+    if (!keySet) {
       return toast.error("Open Cloud API key cannot be empty.");
     }
   } catch (err) {

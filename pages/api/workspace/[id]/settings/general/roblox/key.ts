@@ -32,9 +32,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     try {
       const config = await getConfig("roblox_opencloud", workspaceId);
+      const raw = config || { enabled: false, key: "" };
+      const keyStr = typeof raw.key === "string" ? raw.key : "";
       return res.status(200).json({
         success: true,
-        value: config || { enabled: false, key: "" },
+        value: {
+          enabled: !!raw.enabled,
+          keySet: keyStr.length > 0,
+        },
       });
     } catch (error) {
       console.error("Error fetching OpenCloud config:", error);
@@ -48,20 +53,41 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const { enabled, key } = req.body;
+      const { enabled } = req.body as { enabled?: boolean; key?: string };
+      const hasKeyField = Object.prototype.hasOwnProperty.call(req.body, "key");
 
       if (typeof enabled !== "boolean") {
         return res.status(400).json({ success: false, error: "Invalid enabled value" });
       }
 
-      if (enabled && (!key || typeof key !== "string")) {
-        return res.status(400).json({ success: false, error: "OpenCloud key is required when enabled" });
+      const existing = (await getConfig("roblox_opencloud", workspaceId)) as
+        | { enabled?: boolean; key?: string }
+        | undefined;
+      const existingKey = typeof existing?.key === "string" ? existing.key : "";
+
+      let nextKey = existingKey;
+      if (hasKeyField && typeof req.body.key === "string") {
+        const incoming = req.body.key.trim();
+        if (incoming.length > 0) {
+          nextKey = incoming;
+        }
       }
 
-      await setConfig("roblox_opencloud", {
-        enabled,
-        key: key || "",
-      }, workspaceId);
+      if (enabled && !nextKey) {
+        return res.status(400).json({
+          success: false,
+          error: "OpenCloud key is required when enabled",
+        });
+      }
+
+      await setConfig(
+        "roblox_opencloud",
+        {
+          enabled,
+          key: nextKey,
+        },
+        workspaceId
+      );
 
       return res.status(200).json({ success: true });
     } catch (error) {

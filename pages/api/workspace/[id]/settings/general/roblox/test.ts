@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withSessionRoute } from "@/lib/withSession";
 import prisma from "@/utils/database";
 import axios from "axios";
+import { getConfig } from "@/utils/configEngine";
 
 interface OpenCloudKeyRes {
   name: string;
@@ -43,15 +44,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(403).json({ success: false, error: "Forbidden" });
   }
 
-  const { key } = req.body;
-  if (!key || typeof key !== "string") {
+  const body = req.body as { key?: string };
+  let keyToTest: string;
+  if (typeof body.key === "string" && body.key.trim() !== "") {
+    keyToTest = body.key.trim();
+  } else {
+    const stored = (await getConfig("roblox_opencloud", workspaceId)) as
+      | { key?: string }
+      | undefined;
+    keyToTest = typeof stored?.key === "string" ? stored.key.trim() : "";
+  }
+  if (!keyToTest) {
     return res.status(400).json({ success: false, error: "OpenCloud key is required" });
   }
 
   try {
     const ocres = await axios.post<OpenCloudKeyRes>(
       "https://apis.roblox.com/api-keys/v1/introspect",
-      { apiKey: key },
+      { apiKey: keyToTest },
       { headers: { "Content-Type": "application/json" } }
     );
 
