@@ -28,24 +28,36 @@ export default withSessionRoute(async function handler(req: NextApiRequest, res:
     return res.status(400).end('Invalid URL');
   }
 
-  const upstream = await axios.get(parsedUrl.toString(), {
-    responseType: 'stream',
-    headers: {
-      'User-Agent': 'Mozilla/5.0',
-      'Accept': 'audio/*,*/*',
-    },
-    timeout: 15000,
-    maxRedirects: 0,
-  });
+  try {
+    const upstream = await axios.get(parsedUrl.toString(), {
+      responseType: 'stream',
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'audio/*,*/*',
+      },
+      timeout: 15000,
+      maxRedirects: 0,
+    });
 
-  res.setHeader('Content-Type', upstream.headers['content-type'] || 'audio/mp4');
-  res.setHeader('Cache-Control', 'public, max-age=3600');
-  if (upstream.headers['content-length']) {
-    res.setHeader('Content-Length', upstream.headers['content-length']);
-  }
-  if (upstream.headers['accept-ranges']) {
-    res.setHeader('Accept-Ranges', upstream.headers['accept-ranges']);
-  }
+    const contentType = upstream.headers['content-type'];
+    const contentLength = upstream.headers['content-length'];
+    const acceptRanges = upstream.headers['accept-ranges'];
 
-  upstream.data.pipe(res);
+    res.setHeader('Content-Type', typeof contentType === 'string' ? contentType : 'audio/mp4');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    if (typeof contentLength === 'string') {
+      res.setHeader('Content-Length', contentLength);
+    }
+    if (typeof acceptRanges === 'string') {
+      res.setHeader('Accept-Ranges', acceptRanges);
+    }
+
+    upstream.data.on('error', () => {
+      if (!res.headersSent) res.status(502).end();
+    });
+
+    upstream.data.pipe(res);
+  } catch {
+    if (!res.headersSent) res.status(502).end();
+  }
 });

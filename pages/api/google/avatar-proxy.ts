@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
-    res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
+    res.setHeader('Content-Type', String(response.headers['content-type'] || 'image/jpeg'));
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.send(Buffer.from(response.data));
   } catch {
