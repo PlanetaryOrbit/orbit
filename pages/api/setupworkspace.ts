@@ -49,7 +49,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   // Validate required fields
-  const { groupid, username, password, color } = req.body;
+  const { groupid, username, password, color, opencloudKey } = req.body;
   if (!groupid || !username || !password || !color) {
     console.error("Missing required fields:", {
       groupid,
@@ -111,7 +111,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     let groupName = `Group ${groupIdNumber}`;
     let groupLogo = '';
-    
+
     try {
       const [logo, group] = await Promise.all([
         noblox.getLogo(groupIdNumber).catch(() => ''),
@@ -306,6 +306,21 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       thumbnail: getThumbnail(req.session.userid),
       isOwner: true,
     };
+
+    if (opencloudKey && typeof opencloudKey === "string" && opencloudKey.trim().length > 0) {
+      await prisma.config.create({
+        data: {
+          key: "roblox_opencloud",
+          workspaceGroupId: groupIdNumber,
+          value: {
+            enabled: true,
+            key: opencloudKey.trim(),
+          },
+        },
+      }).catch((e) => {
+        console.error("Error saving Open Cloud key:", e);
+      });
+    }
 
     // Set registry last
     await setRegistry(req.headers.host as string);
