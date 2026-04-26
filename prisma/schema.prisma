@@ -98,9 +98,6 @@ model DiscordUser {
   robloxUserId  BigInt?   @unique
   username      String
   avatar        String?
-  accessToken   String?
-  refreshToken  String?
-  expireToken   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   user          user?     @relation(fields: [robloxUserId], references: [userid])

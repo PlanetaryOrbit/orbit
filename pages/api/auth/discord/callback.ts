@@ -86,7 +86,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 		);
 
-		const { access_token, refresh_token, expires_in } = tokenResponse.data;
+		const { access_token } = tokenResponse.data;
 
 		const userResponse = await axios.get<DiscordUserResponse>(
 			'https://discord.com/api/v10/users/@me',
@@ -113,18 +113,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			update: {
 				username: discordUser.username,
 				avatar: discordUser.avatar,
-				accessToken: access_token,
-				refreshToken: refresh_token,
-				expireToken: new Date(Date.now() + expires_in * 1000),
 				...(req.session.userid && { robloxUserId: BigInt(req.session.userid) }),
 			},
 			create: {
 				discordUserId: discordUserIdBig,
 				username: discordUser.username,
 				avatar: discordUser.avatar,
-				accessToken: access_token,
-				refreshToken: refresh_token,
-				expireToken: new Date(Date.now() + expires_in * 1000),
 				robloxUserId: req.session.userid ? BigInt(req.session.userid) : null,
 			},
 		});
