@@ -60,7 +60,7 @@ export default function LoadingScreen({ done }: { done: boolean }) {
         fill="currentColor"
         style={{
           transition: "color 1.2s ease",
-          color: done ? "var(--group-theme,236,72,153)" : "rgb(156 163 175 / 0.7)",
+          color: done ? `rgb(var(--group-theme, 236, 72, 153))` : "rgb(156 163 175 / 0.7)",
         }}
         className={`w-40 h-40 ${!done ? "animate-pulse" : ""}`}
       >
