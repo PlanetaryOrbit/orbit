@@ -115,7 +115,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
       {showLoader && <LoadingScreen done={!loading} />}
 
-      {!loading && (
+      {!showLoader && (
         <Layout>
           <div className="pb-8 sm:pb-0">
             <Component {...pageProps} />
