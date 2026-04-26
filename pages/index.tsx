@@ -43,7 +43,6 @@ const Home: NextPage = () => {
   const [configLoading, setConfigLoading] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
   const [usingEnvVars, setUsingEnvVars] = useState(false)
-  const [settings, setSettings] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingSlide, setOnboardingSlide] = useState(0)
   const [loginBackground, setLoginBackground] = useState<string | null>(null)
