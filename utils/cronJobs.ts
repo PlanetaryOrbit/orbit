@@ -42,7 +42,7 @@ export async function initCronJobs() {
     })
   });
 
-  cron.schedule('* * * *', async () => {
+  cron.schedule('* * * * *', async () => {
     await axios.post(`${process.env.NEXTAUTH_URL}/api/cron/milestone`, {}, {
       headers: {
         "x-cron-secret": process.env.CRON_SECRET
