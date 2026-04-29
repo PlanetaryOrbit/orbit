@@ -22,7 +22,6 @@ import {
 } from "chart.js";
 import { themeState } from "@/state/theme";
 import AuthProvider from "./AuthProvider";
-import axios from "axios";
 import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
