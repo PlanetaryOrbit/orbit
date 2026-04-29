@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/router";
@@ -9,7 +7,6 @@ import Button from "@/components/button";
 import { ServiceCard, ServiceToggle } from "../instance/ServiceCard";
 
 function DiscordAuditLogging({ title = "Discord Logging" }: { title?: string }) {
-  const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
   const [enabled, setEnabled] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
