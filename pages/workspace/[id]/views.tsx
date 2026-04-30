@@ -709,10 +709,22 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     }
   };
 
+  const getSafeWorkspaceId = (id: string | string[] | undefined) => {
+    if (typeof id !== "string") return null;
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) return null;
+    return id;
+  };
+
   useEffect(() => {
   }, [colFilters]);
 
   const massAction = () => {
+    const workspaceId = getSafeWorkspaceId(router.query.id);
+    if (!workspaceId) {
+      toast.error("Invalid workspace id.");
+      return;
+    }
+
     const selected = table.getSelectedRowModel().flatRows;
     const promises: any[] = [];
     for (const select of selected) {
@@ -720,7 +732,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
       if (type == "add") {
         promises.push(
-          axios.post(`/api/workspace/${router.query.id}/activity/add`, {
+          axios.post(`/api/workspace/${workspaceId}/activity/add`, {
             userId: data.info.userId,
             minutes,
           })
@@ -728,7 +740,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
       } else {
         promises.push(
           axios.post(
-            `/api/workspace/${router.query.id}/userbook/${data.info.userId}/new`,
+            `/api/workspace/${workspaceId}/userbook/${data.info.userId}/new`,
             { notes: message.length > 0 ? message : "Not provided.", type }
           )
         );
