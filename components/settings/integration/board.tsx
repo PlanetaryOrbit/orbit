@@ -168,7 +168,6 @@ const Board: FC<props> = (props) => {
               <IconDownload className="h-4 w-4" stroke={1.5} />
               Download Board
             </button>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Upon downloading, we'll create an API key and assign to you, if there's no existent API Key.</p>
           </div>
         </div>
       </section>
