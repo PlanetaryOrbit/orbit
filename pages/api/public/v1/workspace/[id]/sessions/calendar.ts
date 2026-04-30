@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { validateApiKey } from "@/utils/api-auth";
+import { getConfig } from "@/utils/configEngine";
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,7 +33,11 @@ export default async function handler(
   try {
     const key = await validateApiKey(apiKey, workspaceId.toString());
     if (!key) {
-      return res.status(401).json({ success: false, error: "Invalid API key" });
+      const secretKey = await getConfig("board_key", workspaceId);
+      if (!secretKey || !secretKey.key) {
+        return res.status(401).json({ success: false, error: "Invalid API key" });
+      }
+      if (secretKey.key != apiKey) { return res.status(401).json({ success: false, error: "Invalid API key" }); }
     }
 
     const where: any = {

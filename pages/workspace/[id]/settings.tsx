@@ -2,7 +2,7 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation, IconHourglassHigh } from "@tabler/icons-react"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation, IconHourglassHigh, IconLink } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
@@ -10,6 +10,7 @@ import type { GetServerSideProps } from "next"
 import * as All from "@/components/settings/general"
 import * as Api from "@/components/settings/api"
 import * as Instance from "@/components/settings/instance"
+import * as Integrations from "@/components/settings/integration"
 import toast, { Toaster } from "react-hot-toast"
 import * as noblox from "noblox.js"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
@@ -208,6 +209,16 @@ const SECTIONS = {
       title: Component.title,
     })),
   },
+  integration: {
+    name: "Integrations",
+    icon: IconLink,
+    description: "Use our integrations that require minimal setup for your experiences.",
+    components: Object.entries(Integrations).map(([key, Component]) => ({
+      key,
+      component: Component,
+      title: Component.title,
+    })),
+  },
 }
 
 const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles, isAdmin, userPermissions }) => {
@@ -234,6 +245,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
     if (key === 'permissions') return canAccessPermissions;
     if (key === 'audit') return canAccessAudit;
     if (key === 'instance') return canAccessInstance;
+    if (key === 'integration') return canAccessPermissions && canAccessApi; // api access is required, upon download it'll create a key and assign to that user, a key.
     return false;
   });
 
