@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { v4 as uuidv4 } from "uuid";
 import { withSessionRoute } from "@/lib/withSession";
+import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
 
 async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number) {
   if (!req.session?.userid) return false;
@@ -49,13 +50,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!hasCreatePermission) return res.status(401).json({ success: false, error: "Unauthorized" });
 
       const { name, color, icon, filters, columnVisibility } = req.body;
-      if (!name) return res.status(400).json({ success: false, error: "Missing name" });
+      const nameStr =
+        typeof name === "string" ? name.trim() : String(name ?? "").trim();
+      if (!nameStr) return res.status(400).json({ success: false, error: "Missing name" });
+      if (nameStr.length > SAVED_VIEW_NAME_MAX_LENGTH) {
+        return res.status(400).json({
+          success: false,
+          error: `Name must be at most ${SAVED_VIEW_NAME_MAX_LENGTH} characters`,
+        });
+      }
 
       const newView = await prisma.savedView.create({
         data: {
           id: uuidv4(),
           workspaceGroupId: workspaceId,
-          name,
+          name: nameStr,
           color: color || null,
           icon: icon || null,
           filters: filters || [],

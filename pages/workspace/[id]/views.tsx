@@ -37,6 +37,7 @@ import { useRouter } from "next/router";
 import moment from "moment";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { getConfig } from "@/utils/configEngine";
+import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
 import {
   IconArrowLeft,
   IconFilter,
@@ -173,6 +174,17 @@ const filterNames: {
   greaterThan: "Greater than",
   lessThan: "Less than",
 };
+
+function normalizeSavedViewName(input: string): string {
+  const t = input.trim();
+  if (t.length > 0) return t.slice(0, SAVED_VIEW_NAME_MAX_LENGTH);
+  return `View ${new Date().toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`.slice(0, SAVED_VIEW_NAME_MAX_LENGTH);
+}
 
 type pageProps = {
   isAdmin: boolean;
@@ -474,8 +486,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   useEffect(() => {
     if (router.query.id && hasUseSavedViews()) loadSavedViews();
   }, [router.query.id]);
-  
-  // Reset to page 0 when filters change
+
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [colFilters]);
@@ -583,7 +594,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
       }
 
       const payload = {
-        name: saveName || `View ${new Date().toISOString()}`,
+        name: normalizeSavedViewName(saveName),
         color: saveColor || null,
         icon: saveIcon || null,
         filters: filtersPayload,
@@ -924,7 +935,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                             setViewToDelete(v.id);
                             setShowDeleteModal(true);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 mr-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 mr-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition flex-shrink-0"
                           title="Delete View"
                         >
                           <IconX className="w-3 h-3" />
@@ -1430,10 +1441,11 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                     <div className="mt-3 space-y-3">
                       <Input
                         name="save-name"
-                        label="Name"
+                        label={`Name (${saveName.length}/${SAVED_VIEW_NAME_MAX_LENGTH})`}
+                        maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
                         value={saveName}
                         onChange={(e) => {
-                          setSaveName(e.target.value);
+                          setSaveName(e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH));
                           return Promise.resolve();
                         }}
                         onBlur={() => Promise.resolve()}

@@ -6,6 +6,7 @@ type Props = {
 	append?: string;
 	prepend?: string;
 	disabled?: boolean;
+	maxLength?: number;
 	classoverride?: string;
 	textarea?: boolean | false
 	id?: string;
@@ -17,7 +18,7 @@ type Props = {
 
 };
 
-const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onBlur, name, value, type, textarea, append, prepend, disabled }) => {
+const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onBlur, name, value, type, textarea, append, prepend, disabled, maxLength }) => {
 	return (
 		<div className="mb-3">
 			{label &&
@@ -37,6 +38,7 @@ const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onB
 					value={value}
 					disabled={disabled}
 					type={type}
+					maxLength={maxLength}
 					onChange={onChange}
 					onBlur={onBlur}
 					name={name}
@@ -47,6 +49,7 @@ const Input: FC<Props> = ({ placeholder, label, classoverride, id, onChange, onB
 			</div> : <textarea
 				id={id}
 				placeholder={placeholder}
+				maxLength={maxLength}
 				onChange={onChange || undefined}
 				onBlur={onBlur || undefined}
 				value={value}

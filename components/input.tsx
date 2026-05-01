@@ -8,6 +8,7 @@ type Props = {
 	append?: string;
 	prepend?: string;
 	disabled?: boolean;
+	maxLength?: number;
 	classoverride?: string;
 	textarea?: boolean | false
 	id?: string;
@@ -18,7 +19,7 @@ type Props = {
 const Input = React.forwardRef<
 	HTMLInputElement | HTMLTextAreaElement,
 	Props & ReturnType<UseFormRegister<any>>
->(({ placeholder, label, classoverride = "", id, onChange, onBlur, name, type, textarea, append, prepend, disabled, value }, ref) => {
+>(({ placeholder, label, classoverride = "", id, onChange, onBlur, name, type, textarea, append, prepend, disabled, value, maxLength }, ref) => {
 	const formContext = useFormContext();
 	const errors = formContext ? (formContext.formState?.errors as any) : {};
 	return (
@@ -39,6 +40,7 @@ const Input = React.forwardRef<
 					placeholder={placeholder}
 					disabled={disabled}
 					type={type}
+					maxLength={maxLength}
 					onChange={onChange}
 					onBlur={onBlur}
 					name={name}
@@ -56,6 +58,7 @@ const Input = React.forwardRef<
 			</div> : <textarea
 				id={id}
 				placeholder={placeholder}
+				maxLength={maxLength}
 				onChange={onChange}
 				onBlur={onBlur}
 				name={name}
