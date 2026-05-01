@@ -90,11 +90,11 @@ async function fetchFallbackRobloxAvatarBuffer(targetResolution: number): Promis
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { userId, color, res: resParam } = req.query;
+  const { userid, color, res: resParam } = req.query;
 
-  if (!userId || Array.isArray(userId)) return res.status(400).end('Invalid userId');
-  if (!/^[0-9]+$/.test(userId)) return res.status(400).end('Invalid userId');
-  const userIdNum = Number(userId);
+  if (!userid || Array.isArray(userid)) return res.status(400).end('Invalid userId');
+  if (!/^[0-9]+$/.test(userid)) return res.status(400).end('Invalid userId');
+  const userIdNum = Number(userid);
   if (!Number.isInteger(userIdNum) || userIdNum <= 0) return res.status(400).end('Invalid userId');
 
   let resolution = 180;
