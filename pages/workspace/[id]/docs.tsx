@@ -68,10 +68,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         notFound: true,
       };
     }
+
     const user = await prisma.user.findFirst({
-      where: {
-        userid: userid,
-      },
+      where: { userid: userid },
       include: {
         roles: {
           where: {
@@ -82,9 +81,13 @@ export const getServerSideProps = withPermissionCheckSsr(
           where: {
             workspaceGroupId: parseInt(id as string),
           },
+          include: {
+            departmentMembers: true,
+          },
         },
       },
     });
+
     if (!user) {
       return {
         redirect: {
@@ -123,16 +126,27 @@ export const getServerSideProps = withPermissionCheckSsr(
     const membership = user.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
     const userRoleIds = (user.roles || []).map((r: any) => r.id);
-    const canCreate = isAdmin || (user.roles || []).some(
-      (r: any) => (r.permissions || []).includes("create_docs")
+    const userDepartmentIds = (membership?.departmentMembers || []).map(
+      (d: any) => d.departmentId
     );
-    const canEdit = isAdmin || (user.roles || []).some(
-      (r: any) => (r.permissions || []).includes("edit_docs")
-    );
-    const canDelete = isAdmin || (user.roles || []).some(
-      (r: any) => (r.permissions || []).includes("delete_docs")
-    );
+
+    const canCreate =
+      isAdmin ||
+      (user.roles || []).some((r: any) =>
+        (r.permissions || []).includes("create_docs")
+      );
+    const canEdit =
+      isAdmin ||
+      (user.roles || []).some((r: any) =>
+        (r.permissions || []).includes("edit_docs")
+      );
+    const canDelete =
+      isAdmin ||
+      (user.roles || []).some((r: any) =>
+        (r.permissions || []).includes("delete_docs")
+      );
     const canManage = canCreate || canEdit || canDelete;
+
     if (canManage) {
       const docs = await prisma.document.findMany({
         where: {
@@ -161,15 +175,20 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       };
     }
+
     const docs = await prisma.document.findMany({
       where: {
         workspaceGroupId: parseInt(id as string),
         requiresAcknowledgment: false,
-        roles: {
-          some: {
-            id: { in: userRoleIds },
-          },
-        },
+        OR: [
+          ...(userRoleIds.length > 0
+            ? [{ roles: { some: { id: { in: userRoleIds } } } }]
+            : []),
+          ...(userDepartmentIds.length > 0
+            ? [{ departments: { some: { id: { in: userDepartmentIds } } } }]
+            : []),
+          { roles: { none: {} }, departments: { none: {} } },
+        ],
       },
       include: {
         owner: {
@@ -180,6 +199,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       },
     });
+
     return {
       props: {
         documents: JSON.parse(
@@ -201,7 +221,13 @@ type pageProps = {
   canEdit: boolean;
   canDelete: boolean;
 };
-const Home: pageWithLayout<pageProps> = ({ documents, canCreate, canEdit, canDelete }) => {
+
+const Home: pageWithLayout<pageProps> = ({
+  documents,
+  canCreate,
+  canEdit,
+  canDelete,
+}) => {
   const [login, setLogin] = useRecoilState(loginState);
   const text = useMemo(
     () => randomText(login.displayname),
@@ -258,7 +284,6 @@ const Home: pageWithLayout<pageProps> = ({ documents, canCreate, canEdit, canDel
           </div>
         </div>
 
-        {/* New Document Button */}
         {canCreate ? (
           <button
             onClick={() =>
@@ -391,11 +416,9 @@ const Home: pageWithLayout<pageProps> = ({ documents, canCreate, canEdit, canDel
               </>
             )}
             {!canCreate && (
-              <>
-                <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
-                  Contact your workspace admin to create a document.
-                </p>
-              </>
+              <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
+                Contact your workspace admin to create a document.
+              </p>
             )}
           </div>
         )}
