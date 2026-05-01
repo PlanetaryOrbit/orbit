@@ -571,6 +571,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         isTrainingDocument: editPolicy.isTrainingDocument,
         assignToEveryone: editPolicy.assignToEveryone,
         roles: editPolicy.assignToEveryone ? [] : editPolicy.roles,
+        departments: editPolicy.departments
       };
 
       await axios.put(
@@ -1672,6 +1673,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                             ...newPolicy,
                                             roles: [...newPolicy.roles, role.id],
                                           });
+                                          console.log(newPolicy)
                                         } else {
                                           setNewPolicy({
                                             ...newPolicy,
@@ -1679,6 +1681,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                               (r) => r !== role.id
                                             ),
                                           });
+                                          console.log(newPolicy)
                                         }
                                       }}
                                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
@@ -1706,19 +1709,21 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         type="checkbox"
                                         checked={newPolicy.departments.includes(department.id)}
                                         onChange={(e) => {
-                                          if (e.target.checked) {
-                                            setNewPolicy({
-                                              ...newPolicy,
-                                              departments: [...newPolicy.departments, department.id],
-                                            });
-                                          } else {
-                                            setNewPolicy({
-                                              ...newPolicy,
-                                              departments: newPolicy.departments.filter(
-                                                (d) => d !== department.id
-                                              ),
-                                            });
-                                          }
+                                          setNewPolicy((prev: any) => {
+                                            if (e.target.checked) {
+                                              return {
+                                                ...prev,
+                                                departments: [...prev.departments, department.id],
+                                              };
+                                            } else {
+                                              return {
+                                                ...prev,
+                                                departments: prev.departments.filter(
+                                                  (d: any) => d !== department.id
+                                                ),
+                                              };
+                                            }
+                                          });
                                         }}
                                         className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
                                       />
@@ -2446,19 +2451,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         type="checkbox"
                                         checked={editPolicy.departments.includes(department.id)}
                                         onChange={(e) => {
-                                          if (e.target.checked) {
-                                            setEditPolicy({
-                                              ...editPolicy,
-                                              departments: [...editPolicy.departments, department.id],
-                                            });
-                                          } else {
-                                            setEditPolicy({
-                                              ...editPolicy,
-                                              departments: editPolicy.departments.filter(
-                                                (d) => d !== department.id
-                                              ),
-                                            });
-                                          }
+                                          setEditPolicy((prev: any) => {
+                                            if (e.target.checked) {
+                                              return {
+                                                ...prev,
+                                                departments: [...prev.departments, department.id],
+                                              };
+                                            } else {
+                                              return {
+                                                ...prev,
+                                                departments: prev.departments.filter(
+                                                  (d: any) => d !== department.id
+                                                ),
+                                              };
+                                            }
+                                          });
+                                          console.log(editPolicy)
                                         }}
                                         disabled={!hasEditPermission}
                                         className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2767,9 +2775,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   </div>
                                 )}
                                 <div>
-                                  <div className="text-sm font-medium text-zinc-900 dark:text-white">
-                                    {user.username || `User ${user.userid}`}
-                                  </div>
+                                  <a href={`/workspace/${workspace.groupId}/profile/${user.userid}`}>
+                                    <div className="text-sm font-medium text-zinc-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-600 transition-colors">
+                                      {user.username || `User ${user.userid}`}
+                                    </div>
+                                  </a>
                                   {user.status === "acknowledged" &&
                                     user.acknowledgedAt && (
                                       <div className="text-xs text-zinc-500 dark:text-zinc-400">

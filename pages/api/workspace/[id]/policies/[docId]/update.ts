@@ -33,6 +33,18 @@ export async function handler(
 	} = req.body;
 	const { id, docId } = req.query;
 
+  console.log({ name,
+		content,
+		roles,
+		departments,
+		assignToEveryone,
+		requiresAcknowledgment,
+		acknowledgmentDeadline,
+		acknowledgmentMethod,
+		acknowledgmentWord,
+		isTrainingDocument,
+		incrementVersion })
+
 	if (!id || !docId) return res.status(400).json({ success: false, error: 'Missing required fields' });
 
 	const existingDoc = await prisma.document.findFirst({
