@@ -36,6 +36,13 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 
+const serializeBigInt = (obj: any) =>
+  JSON.parse(
+    JSON.stringify(obj, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    )
+  );
+
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
     const { id } = context.query;
@@ -59,10 +66,10 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     });
 
     return {
-      props: {
+      props: serializeBigInt({
         roles,
         departments,
-      },
+      }),
     };
   },
   "create_docs"
