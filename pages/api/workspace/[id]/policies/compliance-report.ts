@@ -123,7 +123,7 @@ export async function handler(
 				acknowledgmentDeadline: doc.acknowledgmentDeadline,
 				totalRequired,
 				totalAcknowledged,
-				complianceRate: Math.round(complianceRate * 100) / 100,
+				complianceRate: Math.min(Math.round(complianceRate * 100) / 100, 100),
 				isOverdue,
 				pendingUsers: pendingUsers.map(user => ({
 					userid: user.userid.toString(),
