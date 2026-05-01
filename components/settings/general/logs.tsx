@@ -25,6 +25,9 @@ const ACTION_LABELS: Record<string, string> = {
   'session.delete': 'Session Delete',
   'wall.post.delete': 'Wall Delete',
   'wall.post.create': 'Wall Create',
+  'resignation.approve': 'Resignation approved',
+  'resignation.deny': 'Resignation denied',
+  'resignation.cancel': 'Resignation removed',
 };
 
 export const PERMISSION_LABELS: Record<string, string> = {
@@ -78,6 +81,9 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'create_notices': 'Create notices',
   'approve_notices': 'Approve notices',
   'manage_notices': 'Manage notices',
+  'submit_resignation': 'Submit resignation',
+  'approve_resignations': 'Approve resignations',
+  'manage_resignations': 'Manage resignations',
   'create_quotas': 'Create quotas',
   'delete_quotas': 'Delete quotas',
   'view_member_profiles': 'Profiles - View',

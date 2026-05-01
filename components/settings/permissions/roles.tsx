@@ -83,6 +83,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
       "Approve notices": "approve_notices",
       "Manage notices": "manage_notices",
     },
+    Resignations: {
+      "Submit resignation": "submit_resignation",
+      "Approve resignations": "approve_resignations",
+      "Manage resignations": "manage_resignations",
+    },
     Quotas: {
       "Create quotas": "create_quotas",
       "Delete quotas": "delete_quotas",

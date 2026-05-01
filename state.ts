@@ -64,6 +64,7 @@ const workspacestate = atom({
 			sessionsEnabled: false,
 			alliesEnabled: false,
 			noticesEnabled: false,
+			resignationsEnabled: false,
 			leaderboardEnabled: false,
 			policiesEnabled: false,
 			widgets: [] as string[]

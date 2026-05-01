@@ -6,7 +6,8 @@ import home from './home'
 import Sessions from './sessions'
 import Leaderboard from './leaderboard'
 import Notices from './notices'
+import Resignations from './resignations'
 import Policies from './policies'
 import AuditLogs from './logs'
 import Admin from './admin'
-export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices, Admin };
+export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices, Resignations, Admin };

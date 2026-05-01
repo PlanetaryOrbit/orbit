@@ -34,6 +34,7 @@ model workspace {
   members           workspaceMember[]
   policyLinks       PolicyShareableLink[]
   stickyAnnouncements StickyAnnouncement[]
+  staffResignations   staffResignation[]
 }
 
 model config {
@@ -91,6 +92,8 @@ model user {
   roleMembers          RoleMember[]
   policyAcknowledgments PolicyAcknowledgment[]
   createdPolicyLinks   PolicyShareableLink[]
+  staffResignations    staffResignation[]
+  resignationsReviewed staffResignation[]      @relation("ResignationReviewer")
 }
 
 model DiscordUser {
@@ -364,6 +367,26 @@ model inactivityNotice {
   reviewComment    String?
   user             user      @relation(fields: [userId], references: [userid])
   workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+}
+
+model staffResignation {
+  id               String    @id @unique @default(uuid()) @db.Uuid
+  userId           BigInt
+  workspaceGroupId Int
+  lastWorkingDay   DateTime
+  reason           String
+  approved         Boolean?  @default(false)
+  reviewed         Boolean?  @default(false)
+  reviewComment    String?
+  reviewerId       BigInt?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             user      @relation(fields: [userId], references: [userid])
+  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  reviewer         user?     @relation("ResignationReviewer", fields: [reviewerId], references: [userid])
+
+  @@index([workspaceGroupId])
+  @@index([userId])
 }
 
 model document {

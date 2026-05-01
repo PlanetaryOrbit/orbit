@@ -132,6 +132,7 @@ export async function handler(
 		await prisma.userBook.deleteMany({ where: { workspaceGroupId: workspaceId } });
 		await prisma.rank.deleteMany({ where: { workspaceGroupId: workspaceId } });
 		await prisma.inactivityNotice.deleteMany({ where: { workspaceGroupId: workspaceId } });
+		await prisma.staffResignation.deleteMany({ where: { workspaceGroupId: workspaceId } });
 		await prisma.apiKey.deleteMany({ where: { workspaceGroupId: workspaceId } });
 		await prisma.allyVisit.deleteMany({
 			where: {

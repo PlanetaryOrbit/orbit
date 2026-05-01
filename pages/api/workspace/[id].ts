@@ -26,6 +26,7 @@ type Data = {
 			sessionsEnabled: boolean
 			alliesEnabled: boolean
 			noticesEnabled: boolean
+			resignationsEnabled: boolean
 			policiesEnabled: boolean
 			widgets: string[]
 		}
@@ -71,6 +72,7 @@ export async function handler(
 		sessionsConfig,
 		alliesConfig,
 		noticesConfig,
+		resignationsConfig,
 		policiesConfig,
 		homeConfig
 	] = await Promise.all([
@@ -105,6 +107,7 @@ export async function handler(
 		getConfig('sessions', workspace.groupId),
 		getConfig('allies', workspace.groupId),
 		getConfig('notices', workspace.groupId),
+		getConfig('resignations', workspace.groupId),
 		getConfig('policies', workspace.groupId),
 		getConfig('home', workspace.groupId)
 	]);
@@ -149,6 +152,9 @@ export async function handler(
 		"Create notices": "create_notices",
 		"Approve notices": "approve_notices",
 		"Manage notices": "manage_notices",
+		"Submit resignation": "submit_resignation",
+		"Approve resignations": "approve_resignations",
+		"Manage resignations": "manage_resignations",
 		"Create quotas": "create_quotas",
 		"Delete quotas": "delete_quotas",
 		"View member profiles": "view_member_profiles",
@@ -204,6 +210,7 @@ export async function handler(
 				sessionsEnabled: sessionsConfig?.enabled || false,
 				alliesEnabled: alliesConfig?.enabled || false,
 				noticesEnabled: noticesConfig?.enabled || false,
+				resignationsEnabled: resignationsConfig?.enabled || false,
 				policiesEnabled: policiesConfig?.enabled || false,
 				widgets: homeConfig?.widgets || []
 			}

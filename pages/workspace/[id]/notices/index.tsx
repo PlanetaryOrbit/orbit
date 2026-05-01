@@ -10,6 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { InferGetServerSidePropsType } from "next";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import prisma, { inactivityNotice, user } from "@/utils/database";
+import type { staffResignation } from "@prisma/client";
 import moment from "moment";
 import {
   IconCalendarTime,
@@ -23,6 +24,7 @@ import {
   IconBook,
   IconChevronDown,
   IconChevronUp,
+  IconDoorExit,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -69,6 +71,20 @@ type NoticeWithUser = inactivityNotice & {
   reviewComment?: string | null;
 };
 
+type ResignationWithUser = staffResignation & {
+  user: user & {
+    workspaceMemberships?: Array<{
+      departmentMembers?: Array<{
+        department: {
+          id: string;
+          name: string;
+          color: string | null;
+        };
+      }>;
+    }>;
+  };
+};
+
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ params, req }) => {
     const userId = req.session?.userid;
@@ -77,6 +93,15 @@ export const getServerSideProps = withPermissionCheckSsr(
         props: {
           userNotices: [],
           allNotices: [],
+          resignationsEnabled: false,
+          userResignations: [],
+          allResignations: [],
+          canApproveResignations: false,
+          canManageResignations: false,
+          canSubmitResignation: false,
+          canApproveNotices: false,
+          canManageNotices: false,
+          canCreateNotices: false,
         },
       };
     }
@@ -183,6 +208,78 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const resignConfig = await prisma.config.findFirst({
+      where: {
+        workspaceGroupId: workspaceId,
+        key: "resignations",
+      },
+    });
+
+    let resignationsEnabled = false;
+    if (resignConfig?.value) {
+      let rval = resignConfig.value;
+      if (typeof rval === "string") {
+        try {
+          rval = JSON.parse(rval);
+        } catch {
+          rval = {};
+        }
+      }
+      resignationsEnabled =
+        typeof rval === "object" &&
+        rval !== null &&
+        "enabled" in rval &&
+        !!(rval as { enabled?: boolean }).enabled;
+    }
+
+    const hasApproveResignations =
+      isAdmin ||
+      !!user?.roles.some((r) =>
+        r.permissions.includes("approve_resignations")
+      );
+    const hasManageResignations =
+      isAdmin ||
+      !!user?.roles.some((r) =>
+        r.permissions.includes("manage_resignations")
+      );
+    const hasSubmitResignation =
+      isAdmin ||
+      !!user?.roles.some((r) =>
+        r.permissions.includes("submit_resignation")
+      );
+
+    let userResignations: ResignationWithUser[] = [];
+    let allResignations: ResignationWithUser[] = [];
+
+    if (resignationsEnabled) {
+      const mineRows = await prisma.staffResignation.findMany({
+        where: { workspaceGroupId: workspaceId, userId: BigInt(userId) },
+        orderBy: { createdAt: "desc" },
+        include: { user: true },
+      });
+      userResignations = mineRows as ResignationWithUser[];
+
+      if (hasApproveResignations || hasManageResignations) {
+        const allRows = await prisma.staffResignation.findMany({
+          where: { workspaceGroupId: workspaceId },
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              include: {
+                workspaceMemberships: {
+                  where: { workspaceGroupId: workspaceId },
+                  include: {
+                    departmentMembers: { include: { department: true } },
+                  },
+                },
+              },
+            },
+          },
+        });
+        allResignations = allRows as ResignationWithUser[];
+      }
+    }
+
     return {
       props: {
         userNotices: JSON.parse(
@@ -195,6 +292,20 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ) as NoticeWithUser[],
+        userResignations: JSON.parse(
+          JSON.stringify(userResignations, (_k, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as ResignationWithUser[],
+        allResignations: JSON.parse(
+          JSON.stringify(allResignations, (_k, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ) as ResignationWithUser[],
+        resignationsEnabled,
+        canApproveResignations: hasApproveResignations,
+        canManageResignations: hasManageResignations,
+        canSubmitResignation: hasSubmitResignation,
         canApproveNotices: hasApprovePermission,
         canManageNotices: hasManagePermission,
         canCreateNotices: !!hasCreatePermission,
@@ -209,6 +320,12 @@ type pageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 interface NoticesPageProps {
   userNotices: NoticeWithUser[];
   allNotices: NoticeWithUser[];
+  resignationsEnabled: boolean;
+  userResignations: ResignationWithUser[];
+  allResignations: ResignationWithUser[];
+  canApproveResignations: boolean;
+  canManageResignations: boolean;
+  canSubmitResignation: boolean;
   canApproveNotices: boolean;
   canManageNotices: boolean;
   canCreateNotices: boolean;
@@ -217,6 +334,12 @@ interface NoticesPageProps {
 const Notices: pageWithLayout<NoticesPageProps> = ({
   userNotices: initialUserNotices,
   allNotices: initialAllNotices,
+  resignationsEnabled,
+  userResignations: initialUserResignations,
+  allResignations: initialAllResignations,
+  canApproveResignations,
+  canManageResignations,
+  canSubmitResignation,
   canApproveNotices,
   canManageNotices: canManageNoticesProp,
   canCreateNotices,
@@ -231,6 +354,15 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   const [allNotices, setAllNotices] = useState<NoticeWithUser[]>(
     initialAllNotices as NoticeWithUser[]
   );
+  const [userResignations, setUserResignations] = useState<
+    ResignationWithUser[]
+  >((initialUserResignations ?? []) as ResignationWithUser[]);
+  const [allResignations, setAllResignations] = useState<ResignationWithUser[]>(
+    (initialAllResignations ?? []) as ResignationWithUser[]
+  );
+  const [resignLastDay, setResignLastDay] = useState("");
+  const [resignReason, setResignReason] = useState("");
+  const [resignSubmitting, setResignSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"my-notices" | "manage-notices">(
     "my-notices"
   );
@@ -243,6 +375,26 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
     workspace.yourPermission?.includes("approve_notices") ||
     false;
   const hasManageAccess = canManageNoticesProp || workspace.yourPermission?.includes("manage_notices") || false;
+  const hasApproveResignationsAccess =
+    canApproveResignations ||
+    workspace.yourPermission?.includes("approve_resignations") ||
+    workspace.yourPermission?.includes("admin") ||
+    false;
+  const hasManageResignationsAccess =
+    canManageResignations ||
+    workspace.yourPermission?.includes("manage_resignations") ||
+    workspace.yourPermission?.includes("admin") ||
+    false;
+  const hasSubmitResignationAccess =
+    canSubmitResignation ||
+    workspace.yourPermission?.includes("submit_resignation") ||
+    workspace.yourPermission?.includes("admin") ||
+    false;
+  const showManageTab =
+    hasApproveAccess ||
+    hasManageAccess ||
+    (resignationsEnabled &&
+      (hasApproveResignationsAccess || hasManageResignationsAccess));
   const [reason, setReason] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -334,6 +486,65 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
     }
   };
 
+  const submitResignation = async () => {
+    if (!id || !resignLastDay || !resignReason.trim()) {
+      toast.error("Choose your last working day and add a reason.");
+      return;
+    }
+    const d = new Date(resignLastDay);
+    if (Number.isNaN(d.getTime())) {
+      toast.error("Invalid date.");
+      return;
+    }
+    setResignSubmitting(true);
+    try {
+      const res = await axios.post(`/api/workspace/${id}/resignations/create`, {
+        lastWorkingDay: d.getTime(),
+        reason: resignReason.trim(),
+      });
+      if (res.data.success) {
+        toast.success("Resignation submitted for review.");
+        setResignLastDay("");
+        setResignReason("");
+        window.location.reload();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to submit resignation");
+    } finally {
+      setResignSubmitting(false);
+    }
+  };
+
+  const updateResignation = async (
+    resignationId: string,
+    status: "approve" | "deny" | "cancel"
+  ) => {
+    if (!id) return;
+    try {
+      const res = await axios.post(`/api/workspace/${id}/resignations/update`, {
+        id: resignationId,
+        status,
+      });
+      if (res.data.success) {
+        if (status === "cancel") {
+          setAllResignations((prev) => prev.filter((r) => r.id !== resignationId));
+          setUserResignations((prev) => prev.filter((r) => r.id !== resignationId));
+        } else {
+          window.location.reload();
+        }
+        toast.success(
+          status === "cancel"
+            ? "Resignation removed"
+            : status === "approve"
+              ? "Resignation approved"
+              : "Resignation denied"
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to update resignation");
+    }
+  };
+
   const now = new Date();
   const myPendingNotices = userNotices.filter((n) => !n.reviewed);
   const myUpcomingNotices = userNotices.filter(
@@ -359,6 +570,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
       new Date(n.startTime) <= now &&
       new Date(n.endTime) >= now
   );
+  const pendingResignations = resignationsEnabled
+    ? allResignations.filter((r) => !r.reviewed)
+    : [];
+  const managePendingTotal =
+    pendingNotices.length + pendingResignations.length;
 
   return (
     <>
@@ -371,12 +587,16 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
             </h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
               {activeTab === "my-notices"
-                ? "Request time off and see your notices"
-                : "Review and manage team notices"}
+                ? resignationsEnabled
+                  ? "Request time off or submit a resignation"
+                  : "Request time off and see your notices"
+                : resignationsEnabled
+                  ? "Review time off and resignation requests"
+                  : "Review and manage team notices"}
             </p>
           </header>
 
-          {(hasApproveAccess || hasManageAccess) && (
+          {showManageTab && (
             <nav className="flex p-1 gap-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 w-fit mb-8">
               <button
                 onClick={() => setActiveTab("my-notices")}
@@ -399,15 +619,15 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
               >
                 <IconUsers className="w-4 h-4 shrink-0" />
                 <span>Manage Notices</span>
-                {pendingNotices.length > 0 && (
+                {managePendingTotal > 0 && (
                   <span className="min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold rounded-full bg-amber-500 text-white">
-                    {pendingNotices.length}
+                    {managePendingTotal}
                   </span>
                 )}
               </button>
             </nav>
           )}
-          {(!(hasApproveAccess || hasManageAccess) || activeTab === "my-notices") && (
+          {(!showManageTab || activeTab === "my-notices") && (
             <>
               {myActiveNotices.length > 0 && (
                 <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-6 mb-8">
@@ -566,6 +786,66 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 )}
               </div>
 
+              {resignationsEnabled && (
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-6 mb-8">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
+                      <IconDoorExit className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                        Resignation
+                      </h2>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        Submit your last working day and reason for leadership to approve.
+                      </p>
+                    </div>
+                  </div>
+                  {hasSubmitResignationAccess ? (
+                    <>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Last working day
+                        </label>
+                        <input
+                          type="date"
+                          value={resignLastDay}
+                          onChange={(e) => setResignLastDay(e.target.value)}
+                          min={moment().format("YYYY-MM-DD")}
+                          className="w-full max-w-xs px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <div className="mb-5">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          Reason
+                        </label>
+                        <textarea
+                          value={resignReason}
+                          onChange={(e) => setResignReason(e.target.value)}
+                          rows={4}
+                          placeholder="Brief explanation…"
+                          className="w-full px-3 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={submitResignation}
+                        disabled={
+                          resignSubmitting || !resignLastDay || !resignReason.trim()
+                        }
+                        className="px-4 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {resignSubmitting ? "Submitting…" : "Submit resignation"}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      You don&apos;t have permission to submit a resignation.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {userNotices.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
@@ -611,10 +891,148 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                   </div>
                 </div>
               )}
+
+              {resignationsEnabled && userResignations.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
+                    Your resignations
+                  </h3>
+                  <div className="space-y-4">
+                    {userResignations.map((r) => (
+                      <div
+                        key={r.id}
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                            <IconDoorExit className="w-4 h-4 shrink-0" />
+                            <span>
+                              Last day{" "}
+                              {moment(r.lastWorkingDay).format("MMM D, YYYY")}
+                            </span>
+                          </div>
+                          <span
+                            className={`shrink-0 px-2.5 py-1 text-xs font-medium rounded-lg ${
+                              !r.reviewed
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+                                : r.approved
+                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                  : "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300"
+                            }`}
+                          >
+                            {!r.reviewed
+                              ? "Pending"
+                              : r.approved
+                                ? "Approved"
+                                : "Denied"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                          {r.reason}
+                        </p>
+                        {r.reviewed && !r.approved && r.reviewComment && (
+                          <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-3">
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                              <span className="font-medium">Comment:</span>{" "}
+                              {r.reviewComment}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
-          {(hasApproveAccess || hasManageAccess) && activeTab === "manage-notices" && (
+          {showManageTab && activeTab === "manage-notices" && (
             <>
+              {resignationsEnabled && pendingResignations.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
+                    Pending resignations
+                  </h2>
+                  <div className="space-y-4">
+                    {pendingResignations.map((r) => (
+                      <div
+                        key={r.id}
+                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className={`w-11 h-11 rounded-xl overflow-hidden shrink-0 ${getRandomBg(
+                              r.user?.userid?.toString() ?? ""
+                            )}`}
+                          >
+                            <img
+                              src={r.user?.picture ?? "/default-avatar.jpg"}
+                              alt=""
+                              className="w-11 h-11 object-cover"
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                {r.user?.username}
+                              </h4>
+                              {r.user?.workspaceMemberships?.[0]?.departmentMembers?.map((dm: any) => (
+                                <span
+                                  key={dm.department.id}
+                                  className="px-2 py-0.5 text-xs font-medium rounded-lg text-white/95"
+                                  style={{ backgroundColor: dm.department.color || "#71717a" }}
+                                >
+                                  {dm.department.name}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                              Last day {moment(r.lastWorkingDay).format("MMM D, YYYY")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="rounded-xl bg-zinc-50 dark:bg-zinc-700/50 p-3 mb-4">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-white whitespace-pre-wrap">
+                            {r.reason}
+                          </p>
+                        </div>
+                        {hasApproveResignationsAccess ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => updateResignation(r.id, "approve")}
+                              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                            >
+                              <IconCheck className="w-4 h-4" />
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateResignation(r.id, "deny")}
+                              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors"
+                            >
+                              <IconX className="w-4 h-4" />
+                              Deny
+                            </button>
+                            {hasManageResignationsAccess && (
+                              <button
+                                type="button"
+                                onClick={() => updateResignation(r.id, "cancel")}
+                                className="px-4 py-2.5 text-sm font-medium rounded-xl border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            You don&apos;t have permission to approve resignations.
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {pendingNotices.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
@@ -669,6 +1087,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                             {notice.reason}
                           </p>
                         </div>
+                        {hasApproveAccess ? (
                         <div className="flex gap-2 pt-1">
                           <button
                             onClick={() => updateNotice(notice.id, "approve")}
@@ -685,6 +1104,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                             Deny
                           </button>
                         </div>
+                        ) : (
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-1">
+                            You don&apos;t have permission to approve notices.
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -831,9 +1255,37 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 </div>
               )}
 
+              {resignationsEnabled &&
+                allResignations.some((r) => r.reviewed && r.approved) && (
+                  <div className="mb-8">
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-4">
+                      Approved resignations
+                    </h3>
+                    <div className="space-y-3">
+                      {allResignations
+                        .filter((r) => r.reviewed && r.approved)
+                        .map((r) => (
+                          <div
+                            key={r.id}
+                            className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/40 px-4 py-3 flex flex-wrap items-center justify-between gap-2"
+                          >
+                            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                              {r.user?.username}
+                            </span>
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Last day{" "}
+                              {moment(r.lastWorkingDay).format("MMM D, YYYY")}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
               {pendingNotices.length === 0 &&
                 upcomingNotices.length === 0 &&
-                activeNotices.length === 0 && (
+                activeNotices.length === 0 &&
+                (!resignationsEnabled || pendingResignations.length === 0) && (
                   <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
                     <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
                       <IconCalendarTime className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
@@ -842,7 +1294,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                       All caught up
                     </h3>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      No pending, active, or upcoming notices right now.
+                      No pending time off or resignation requests to review right now.
                     </p>
                   </div>
                 )}

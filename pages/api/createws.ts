@@ -161,6 +161,11 @@ export async function handler(
 					value: { enabled: true }
 				},
 				{
+					key: 'resignations',
+					workspaceGroupId: groupId,
+					value: { enabled: false }
+				},
+				{
 					key: 'policies',
 					workspaceGroupId: groupId,
 					value: { enabled: false }

@@ -203,9 +203,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [alliesEnabled, setAlliesEnabled] = useState(false);
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [noticesEnabled, setNoticesEnabled] = useState(false);
+  const [resignationsEnabled, setResignationsEnabled] = useState(false);
   const [policiesEnabled, setPoliciesEnabled] = useState(false);
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
+  const [pendingResignationsCount, setPendingResignationsCount] = useState(0);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -272,6 +274,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isMobileMenuOpen]);
 
+  const navBadgeCount = (pageName: string) => {
+    if (pageName === "Policies") return pendingPolicyCount;
+    if (pageName === "Notices")
+      return pendingNoticesCount + pendingResignationsCount;
+    return 0;
+  };
+
   const pages: {
     name: string;
     href: string;
@@ -331,6 +340,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         setAlliesEnabled(data.value?.allies?.enabled ?? false);
         setSessionsEnabled(data.value?.sessions?.enabled ?? false);
         setNoticesEnabled(data.value?.notices?.enabled ?? false);
+        setResignationsEnabled(data.value?.resignations?.enabled ?? false);
         setPoliciesEnabled(data.value?.policies?.enabled ?? false);
       })
       .catch(() => setDocsEnabled(false));
@@ -353,6 +363,28 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         .catch(() => setPendingNoticesCount(0));
     }
   }, [workspace.groupId, noticesEnabled, workspace.yourPermission]);
+
+  useEffect(() => {
+    if (
+      noticesEnabled &&
+      resignationsEnabled &&
+      (workspace.yourPermission?.includes("approve_resignations") ||
+        workspace.yourPermission?.includes("manage_resignations") ||
+        workspace.yourPermission?.includes("admin"))
+    ) {
+      fetch(`/api/workspace/${workspace.groupId}/resignations/count`)
+        .then((res) => res.json())
+        .then((data) => data.success && setPendingResignationsCount(data.count || 0))
+        .catch(() => setPendingResignationsCount(0));
+    } else {
+      setPendingResignationsCount(0);
+    }
+  }, [
+    workspace.groupId,
+    noticesEnabled,
+    resignationsEnabled,
+    workspace.yourPermission,
+  ]);
 
   return (
     <>
@@ -476,7 +508,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       isActive
                         ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40",
-                      isCollapsed && "justify-center px-2"
+                      isCollapsed && "justify-center px-2 relative",
                     )}
                     style={{ WebkitTapHighlightColor: "transparent" }}
                   >
@@ -494,14 +526,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         )}
                       </>
                     )}
-                    {!isCollapsed && page.name === "Notices" && pendingNoticesCount > 0 && (
+                    {!isCollapsed && page.name !== "Policies" && navBadgeCount(page.name) > 0 && (
                       <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-amber-500 text-white text-xs font-semibold flex items-center justify-center">
-                        {pendingNoticesCount}
+                        {navBadgeCount(page.name)}
                       </span>
                     )}
-                    {isCollapsed && (page.name === "Policies" && pendingPolicyCount > 0 || page.name === "Notices" && pendingNoticesCount > 0) && (
+                    {isCollapsed && navBadgeCount(page.name) > 0 && (
                       <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                        {page.name === "Policies" ? pendingPolicyCount : pendingNoticesCount}
+                        {navBadgeCount(page.name)}
                       </span>
                     )}
                   </button>
@@ -633,10 +665,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           {bottomBarPages.map((page) => {
             const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
             const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
-            const hasBadge =
-              (page.name === "Policies" && pendingPolicyCount > 0) ||
-              (page.name === "Notices" && pendingNoticesCount > 0);
-            const badgeCount = page.name === "Policies" ? pendingPolicyCount : pendingNoticesCount;
+            const hasBadge = navBadgeCount(page.name) > 0;
+            const badgeCount = navBadgeCount(page.name);
 
             return (
               <button
@@ -754,10 +784,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               {morePages.map((page) => {
                 const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
                 const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
-                const hasBadge =
-                  (page.name === "Policies" && pendingPolicyCount > 0) ||
-                  (page.name === "Notices" && pendingNoticesCount > 0);
-                const badgeCount = page.name === "Policies" ? pendingPolicyCount : pendingNoticesCount;
+                const hasBadge = navBadgeCount(page.name) > 0;
+                const badgeCount = navBadgeCount(page.name);
 
                 return (
                   <button
