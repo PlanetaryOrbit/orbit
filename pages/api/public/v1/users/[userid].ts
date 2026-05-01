@@ -7,9 +7,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const apiKey = req.headers.authorization?.replace("Bearer ", "")
   if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
 
-  const { userId } = req.query
+  const { userid } = req.query
 
-  if (!userId) {
+  if (!userid) {
     return res.status(400).send({
       success: false,
       error: "No User ID provided."
@@ -39,12 +39,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const user = await prisma.user.findFirst({
       where: {
-        userid: BigInt(userId as string)
+        userid: BigInt(userid as string)
       },
       include: {
         discordUser: true,
         workspaceMemberships: true,
-        roles: true
+        ranks: true,
+        inactivityNotices: true,
+        activitySessions: true,
+        activityHistory: true,
+        googleUser: true,
+        info: true
       }
     });
 

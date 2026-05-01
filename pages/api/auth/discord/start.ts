@@ -9,8 +9,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(405).json({ error: 'Method not allowed' });
 	}
 
-	const originUrl = req.headers.host
-
 	let clientId: string | undefined;
 	clientId = process.env.DISCORD_APPLICATION_ID;
 	if (!clientId) {
@@ -41,7 +39,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	const authUrl = new URL('https://discord.com/oauth2/authorize');
 	authUrl.searchParams.set('client_id', clientId);
-	authUrl.searchParams.set('redirect_uri', `${originUrl?.includes('localhost') ? "http://" : "https://" }${originUrl}/api/auth/discord/callback`);
+	authUrl.searchParams.set('redirect_uri', `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`);
 	authUrl.searchParams.set('scope', 'identify');
 	authUrl.searchParams.set('response_type', 'code');
 	authUrl.searchParams.set('state', state);
