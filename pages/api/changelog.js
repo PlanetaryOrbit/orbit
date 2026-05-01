@@ -2,12 +2,30 @@ import Parser from "rss-parser";
 
 const FEED_URL = "https://feedback.planetaryapp.us/api/changelog/rss";
 
+function rewriteChangelogImageUrls(html) {
+	if (!html || typeof html !== "string") return html;
+	return html.replace(
+		/https:\/\/api-feedback\.planetaryapp\.us\/api\/changelog\/public\/([a-zA-Z0-9_-]+)\/image/g,
+		(_, changelogId) => `/api/changelog-image/${changelogId}`
+	);
+}
+
 function normalizeItem(item) {
+	const raw =
+		item.contentEncoded ||
+		item["content:encoded"] ||
+		item.content ||
+		item.content_html ||
+		item.contentSnippet ||
+		item.summary ||
+		item.description ||
+		item.content_text ||
+		"";
 	return {
 		title: item.title || "",
 		link: item.link || item.url || item.guid || "",
 		pubDate: item.pubDate || item.isoDate || item.pubdate || item.date_published || "",
-		content: item.contentEncoded || item["content:encoded"] || item.content || item.content_html || item.contentSnippet || item.summary || item.description || item.content_text || "",
+		content: rewriteChangelogImageUrls(raw),
 	};
 }
 
