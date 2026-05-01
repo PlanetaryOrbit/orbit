@@ -44,7 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       include: {
         discordUser: true,
         workspaceMemberships: true,
-        roles: true
+        ranks: true,
+        inactivityNotices: true,
+        activitySessions: true,
+        activityHistory: true,
+        googleUser: true,
+        info: true
       }
     });
 
