@@ -781,9 +781,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       )}
                     </div>
                     <span className="flex-1 text-sm font-medium truncate">{page.name}</span>
-                    {page.name === "Policies" && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-md leading-none">BETA</span>
-                    )}
                   </button>
                 );
               })}

@@ -39,9 +39,6 @@ const Policies: FC<props> = (props) => {
 					<div>
 						<div className="flex items-center gap-2">
 							<p className="text-sm font-medium text-zinc-900 dark:text-white">Policies</p>
-							<span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
-								BETA
-							</span>
 						</div>
 						<p className="text-xs text-zinc-500 dark:text-zinc-400">Manage and track policy acknowledgments</p>
 					</div>
