@@ -1673,7 +1673,6 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                             ...newPolicy,
                                             roles: [...newPolicy.roles, role.id],
                                           });
-                                          console.log(newPolicy)
                                         } else {
                                           setNewPolicy({
                                             ...newPolicy,
@@ -1681,7 +1680,6 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                               (r) => r !== role.id
                                             ),
                                           });
-                                          console.log(newPolicy)
                                         }
                                       }}
                                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
@@ -2466,7 +2464,6 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                               };
                                             }
                                           });
-                                          console.log(editPolicy)
                                         }}
                                         disabled={!hasEditPermission}
                                         className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
