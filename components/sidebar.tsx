@@ -518,7 +518,6 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     )}
                     {!isCollapsed && page.name === "Policies" && (
                       <>
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-md">BETA</span>
                         {pendingPolicyCount > 0 && (
                           <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-red-500 text-white text-xs font-semibold flex items-center justify-center">
                             {pendingPolicyCount}
