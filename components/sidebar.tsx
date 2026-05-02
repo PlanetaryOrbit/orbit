@@ -526,7 +526,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       </>
                     )}
                     {!isCollapsed && page.name !== "Policies" && navBadgeCount(page.name) > 0 && (
-                      <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-amber-500 text-white text-xs font-semibold flex items-center justify-center">
+                      <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[color:rgb(var(--group-theme))] text-white text-xs font-semibold flex items-center justify-center shadow-sm shadow-black/10 dark:shadow-black/30">
                         {navBadgeCount(page.name)}
                       </span>
                     )}

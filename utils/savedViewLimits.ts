@@ -1,1 +1,1 @@
-export const SAVED_VIEW_NAME_MAX_LENGTH = 25;
+export const SAVED_VIEW_NAME_MAX_LENGTH = 13;

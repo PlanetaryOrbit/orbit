@@ -6,6 +6,7 @@ import axios from 'axios';
 import { IconUserPlus, IconMusic, IconPencil, IconX, IconCheck, IconPlayerPlay, IconPlayerPause, IconSearch, IconLoader2, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { useRecoilState } from 'recoil';
 import { loginState } from '@/state';
+import clsx from 'clsx';
 
 interface NewMember {
   userid: string;
@@ -44,24 +45,8 @@ function proxyUrl(previewUrl: string): string {
   return `/api/music/preview?url=${encodeURIComponent(previewUrl)}`;
 }
 
-const BG_COLORS = [
-  "bg-rose-300", "bg-lime-300", "bg-teal-200", "bg-amber-300",
-  "bg-rose-200", "bg-lime-200", "bg-green-100", "bg-red-100",
-  "bg-yellow-200", "bg-amber-200", "bg-emerald-300", "bg-green-300",
-  "bg-red-300", "bg-emerald-200", "bg-green-200", "bg-red-200",
-];
-
-function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
-  let hash = 5381;
-  for (let i = 0; i < key.length; i++) {
-    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
-  }
-  return BG_COLORS[(hash >>> 0) % BG_COLORS.length];
-}
-
 function slotWidthPx(): number {
-  return 80 + 16;
+  return 120 + 24;
 }
 
 export default function NewToTeam() {
@@ -281,7 +266,7 @@ export default function NewToTeam() {
           )}
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 min-h-[132px]">
+        <div className="flex w-full items-center gap-2 sm:gap-3">
           {showArrows ? (
             <button
               type="button"
@@ -294,21 +279,22 @@ export default function NewToTeam() {
             </button>
           ) : null}
 
-          <div className="flex-1 min-w-0 flex justify-center overflow-hidden py-0.5">
-            <div className="flex flex-nowrap items-start justify-center gap-x-3 sm:gap-x-4">
+          <div className="flex-1 min-w-0 py-0.5">
+            <div className="flex w-full min-w-0 flex-nowrap items-start justify-start gap-x-5 sm:gap-x-6">
               {rowMembers.map((m) => {
             const isMe = m.userid === String(login?.userId);
             const song = parseSong(m.introSong);
             const isPlaying = playingId === m.userid;
+            const hasStatus = Boolean(song || m.introNote);
             return (
-              <div key={m.userid} className="flex flex-col items-center min-w-0 w-20 shrink-0">
-                <div className="relative w-16 h-16 shrink-0 mx-auto">
+              <div key={m.userid} className="flex max-w-[7.5rem] flex-col items-start min-w-0 shrink-0">
+                <div className="relative h-16 w-16 shrink-0">
                   <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden cursor-pointer`}>
+                    <div className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary">
                       <img
                         src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
                         alt={m.username}
-                        className="w-16 h-16 object-cover rounded-full border-2 border-white"
+                        className="h-16 w-16 rounded-full border-2 border-white object-cover"
                         loading="lazy"
                       />
                     </div>
@@ -316,51 +302,72 @@ export default function NewToTeam() {
                   {isMe && (
                     <button
                       onClick={openEdit}
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 transition-colors"
+                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary shadow-sm transition-colors hover:bg-primary/90"
                       title="Edit your intro"
                     >
-                      <IconPencil className="w-2.5 h-2.5 text-white" />
+                      <IconPencil className="h-2.5 w-2.5 text-white" />
                     </button>
                   )}
                 </div>
-                {song ? (
-                  <button
-                    type="button"
-                    onClick={() => togglePlay(m)}
-                    className={`mt-2 mx-auto flex h-6 w-[3.75rem] max-w-[3.75rem] shrink-0 items-center gap-px bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0 pl-0.5 pr-0.5 shadow-sm hover:bg-zinc-700/90 group overflow-hidden ${
-                      isPlaying ? "ring-1 ring-primary/40" : ""
-                    }`}
-                    title={isPlaying ? "Pause" : `${song.title} – ${song.artist}`}
-                  >
-                    <img src={song.artwork} alt="" className="w-3 h-3 rounded-full shrink-0 object-cover" />
-                    <span className="min-w-0 flex-1 truncate text-[8px] leading-none text-white text-left">
-                      {song.title}
-                    </span>
-                    <span className="shrink-0 pr-px">
-                      {isPlaying ? (
-                        <IconPlayerPause className="w-2 h-2 text-primary" />
-                      ) : (
-                        <IconPlayerPlay className="w-2 h-2 text-zinc-300 group-hover:text-white" />
-                      )}
-                    </span>
-                  </button>
-                ) : m.introNote ? (
-                  <div className="mt-2 mx-auto flex h-6 w-[3.75rem] max-w-[3.75rem] shrink-0 items-center justify-center gap-px bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-0.5 shadow-sm overflow-hidden">
-                    <IconMusic className="w-2 h-2 text-primary shrink-0" />
-                    <span className="min-w-0 flex-1 truncate text-center text-[8px] leading-none text-white">{m.introNote.slice(0, 12)}</span>
-                  </div>
-                ) : null}
                 <div
-                  className={`text-xs font-medium text-center text-zinc-700 dark:text-zinc-300 truncate w-full max-w-full px-0.5 ${song || m.introNote ? "mt-2" : "mt-3"}`}
+                  className={clsx(
+                    "w-full truncate text-left text-xs font-medium text-zinc-700 dark:text-zinc-300",
+                    hasStatus ? "mt-2" : "mt-3",
+                  )}
                   title={m.username}
                 >
                   {m.username}
                 </div>
-                {m.introNote && song && (
-                  <div className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500 w-full max-w-full text-center truncate px-0.5" title={m.introNote}>
-                    {m.introNote.slice(0, 15)}
+                {hasStatus ? (
+                  <div className="mt-1 flex w-full min-w-0 items-start gap-1.5">
+                    {song ? (
+                      <button
+                        type="button"
+                        onClick={() => togglePlay(m)}
+                        className={clsx(
+                          "group/play relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-800",
+                          isPlaying && "ring-1 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-zinc-800",
+                        )}
+                        aria-label={isPlaying ? "Pause preview" : `Play preview: ${song.title}`}
+                      >
+                        <span className="relative block h-6 w-6">
+                          <img
+                            src={song.artwork}
+                            alt=""
+                            className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-600"
+                          />
+                          <span className="absolute -bottom-px -right-px flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary shadow-sm">
+                            {isPlaying ? (
+                              <IconPlayerPause className="h-2 w-2 text-white" stroke={2} />
+                            ) : (
+                              <IconPlayerPlay className="h-2 w-2 translate-x-px text-white" stroke={2} />
+                            )}
+                          </span>
+                        </span>
+                        <span className="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-1 w-max max-w-[11rem] -translate-x-1/2 rounded-md bg-zinc-900 px-2 py-1 text-left text-[10px] text-white opacity-0 shadow-lg transition-all group-hover/play:visible group-hover/play:opacity-100 dark:bg-zinc-950">
+                          <span className="block truncate font-medium">{song.title}</span>
+                          <span className="block truncate text-zinc-400">{song.artist}</span>
+                        </span>
+                      </button>
+                    ) : (
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
+                        <IconMusic className="h-3 w-3 text-primary" />
+                      </span>
+                    )}
+                    {m.introNote ? (
+                      <p
+                        className="min-w-0 flex-1 text-left text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 line-clamp-3"
+                        title={m.introNote}
+                      >
+                        {m.introNote}
+                      </p>
+                    ) : song ? (
+                      <span className="sr-only">
+                        {song.title} – {song.artist}
+                      </span>
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </div>
             );
             })}

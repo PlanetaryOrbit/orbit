@@ -620,7 +620,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                 <IconUsers className="w-4 h-4 shrink-0" />
                 <span>Manage Notices</span>
                 {managePendingTotal > 0 && (
-                  <span className="min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold rounded-full bg-amber-500 text-white">
+                  <span className="min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center text-xs font-semibold rounded-full bg-[color:rgb(var(--group-theme))] text-white shadow-sm shadow-black/10 dark:shadow-black/30">
                     {managePendingTotal}
                   </span>
                 )}
