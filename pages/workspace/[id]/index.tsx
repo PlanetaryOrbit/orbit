@@ -227,11 +227,13 @@ const Home: pageWithLayout = () => {
       .then((r) => r.json())
       .then((data) => { if (data.banner) setBanner(data.banner) })
       .catch(() => { });
-  }, [workspace?.groupId])
+  }, [workspace?.groupId]);
+
+  console.log(workspaceMembership, login, )
 
   return (
     <div className="pagePadding">
-      <div className="max-w-5xl mx-auto">{(workspaceMembership && workspaceMembership.isAdmin || login.isOwner && workspace.lastSyncedSuccessful == false && !syncWarnDismissed) && (
+      <div className="max-w-5xl mx-auto">{((workspaceMembership?.isAdmin || login.isOwner) && workspace.lastSyncedSuccessful === false && !syncWarnDismissed) && (
           <div className="mt-4 mb-5 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-3.5 py-3">
             <div className="flex items-start gap-2.5">
               <IconAlertTriangle
