@@ -248,7 +248,7 @@ const Home: pageWithLayout = () => {
             </div>
             <div className="flex items-center gap-2 pl-6">
               <button
-                onClick={() => router.push("YOUR_ROTATE_KEYS_URL")}
+                onClick={() => router.push(`/workspace/${workspace.groupId}/settings`)}
                 className="text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500 dark:bg-amber-500/20 text-white dark:text-amber-300 hover:opacity-80 transition-opacity"
               >
                 Rotate keys
