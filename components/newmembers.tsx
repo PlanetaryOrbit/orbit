@@ -46,7 +46,12 @@ function proxyUrl(previewUrl: string): string {
 }
 
 function slotWidthPx(): number {
-  return 120 + 24;
+  return 72 + 16;
+}
+
+function truncateUsername(username: string, maxLen = 13): string {
+  if (username.length <= maxLen) return username;
+  return `${username.slice(0, maxLen)}…`;
 }
 
 export default function NewToTeam() {
@@ -266,111 +271,124 @@ export default function NewToTeam() {
           )}
         </div>
 
-        <div className="flex w-full items-center gap-2 sm:gap-3">
+        <div
+          className={
+            showArrows
+              ? "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 sm:gap-x-3"
+              : "w-full"
+          }
+        >
           {showArrows ? (
             <button
               type="button"
               aria-label="Show previous people"
               disabled={safePage <= 0}
               onClick={goPrev}
-              className="shrink-0 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-30 dark:border-zinc-600 dark:bg-zinc-700/80 dark:text-zinc-200 dark:hover:bg-zinc-600 sm:h-10 sm:w-10"
             >
-              <IconChevronLeft className="w-5 h-5" stroke={2} />
+              <IconChevronLeft className="h-5 w-5" stroke={2} />
             </button>
           ) : null}
 
-          <div className="flex-1 min-w-0 py-0.5">
-            <div className="flex w-full min-w-0 flex-nowrap items-start justify-start gap-x-5 sm:gap-x-6">
+          <div className="min-w-0 overflow-x-auto py-0.5 scrollbar-hide">
+            <div className="flex w-full min-w-0 justify-between gap-x-2 sm:gap-x-3">
               {rowMembers.map((m) => {
-            const isMe = m.userid === String(login?.userId);
-            const song = parseSong(m.introSong);
-            const isPlaying = playingId === m.userid;
-            const hasStatus = Boolean(song || m.introNote);
-            return (
-              <div key={m.userid} className="flex max-w-[7.5rem] flex-col items-start min-w-0 shrink-0">
-                <div className="relative h-16 w-16 shrink-0">
-                  <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
-                    <div className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary">
-                      <img
-                        src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
-                        alt={m.username}
-                        className="h-16 w-16 rounded-full border-2 border-white object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  </Link>
-                  {isMe && (
-                    <button
-                      onClick={openEdit}
-                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary shadow-sm transition-colors hover:bg-primary/90"
-                      title="Edit your intro"
-                    >
-                      <IconPencil className="h-2.5 w-2.5 text-white" />
-                    </button>
-                  )}
-                </div>
-                <div
-                  className={clsx(
-                    "w-full truncate text-left text-xs font-medium text-zinc-700 dark:text-zinc-300",
-                    hasStatus ? "mt-2" : "mt-3",
-                  )}
-                  title={m.username}
-                >
-                  {m.username}
-                </div>
-                {hasStatus ? (
-                  <div className="mt-1 flex w-full min-w-0 items-start gap-1.5">
-                    {song ? (
-                      <button
-                        type="button"
-                        onClick={() => togglePlay(m)}
-                        className={clsx(
-                          "group/play relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-800",
-                          isPlaying && "ring-1 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-zinc-800",
-                        )}
-                        aria-label={isPlaying ? "Pause preview" : `Play preview: ${song.title}`}
-                      >
-                        <span className="relative block h-6 w-6">
-                          <img
-                            src={song.artwork}
-                            alt=""
-                            className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-600"
-                          />
-                          <span className="absolute -bottom-px -right-px flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary shadow-sm">
-                            {isPlaying ? (
-                              <IconPlayerPause className="h-2 w-2 text-white" stroke={2} />
-                            ) : (
-                              <IconPlayerPlay className="h-2 w-2 translate-x-px text-white" stroke={2} />
-                            )}
-                          </span>
-                        </span>
-                        <span className="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-1 w-max max-w-[11rem] -translate-x-1/2 rounded-md bg-zinc-900 px-2 py-1 text-left text-[10px] text-white opacity-0 shadow-lg transition-all group-hover/play:visible group-hover/play:opacity-100 dark:bg-zinc-950">
-                          <span className="block truncate font-medium">{song.title}</span>
-                          <span className="block truncate text-zinc-400">{song.artist}</span>
-                        </span>
-                      </button>
-                    ) : (
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
-                        <IconMusic className="h-3 w-3 text-primary" />
-                      </span>
+                const isMe = m.userid === String(login?.userId);
+                const song = parseSong(m.introSong);
+                const isPlaying = playingId === m.userid;
+                const hasNote = Boolean(m.introNote?.trim());
+                const equalColumns = rowMembers.length > 1;
+                return (
+                  <div
+                    key={m.userid}
+                    className={clsx(
+                      "flex min-w-0 flex-col items-center",
+                      equalColumns ? "flex-1 basis-0" : "w-auto shrink-0",
                     )}
-                    {m.introNote ? (
-                      <p
-                        className="min-w-0 flex-1 text-left text-[10px] leading-snug text-zinc-500 dark:text-zinc-400 line-clamp-3"
-                        title={m.introNote}
-                      >
-                        {m.introNote}
-                      </p>
-                    ) : song ? (
-                      <span className="sr-only">
-                        {song.title} – {song.artist}
-                      </span>
-                    ) : null}
+                  >
+                    <div className="relative h-16 w-16 shrink-0">
+                      <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
+                        <div className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary">
+                          <img
+                            src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
+                            alt={m.username}
+                            className="h-16 w-16 rounded-full border-2 border-white object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      </Link>
+                      {isMe && (
+                        <button
+                          onClick={openEdit}
+                          className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary shadow-sm transition-colors hover:bg-primary/90"
+                          title="Edit your intro"
+                        >
+                          <IconPencil className="h-2.5 w-2.5 text-white" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div
+                      className="mt-2 w-full truncate text-center text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                      title={m.username}
+                    >
+                      {truncateUsername(m.username)}
+                    </div>
+
+                    <div className="mt-1.5 flex h-9 w-full min-w-0 items-center justify-center gap-1.5 px-0.5">
+                      {song ? (
+                        <button
+                          type="button"
+                          onClick={() => togglePlay(m)}
+                          className={clsx(
+                            "group/play relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-800",
+                            isPlaying &&
+                              "ring-1 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-zinc-800",
+                          )}
+                          aria-label={isPlaying ? "Pause preview" : `Play preview: ${song.title}`}
+                        >
+                          <span className="relative block h-6 w-6">
+                            <img
+                              src={song.artwork}
+                              alt=""
+                              className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-600"
+                            />
+                            <span className="absolute -bottom-px -right-px flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary shadow-sm">
+                              {isPlaying ? (
+                                <IconPlayerPause className="h-2 w-2 text-white" stroke={2} />
+                              ) : (
+                                <IconPlayerPlay className="h-2 w-2 translate-x-px text-white" stroke={2} />
+                              )}
+                            </span>
+                          </span>
+                          <span className="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-1 w-max max-w-[11rem] -translate-x-1/2 rounded-md bg-zinc-900 px-2 py-1 text-left text-[10px] text-white opacity-0 shadow-lg transition-all group-hover/play:visible group-hover/play:opacity-100 dark:bg-zinc-950">
+                            <span className="block truncate font-medium">{song.title}</span>
+                            <span className="block truncate text-zinc-400">{song.artist}</span>
+                          </span>
+                        </button>
+                      ) : null}
+                      {!song && hasNote ? (
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
+                          <IconMusic className="h-3 w-3 text-primary" />
+                        </span>
+                      ) : null}
+                      {hasNote ? (
+                        <p
+                          className="min-w-0 max-w-[min(100%,7rem)] truncate text-left text-[10px] leading-tight text-zinc-500 dark:text-zinc-400"
+                          title={m.introNote ?? ""}
+                        >
+                          {m.introNote}
+                        </p>
+                      ) : null}
+                      {song && !hasNote ? (
+                        <span className="sr-only">
+                          {song.title} – {song.artist}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
-              </div>
-            );
-            })}
+                );
+              })}
             </div>
           </div>
 
@@ -380,9 +398,9 @@ export default function NewToTeam() {
               aria-label="Show next people"
               disabled={safePage >= totalPages - 1}
               onClick={goNext}
-              className="shrink-0 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-30 dark:border-zinc-600 dark:bg-zinc-700/80 dark:text-zinc-200 dark:hover:bg-zinc-600 sm:h-10 sm:w-10"
             >
-              <IconChevronRight className="w-5 h-5" stroke={2} />
+              <IconChevronRight className="h-5 w-5" stroke={2} />
             </button>
           ) : null}
         </div>
