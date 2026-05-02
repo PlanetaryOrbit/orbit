@@ -11,6 +11,9 @@
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.2.0",
     "@intercom/messenger-js-sdk": "^0.0.14",

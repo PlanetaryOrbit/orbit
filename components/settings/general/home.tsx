@@ -1,4 +1,21 @@
 import axios from "axios";
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
@@ -13,6 +30,66 @@ import {
   isHomeWidgetId,
   type HomeWidgetId,
 } from "@/utils/homeWidgets";
+
+type WidgetSortRowProps = {
+  id: HomeWidgetId;
+  label: string;
+  onRemove: () => void;
+};
+
+function WidgetSortRow({ id, label, onRemove }: WidgetSortRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={clsx(
+        "flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-zinc-900/40 transition-opacity",
+        isDragging
+          ? "opacity-80 border-primary/50 shadow-lg z-10"
+          : "border-zinc-200 dark:border-zinc-700",
+      )}
+    >
+      <button
+        type="button"
+        ref={setActivatorNodeRef}
+        className={clsx(
+          "shrink-0 p-1 rounded-md cursor-grab active:cursor-grabbing text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 touch-manipulation",
+          isDragging && "cursor-grabbing",
+        )}
+        style={{ touchAction: "none" }}
+        aria-label={`Drag to reorder ${label}`}
+        {...attributes}
+        {...listeners}
+      >
+        <IconGripVertical className="w-5 h-5 pointer-events-none" aria-hidden />
+      </button>
+      <span className="flex-1 text-sm font-medium text-zinc-900 dark:text-white">
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+      >
+        Remove
+      </button>
+    </div>
+  );
+}
+
 type props = {
   triggerToast: typeof toast;
   isSidebarExpanded?: boolean;
@@ -27,7 +104,14 @@ const home: FC<props> = (props) => {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [iconRefreshing, setIconRefreshing] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
-  const [draggingId, setDraggingId] = useState<HomeWidgetId | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const enabledOrdered = useMemo(
     () => normalizeHomeWidgetOrder(workspace.settings.widgets),
@@ -39,15 +123,17 @@ const home: FC<props> = (props) => {
     [enabledOrdered],
   );
 
-  const reorderWidgets = (sourceId: string, targetId: string) => {
-    if (!isHomeWidgetId(sourceId) || !isHomeWidgetId(targetId)) return;
+  const handleWidgetDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (!isHomeWidgetId(activeId) || !isHomeWidgetId(overId)) return;
     const normalized = normalizeHomeWidgetOrder(workspace.settings.widgets);
-    const si = normalized.indexOf(sourceId);
-    const ti = normalized.indexOf(targetId);
-    if (si === -1 || ti === -1) return;
-    const next = [...normalized];
-    next.splice(si, 1);
-    next.splice(ti, 0, sourceId);
+    const oldIndex = normalized.indexOf(activeId);
+    const newIndex = normalized.indexOf(overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const next = arrayMove(normalized, oldIndex, newIndex);
     setWorkspace({
       ...workspace,
       settings: {
@@ -270,49 +356,22 @@ const home: FC<props> = (props) => {
           <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wide">
             Enabled — drag to reorder
           </p>
-          {enabledOrdered.map((id) => (
-            <div
-              key={id}
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData("text/plain", id);
-                e.dataTransfer.effectAllowed = "move";
-                setDraggingId(id);
-              }}
-              onDragEnd={() => setDraggingId(null)}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                const source = e.dataTransfer.getData("text/plain");
-                setDraggingId(null);
-                if (source && source !== id) reorderWidgets(source, id);
-              }}
-              className={clsx(
-                "flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-zinc-900/40 transition-opacity",
-                draggingId === id
-                  ? "opacity-60 border-primary/50"
-                  : "border-zinc-200 dark:border-zinc-700",
-              )}
-            >
-              <IconGripVertical
-                className="w-5 h-5 text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing touch-none"
-                aria-hidden
-              />
-              <span className="flex-1 text-sm font-medium text-zinc-900 dark:text-white">
-                {HOME_WIDGET_LABELS[id]}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeWidget(id)}
-                className="text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleWidgetDragEnd}
+          >
+            <SortableContext items={enabledOrdered} strategy={verticalListSortingStrategy}>
+              {enabledOrdered.map((id) => (
+                <WidgetSortRow
+                  key={id}
+                  id={id}
+                  label={HOME_WIDGET_LABELS[id]}
+                  onRemove={() => removeWidget(id)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
       ) : (
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
