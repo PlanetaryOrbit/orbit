@@ -456,17 +456,20 @@ model Quota {
 }
 
 model Ally {
-  workspaceGroupId Int
-  name             String
-  icon             String
-  groupId          String
-  notes            String[]
-  discordServer    String?
-  theirReps        String[]
-  id               String      @id @unique @default(uuid()) @db.Uuid
-  workspace        workspace   @relation(fields: [workspaceGroupId], references: [groupId])
-  allyVisits       allyVisit[]
-  reps             user[]      @relation("AllyTouser")
+  workspaceGroupId           Int
+  name                       String
+  icon                       String
+  groupId                    String
+  notes                      String[]
+  discordServer              String?
+  theirReps                  String[]
+  strikes                    Int         @default(0)
+  terminationEffectiveDate   DateTime?
+  terminationReason          String?
+  id                         String      @id @unique @default(uuid()) @db.Uuid
+  workspace                  workspace   @relation(fields: [workspaceGroupId], references: [groupId])
+  allyVisits                 allyVisit[]
+  reps                       user[]      @relation("AllyTouser")
 }
 
 model allyVisit {

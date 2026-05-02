@@ -10,4 +10,5 @@ import Resignations from './resignations'
 import Policies from './policies'
 import AuditLogs from './logs'
 import Admin from './admin'
-export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices, Resignations, Admin };
+import Other from './other'
+export { home, Color, Guide, Alliances, Sessions, Activity, Leaderboard, AuditLogs, Policies, Notices, Resignations, Admin, Other };

@@ -2,7 +2,7 @@
 
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState } from "@/state"
-import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation, IconHourglassHigh, IconLink } from "@tabler/icons-react"
+import { IconChevronRight, IconHome, IconLock, IconFlag, IconKey, IconServer, IconBellExclamation, IconHourglassHigh, IconLink, IconAdjustments } from "@tabler/icons-react"
 import Permissions from "@/components/settings/permissions"
 import Workspace from "@/layouts/workspace"
 import { useRecoilState } from "recoil"
@@ -219,6 +219,18 @@ const SECTIONS = {
       title: Component.title,
     })),
   },
+  other: {
+    name: "Other",
+    icon: IconAdjustments,
+    description: "Extra workspace preferences",
+    components: Object.entries(All)
+      .filter(([key]) => key === "Other")
+      .map(([key, Component]) => ({
+        key,
+        component: Component,
+        title: Component.title,
+      })),
+  },
 }
 
 const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles, isAdmin, userPermissions }) => {
@@ -236,6 +248,8 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
   const canAccessPermissions = isAdmin || hasPermission('admin'); // Admins or admin permission
   const canAccessAudit = hasPermission('view_audit_logs');
   const canAccessInstance = isAdmin || hasPermission('admin'); // Admins or admin permission
+  const canAccessOther =
+    hasPermission('manage_features') || hasPermission('workspace_customisation');
 
   const availableSections = Object.entries(SECTIONS).filter(([key]) => {
     if (key === 'general') return canAccessGeneral;
@@ -246,6 +260,7 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
     if (key === 'audit') return canAccessAudit;
     if (key === 'instance') return canAccessInstance;
     if (key === 'integration') return canAccessPermissions && canAccessApi; // api access is required, upon download it'll create a key and assign to that user, a key.
+    if (key === 'other') return canAccessOther;
     return false;
   });
 

@@ -2,6 +2,7 @@ import { atom, selector } from "recoil";
 import Router from "next/router";
 import { role } from "@prisma/client";
 import axios from "axios";
+import { ALLIANCE_STRIKES_DEFAULT_MAX } from "@/utils/allianceStrikesConfig";
 export type workspaceinfo = {
 	groupId: number;
 	groupThumbnail: string;
@@ -67,7 +68,8 @@ const workspacestate = atom({
 			resignationsEnabled: false,
 			leaderboardEnabled: false,
 			policiesEnabled: false,
-			widgets: [] as string[]
+			widgets: [] as string[],
+			allianceMaxStrikes: ALLIANCE_STRIKES_DEFAULT_MAX,
 		}
 	}
 });

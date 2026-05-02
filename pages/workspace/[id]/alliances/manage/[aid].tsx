@@ -33,7 +33,14 @@ import {
   IconUserCheck,
   IconEdit,
   IconExternalLink,
+  IconBolt,
+  IconAlertTriangle,
+  IconMinus,
 } from "@tabler/icons-react";
+import {
+  ALLIANCE_STRIKES_DEFAULT_MAX,
+  normalizeAllianceMaxStrikes,
+} from "@/utils/allianceStrikesConfig";
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ req, res, params }) => {
@@ -88,8 +95,14 @@ export const getServerSideProps = withPermissionCheckSsr(
       })
     );
 
-    let infoAlly = ally;
-    infoAlly.reps = infoReps;
+    const infoAlly = {
+      ...ally,
+      reps: infoReps,
+      terminationEffectiveDate:
+        ally.terminationEffectiveDate != null
+          ? new Date(ally.terminationEffectiveDate).toISOString()
+          : null,
+    };
     const eligibleIds = new Set(infoUsers.map((u: any) => Number(u.userid)));
     const repIds = new Set(infoReps.map((r: any) => Number(r.userid)));
     const allDbIdsRaw = await prisma.user.findMany({
@@ -187,6 +200,12 @@ export const getServerSideProps = withPermissionCheckSsr(
       currentUser?.roles[0]?.permissions?.includes("delete_alliance_visits") ||
       false;
 
+    const hasManageDiscipline =
+      currentUser?.roles[0]?.isOwnerRole ||
+      currentUser?.roles[0]?.permissions?.includes("edit_alliance_details") ||
+      currentUser?.roles[0]?.permissions?.includes("delete_alliances") ||
+      false;
+
     if (!isAllyRep && !hasManagePermissions) {
       res.writeHead(302, {
         Location: `/workspace/${params?.id}/alliances`,
@@ -194,6 +213,11 @@ export const getServerSideProps = withPermissionCheckSsr(
       res.end();
       return;
     }
+
+    const strikeCfg = await getConfig("alliance_strikes", wsId);
+    const allianceMaxStrikes = normalizeAllianceMaxStrikes(
+      strikeCfg?.maxStrikes ?? ALLIANCE_STRIKES_DEFAULT_MAX,
+    );
 
     return {
       props: {
@@ -208,6 +232,8 @@ export const getServerSideProps = withPermissionCheckSsr(
         canAddVisits: hasAddVisits,
         canEditVisits: hasEditVisits,
         canDeleteVisits: hasDeleteVisits,
+        canManageDiscipline: hasManageDiscipline,
+        allianceMaxStrikes,
       },
     };
   }
@@ -249,6 +275,14 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const canAddVisits: boolean = Boolean(props.canAddVisits);
   const canEditVisits: boolean = Boolean(props.canEditVisits);
   const canDeleteVisits: boolean = Boolean(props.canDeleteVisits);
+  const canManageDiscipline: boolean = Boolean(props.canManageDiscipline);
+
+  const allianceMaxStrikes = normalizeAllianceMaxStrikes(
+    props.allianceMaxStrikes ?? ALLIANCE_STRIKES_DEFAULT_MAX,
+  );
+
+  const strikesCount = Number(ally.strikes ?? 0);
+  const meterFilled = Math.min(strikesCount, allianceMaxStrikes);
 
   const BG_COLORS = [
     "bg-rose-300",
@@ -317,7 +351,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const saveAllianceInfo = async () => {
     const filteredTheirReps = theirReps.filter((rep: string) => rep.trim());
 
-    // Save alliance info
     const allianceInfoPromise = axios.post(
       `/api/workspace/${id}/allies/${ally.id}/update`,
       {
@@ -327,7 +360,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       }
     );
 
-    // Use old rep api
     const repsPromise = axios.patch(
       `/api/workspace/${id}/allies/${ally.id}/reps`,
       { reps: reps }
@@ -367,6 +399,12 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       error: "Representatives were unable to save.",
     });
   };
+
+  const [termModalOpen, setTermModalOpen] = useState(false);
+  const [termEffective, setTermEffective] = useState("");
+  const [termReasonDraft, setTermReasonDraft] = useState("");
+  const [strikeModalOpen, setStrikeModalOpen] = useState(false);
+  const [strikeReasonDraft, setStrikeReasonDraft] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
@@ -429,7 +467,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     const newNoteIndex = notes.length;
     setNotes([...notes, ""]);
     setEditNotes([...editNotes, newNoteIndex]);
-    setNewNotes([...newNotes, newNoteIndex]); // Track this as a new note
+    setNewNotes([...newNotes, newNoteIndex]);
   };
 
   const deleteNote = async (index: any) => {
@@ -493,7 +531,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     visitTime: any,
     visitParticipants?: number[]
   ) => {
-    // Format the time for datetime-local input (YYYY-MM-DDTHH:MM)
     const formattedTime = new Date(visitTime).toISOString().slice(0, 16);
 
     setEditContent({
@@ -504,7 +541,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     });
     setEditSelectedParticipants(visitParticipants || []);
 
-    // Reset the form with the new values
     editform.reset({
       name: visitName,
       time: formattedTime,
@@ -557,11 +593,92 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     },
   });
 
+  const terminationMoment = ally.terminationEffectiveDate
+    ? moment(ally.terminationEffectiveDate)
+    : null;
+
+  const patchStrikes = (
+    next: number,
+    opts?: { strikeReason?: string; onSuccess?: () => void },
+  ) => {
+    const cap = allianceMaxStrikes;
+    const clamped = Math.min(cap, Math.max(0, Math.floor(next)));
+    const payload: { strikes: number; strikeReason?: string } = { strikes: clamped };
+    if (opts?.strikeReason !== undefined && clamped > strikesCount) {
+      payload.strikeReason = opts.strikeReason.trim();
+    }
+    const req = axios
+      .patch(`/api/workspace/${id}/allies/${ally.id}/discipline`, payload)
+      .then(() => {
+        opts?.onSuccess?.();
+        router.reload();
+      });
+    toast.promise(req, {
+      loading: "Saving strikes…",
+      success: "Strike count updated",
+      error: (e: any) => e?.response?.data?.error ?? "Could not update strikes",
+    });
+  };
+
+  const openStrikeModal = () => {
+    setStrikeReasonDraft("");
+    setStrikeModalOpen(true);
+  };
+
+  const submitAddStrike = () => {
+    const r = strikeReasonDraft.trim();
+    if (r.length < 3) {
+      toast.error("Enter a reason (at least 3 characters).");
+      return;
+    }
+    patchStrikes(strikesCount + 1, {
+      strikeReason: r,
+      onSuccess: () => setStrikeModalOpen(false),
+    });
+  };
+
+  const openTerminationModal = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    setTermEffective(d.toISOString().slice(0, 16));
+    setTermReasonDraft("");
+    setTermModalOpen(true);
+  };
+
+  const submitTerminationSchedule = () => {
+    const req = axios
+      .patch(`/api/workspace/${id}/allies/${ally.id}/discipline`, {
+        termination: {
+          effectiveDate: new Date(termEffective).toISOString(),
+          reason: termReasonDraft.trim(),
+        },
+      })
+      .then(() => {
+        setTermModalOpen(false);
+        router.reload();
+      });
+    toast.promise(req, {
+      loading: "Scheduling termination…",
+      success: "Termination scheduled",
+      error: "Could not schedule termination",
+    });
+  };
+
+  const clearTermination = () => {
+    const req = axios
+      .patch(`/api/workspace/${id}/allies/${ally.id}/discipline`, { termination: null })
+      .then(() => router.reload());
+    toast.promise(req, {
+      loading: "Removing schedule…",
+      success: "Termination schedule cleared",
+      error: "Could not clear termination",
+    });
+  };
+
   return (
     <>
       <Toaster position="bottom-center" />
 
-      {/* create visit modal */}
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -679,7 +796,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
         </Dialog>
       </Transition>
 
-      {/* edit visit modal */}
       <Transition appear show={isEditOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -799,6 +915,164 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
         </Dialog>
       </Transition>
 
+      <Transition appear show={termModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setTermModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 text-left shadow-xl transition-all dark:border-zinc-700 dark:bg-zinc-800">
+                  <Dialog.Title className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-white">
+                    <span className="rounded-lg bg-primary/10 p-1.5">
+                      <IconCalendar className="h-5 w-5 text-primary" stroke={2} />
+                    </span>
+                    Schedule alliance termination
+                  </Dialog.Title>
+                  <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    Choose when this alliance ends and record why. Your workspace leads can clear this later if plans change.
+                  </p>
+                  <div className="mt-5 space-y-4">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Effective date & time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={termEffective}
+                        onChange={(e) => setTermEffective(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Reason
+                      </label>
+                      <textarea
+                        value={termReasonDraft}
+                        onChange={(e) => setTermReasonDraft(e.target.value)}
+                        rows={4}
+                        placeholder="Explain why this alliance is ending…"
+                        className="w-full resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      type="button"
+                      className="flex-1 rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                      onClick={() => setTermModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500"
+                      onClick={() => submitTerminationSchedule()}
+                    >
+                      Confirm schedule
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      <Transition appear show={strikeModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setStrikeModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 text-left shadow-xl transition-all dark:border-zinc-700 dark:bg-zinc-800">
+                  <Dialog.Title className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-white">
+                    <span className="rounded-lg bg-amber-500/10 p-1.5">
+                      <IconAlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" stroke={2} />
+                    </span>
+                    Add strike
+                  </Dialog.Title>
+                  <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    You must give a reason. An automatic note will be appended to this alliance&apos;s notes when you confirm.
+                  </p>
+                  <div className="mt-5 space-y-4">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Reason
+                      </label>
+                      <textarea
+                        value={strikeReasonDraft}
+                        onChange={(e) => setStrikeReasonDraft(e.target.value)}
+                        rows={4}
+                        placeholder="Explain why this strike is being issued…"
+                        className="w-full resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                      />
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        At least 3 characters required.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      type="button"
+                      className="flex-1 rounded-xl border border-zinc-300 bg-zinc-50 px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                      onClick={() => setStrikeModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500"
+                      onClick={() => submitAddStrike()}
+                    >
+                      Confirm strike
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
       <div className="pagePadding">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
@@ -813,7 +1087,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
             </h1>
           </div>
 
-          {/* Ally Header */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
               <div className="flex items-center gap-4">
@@ -873,7 +1146,134 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
             </div>
           </div>
 
-          {/* Alliance Information */}
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6 border border-zinc-100 dark:border-zinc-700">
+            <div className="p-6">
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+                  <IconBolt className="w-5 h-5 text-primary" stroke={2} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-medium text-zinc-900 dark:text-white">
+                    Standing & termination
+                  </h2>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Track strikes and schedule an end date with a recorded reason.
+                  </p>
+                </div>
+              </div>
+
+              {terminationMoment && (
+                <div
+                  className={`mt-6 flex flex-col gap-3 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
+                    terminationMoment.isBefore(moment())
+                      ? "border-red-200 bg-red-50 dark:border-red-500/35 dark:bg-red-950/25"
+                      : "border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-950/20"
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <IconAlertTriangle
+                      className={`mt-0.5 h-5 w-5 shrink-0 ${
+                        terminationMoment.isBefore(moment())
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-amber-600 dark:text-amber-400"
+                      }`}
+                      stroke={2}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                        {terminationMoment.isBefore(moment())
+                          ? "Termination date reached"
+                          : "Termination scheduled"}
+                      </p>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                        Effective{" "}
+                        <span className="font-medium">
+                          {terminationMoment.format("MMM D, YYYY · h:mm A")}
+                        </span>
+                      </p>
+                      {ally.terminationReason ? (
+                        <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                          “{ally.terminationReason}”
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  {canManageDiscipline && (
+                    <button
+                      type="button"
+                      onClick={() => clearTermination()}
+                      className="shrink-0 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      Clear schedule
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-6">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  Strike meter
+                </p>
+                <div className="flex gap-1.5">
+                  {Array.from({ length: allianceMaxStrikes }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`h-9 flex-1 rounded-lg transition-colors ${
+                        i < meterFilled
+                          ? "bg-primary shadow-sm"
+                          : "border border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                    {strikesCount}
+                  </span>
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                    of {allianceMaxStrikes} allowed
+                    {strikesCount > allianceMaxStrikes
+                      ? " — above workspace cap; remove strikes or raise the limit under Settings → Other."
+                      : ""}
+                  </span>
+                </div>
+              </div>
+
+              {canManageDiscipline && (
+                <div className="mt-6 flex flex-wrap gap-2 border-t border-zinc-200 pt-5 dark:border-zinc-700">
+                  <button
+                    type="button"
+                    disabled={strikesCount <= 0}
+                    onClick={() => patchStrikes(strikesCount - 1)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    <IconMinus className="h-4 w-4" stroke={2} />
+                    Remove strike
+                  </button>
+                  <button
+                    type="button"
+                    disabled={strikesCount >= allianceMaxStrikes}
+                    onClick={() => openStrikeModal()}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-transparent bg-primary px-3 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <IconBolt className="h-4 w-4" stroke={2} />
+                    Add strike
+                  </button>
+                  {!terminationMoment && (
+                    <button
+                      type="button"
+                      onClick={() => openTerminationModal()}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 transition hover:bg-red-100 dark:border-red-500/40 dark:bg-red-950/35 dark:text-red-200 dark:hover:bg-red-950/50"
+                    >
+                      <IconCalendar className="h-4 w-4" stroke={2} />
+                      Schedule termination
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            </div>
+
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1134,9 +1534,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 </div>
               )}
             </div>
-          </div>
+            </div>
 
-          {/* Notes Section */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1239,9 +1638,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 </div>
               )}
             </div>
-          </div>
+            </div>
 
-          {/* Visits Section */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">

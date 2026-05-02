@@ -3,6 +3,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig } from '@/utils/configEngine'
 import prisma, { role } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import {
+	ALLIANCE_STRIKES_DEFAULT_MAX,
+	normalizeAllianceMaxStrikes,
+} from '@/utils/allianceStrikesConfig'
 
 type RoleOut = Omit<role, 'groupRoles'> & { groupRoles: string[] };
 
@@ -29,6 +33,7 @@ type Data = {
 			resignationsEnabled: boolean
 			policiesEnabled: boolean
 			widgets: string[]
+			allianceMaxStrikes: number
 		}
 	}
 }
@@ -86,6 +91,7 @@ export async function handler(
 		resignationsConfig,
 		policiesConfig,
 		homeConfig,
+		allianceStrikesConfig,
 	] = await Promise.all([
 		getConfig('theme', workspace.groupId),
 		getConfig('darkTheme', workspace.groupId),
@@ -97,6 +103,7 @@ export async function handler(
 		getConfig('resignations', workspace.groupId),
 		getConfig('policies', workspace.groupId),
 		getConfig('home', workspace.groupId),
+		getConfig('alliance_strikes', workspace.groupId),
 	]);
 	const sessionTypes = ["shift", "training", "event", "other"];
 	const sessionPermissions: Record<string, string> = {};
@@ -192,7 +199,10 @@ export async function handler(
 			noticesEnabled: noticesConfig?.enabled || false,
 			resignationsEnabled: resignationsConfig?.enabled || false,
 			policiesEnabled: policiesConfig?.enabled || false,
-			widgets: homeConfig?.widgets || []
+			widgets: homeConfig?.widgets || [],
+			allianceMaxStrikes: normalizeAllianceMaxStrikes(
+				allianceStrikesConfig?.maxStrikes ?? ALLIANCE_STRIKES_DEFAULT_MAX,
+			),
 		}
 	} })
 }
