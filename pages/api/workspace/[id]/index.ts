@@ -24,6 +24,8 @@ type Data = {
 		yourPermission: string[]
 		groupTheme: string,
 		groupDarkTheme: string,
+    lastSynced: Date | null,
+    lastSyncedSuccessful: boolean | null,
 		settings: {
 			guidesEnabled: boolean
 			leaderboardEnabled: boolean
@@ -191,6 +193,8 @@ export async function handler(
 			groupRoles: r.groupRoles.map((id) => id.toString()),
 		})),
 		yourRole: user.roles[0].id,
+    lastSynced: workspace.lastSynced,
+    lastSyncedSuccessful: workspace.lastSyncedSuccessful,
 		settings: {
 			guidesEnabled: guidesConfig?.enabled || false,
 			leaderboardEnabled: leaderboardConfig?.enabled || false,

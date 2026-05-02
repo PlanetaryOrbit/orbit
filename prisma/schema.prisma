@@ -7,34 +7,35 @@ datasource db {
 }
 
 model workspace {
-  groupId           Int                        @id @unique
-  groupName         String?
-  groupLogo         String?
-  lastSynced        DateTime?
-  customName        String?
-  memberCount       Int?
-  adjustments       ActivityAdjustment[]
-  activityHistory   ActivityHistory[]
-  activityResets    ActivityReset[]
-  activitySessions  ActivitySession[]
-  allies            Ally[]
-  quotas            Quota[]
-  sessionTypes      SessionType[]
-  apiKey            apiKey[]
-  config            config[]
-  savedViews        SavedView[]
-  documents         document[]
-  inactivityNotices inactivityNotice[]
-  ranks             rank[]
-  roles             role[]
-  departments       department[]
-  userBook          userBook[]
-  wallposts         wallPost[]
-  externalServices  workspaceExternalServices?
-  members           workspaceMember[]
-  policyLinks       PolicyShareableLink[]
-  stickyAnnouncements StickyAnnouncement[]
-  staffResignations   staffResignation[]
+  groupId              Int                        @id @unique
+  groupName            String?
+  groupLogo            String?
+  lastSynced           DateTime?
+  lastSyncedSuccessful Boolean? @default(false)
+  customName           String?
+  memberCount          Int?
+  adjustments          ActivityAdjustment[]
+  activityHistory      ActivityHistory[]
+  activityResets       ActivityReset[]
+  activitySessions     ActivitySession[]
+  allies               Ally[]
+  quotas               Quota[]
+  sessionTypes         SessionType[]
+  apiKey               apiKey[]
+  config               config[]
+  savedViews           SavedView[]
+  documents            document[]
+  inactivityNotices    inactivityNotice[]
+  ranks                rank[]
+  roles                role[]
+  departments          department[]
+  userBook             userBook[]
+  wallposts            wallPost[]
+  externalServices     workspaceExternalServices?
+  members              workspaceMember[]
+  policyLinks          PolicyShareableLink[]
+  stickyAnnouncements  StickyAnnouncement[]
+  staffResignations    staffResignation[]
 }
 
 model config {
