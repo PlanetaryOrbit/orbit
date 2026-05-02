@@ -20,11 +20,7 @@ import {
   IconWall,
   IconFileText,
   IconSpeakerphone,
-  IconChevronRight,
-  IconSettings,
   IconPlus,
-  IconArrowRight,
-  IconGift,
   IconAlertTriangle,
 } from "@tabler/icons-react"
 import clsx from "clsx"
@@ -32,6 +28,11 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { GetServerSideProps } from "next"
 import RandomMusic from "@/components/home/randommusic"
 import QuickLinks from "@/components/home/quickLinks"
+import {
+  buildHomeDashboardChunks,
+  normalizeHomeWidgetOrder,
+  type HomeWidgetId,
+} from "@/utils/homeWidgets"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async ({ query }) => {
@@ -89,6 +90,86 @@ const Home: pageWithLayout = () => {
       description: "Latest workspace documents",
       color: "text-amber-600 dark:text-amber-400",
     },
+  }
+
+  const orderedWidgets = useMemo(
+    () => normalizeHomeWidgetOrder(workspace.settings.widgets ?? []),
+    [workspace.settings.widgets],
+  )
+
+  const dashboardChunks = useMemo(
+    () => buildHomeDashboardChunks(orderedWidgets),
+    [orderedWidgets],
+  )
+
+  const renderFullWidget = (id: HomeWidgetId) => {
+    switch (id) {
+      case "new_members":
+        return (
+          <div className="mb-8 z-0 relative">
+            <NewToTeam />
+          </div>
+        )
+      case "birthdays":
+        return (
+          <div className="mb-8 z-0 relative">
+            <Birthdays />
+          </div>
+        )
+      case "music_quote":
+        return (
+          <div className="mb-8 z-0 relative">
+            <RandomMusic />
+          </div>
+        )
+      case "quick_links":
+        return (
+          <div className="mb-8 z-0 relative">
+            <QuickLinks />
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  const renderGridCard = (widget: HomeWidgetId) => {
+    const widgetConfig = widgets[widget]
+    if (!widgetConfig) return null
+    const Widget = widgetConfig.component
+    const Icon = widgetConfig.icon
+    return (
+      <div
+        key={widget}
+        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden"
+      >
+        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-700">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center shrink-0 ${widgetConfig.color}`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                  {widgetConfig.title}
+                </h2>
+                {widgetConfig.beta && (
+                  <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">
+                    BETA
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {widgetConfig.description}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-5">
+          <Widget />
+        </div>
+      </div>
+    )
   }
 
   useEffect(() => {
@@ -181,29 +262,9 @@ const Home: pageWithLayout = () => {
             </p>
           </div>
         )}
-        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("new_members") && (
-          <div className="mb-8 z-0 relative">
-            <NewToTeam />
-          </div>
-        )}
-        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("birthdays") && (
-          <div className="mb-8 z-0 relative">
-            <Birthdays />
-          </div>
-        )}
         <div className="mb-8 z-0 relative">
           <StickyNoteAnnouncement />
         </div>
-        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("music_quote") && (
-          <div className="mb-8 z-0 relative">
-            <RandomMusic />
-          </div>
-        )}
-        {Array.isArray(workspace.settings.widgets) && workspace.settings.widgets.includes("quick_links") && (
-          <div className="mb-8 z-0 relative">
-            <QuickLinks />
-          </div>
-        )}
         {loading ? (
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-12 text-center">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
@@ -221,46 +282,20 @@ const Home: pageWithLayout = () => {
               <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse [animation-delay:300ms]" />
             </div>
           </div>
-        ) : workspace.settings.widgets.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {workspace.settings.widgets.map((widget) => {
-              const widgetConfig = widgets[widget]
-              if (!widgetConfig) return null
-              const Widget = widgetConfig.component
-              const Icon = widgetConfig.icon
-              return (
+        ) : orderedWidgets.length > 0 ? (
+          <div className="space-y-6">
+            {dashboardChunks.map((chunk, chunkIdx) =>
+              chunk.kind === "full" ? (
+                <div key={`full-${chunk.id}-${chunkIdx}`}>{renderFullWidget(chunk.id)}</div>
+              ) : (
                 <div
-                  key={widget}
-                  className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden"
+                  key={`grid-${chunk.ids.join("-")}-${chunkIdx}`}
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                 >
-                  <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-700">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center shrink-0 ${widgetConfig.color}`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
-                            {widgetConfig.title}
-                          </h2>
-                          {widgetConfig.beta && (
-                            <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">
-                              BETA
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                          {widgetConfig.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <Widget />
-                  </div>
+                  {chunk.ids.map((id) => renderGridCard(id))}
                 </div>
-              )
-            })}
+              ),
+            )}
           </div>
         ) : (
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">

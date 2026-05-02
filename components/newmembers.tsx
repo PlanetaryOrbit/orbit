@@ -242,8 +242,8 @@ export default function NewToTeam() {
 
   return (
     <>
-      <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mb-1">
+      <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-3 mb-6 relative">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
               <IconUserPlus className="w-5 h-5 text-primary" />
@@ -261,13 +261,13 @@ export default function NewToTeam() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-4 pb-2">
+        <div className="flex flex-wrap justify-center content-start gap-x-4 gap-y-6 sm:gap-x-5 pb-2">
           {visibleMembers.map(m => {
             const isMe = m.userid === String(login?.userId);
             const song = parseSong(m.introSong);
             const isPlaying = playingId === m.userid;
             return (
-              <div key={m.userid} className="flex flex-col items-center min-w-0 w-full">
+              <div key={m.userid} className="flex flex-col items-center min-w-0 w-20 shrink-0">
                 <div className="relative w-16 h-16 shrink-0 mx-auto">
                   <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden cursor-pointer`}>

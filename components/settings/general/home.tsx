@@ -1,11 +1,18 @@
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from "@/types/settingsComponent";
-import { IconCheck, IconRefresh } from "@tabler/icons-react";
+import { IconRefresh, IconGripVertical, IconPlus } from "@tabler/icons-react";
 import clsx from "clsx";
+import {
+  HOME_WIDGET_IDS,
+  HOME_WIDGET_LABELS,
+  normalizeHomeWidgetOrder,
+  isHomeWidgetId,
+  type HomeWidgetId,
+} from "@/utils/homeWidgets";
 type props = {
   triggerToast: typeof toast;
   isSidebarExpanded?: boolean;
@@ -20,12 +27,62 @@ const home: FC<props> = (props) => {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [iconRefreshing, setIconRefreshing] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
+  const [draggingId, setDraggingId] = useState<HomeWidgetId | null>(null);
+
+  const enabledOrdered = useMemo(
+    () => normalizeHomeWidgetOrder(workspace.settings.widgets),
+    [workspace.settings.widgets],
+  );
+
+  const disabledIds = useMemo(
+    () => HOME_WIDGET_IDS.filter((id) => !enabledOrdered.includes(id)),
+    [enabledOrdered],
+  );
+
+  const reorderWidgets = (sourceId: string, targetId: string) => {
+    if (!isHomeWidgetId(sourceId) || !isHomeWidgetId(targetId)) return;
+    const normalized = normalizeHomeWidgetOrder(workspace.settings.widgets);
+    const si = normalized.indexOf(sourceId);
+    const ti = normalized.indexOf(targetId);
+    if (si === -1 || ti === -1) return;
+    const next = [...normalized];
+    next.splice(si, 1);
+    next.splice(ti, 0, sourceId);
+    setWorkspace({
+      ...workspace,
+      settings: {
+        ...workspace.settings,
+        widgets: next,
+      },
+    });
+  };
+
+  const addWidget = (id: HomeWidgetId) => {
+    if (workspace.settings.widgets.includes(id)) return;
+    setWorkspace({
+      ...workspace,
+      settings: {
+        ...workspace.settings,
+        widgets: [...workspace.settings.widgets, id],
+      },
+    });
+  };
+
+  const removeWidget = (id: HomeWidgetId) => {
+    setWorkspace({
+      ...workspace,
+      settings: {
+        ...workspace.settings,
+        widgets: workspace.settings.widgets.filter((w) => w !== id),
+      },
+    });
+  };
 
   const updateHome = async () => {
     const res = await axios.patch(
       `/api/workspace/${workspace.groupId}/settings/general/home`,
       {
-        widgets: workspace.settings.widgets,
+        widgets: normalizeHomeWidgetOrder(workspace.settings.widgets),
         name: customName
       }
     );
@@ -34,19 +91,6 @@ const home: FC<props> = (props) => {
     } else {
       triggerToast.error("Failed to update home");
     }
-  };
-
-  const toggleAble: {
-    [key: string]: string;
-  } = {
-    "Ongoing sessions": "sessions",
-    "Latest wall messages": "wall",
-    "Latest documents": "documents",
-    "Inactivity Notices": "notices",
-    "Upcoming Birthdays": "birthdays",
-    "Quick Links": "quick_links",
-    "New Team Members": "new_members",
-    "Music Quote": "music_quote"
   };
 
   useEffect(() => {
@@ -97,28 +141,6 @@ const home: FC<props> = (props) => {
       triggerToast.error('Failed to remove banner.');
     } finally {
       setBannerUploading(false);
-    }
-  };
-
-  const toggle = (name: string) => {
-    if (workspace.settings.widgets.includes(toggleAble[name])) {
-      setWorkspace({
-        ...workspace,
-        settings: {
-          ...workspace.settings,
-          widgets: workspace.settings.widgets.filter(
-            (widget) => widget !== toggleAble[name]
-          ),
-        },
-      });
-    } else {
-      setWorkspace({
-        ...workspace,
-        settings: {
-          ...workspace.settings,
-          widgets: [...workspace.settings.widgets, toggleAble[name]],
-        },
-      });
     }
   };
 
@@ -235,29 +257,88 @@ const home: FC<props> = (props) => {
         Max 8 MB (JPEG, PNG). Recommended aspect ratio: 4:1 or wider.
       </p>
       <p className="text-lg font-medium text-zinc-900 dark:text-white mb-2">Widgets</p>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
         Customize what appears on your workspace home page. Tiles will only be
         shown to users with the corresponding permissions.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {Object.keys(toggleAble).map((key, i) => (
+      <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+        Drag rows to change the order on the dashboard. Wall, sessions, documents, and notices share a two-column layout when they appear next to each other.
+      </p>
+
+      {enabledOrdered.length > 0 ? (
+        <div className="space-y-2 mb-5">
+          <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wide">
+            Enabled — drag to reorder
+          </p>
+          {enabledOrdered.map((id) => (
+            <div
+              key={id}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", id);
+                e.dataTransfer.effectAllowed = "move";
+                setDraggingId(id);
+              }}
+              onDragEnd={() => setDraggingId(null)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const source = e.dataTransfer.getData("text/plain");
+                setDraggingId(null);
+                if (source && source !== id) reorderWidgets(source, id);
+              }}
+              className={clsx(
+                "flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-zinc-900/40 transition-opacity",
+                draggingId === id
+                  ? "opacity-60 border-primary/50"
+                  : "border-zinc-200 dark:border-zinc-700",
+              )}
+            >
+              <IconGripVertical
+                className="w-5 h-5 text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+                aria-hidden
+              />
+              <span className="flex-1 text-sm font-medium text-zinc-900 dark:text-white">
+                {HOME_WIDGET_LABELS[id]}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeWidget(id)}
+                className="text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+          No widgets enabled yet. Add some below.
+        </p>
+      )}
+
+      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wide mb-2">
+        Add widgets
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        {disabledIds.map((id) => (
           <button
-            key={i}
-            onClick={() => toggle(key)}
-            className={clsx(
-              "flex items-center justify-between p-3 rounded-lg border transition-colors",
-              workspace.settings.widgets.includes(toggleAble[key])
-                ? "border-primary bg-primary/5 text-primary dark:text-white"
-                : "border-gray-200 dark:border-zinc-700 dark:text-white hover:border-gray-300 dark:hover:border-gray-600"
-            )}
+            key={id}
+            type="button"
+            onClick={() => addWidget(id)}
+            className="flex items-center justify-between gap-2 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/40 text-zinc-900 dark:text-white hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
           >
-            <span className="text-sm font-medium">{key}</span>
-            {workspace.settings.widgets.includes(toggleAble[key]) && (
-              <IconCheck size={16} className="flex-shrink-0" />
-            )}
+            <span className="text-sm font-medium">{HOME_WIDGET_LABELS[id]}</span>
+            <IconPlus className="w-4 h-4 text-primary shrink-0" aria-hidden />
           </button>
         ))}
       </div>
+      {disabledIds.length === 0 && enabledOrdered.length > 0 ? (
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">All widgets are enabled.</p>
+      ) : null}
       <div className="mt-4">
         <button
           onClick={updateHome}
