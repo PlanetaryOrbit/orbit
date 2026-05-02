@@ -4,10 +4,8 @@ import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from "@/types/settingsComponent";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconRefresh } from "@tabler/icons-react";
 import clsx from "clsx";
-import { fetchworkspace } from "@/utils/configEngine";
-
 type props = {
   triggerToast: typeof toast;
   isSidebarExpanded?: boolean;
@@ -20,6 +18,7 @@ const home: FC<props> = (props) => {
   const [customName, setCustomName] = useState("");
   const [banner, setBanner] = useState<string | null>(null);
   const [bannerUploading, setBannerUploading] = useState(false);
+  const [iconRefreshing, setIconRefreshing] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
   const updateHome = async () => {
@@ -136,6 +135,55 @@ const home: FC<props> = (props) => {
         className="w-full px-3 py-2.5 border rounded-xl text-sm bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] focus:border-[color:rgb(var(--group-theme))] transition-colors mb-6"
       />
 
+      <p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">Workspace icon</p>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+        Shown in the sidebar, browser tab, and workspace switcher. Orbit stores a copy from when the workspace was created; refresh it if your Roblox group emblem changed.
+      </p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+        <div className="w-20 h-20 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0">
+          <img
+            src={workspace.groupThumbnail || "/favicon.png"}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <button
+            type="button"
+            disabled={iconRefreshing}
+            onClick={async () => {
+              setIconRefreshing(true);
+              try {
+                const res = await axios.post(
+                  `/api/workspace/${workspace.groupId}/settings/general/refresh-icon`
+                );
+                if (res.data.success && res.data.groupThumbnail) {
+                  setWorkspace({
+                    ...workspace,
+                    groupThumbnail: res.data.groupThumbnail,
+                  });
+                  triggerToast.success("Workspace icon updated from Roblox.");
+                } else {
+                  triggerToast.error("Could not refresh workspace icon.");
+                }
+              } catch (err: unknown) {
+                const msg =
+                  axios.isAxiosError(err) && err.response?.data && typeof err.response.data === "object" && "error" in err.response.data
+                    ? String((err.response.data as { error?: string }).error)
+                    : null;
+                triggerToast.error(msg || "Failed to refresh workspace icon.");
+              } finally {
+                setIconRefreshing(false);
+              }
+            }}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+          >
+            <IconRefresh className={`w-4 h-4 shrink-0 ${iconRefreshing ? "animate-spin" : ""}`} />
+            {iconRefreshing ? "Fetching…" : "Refresh from Roblox"}
+          </button>
+        </div>
+      </div>
+
       <p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">Workspace Banner</p>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
         A custom banner image shown at the top of the workspace home page.
@@ -155,7 +203,7 @@ const home: FC<props> = (props) => {
       <input
         ref={bannerFileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/jpeg,image/png"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -184,7 +232,7 @@ const home: FC<props> = (props) => {
         )}
       </div>
       <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6">
-        Max 8 MB (JPEG, PNG, WebP, GIF). Recommended aspect ratio: 4:1 or wider.
+        Max 8 MB (JPEG, PNG). Recommended aspect ratio: 4:1 or wider.
       </p>
       <p className="text-lg font-medium text-zinc-900 dark:text-white mb-2">Widgets</p>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">

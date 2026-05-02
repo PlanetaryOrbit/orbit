@@ -1,11 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
+import { getConfig } from '@/utils/configEngine'
 import prisma, { role } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
-import * as noblox from 'noblox.js'
+
+type RoleOut = Omit<role, 'groupRoles'> & { groupRoles: string[] };
 
 type Data = {
 	success: boolean
@@ -15,7 +14,8 @@ type Data = {
 		groupId: number
 		groupThumbnail: string
 		groupName: string,
-		roles: role[],
+		customName: string,
+		roles: RoleOut[],
 		yourRole: string | null,
 		yourPermission: string[]
 		groupTheme: string,
@@ -71,11 +71,33 @@ export async function handler(
 		}
 	});
 	if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+	if (!user.roles.length) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
 	const groupName = workspace.groupName || 'Unknown Group';
 	const groupLogo = workspace.groupLogo || '';
-	const themeconfig = await getConfig('theme', workspace.groupId);
-	const darkThemeConfig = await getConfig('darkTheme', workspace.groupId);
+	const [
+		themeconfig,
+		darkThemeConfig,
+		guidesConfig,
+		leaderboardConfig,
+		sessionsConfig,
+		alliesConfig,
+		noticesConfig,
+		resignationsConfig,
+		policiesConfig,
+		homeConfig,
+	] = await Promise.all([
+		getConfig('theme', workspace.groupId),
+		getConfig('darkTheme', workspace.groupId),
+		getConfig('guides', workspace.groupId),
+		getConfig('leaderboard', workspace.groupId),
+		getConfig('sessions', workspace.groupId),
+		getConfig('allies', workspace.groupId),
+		getConfig('notices', workspace.groupId),
+		getConfig('resignations', workspace.groupId),
+		getConfig('policies', workspace.groupId),
+		getConfig('home', workspace.groupId),
+	]);
 	const sessionTypes = ["shift", "training", "event", "other"];
 	const sessionPermissions: Record<string, string> = {};
 	
@@ -153,20 +175,24 @@ export async function handler(
 		groupId: workspace.groupId,
 		groupThumbnail: groupLogo,
 		groupName: groupName,
+		customName: workspace.customName ?? "",
 		yourPermission: isAdmin ? Object.values(permissions) : user.roles[0].permissions,
 		groupTheme: themeconfig,
 		groupDarkTheme: darkThemeConfig,
-		roles: workspace.roles,
+		roles: workspace.roles.map((r) => ({
+			...r,
+			groupRoles: r.groupRoles.map((id) => id.toString()),
+		})),
 		yourRole: user.roles[0].id,
 		settings: {
-			guidesEnabled: (await getConfig('guides', workspace.groupId))?.enabled || false,
-			leaderboardEnabled: (await getConfig('leaderboard', workspace.groupId))?.enabled || false,
-			sessionsEnabled: (await getConfig('sessions', workspace.groupId))?.enabled || false,
-			alliesEnabled: (await getConfig('allies', workspace.groupId))?.enabled || false,
-			noticesEnabled: (await getConfig('notices', workspace.groupId))?.enabled || false,
-			resignationsEnabled: (await getConfig('resignations', workspace.groupId))?.enabled || false,
-			policiesEnabled: (await getConfig('policies', workspace.groupId))?.enabled || false,
-			widgets: (await getConfig('home', workspace.groupId))?.widgets || []
+			guidesEnabled: guidesConfig?.enabled || false,
+			leaderboardEnabled: leaderboardConfig?.enabled || false,
+			sessionsEnabled: sessionsConfig?.enabled || false,
+			alliesEnabled: alliesConfig?.enabled || false,
+			noticesEnabled: noticesConfig?.enabled || false,
+			resignationsEnabled: resignationsConfig?.enabled || false,
+			policiesEnabled: policiesConfig?.enabled || false,
+			widgets: homeConfig?.widgets || []
 		}
 	} })
 }
