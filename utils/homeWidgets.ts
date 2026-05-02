@@ -1,4 +1,3 @@
-/** Dashboard widget ids stored in workspace home config */
 export const HOME_WIDGET_IDS = [
 	"sessions",
 	"wall",
@@ -34,7 +33,6 @@ export function isHomeWidgetId(id: string): id is HomeWidgetId {
 	return (HOME_WIDGET_IDS as readonly string[]).includes(id);
 }
 
-/** Dedupe while preserving first occurrence order */
 export function normalizeHomeWidgetOrder(ids: string[]): HomeWidgetId[] {
 	const seen = new Set<string>();
 	const out: HomeWidgetId[] = [];
@@ -50,7 +48,6 @@ export type HomeDashboardChunk =
 	| { kind: "grid"; ids: HomeWidgetId[] }
 	| { kind: "full"; id: HomeWidgetId };
 
-/** Group consecutive grid-capable widgets into 2-col rows; full-width widgets break the flow */
 export function buildHomeDashboardChunks(ids: HomeWidgetId[]): HomeDashboardChunk[] {
 	const chunks: HomeDashboardChunk[] = [];
 	for (const id of ids) {

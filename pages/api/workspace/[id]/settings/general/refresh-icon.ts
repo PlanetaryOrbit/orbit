@@ -57,9 +57,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 				'workspace',
 				{ before: before?.groupLogo ?? null, after: logo }
 			);
-		} catch {
-			/* non-fatal */
-		}
+		} catch {}
 
 		return res.status(200).json({ success: true, groupThumbnail: logo });
 	} catch (e) {

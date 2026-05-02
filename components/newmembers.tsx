@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import axios from 'axios';
-import { IconUserPlus, IconMusic, IconPencil, IconX, IconCheck, IconPlayerPlay, IconPlayerPause, IconSearch, IconLoader2 } from '@tabler/icons-react';
+import { IconUserPlus, IconMusic, IconPencil, IconX, IconCheck, IconPlayerPlay, IconPlayerPause, IconSearch, IconLoader2, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { useRecoilState } from 'recoil';
 import { loginState } from '@/state';
 
@@ -60,6 +60,10 @@ function getRandomBg(userid: string, username?: string) {
   return BG_COLORS[(hash >>> 0) % BG_COLORS.length];
 }
 
+function slotWidthPx(): number {
+  return 80 + 16;
+}
+
 export default function NewToTeam() {
   const router = useRouter();
   const { id: workspaceId } = router.query;
@@ -67,7 +71,8 @@ export default function NewToTeam() {
   const [members, setMembers] = useState<NewMember[]>([]);
   const [loading, setLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [maxVisible, setMaxVisible] = useState(10);
+  const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(6);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -95,23 +100,32 @@ export default function NewToTeam() {
   useEffect(() => {
     const calc = () => {
       if (!cardRef.current) return;
-      const available = cardRef.current.offsetWidth - 32;
-      const twoCol = window.matchMedia('(max-width: 639px)').matches;
-      const cols = twoCol
-        ? 2
-        : Math.max(3, Math.floor((available + 16) / 104));
-      const maxRows = 25;
-      setMaxVisible(Math.min(members.length, cols * maxRows));
+      const w = cardRef.current.offsetWidth;
+      const reservePadding = 28;
+      const slot = slotWidthPx();
+      const baseInner = Math.max(0, w - reservePadding);
+      let n = Math.max(3, Math.floor(baseInner / slot));
+      const pagesOneRow = Math.ceil(members.length / n);
+      if (pagesOneRow > 1) {
+        const reserveArrows = 96;
+        const inner = Math.max(0, w - reservePadding - reserveArrows);
+        n = Math.max(3, Math.floor(inner / slot));
+      }
+      setPerPage(n);
     };
     calc();
-    window.addEventListener('resize', calc);
-    const mq = window.matchMedia('(max-width: 639px)');
-    mq.addEventListener('change', calc);
-    return () => {
-      window.removeEventListener('resize', calc);
-      mq.removeEventListener('change', calc);
-    };
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
   }, [members.length]);
+
+  useEffect(() => {
+    const pages = Math.max(1, Math.ceil(members.length / Math.max(perPage, 1)));
+    setPage((p) => Math.min(p, pages - 1));
+  }, [perPage, members.length]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [workspaceId]);
 
   const stopMainAudio = () => {
     if (audioRef.current) {
@@ -238,7 +252,13 @@ export default function NewToTeam() {
   if (loading) return null;
   if (!members.length) return null;
 
-  const visibleMembers = members.slice(0, maxVisible);
+  const totalPages = Math.max(1, Math.ceil(members.length / perPage));
+  const safePage = Math.min(page, totalPages - 1);
+  const rowMembers = members.slice(safePage * perPage, safePage * perPage + perPage);
+  const showArrows = totalPages > 1;
+
+  const goPrev = () => setPage((p) => Math.max(0, p - 1));
+  const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
 
   return (
     <>
@@ -261,8 +281,22 @@ export default function NewToTeam() {
           )}
         </div>
 
-        <div className="flex flex-wrap justify-center content-start gap-x-4 gap-y-6 sm:gap-x-5 pb-2">
-          {visibleMembers.map(m => {
+        <div className="flex items-center gap-1 sm:gap-2 min-h-[132px]">
+          {showArrows ? (
+            <button
+              type="button"
+              aria-label="Show previous people"
+              disabled={safePage <= 0}
+              onClick={goPrev}
+              className="shrink-0 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <IconChevronLeft className="w-5 h-5" stroke={2} />
+            </button>
+          ) : null}
+
+          <div className="flex-1 min-w-0 flex justify-center overflow-hidden py-0.5">
+            <div className="flex flex-nowrap items-start justify-center gap-x-3 sm:gap-x-4">
+              {rowMembers.map((m) => {
             const isMe = m.userid === String(login?.userId);
             const song = parseSong(m.introSong);
             const isPlaying = playingId === m.userid;
@@ -293,27 +327,27 @@ export default function NewToTeam() {
                   <button
                     type="button"
                     onClick={() => togglePlay(m)}
-                    className={`mt-2 w-full max-w-full flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0.5 pl-0.5 pr-1 shadow-sm hover:bg-zinc-700/90 group overflow-hidden ${
+                    className={`mt-2 mx-auto flex h-6 w-[3.75rem] max-w-[3.75rem] shrink-0 items-center gap-px bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0 pl-0.5 pr-0.5 shadow-sm hover:bg-zinc-700/90 group overflow-hidden ${
                       isPlaying ? "ring-1 ring-primary/40" : ""
                     }`}
                     title={isPlaying ? "Pause" : `${song.title} – ${song.artist}`}
                   >
-                    <img src={song.artwork} alt="" className="w-4 h-4 rounded-full shrink-0 object-cover" />
-                    <span className="min-w-0 flex-1 truncate text-[10px] text-white text-left leading-tight">
+                    <img src={song.artwork} alt="" className="w-3 h-3 rounded-full shrink-0 object-cover" />
+                    <span className="min-w-0 flex-1 truncate text-[8px] leading-none text-white text-left">
                       {song.title}
                     </span>
-                    <span className="shrink-0">
+                    <span className="shrink-0 pr-px">
                       {isPlaying ? (
-                        <IconPlayerPause className="w-2.5 h-2.5 text-primary" />
+                        <IconPlayerPause className="w-2 h-2 text-primary" />
                       ) : (
-                        <IconPlayerPlay className="w-2.5 h-2.5 text-zinc-300 group-hover:text-white" />
+                        <IconPlayerPlay className="w-2 h-2 text-zinc-300 group-hover:text-white" />
                       )}
                     </span>
                   </button>
                 ) : m.introNote ? (
-                  <div className="mt-2 w-full max-w-full flex items-center justify-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-1 py-0.5 shadow-sm overflow-hidden">
-                    <IconMusic className="w-2.5 h-2.5 text-primary shrink-0" />
-                    <span className="min-w-0 flex-1 truncate text-center text-[10px] text-white">{m.introNote.slice(0, 15)}</span>
+                  <div className="mt-2 mx-auto flex h-6 w-[3.75rem] max-w-[3.75rem] shrink-0 items-center justify-center gap-px bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-0.5 shadow-sm overflow-hidden">
+                    <IconMusic className="w-2 h-2 text-primary shrink-0" />
+                    <span className="min-w-0 flex-1 truncate text-center text-[8px] leading-none text-white">{m.introNote.slice(0, 12)}</span>
                   </div>
                 ) : null}
                 <div
@@ -329,8 +363,28 @@ export default function NewToTeam() {
                 )}
               </div>
             );
-          })}
+            })}
+            </div>
+          </div>
+
+          {showArrows ? (
+            <button
+              type="button"
+              aria-label="Show next people"
+              disabled={safePage >= totalPages - 1}
+              onClick={goNext}
+              className="shrink-0 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-600 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <IconChevronRight className="w-5 h-5" stroke={2} />
+            </button>
+          ) : null}
         </div>
+
+        {showArrows ? (
+          <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500 -mt-1 pb-0.5">
+            {safePage + 1} / {totalPages}
+          </p>
+        ) : null}
       </div>
 
       {editOpen && createPortal(
