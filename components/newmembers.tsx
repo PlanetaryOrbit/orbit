@@ -96,12 +96,22 @@ export default function NewToTeam() {
     const calc = () => {
       if (!cardRef.current) return;
       const available = cardRef.current.offsetWidth - 32;
-      setMaxVisible(Math.max(1, Math.floor(available / 104)));
+      const twoCol = window.matchMedia('(max-width: 639px)').matches;
+      const cols = twoCol
+        ? 2
+        : Math.max(3, Math.floor((available + 16) / 104));
+      const maxRows = 25;
+      setMaxVisible(Math.min(members.length, cols * maxRows));
     };
     calc();
     window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
+    const mq = window.matchMedia('(max-width: 639px)');
+    mq.addEventListener('change', calc);
+    return () => {
+      window.removeEventListener('resize', calc);
+      mq.removeEventListener('change', calc);
+    };
+  }, [members.length]);
 
   const stopMainAudio = () => {
     if (audioRef.current) {
@@ -233,17 +243,17 @@ export default function NewToTeam() {
   return (
     <>
       <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mb-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
               <IconUserPlus className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-lg font-medium text-zinc-900 dark:text-white">New to the Team</span>
+            <span className="text-lg font-medium text-zinc-900 dark:text-white truncate">New to the Team</span>
           </div>
           {myMember && (
             <button
               onClick={openEdit}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shrink-0 self-start sm:self-auto"
             >
               <IconPencil className="w-3 h-3" />
               Edit intro
@@ -251,14 +261,14 @@ export default function NewToTeam() {
           )}
         </div>
 
-        <div className="flex gap-4 flex-wrap pb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-4 pb-2">
           {visibleMembers.map(m => {
             const isMe = m.userid === String(login?.userId);
             const song = parseSong(m.introSong);
             const isPlaying = playingId === m.userid;
             return (
-              <div key={m.userid} className="flex flex-col items-center shrink-0 w-20">
-                <div className="relative">
+              <div key={m.userid} className="flex flex-col items-center min-w-0 w-full">
+                <div className="relative w-16 h-16 shrink-0 mx-auto">
                   <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center ${getRandomBg(m.userid)} ring-2 ring-transparent hover:ring-primary transition overflow-hidden cursor-pointer`}>
                       <img
@@ -278,50 +288,42 @@ export default function NewToTeam() {
                       <IconPencil className="w-2.5 h-2.5 text-white" />
                     </button>
                   )}
-                  {song ? (
-                    <button
-                      type="button"
-                      onClick={() => togglePlay(m)}
-                      className={`absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0.5 shadow-sm hover:bg-zinc-700/90 group ${
-                        isPlaying ? 'pl-0.5 pr-1' : 'px-0.5'
-                      }`}
-                      style={{
-                        maxWidth: isPlaying ? 'min(400px, calc(100vw - 2rem))' : 88,
-                        minWidth: isPlaying ? 'auto' : 80,
-                        transition: 'max-width 0.55s cubic-bezier(0.4,0,0.2,1)',
-                      }}
-                      title={isPlaying ? 'Pause' : `${song.title} – ${song.artist}`}
-                    >
-                      <img src={song.artwork} alt="" className="w-4 h-4 rounded-full shrink-0 object-cover" />
-                      {!isPlaying && (
-                        <span className="text-[10px] text-white ml-0.5 min-w-0 max-w-[52px] truncate">
-                          {song.title}
-                        </span>
-                      )}
-                      {isPlaying && (
-                        <span className="text-[10px] text-white px-0.5 whitespace-nowrap min-w-0">
-                          {song.title}
-                        </span>
-                      )}
-                      <span className="shrink-0">
-                        {isPlaying
-                          ? <IconPlayerPause className="w-2.5 h-2.5 text-primary" />
-                          : <IconPlayerPlay className="w-2.5 h-2.5 text-zinc-300 group-hover:text-white" />
-                        }
-                      </span>
-                    </button>
-                  ) : m.introNote ? (
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 shadow-sm whitespace-nowrap">
-                      <IconMusic className="w-2.5 h-2.5 text-primary shrink-0" />
-                      <span className="text-[10px] text-white">{m.introNote.slice(0, 15)}</span>
-                    </div>
-                  ) : null}
                 </div>
-                <div className="mt-4 text-xs font-medium text-center text-zinc-700 dark:text-zinc-300 truncate w-full" title={m.username}>
+                {song ? (
+                  <button
+                    type="button"
+                    onClick={() => togglePlay(m)}
+                    className={`mt-2 w-full max-w-full flex items-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full py-0.5 pl-0.5 pr-1 shadow-sm hover:bg-zinc-700/90 group overflow-hidden ${
+                      isPlaying ? "ring-1 ring-primary/40" : ""
+                    }`}
+                    title={isPlaying ? "Pause" : `${song.title} – ${song.artist}`}
+                  >
+                    <img src={song.artwork} alt="" className="w-4 h-4 rounded-full shrink-0 object-cover" />
+                    <span className="min-w-0 flex-1 truncate text-[10px] text-white text-left leading-tight">
+                      {song.title}
+                    </span>
+                    <span className="shrink-0">
+                      {isPlaying ? (
+                        <IconPlayerPause className="w-2.5 h-2.5 text-primary" />
+                      ) : (
+                        <IconPlayerPlay className="w-2.5 h-2.5 text-zinc-300 group-hover:text-white" />
+                      )}
+                    </span>
+                  </button>
+                ) : m.introNote ? (
+                  <div className="mt-2 w-full max-w-full flex items-center justify-center gap-0.5 bg-zinc-800/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-1 py-0.5 shadow-sm overflow-hidden">
+                    <IconMusic className="w-2.5 h-2.5 text-primary shrink-0" />
+                    <span className="min-w-0 flex-1 truncate text-center text-[10px] text-white">{m.introNote.slice(0, 15)}</span>
+                  </div>
+                ) : null}
+                <div
+                  className={`text-xs font-medium text-center text-zinc-700 dark:text-zinc-300 truncate w-full max-w-full px-0.5 ${song || m.introNote ? "mt-2" : "mt-3"}`}
+                  title={m.username}
+                >
                   {m.username}
                 </div>
                 {m.introNote && song && (
-                  <div className="mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500 w-full text-center" title={m.introNote}>
+                  <div className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500 w-full max-w-full text-center truncate px-0.5" title={m.introNote}>
                     {m.introNote.slice(0, 15)}
                   </div>
                 )}
