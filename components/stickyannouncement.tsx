@@ -3,8 +3,9 @@ import { IconX, IconPin, IconPencil, IconCheck } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import toast from "react-hot-toast";
+import packageinfo from '@/package.json'
 
-const ANNOUNCEMENT_KEY = "announcementDismissed_v3";
+const ANNOUNCEMENT_KEY = `announcementDismissed_${packageinfo.version}`;
 
 interface Section {
   title: string;
@@ -22,37 +23,47 @@ interface Announcement {
 
 const defaultAnnouncement: Announcement = {
   title: "Planetary",
-  subtitle: "Update: v2.1.10 is now live!",
+  subtitle: `Update: v${packageinfo.version} is now live!`,
   sections: [
     {
       title: "",
       content:
-        "This one's a big one. From a full platform redesign to brand new features — here's a peek at what dropped this week.",
+        "Another week, another drop. Here's what's new — and trust us, there's plenty.",
     },
     {
-      title: "📱 Mobile bottom bar",
+      title: "💬 Feedback platform",
       content:
-        "Navigation on mobile just got a whole lot better. A new bottom bar keeps everything within reach, right where your thumbs are.",
+        "We launched our official feedback platform at feedback.planetaryapp.us — got a suggestion, bug report, or idea? Now there's a home for it.",
     },
     {
-      title: "🛠️ Staff views on mobile",
+      title: "📋 Sessions board",
       content:
-        "Staff dashboards are now properly optimized for mobile devices — no more squinting or awkward scrolling.",
+        "A brand new sessions board is here. Head to Settings > Integrations to get it set up and start managing sessions in a whole new way.",
     },
     {
-      title: "🎵 Music quotes",
+      title: "📝 Resignation logs",
       content:
-        "We've introduced music quotes — a new way to share what you're listening to and spark conversations around it.",
+        "Resignations now leave a proper paper trail. Logs are tracked and accessible so nothing slips through the cracks.",
     },
     {
-      title: "✨ Platform redesign",
+      title: "🏠 Home screen reorganisation",
       content:
-        "Planetary has had a major glow-up. Cleaner, faster, and more intuitive across the board.",
+        "The home screen has been tidied up and reorganised — things are where you'd expect them to be now.",
+    },
+    {
+      title: "⚖️ Affiliate discipline",
+      content:
+        "You can now issue strikes, set strike limits, and action terminations for affiliates directly within Planetary.",
+    },
+    {
+      title: "🔄 Workspace refresh",
+      content:
+        "Refresh icons have been added across workspaces — keeping your data up to date is now just one click away.",
     },
     {
       title: "",
       content:
-        "And honestly? There's a lot more we didn't mention — you'll just have to discover it yourself. 👀",
+        "And honestly? We've barely scratched the surface. There's a lot more in store — we'd rather you discover it yourself. 👀",
     },
   ],
   editorUsername: null,

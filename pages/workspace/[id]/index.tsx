@@ -59,7 +59,14 @@ const Home: pageWithLayout = () => {
   const [isLoadingTitle, setIsLoadingTitle] = useState(false)
   const [titleVisible, setTitleVisible] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [banner, setBanner] = useState<string | null>(null)
+  const [banner, setBanner] = useState<string | null>(null);
+  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false);
+  const [workspaceMembership, setWorkspaceMembership] = useState<{
+    userId: number
+    isAdmin: boolean | null
+    joinDate: Date | null
+    timezone: string | null
+  } | null>(null);
 
   const widgets: Record<string, WidgetConfig> = {
     wall: {
@@ -204,6 +211,14 @@ const Home: pageWithLayout = () => {
         body: JSON.stringify({ timezone: detectedTimezone }),
       }).catch(() => { });
     }
+  }, [workspace?.groupId, login?.userId]);
+
+  useEffect(() => {
+    if (!workspace?.groupId || !login?.userId) return;
+    fetch(`/api/workspace/${workspace.groupId}/member`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success) setWorkspaceMembership(data.member) })
+      .catch(() => { });
   }, [workspace?.groupId, login?.userId])
 
   useEffect(() => {
@@ -212,11 +227,41 @@ const Home: pageWithLayout = () => {
       .then((r) => r.json())
       .then((data) => { if (data.banner) setBanner(data.banner) })
       .catch(() => { });
-  }, [workspace?.groupId])
+  }, [workspace?.groupId]);
+
+  console.log(workspaceMembership, login, )
 
   return (
     <div className="pagePadding">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto">{((workspaceMembership?.isAdmin || login.isOwner) && workspace.lastSyncedSuccessful === false && !syncWarnDismissed) && (
+          <div className="mt-4 mb-5 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-3.5 py-3">
+            <div className="flex items-start gap-2.5">
+              <IconAlertTriangle
+                className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400"
+                stroke={2}
+              />
+              <div>
+                <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+                  <b>Sync failed:</b> The last group sync wasn't successful. Your API keys may have been removed or expired — check your integration settings to restore access.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pl-6">
+              <button
+                onClick={() => router.push(`/workspace/${workspace.groupId}/settings`)}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500 dark:bg-amber-500/20 text-white dark:text-amber-300 hover:opacity-80 transition-opacity"
+              >
+                Rotate keys
+              </button>
+              <button
+                onClick={() => setSyncWarnDismissed(true)}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
         {banner ? (
           <div className="relative w-full h-44 md:h-56 rounded-2xl overflow-hidden mb-8 border border-zinc-200 dark:border-zinc-700">
             <img

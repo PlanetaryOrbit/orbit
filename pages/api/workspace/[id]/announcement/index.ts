@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withSessionRoute } from "@/lib/withSession";
+import packageinfo from '@/package.json'
 
 type Data = {
   success: boolean;
@@ -59,43 +60,53 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const defaultAnnouncement = {
       title: "Planetary",
-      subtitle: "Update: v2.1.10 is now live!",
-  sections: [
-    {
-      title: "",
-      content:
-        "This one's a big one. From a full platform redesign to brand new features — here's a peek at what dropped this week.",
-    },
-    {
-      title: "📱 Mobile bottom bar",
-      content:
-        "Navigation on mobile just got a whole lot better. A new bottom bar keeps everything within reach, right where your thumbs are.",
-    },
-    {
-      title: "🛠️ Staff views on mobile",
-      content:
-        "Staff dashboards are now properly optimized for mobile devices — no more squinting or awkward scrolling.",
-    },
-    {
-      title: "🎵 Music quotes",
-      content:
-        "We've introduced music quotes — a new way to share what you're listening to and spark conversations around it.",
-    },
-    {
-      title: "✨ Platform redesign",
-      content:
-        "Planetary has had a major glow-up. Cleaner, faster, and more intuitive across the board.",
-    },
-    {
-      title: "",
-      content:
-        "And honestly? There's a lot more we didn't mention — you'll just have to discover it yourself. 👀",
-    },
-  ],
-  editorUsername: null,
-  editorPicture: null,
-  isDefault: true,
-};
+      subtitle: `Update: v${packageinfo.version} is now live!`,
+      sections: [
+        {
+          title: "",
+          content:
+            "Another week, another drop. Here's what's new — and trust us, there's plenty.",
+        },
+        {
+          title: "💬 Feedback platform",
+          content:
+            "We launched our official feedback platform at feedback.planetaryapp.us — got a suggestion, bug report, or idea? Now there's a home for it.",
+        },
+        {
+          title: "📋 Sessions board",
+          content:
+            "A brand new sessions board is here. Head to Settings > Integrations to get it set up and start managing sessions in a whole new way.",
+        },
+        {
+          title: "📝 Resignation logs",
+          content:
+            "Resignations now leave a proper paper trail. Logs are tracked and accessible so nothing slips through the cracks.",
+        },
+        {
+          title: "🏠 Home screen reorganisation",
+          content:
+            "The home screen has been tidied up and reorganised — things are where you'd expect them to be now.",
+        },
+        {
+          title: "⚖️ Affiliate discipline",
+          content:
+            "You can now issue strikes, set strike limits, and action terminations for affiliates directly within Planetary.",
+        },
+        {
+          title: "🔄 Workspace refresh",
+          content:
+            "Refresh icons have been added across workspaces — keeping your data up to date is now just one click away.",
+        },
+        {
+          title: "",
+          content:
+            "And honestly? We've barely scratched the surface. There's a lot more in store — we'd rather you discover it yourself. 👀",
+        },
+      ],
+      editorUsername: null,
+      editorPicture: null,
+      isDefault: true,
+    };
 
     return res.status(200).json({
       success: true,

@@ -60,6 +60,8 @@ const workspacestate = atom({
 		groupDarkTheme: '',
 		roles: [] as role[],
 		yourRole: '',
+    lastSynced: new Date(),
+    lastSyncedSuccessful: true,
 		settings: {
 			guidesEnabled: false,
 			sessionsEnabled: false,
