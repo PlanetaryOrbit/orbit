@@ -519,7 +519,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     {!isCollapsed && page.name === "Policies" && (
                       <>
                         {pendingPolicyCount > 0 && (
-                          <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-red-500 text-white text-xs font-semibold flex items-center justify-center">
+                          <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[color:rgb(var(--group-theme))] text-white text-xs font-semibold flex items-center justify-center shadow-sm shadow-black/10 dark:shadow-black/30">
                             {pendingPolicyCount}
                           </span>
                         )}
@@ -531,7 +531,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       </span>
                     )}
                     {isCollapsed && navBadgeCount(page.name) > 0 && (
-                      <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[10px] font-bold flex items-center justify-center">
                         {navBadgeCount(page.name)}
                       </span>
                     )}
@@ -683,7 +683,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <div className="relative">
                   <IconComponent className="w-6 h-6" stroke={1.5} />
                   {hasBadge && (
-                    <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                    <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[9px] font-bold flex items-center justify-center leading-none">
                       {badgeCount}
                     </span>
                   )}
@@ -802,7 +802,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <div className="relative shrink-0">
                       <IconComponent className="w-5 h-5" stroke={1.5} />
                       {hasBadge && (
-                        <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                        <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[9px] font-bold flex items-center justify-center leading-none">
                           {badgeCount}
                         </span>
                       )}
