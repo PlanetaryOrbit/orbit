@@ -1,13 +1,11 @@
-import { atom, selector } from "recoil";
-import Router from "next/router";
+import { atom } from "recoil";
 import { role } from "@prisma/client";
-import axios from "axios";
 import { ALLIANCE_STRIKES_DEFAULT_MAX } from "@/utils/allianceStrikesConfig";
 export type workspaceinfo = {
 	groupId: number;
 	groupThumbnail: string;
 	groupName: string;
-  customName: string;
+	customName: string;
 }
 
 export type LoginState = {
@@ -18,17 +16,17 @@ export type LoginState = {
 	canMakeWorkspace: boolean;
 	workspaces: workspaceinfo[];
 	isOwner: boolean;
-  isFirstLogin: boolean,
+	isFirstLogin: boolean,
 	discordUser?: {
 		discordUserId: string
 		username: string
 		avatar: string | null
 	} | null,
-  googleUser?: {
-    username: string,
-    avatar: string | null,
-    email: string | null  // add | null
-  } | null
+	googleUser?: {
+		username: string,
+		avatar: string | null,
+		email: string | null  // add | null
+	} | null
 }
 
 const loginState = atom<LoginState>({
@@ -38,12 +36,12 @@ const loginState = atom<LoginState>({
 		username: '',
 		displayname: '',
 		thumbnail: '',
-    isFirstLogin: true,
+		isFirstLogin: true,
 		canMakeWorkspace: false,
 		workspaces: [] as workspaceinfo[],
 		isOwner: false,
 		discordUser: null,
-    googleUser: null
+		googleUser: null
 	},
 });
 
@@ -52,7 +50,7 @@ const workspacestate = atom({
 	default: {
 		groupId: typeof window !== 'undefined' ? parseInt(window.location.pathname.split('/')[2]) || 1 : 1,
 		groupThumbnail: '',
-    customName: '',
+		customName: '',
 		groupName: '',
 		yourPermission: [] as string[],
 		isAdmin: false,
@@ -60,8 +58,8 @@ const workspacestate = atom({
 		groupDarkTheme: '',
 		roles: [] as role[],
 		yourRole: '',
-    lastSynced: new Date(),
-    lastSyncedSuccessful: true,
+		lastSynced: new Date(),
+		lastSyncedSuccessful: true,
 		settings: {
 			guidesEnabled: false,
 			sessionsEnabled: false,
@@ -77,4 +75,4 @@ const workspacestate = atom({
 });
 
 
-export {loginState, workspacestate};
+export { loginState, workspacestate };
