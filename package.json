@@ -94,6 +94,17 @@
   "pnpm": {
     "overrides": {
       "qs": ">=6.14.1"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@prisma/client",
+      "@prisma/engines",
+      "core-js",
+      "noblox.js",
+      "prisma",
+      "protobufjs",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
