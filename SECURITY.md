@@ -17,7 +17,7 @@ To allow us to promptly address the concern, please provide us with:
 - Version ID
 - Browser Console Logs
 - Browser Network Logs
-- PM2 / NPM Logs
+- PM2 / PNPM Logs
 - Description
 
 E: IT@planetaryapp.us

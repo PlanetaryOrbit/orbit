@@ -35,7 +35,7 @@ export async function initCronJobs() {
       })
     });
 
-    cron.schedule('0 6 * * 1', async () => {
+    cron.schedule('0 6 * * *', async () => {
       await axios.post(`${process.env.NEXTAUTH_URL}/api/cron/reset-activity`, {}, {
         headers: {
           "x-cron-secret": process.env.CRON_SECRET
