@@ -7,12 +7,3 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unrs-resolver: true
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@prisma/client'
-  - '@prisma/engines'
-  - core-js
-  - noblox.js
-  - prisma
-  - sharp
-  - unrs-resolver
