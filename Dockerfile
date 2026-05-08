@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 ARG NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_OPTIONS="${NODE_OPTIONS}"
