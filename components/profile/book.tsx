@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { FC } from "@/types/settingsComponent";
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
 import {
   IconPencil,
   IconCheck,
@@ -12,6 +10,9 @@ import {
   IconClipboardList,
   IconRocket,
   IconTrash,
+  IconPaperclip,
+  IconPhoto,
+  IconFileDescription,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -30,18 +31,19 @@ interface Props {
     demotion: boolean;
     termination: boolean;
     redact: boolean;
+    delete: boolean;
   };
 }
 
 const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
   const router = useRouter();
   const { id } = router.query;
-  const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [text, setText] = useState("");
   const [type, setType] = useState("note");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rankingEnabled, setRankingEnabled] = useState(false);
   const [targetRank, setTargetRank] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [ranks, setRanks] = useState<
     Array<{ id: number; name: string; rank: number }>
   >([]);
@@ -109,17 +111,16 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
 
     setIsSubmitting(true);
     try {
-      const payload: any = {
-        notes: text,
-        type: type,
-      };
+      const formData = new FormData();
+      formData.append("notes", text);
+      formData.append("type", type);
 
       if (type === "rank_change") {
         const selectedRank = ranks.find(
           (rank) => rank.id.toString() === targetRank
         );
         if (selectedRank) {
-          payload.targetRank = selectedRank.rank;
+          formData.append("targetRank", selectedRank.rank.toString());
         } else {
           toast.error("Invalid rank selected.");
           setIsSubmitting(false);
@@ -127,13 +128,18 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
         }
       }
 
+      attachments.forEach((file) => {
+        formData.append("attachments", file);
+      });
+
       const response = await axios.post(
         `/api/workspace/${id}/userbook/${router.query.uid}/new`,
-        payload
+        formData
       );
 
       setText("");
       setTargetRank("");
+      setAttachments([]);
 
       if (response.data.terminated) {
         toast.success("User terminated successfully!");
@@ -163,6 +169,64 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const onAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files || []);
+    if (selected.length === 0) return;
+
+    const allowedTypes = new Set([
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ]);
+
+    const validFiles = selected.filter((file) => allowedTypes.has(file.type));
+    if (validFiles.length !== selected.length) {
+      toast.error("Only PDF and image files are supported.");
+    }
+
+    const combined = [...attachments, ...validFiles];
+    if (combined.length > 5) {
+      toast.error("You can upload up to 5 files per entry.");
+      setAttachments(combined.slice(0, 5));
+    } else {
+      setAttachments(combined);
+    }
+
+    event.target.value = "";
+  };
+
+  const removeAttachment = (name: string, size: number) => {
+    setAttachments((prev) =>
+      prev.filter((file) => !(file.name === name && file.size === size))
+    );
+  };
+
+  const parseEntryReason = (rawReason: string): {
+    text: string;
+    attachments: Array<{ name: string; mime: string; size: number; dataUrl: string }>;
+  } => {
+    try {
+      const parsed = JSON.parse(rawReason);
+      if (parsed && typeof parsed === "object") {
+        const textValue =
+          typeof parsed.text === "string" ? parsed.text : rawReason;
+        const parsedAttachments = Array.isArray(parsed.attachments)
+          ? parsed.attachments.filter(
+              (a: any) =>
+                a &&
+                typeof a.name === "string" &&
+                typeof a.mime === "string" &&
+                typeof a.dataUrl === "string"
+            )
+          : [];
+        return { text: textValue, attachments: parsedAttachments };
+      }
+    } catch (_) {}
+    return { text: rawReason, attachments: [] };
   };
 
   const getIcon = (type: string) => {
@@ -204,21 +268,6 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
         return "Termination";
       default:
         return "Note";
-    }
-  };
-
-  const canRedact = (workspace: any) => {
-    return (workspace?.yourPermission || []).includes("manage_members");
-  };
-
-  const isOwner = (workspace: any) => {
-    try {
-      if (!workspace?.yourRole) return false;
-      return workspace.roles?.some(
-        (r: any) => r.id === workspace.yourRole && r.isOwnerRole
-      );
-    } catch (e) {
-      return false;
     }
   };
 
@@ -430,6 +479,60 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+              Attachments
+            </label>
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/40 p-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-700/60 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
+                <IconPaperclip className="w-4 h-4" />
+                Add files
+                <input
+                  type="file"
+                  accept=".pdf,image/*"
+                  multiple
+                  className="hidden"
+                  onChange={onAttachmentChange}
+                />
+              </label>
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                Supports PDF, JPG, PNG, WEBP, and GIF (max 5 files).
+              </p>
+
+              {attachments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {attachments.map((file) => {
+                    const isImage = file.type.startsWith("image/");
+                    return (
+                      <div
+                        key={`${file.name}-${file.size}`}
+                        className="flex items-center justify-between gap-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 py-2"
+                      >
+                        <div className="min-w-0 flex items-center gap-2">
+                          {isImage ? (
+                            <IconPhoto className="w-4 h-4 text-zinc-500" />
+                          ) : (
+                            <IconFileDescription className="w-4 h-4 text-zinc-500" />
+                          )}
+                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">
+                            {file.name}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(file.name, file.size)}
+                          className="text-xs rounded px-2 py-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
           <button
             onClick={addNote}
             disabled={isSubmitting}
@@ -482,6 +585,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                   const rankChangeText = getRankChangeText(entry);
                   const accent = entryAccent[entry.type] || entryAccent.note;
                   const badge = entryBadge[entry.type] || entryBadge.note;
+                  const parsedReason = parseEntryReason(entry.reason);
                   return (
                     <div
                       key={entry.id}
@@ -510,8 +614,31 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                           </time>
                         </div>
                         <p className={`text-sm leading-relaxed ${entry.redacted ? "line-through opacity-50 text-zinc-500 dark:text-zinc-400" : "text-zinc-700 dark:text-zinc-300"}`}>
-                          {entry.reason}
+                          {parsedReason.text}
                         </p>
+                        {parsedReason.attachments.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {parsedReason.attachments.map((attachment) => {
+                              const isImage = attachment.mime.startsWith("image/");
+                              return (
+                                <a
+                                  key={`${entry.id}-${attachment.name}-${attachment.size}`}
+                                  href={attachment.dataUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                                >
+                                  {isImage ? (
+                                    <IconPhoto className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <IconFileDescription className="w-3.5 h-3.5" />
+                                  )}
+                                  <span className="max-w-[12rem] truncate">{attachment.name}</span>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
                         <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
                           Logged by {entry.admin?.username || "Unknown"}
                           {entry.redacted && entry.redactedByUser?.username && (
@@ -519,10 +646,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                           )}
                         </p>
                       </div>
-                      {(logbookPermissions?.redact || isOwner(workspace)) && (
+                      {(logbookPermissions?.redact || logbookPermissions?.delete) && (
                         <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
                           {logbookPermissions?.redact && (
                             <button
+                              type="button"
                               onClick={() => redactEntry(entry)}
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40 transition-colors"
                             >
@@ -530,10 +658,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                               {entry.redacted ? "Undo" : "Redact"}
                             </button>
                           )}
-                          {isOwner(workspace) && (
+                          {logbookPermissions?.delete && (
                             <button
+                              type="button"
                               onClick={() => deleteEntry(entry)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-white bg-red-500 hover:bg-red-600 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-700 bg-red-50/80 hover:bg-red-100 dark:border-red-500/35 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/15 transition-colors"
                             >
                               <IconTrash className="w-3.5 h-3.5" />
                               Delete

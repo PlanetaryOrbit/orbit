@@ -1,12 +1,13 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
-import prisma, { SessionType, document } from "@/utils/database";
+import { getConfig } from "@/utils/configEngine";
+import prisma from "@/utils/database";
 import * as rbx from '@/utils/roblox'
 import { logAudit } from "@/utils/logs";
 import { withSessionRoute } from "@/lib/withSession";
-import { withPermissionCheck } from "@/utils/permissionsManager";
 import { RankGunAPI, getRankGun } from "@/utils/rankgun";
+import formidable, { File as FormidableFile } from "formidable";
+import fs from "fs";
 
 import * as noblox from "noblox.js";
 
@@ -162,6 +163,98 @@ type Data = {
   terminated?: boolean;
 };
 
+type ParsedBody = {
+  type?: string;
+  notes?: string;
+  targetRank?: string;
+  attachments: {
+    name: string;
+    mime: string;
+    size: number;
+    dataUrl: string;
+  }[];
+};
+
+const ALLOWED_ATTACHMENT_MIMES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
+const MAX_ATTACHMENTS = 5;
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
+  const contentType = req.headers["content-type"] || "";
+
+  if (!contentType.includes("multipart/form-data")) {
+    return {
+      type: req.body?.type,
+      notes: req.body?.notes,
+      targetRank: req.body?.targetRank,
+      attachments: [],
+    };
+  }
+
+  const form = formidable({
+    multiples: true,
+    allowEmptyFiles: false,
+    maxFileSize: MAX_ATTACHMENT_SIZE,
+    maxFiles: MAX_ATTACHMENTS,
+    filter: ({ mimetype }) => !!(mimetype && ALLOWED_ATTACHMENT_MIMES.has(mimetype)),
+  });
+
+  const [fields, files] = await form.parse(req);
+  const rawType = Array.isArray(fields.type) ? fields.type[0] : fields.type;
+  const rawNotes = Array.isArray(fields.notes) ? fields.notes[0] : fields.notes;
+  const rawTargetRank = Array.isArray(fields.targetRank)
+    ? fields.targetRank[0]
+    : fields.targetRank;
+
+  const parsedFiles = files.attachments
+    ? (Array.isArray(files.attachments) ? files.attachments : [files.attachments])
+    : [];
+
+  if (parsedFiles.length > MAX_ATTACHMENTS) {
+    throw new Error(`You can upload up to ${MAX_ATTACHMENTS} files.`);
+  }
+
+  const attachments: ParsedBody["attachments"] = [];
+  for (const file of parsedFiles as FormidableFile[]) {
+    const mime = file.mimetype || "";
+    if (!ALLOWED_ATTACHMENT_MIMES.has(mime)) {
+      throw new Error("Only PDF, JPG, PNG, WEBP, and GIF files are supported.");
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      throw new Error(`Each file must be under ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB.`);
+    }
+
+    const buffer = fs.readFileSync(file.filepath);
+    fs.unlinkSync(file.filepath);
+
+    attachments.push({
+      name: file.originalFilename || "attachment",
+      mime,
+      size: file.size,
+      dataUrl: `data:${mime};base64,${buffer.toString("base64")}`,
+    });
+  }
+
+  return {
+    type: rawType,
+    notes: rawNotes,
+    targetRank: rawTargetRank,
+    attachments,
+  };
+}
+
 async function checkPermissionForType(req: NextApiRequest, type: string, workspaceGroupId: number) {
   const permissionMap: Record<string, string> = {
     note: "logbook_note",
@@ -213,7 +306,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  const { type, notes, targetRank } = req.body;
+  let parsedBody: ParsedBody;
+  try {
+    parsedBody = await parseRequestBody(req);
+  } catch (e: any) {
+    return res.status(400).json({
+      success: false,
+      error: e?.message || "Invalid upload payload",
+    });
+  }
+
+  const { type, notes, targetRank, attachments } = parsedBody;
   if (!type || !notes)
     return res
       .status(400)
@@ -402,7 +505,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           }
           break;
         case "rank_change":
-          if (!targetRank || isNaN(targetRank)) {
+          const parsedTargetRank = Number(targetRank);
+          if (!targetRank || Number.isNaN(parsedTargetRank)) {
             return res.status(400).json({
               success: false,
               error: "Target rank is required for rank change.",
@@ -419,7 +523,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             if (adminUserRank) {
               const adminRank = Number(adminUserRank.rankId);
 
-              if (parseInt(targetRank) >= adminRank) {
+              if (parsedTargetRank >= adminRank) {
                 const adminUser = await prisma.user.findFirst({
                   where: {
                     userid: BigInt(req.session.userid),
@@ -455,13 +559,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
             result = await rankGunAPI.setUserRank(
               userId,
               rankGun ? rankGun.workspaceId : "",
-              parseInt(targetRank)
+              parsedTargetRank
             );
           } else if (rankingRobloxApiKey) {
             result = await rbx.rankChange(
               userId,
               workspaceGroupId,
-              parseInt(String(targetRank), 10),
+              parsedTargetRank,
               rankingRobloxApiKey,
               { maxPromotionRank: promotionRankCap }
             );
@@ -562,7 +666,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       userId: BigInt(uid as string),
       type,
       workspaceGroupId: parseInt(id as string),
-      reason: notes,
+      reason: JSON.stringify({
+        text: notes,
+        attachments,
+      }),
       adminId: BigInt(req.session.userid),
       rankBefore,
       rankAfter,

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { withPermissionCheck } from "@/utils/permissionsManager";
 import { logAudit } from "@/utils/logs";
 
 type Data = {
@@ -8,9 +8,7 @@ type Data = {
   error?: string;
 };
 
-export default withSessionRoute(handler);
-
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "DELETE")
     return res.status(405).json({ success: false, error: "Method not allowed" });
 
@@ -19,32 +17,17 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res.status(400).json({ success: false, error: "Missing required fields" });
 
   const workspaceGroupId = parseInt(id as string);
+  const profileUserId = BigInt(uid as string);
 
   try {
-    const currentUser = await prisma.user.findFirst({
-      where: { userid: BigInt(req.session.userid as number) },
-      include: {
-        roles: {
-          where: { workspaceGroupId: workspaceGroupId },
-        },
-        workspaceMemberships: {
-          where: { workspaceGroupId: workspaceGroupId },
-        },
-      },
+    const entry = await prisma.userBook.findUnique({
+      where: { id: entryId as string },
     });
-
-    if (!currentUser || !currentUser.roles || currentUser.roles.length === 0)
-      return res.status(401).json({ success: false, error: "Unauthorized." });
-
-    const membership = currentUser.workspaceMemberships[0];
-    const isAdmin = membership?.isAdmin || false;
-    if (!isAdmin)
-      return res.status(401).json({ success: false, error: "Only owners may delete entries." });
-
-    const entry = await prisma.userBook.findUnique({ where: { id: entryId as string } });
     if (!entry) return res.status(404).json({ success: false, error: "Entry not found." });
     if (entry.workspaceGroupId !== workspaceGroupId)
       return res.status(403).json({ success: false, error: "WorkspaceID doesn't match." });
+    if (entry.userId !== profileUserId)
+      return res.status(403).json({ success: false, error: "Entry does not belong to this profile." });
 
     await prisma.userBook.delete({ where: { id: entryId as string } });
 
@@ -63,3 +46,5 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     res.status(500).json({ success: false, error: "Failed to delete entry" });
   }
 }
+
+export default withPermissionCheck(handler, "logbook_delete");

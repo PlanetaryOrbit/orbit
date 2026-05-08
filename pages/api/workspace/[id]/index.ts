@@ -153,6 +153,7 @@ export async function handler(
 		"Activity adjustments": "activity_adjustments",
 		"View logbook": "view_logbook",
 		"Logbook redact": "logbook_redact",
+		"Logbook delete": "logbook_delete",
 		"Logbook note": "logbook_note",
 		"Logbook warning": "logbook_warning",
 		"Logbook promotion": "logbook_promotion",

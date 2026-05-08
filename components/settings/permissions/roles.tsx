@@ -98,6 +98,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
       "Activity - Adjustments": "activity_adjustments",
       "Logbook - See Entries": "view_logbook",
       "Logbook - Redact Entries": "logbook_redact",
+      "Logbook - Delete Entries": "logbook_delete",
       "Logbook - Note": "logbook_note",
       "Logbook - Warning": "logbook_warning",
       "Logbook - Promotion": "logbook_promotion",
