@@ -3,8 +3,8 @@ FROM node:22-alpine
 ARG NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_OPTIONS="${NODE_OPTIONS}"
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (version pinned by packageManager in package.json)
+RUN corepack enable
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -15,7 +15,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile --ignore-scripts=false
+RUN pnpm install --frozen-lockfile
 
 # Generate Prisma client for the specific platform
 RUN pnpm exec prisma generate

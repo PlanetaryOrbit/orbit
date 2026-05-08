@@ -2,6 +2,7 @@
   "name": "orbit",
   "version": "2.1.10beta8",
   "private": true,
+  "packageManager": "pnpm@10.18.2",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next build --webpack",
