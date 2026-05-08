@@ -5,7 +5,17 @@ import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import type { FC } from "@/types/settingsComponent";
-import { IconCheck, IconMoon, IconPalette, IconSun } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconClock,
+  IconConfetti,
+  IconDots,
+  IconMoon,
+  IconPalette,
+  IconRepeat,
+  IconSchool,
+  IconSun,
+} from "@tabler/icons-react";
 import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getRGBFromTailwindColor, getHexFromTheme } from "@/utils/themeColor";
@@ -265,31 +275,47 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
     "bg-orbit",
   ];
 
-  const sessionColorTypes = [
+  const sessionColorTypes: {
+    key: keyof SessionColors;
+    label: string;
+    description: string;
+    shortTag: string;
+    Icon: typeof IconRepeat;
+  }[] = [
     {
-      key: "recurring" as keyof SessionColors,
+      key: "recurring",
       label: "Recurring Sessions",
-      description: 'Color for "Recurring" tag',
+      description: "Badge and highlights for recurring schedules",
+      shortTag: "Recurring",
+      Icon: IconRepeat,
     },
     {
-      key: "shift" as keyof SessionColors,
+      key: "shift",
       label: "Shift Sessions",
-      description: 'Color for "Shift" sessions',
+      description: "Shift blocks on the calendar and lists",
+      shortTag: "Shift",
+      Icon: IconClock,
     },
     {
-      key: "training" as keyof SessionColors,
+      key: "training",
       label: "Training Sessions",
-      description: 'Color for "Training" sessions',
+      description: "Training session type styling",
+      shortTag: "Training",
+      Icon: IconSchool,
     },
     {
-      key: "event" as keyof SessionColors,
+      key: "event",
       label: "Event Sessions",
-      description: 'Color for "Event" sessions',
+      description: "One-off events and special sessions",
+      shortTag: "Event",
+      Icon: IconConfetti,
     },
     {
-      key: "other" as keyof SessionColors,
+      key: "other",
       label: "Other Sessions",
-      description: 'Color for "Other" sessions',
+      description: "Fallback for uncategorized sessions",
+      shortTag: "Other",
+      Icon: IconDots,
     },
   ];
 
@@ -498,68 +524,109 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         </div>
       </div>
 
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <IconPalette size={20} className="text-primary" />
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-            Session Colors
-          </h3>
+      <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-gradient-to-b from-white to-zinc-50/80 dark:from-zinc-900/40 dark:to-zinc-900/20 shadow-sm shadow-zinc-200/40 dark:shadow-none p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div className="flex gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+              <IconPalette size={22} stroke={1.75} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
+                Session Colors
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 max-w-xl">
+                Pick accent colors for each session category. They appear on badges, cards, and the calendar.
+              </p>
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
-          Customize colors for different session types and tags
-        </p>
 
         {isLoadingSessionColors ? (
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-              Loading session colors...
+          <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-9 w-9 border-2 border-primary border-t-transparent mx-auto" />
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3">
+              Loading session colors…
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {sessionColorTypes.map((colorType) => (
-              <div
-                key={colorType.key}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 p-4 flex flex-col gap-3"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-zinc-900 dark:text-white text-sm">
-                      {colorType.label}
-                    </h4>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {colorType.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sessionColorTypes.map((colorType) => {
+              const Icon = colorType.Icon;
+              const current = sessionColors[colorType.key];
+              return (
+                <div
+                  key={colorType.key}
+                  className="group relative overflow-hidden rounded-xl border border-zinc-200/90 dark:border-zinc-700/80 bg-white/90 dark:bg-zinc-800/50 p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600"
+                >
+                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="flex items-start gap-3 mb-4">
+                    <div
                       className={clsx(
-                        "px-2.5 py-1 rounded-full text-xs text-white font-medium shadow-sm",
-                        sessionColors[colorType.key]
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-inner",
+                        current
                       )}
                     >
-                      {colorType.key === "recurring"
-                        ? "Recurring"
-                        : colorType.label.split(" ")[0]}
-                    </span>
+                      <Icon size={20} stroke={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-semibold text-zinc-900 dark:text-white text-sm sm:text-base">
+                          {colorType.label}
+                        </h4>
+                        <span
+                          className={clsx(
+                            "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm",
+                            current
+                          )}
+                        >
+                          {colorType.shortTag}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                        {colorType.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">
+                      Color
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {sessionColorOptions.map((color) => {
+                        const selected = current === color;
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            title={getColorDisplayName(color)}
+                            onClick={() => updateSessionColor(colorType.key, color)}
+                            className={clsx(
+                              "relative h-9 w-9 rounded-full border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900",
+                              color,
+                              selected
+                                ? "ring-2 ring-offset-2 ring-zinc-900 dark:ring-white ring-offset-white dark:ring-offset-zinc-900 scale-105"
+                                : "border-white/50 dark:border-zinc-900/50 opacity-90 hover:opacity-100 hover:scale-105"
+                            )}
+                          >
+                            {selected && (
+                              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/25">
+                                <IconCheck size={14} className="text-white drop-shadow" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
+                      Current:{" "}
+                      <span className="font-medium text-zinc-600 dark:text-zinc-300">
+                        {getColorDisplayName(current)}
+                      </span>
+                    </p>
                   </div>
                 </div>
-                <select
-                  value={sessionColors[colorType.key]}
-                  onChange={(e) =>
-                    updateSessionColor(colorType.key, e.target.value)
-                  }
-                  className="w-full px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  {sessionColorOptions.map((color) => (
-                    <option key={color} value={color}>
-                      {getColorDisplayName(color)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

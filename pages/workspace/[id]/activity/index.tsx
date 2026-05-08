@@ -50,6 +50,11 @@ const Activity: pageWithLayout = () => {
 	const [idleTimeEnabled, setIdleTimeEnabled] = useState(true);
 	const [accessApiKey, setaccessApiKey] = useState('');
 
+	const goToProfile = (userId: string) => {
+		if (!id || Array.isArray(id)) return;
+		router.push(`/workspace/${id}/profile/${userId}`);
+	};
+
 	useEffect(() => {
 		async function fetchUserData() {
 			try {
@@ -380,13 +385,18 @@ const Activity: pageWithLayout = () => {
 											<div key={user.userId} className="flex flex-col items-center flex-1 max-w-[140px]">
 												<div className="flex flex-col items-center mb-2">
 													<span className="text-xl mb-1">{medals[pos as keyof typeof medals]}</span>
-													<div className={`relative ring-4 ${ringColors[pos as keyof typeof ringColors]} ring-offset-2 ring-offset-white dark:ring-offset-zinc-800 rounded-full`}>
+													<button
+														type="button"
+														onClick={() => goToProfile(user.userId)}
+														aria-label={`Open ${user.username}'s profile`}
+														className={`relative ring-4 ${ringColors[pos as keyof typeof ringColors]} ring-offset-2 ring-offset-white dark:ring-offset-zinc-800 rounded-full cursor-pointer`}
+													>
 														<img
 															src={user.picture}
 															alt={user.username}
 															className={`rounded-full object-cover ${pos === 1 ? "w-20 h-20" : "w-16 h-16"}`}
 														/>
-													</div>
+													</button>
 													<p className={`mt-2 font-bold text-sm text-zinc-900 dark:text-white text-center truncate w-full ${pos === 1 ? "text-base" : ""}`}>
 														{user.username}
 													</p>
@@ -411,7 +421,14 @@ const Activity: pageWithLayout = () => {
 									return (
 										<div key={user.userId} className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
 											<span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 w-5 text-right flex-shrink-0">{index + 4}</span>
-											<img src={user.picture} alt={user.username} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+											<button
+												type="button"
+												onClick={() => goToProfile(user.userId)}
+												aria-label={`Open ${user.username}'s profile`}
+												className="w-7 h-7 rounded-full object-cover flex-shrink-0 cursor-pointer"
+											>
+												<img src={user.picture} alt={user.username} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+											</button>
 											<span className="text-sm font-medium text-zinc-900 dark:text-white flex-1 truncate">{user.username}</span>
 											<span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex-shrink-0">{formatMinutes(minutes)}</span>
 										</div>
@@ -694,10 +711,13 @@ const Activity: pageWithLayout = () => {
 											}
 											orientation="top"
 										>
-											<div
+											<button
+												type="button"
+												onClick={() => goToProfile(user.userId)}
+												aria-label={`Open ${user.username}'s profile`}
 												className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
 													user.userId
-												)} ring-2 ring-primary/10 hover:ring-primary/30 transition-all`}
+												)} ring-2 ring-primary/10 hover:ring-primary/30 transition-all cursor-pointer`}
 											>
 												<img
 													src={user.picture}
@@ -705,7 +725,7 @@ const Activity: pageWithLayout = () => {
 													className="w-10 h-10 rounded-full object-cover border-2 border-white"
 													style={{ background: "transparent" }}
 												/>
-											</div>
+											</button>
 										</Tooltip>
 									))}
 									{users.length === 0 && (

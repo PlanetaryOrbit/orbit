@@ -8,6 +8,7 @@ import {
   IconPlus,
   IconCalendar,
   IconClock,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -243,68 +244,83 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
         </div>
       )}
 
-      {/* Create API Key Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/55 p-4 backdrop-blur-[2px]"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !createdKey) {
+              setIsCreateModalOpen(false);
+              setNewKeyData({ name: "", expiresIn: "90days" });
+            }
+          }}
+        >
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity: 0, scale: 0.97, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="api-key-title"
-            className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800 overflow-hidden"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-2xl shadow-zinc-900/10 dark:border-zinc-700/80 dark:bg-zinc-900 dark:shadow-black/40"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-5 sm:px-8">
+            <div className="h-1 w-full bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
+            <div className="px-6 py-6 sm:px-8 sm:py-7">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-[#ff66b2] to-[#ff0099] flex items-center justify-center text-white shadow-md">
-                    <IconKey size={24} />
+                <div className="mt-0.5 flex shrink-0">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/25 ring-4 ring-primary/10">
+                    <IconKey size={24} stroke={1.5} />
                   </div>
                 </div>
 
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <h2
                     id="api-key-title"
-                    className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+                    className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
                   >
-                    {createdKey ? "API Key Created" : "Create API Key"}
+                    {createdKey ? "API key created" : "Create API key"}
                   </h2>
                   {!createdKey && (
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      Create a new API key to access workspace data
-                      programmatically.
+                    <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      Uses your workspace accent. Keys can access workspace data
+                      from scripts and integrations—treat them like passwords.
                     </p>
                   )}
                 </div>
               </div>
 
               {createdKey ? (
-                <div className="mt-5">
-                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
-                      Make sure to copy your API key now. You won't be able to
-                      see it again!
+                <div className="mt-6 space-y-4">
+                  <div className="rounded-xl border border-amber-200/90 bg-amber-50/90 p-4 dark:border-amber-800/60 dark:bg-amber-950/30">
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                      Copy it now
                     </p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-white dark:bg-zinc-900 dark:text-white p-2 rounded text-sm break-all">
+                    <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90">
+                      You won&apos;t be able to see this secret again after you
+                      close this dialog.
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <code className="flex-1 break-all rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 font-mono text-xs text-zinc-800 dark:border-amber-900/50 dark:bg-zinc-950 dark:text-zinc-100">
                         {createdKey.key}
                       </code>
                       <button
+                        type="button"
                         onClick={() => copyToClipboard(createdKey.key)}
-                        className="p-2 bg-[#ff0099] text-white rounded hover:bg-[#ff0099]/95 transition-colors"
+                        className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-3 text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+                        aria-label="Copy API key"
                       >
                         <IconCopy size={18} />
                       </button>
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setIsCreateModalOpen(false);
                       setCreatedKey(null);
                       setNewKeyData({ name: "", expiresIn: "90days" });
                     }}
-                    className="w-full px-4 py-2 rounded-lg bg-[#ff0099] hover:bg-[#ff0099]/95 text-white font-medium shadow-md"
+                    className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
                   >
                     Done
                   </button>
@@ -313,16 +329,19 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (newKeyData.name) {
+                    if (newKeyData.name.trim()) {
                       createApiKey();
                     }
                   }}
-                  className="mt-5"
+                  className="mt-6"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="sr-only" htmlFor="api-key-name">
-                        Key Name
+                      <label
+                        htmlFor="api-key-name"
+                        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+                      >
+                        Key name
                       </label>
                       <input
                         id="api-key-name"
@@ -331,51 +350,59 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                         onChange={(e) =>
                           setNewKeyData({ ...newKeyData, name: e.target.value })
                         }
-                        placeholder="e.g., Production API Key"
-                        className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
+                        placeholder="e.g. Production integration"
+                        autoComplete="off"
+                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                       />
                     </div>
                     <div>
-                      <label className="sr-only" htmlFor="api-key-expiration">
-                        Expiration
-                      </label>
-                      <select
-                        id="api-key-expiration"
-                        value={newKeyData.expiresIn}
-                        onChange={(e) =>
-                          setNewKeyData({
-                            ...newKeyData,
-                            expiresIn: e.target.value,
-                          })
-                        }
-                        className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
+                      <label
+                        htmlFor="api-key-expiration"
+                        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
                       >
-                        <option value="30days">30 days</option>
-                        <option value="90days">90 days</option>
-                        <option value="1year">1 year</option>
-                        <option value="never">Never</option>
-                      </select>
+                        Expires after
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="api-key-expiration"
+                          value={newKeyData.expiresIn}
+                          onChange={(e) =>
+                            setNewKeyData({
+                              ...newKeyData,
+                              expiresIn: e.target.value,
+                            })
+                          }
+                          className="w-full appearance-none rounded-xl border border-zinc-200 bg-zinc-50/50 px-3.5 py-2.5 pr-10 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-100"
+                        >
+                          <option value="30days">30 days</option>
+                          <option value="90days">90 days</option>
+                          <option value="1year">1 year</option>
+                          <option value="never">Never</option>
+                        </select>
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                          <IconChevronDown size={18} stroke={2} aria-hidden />
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-5 flex items-center gap-3">
-                    <button
-                      type="submit"
-                      disabled={!newKeyData.name}
-                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#ff0099] hover:bg-[#ff0099]/95 text-white font-medium shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      Create
-                    </button>
-
+                  <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                     <button
                       type="button"
                       onClick={() => {
                         setIsCreateModalOpen(false);
                         setNewKeyData({ name: "", expiresIn: "90days" });
                       }}
-                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100/90"
+                      className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80"
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!newKeyData.name.trim()}
+                      className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+                    >
+                      Create key
                     </button>
                   </div>
                 </form>
@@ -385,35 +412,56 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <Dialog
         open={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div
+          className="fixed inset-0 bg-zinc-950/55 backdrop-blur-[2px]"
+          aria-hidden="true"
+        />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
-              Delete API Key
-            </Dialog.Title>
-            <p className="text-zinc-500 dark:text-zinc-400 mb-6">
-              Are you sure you want to delete "{selectedKey?.name}"? This action
-              cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => selectedKey && deleteApiKey(selectedKey.id)}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                Delete
-              </button>
+          <Dialog.Panel className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-2xl shadow-zinc-900/10 dark:border-zinc-700/80 dark:bg-zinc-900 dark:shadow-black/40">
+            <div className="h-1 w-full bg-gradient-to-r from-red-500/30 via-red-500 to-red-500/30" />
+            <div className="p-6 sm:p-7">
+              <div className="flex gap-4">
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/25 ring-4 ring-red-500/10"
+                  aria-hidden
+                >
+                  <IconTrash size={22} stroke={1.5} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Dialog.Title className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                    Delete API key
+                  </Dialog.Title>
+                  <Dialog.Description className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    This revokes access immediately for{" "}
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+                      {selectedKey?.name ?? "this key"}
+                    </span>
+                    . Apps using it will start failing. This can&apos;t be
+                    undone.
+                  </Dialog.Description>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectedKey && deleteApiKey(selectedKey.id)}
+                  className="inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-red-600/25 transition-colors hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+                >
+                  Delete key
+                </button>
+              </div>
             </div>
           </Dialog.Panel>
         </div>

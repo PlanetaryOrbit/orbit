@@ -112,6 +112,11 @@ const Leaderboard: pageWithLayout = () => {
   const [inactiveUsers, setInactiveUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const goToProfile = (userId: string) => {
+    if (!id || Array.isArray(id)) return;
+    router.push(`/workspace/${id}/profile/${userId}`);
+  };
+
   useEffect(() => {
     async function fetchLeaderboardData() {
       try {
@@ -208,10 +213,13 @@ const Leaderboard: pageWithLayout = () => {
               {topStaff[1] && (
                 <div className="flex flex-col items-center flex-1 max-w-[120px]">
                   <div className="relative mb-4">
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => goToProfile(topStaff[1].userId)}
+                      aria-label={`Open ${topStaff[1].username}'s profile`}
                       className={`w-20 h-20 rounded-full flex items-center justify-center ${getRandomBg(
                         topStaff[1].userId
-                      )}`}
+                      )} cursor-pointer`}
                     >
                       <img
                         src={topStaff[1].picture}
@@ -219,7 +227,7 @@ const Leaderboard: pageWithLayout = () => {
                         className="w-20 h-20 rounded-full border-4 border-gray-400 shadow-lg object-cover"
                         style={{ background: "transparent" }}
                       />
-                    </div>
+                    </button>
                     <div className="absolute -top-2 -right-2 bg-white dark:bg-zinc-800 rounded-full p-1">
                       {getPodiumIcon(1)}
                     </div>
@@ -246,10 +254,13 @@ const Leaderboard: pageWithLayout = () => {
               )}
               <div className="flex flex-col items-center flex-1 max-w-[140px]">
                 <div className="relative mb-4">
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => goToProfile(topStaff[0].userId)}
+                    aria-label={`Open ${topStaff[0].username}'s profile`}
                     className={`w-24 h-24 rounded-full flex items-center justify-center ${getRandomBg(
                       topStaff[0].userId
-                    )}`}
+                    )} cursor-pointer`}
                   >
                     <img
                       src={topStaff[0].picture}
@@ -257,7 +268,7 @@ const Leaderboard: pageWithLayout = () => {
                       className="w-24 h-24 rounded-full border-4 border-yellow-400 shadow-xl object-cover"
                       style={{ background: "transparent" }}
                     />
-                  </div>
+                  </button>
                   <div className="absolute -top-3 -right-3 bg-white dark:bg-zinc-800 rounded-full p-2">
                     {getPodiumIcon(0)}
                   </div>
@@ -289,10 +300,13 @@ const Leaderboard: pageWithLayout = () => {
               {topStaff[2] && (
                 <div className="flex flex-col items-center flex-1 max-w-[120px]">
                   <div className="relative mb-4">
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => goToProfile(topStaff[2].userId)}
+                      aria-label={`Open ${topStaff[2].username}'s profile`}
                       className={`w-20 h-20 rounded-full flex items-center justify-center ${getRandomBg(
                         topStaff[2].userId
-                      )}`}
+                      )} cursor-pointer`}
                     >
                       <img
                         src={topStaff[2].picture}
@@ -300,7 +314,7 @@ const Leaderboard: pageWithLayout = () => {
                         className="w-20 h-20 rounded-full border-4 border-amber-600 shadow-lg object-cover"
                         style={{ background: "transparent" }}
                       />
-                    </div>
+                    </button>
                     <div className="absolute -top-2 -right-2 bg-white dark:bg-zinc-800 rounded-full p-1">
                       {getPodiumIcon(2)}
                     </div>
@@ -356,10 +370,13 @@ const Leaderboard: pageWithLayout = () => {
                       <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold bg-zinc-300 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-300 text-sm sm:text-base flex-shrink-0">
                         {actualPosition}
                       </div>
-                      <div
+                      <button
+                        type="button"
+                        onClick={() => goToProfile(user.userId)}
+                        aria-label={`Open ${user.username}'s profile`}
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
                           user.userId
-                        )}`}
+                        )} cursor-pointer`}
                       >
                         <img
                           src={user.picture}
@@ -367,7 +384,7 @@ const Leaderboard: pageWithLayout = () => {
                           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm object-cover"
                           style={{ background: "transparent" }}
                         />
-                      </div>
+                      </button>
                       <div className="min-w-0 flex-1">
                         <span className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white truncate block">
                           {user.username}
@@ -439,10 +456,13 @@ const Leaderboard: pageWithLayout = () => {
                     }
                     orientation="top"
                   >
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => goToProfile(user.userId)}
+                      aria-label={`Open ${user.username}'s profile`}
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${getRandomBg(
                         user.userId
-                      )} ring-2 ring-primary/10 hover:ring-primary/30 transition-all`}
+                      )} ring-2 ring-primary/10 hover:ring-primary/30 transition-all cursor-pointer`}
                     >
                       <img
                         src={user.picture}
@@ -450,7 +470,7 @@ const Leaderboard: pageWithLayout = () => {
                         className="w-10 h-10 rounded-full object-cover border-2 border-white"
                         style={{ background: "transparent" }}
                       />
-                    </div>
+                    </button>
                   </Tooltip>
                 ))}
                 {users.length === 0 && (
