@@ -38,6 +38,8 @@ import moment from "moment";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { getConfig } from "@/utils/configEngine";
 import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
+import StaffOrgChart from "@/components/views/StaffOrgChart";
+import type { OrgChartEdge, OrgChartNode } from "@/components/views/StaffOrgChart";
 import {
   IconArrowLeft,
   IconFilter,
@@ -71,6 +73,7 @@ import {
   IconPencil,
   IconDeviceFloppy,
   IconTrash,
+  IconSitemap,
 } from "@tabler/icons-react";
 
 type User = {
@@ -231,6 +234,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   const [originalViewConfig, setOriginalViewConfig] = useState<any>(null);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalUsers, setTotalUsers] = useState(0);
+  const [mainPanelMode, setMainPanelMode] = useState<"table" | "orgChart">("table");
+  const [orgChartData, setOrgChartData] = useState<{
+    nodes: OrgChartNode[];
+    edges: OrgChartEdge[];
+  } | null>(null);
+  const [orgChartLoading, setOrgChartLoading] = useState(false);
 
   const ICON_OPTIONS: { key: string; Icon: any; title?: string }[] = [
     { key: "star", Icon: IconStar, title: "Star" },
@@ -493,8 +502,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
   useEffect(() => {
     const fetchStaffData = async () => {
-      if (!router.query.id) return;
-      
+      if (!router.query.id || mainPanelMode !== "table") return;
+
       setIsLoading(true);
       try {
         const res = await axios.get(
@@ -507,7 +516,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
             },
           }
         );
-        
+
         if (res.data) {
           setUsers(res.data.users || []);
           setRanks(res.data.ranks || []);
@@ -522,10 +531,48 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     };
 
     fetchStaffData();
-  }, [router.query.id, pagination.pageIndex, pagination.pageSize, colFilters]);
+  }, [
+    router.query.id,
+    pagination.pageIndex,
+    pagination.pageSize,
+    colFilters,
+    mainPanelMode,
+  ]);
+
+  useEffect(() => {
+    if (!router.query.id || mainPanelMode !== "orgChart") return;
+
+    let cancelled = false;
+    setOrgChartLoading(true);
+    axios
+      .get(`/api/workspace/${router.query.id}/views/org-chart`)
+      .then((res) => {
+        if (!cancelled && res.data) {
+          setOrgChartData({
+            nodes: res.data.nodes || [],
+            edges: res.data.edges || [],
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load org chart:", err);
+        if (!cancelled) {
+          toast.error("Failed to load org chart");
+          setOrgChartData({ nodes: [], edges: [] });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setOrgChartLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router.query.id, mainPanelMode]);
 
   const applySavedView = (view: any) => {
     if (!view) return;
+    setMainPanelMode("table");
     const filtersField = view.filters;
     if (Array.isArray(filtersField)) {
       setColFilters(filtersField || []);
@@ -554,6 +601,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   };
 
   const resetToDefault = () => {
+    setMainPanelMode("table");
     setSelectedViewId(null);
     setColFilters([]);
     setColumnVisibility({
@@ -629,6 +677,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     try {
       await deleteSavedView(viewToDelete);
       if (selectedViewId === viewToDelete) {
+        setMainPanelMode("table");
         setSelectedViewId(null);
         setColFilters([]);
         setColumnVisibility({
@@ -862,33 +911,92 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         </div>
 
         <div className="flex md:flex-row flex-col md:gap-6">
-          
+          <div className="md:w-56 w-full shrink-0">
+            <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-6 sm:mb-0">
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-700/60">
+                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  Views
+                </span>
+                {hasUseSavedViews() && hasCreateViews() && (
+                  <button
+                    onClick={openSaveDialog}
+                    title="Create View"
+                    className="p-1 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
+                  >
+                    <IconPlus className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
-          {hasUseSavedViews() && (
-            <div className="md:w-56 w-full shrink-0">
-              <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-6 sm:mb-0">
-                <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-700/60">
-                  <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                    Views
-                  </span>
-                  {hasCreateViews() && (
-                    <button
-                      onClick={openSaveDialog}
-                      title="Create View"
-                      className="p-1 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
+              <div className="p-1.5 space-y-0.5">
+                <div
+                  className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
+                    mainPanelMode === "table" && selectedViewId === null
+                      ? "bg-primary/8 dark:bg-primary/10"
+                      : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetToDefault();
+                    }}
+                    className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  >
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
+                      <IconUsers className="h-3.5 w-3.5" />
+                    </span>
+                    <span
+                      className={`truncate text-sm font-medium ${
+                        mainPanelMode === "table" && selectedViewId === null
+                          ? "text-primary"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
                     >
-                      <IconPlus className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                      Staff table
+                    </span>
+                  </button>
                 </div>
 
-                <div className="p-1.5 space-y-0.5">
-                  {savedViews.length === 0 && (
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500 px-2 py-3 text-center">
-                      No saved views
-                    </p>
-                  )}
-                  {savedViews.map((v) => (
+                <div
+                  className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
+                    mainPanelMode === "orgChart"
+                      ? "bg-primary/8 dark:bg-primary/10"
+                      : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedViewId(null);
+                      setIsEditMode(false);
+                      setMainPanelMode("orgChart");
+                    }}
+                    className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  >
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
+                      <IconSitemap className="h-3.5 w-3.5" />
+                    </span>
+                    <span
+                      className={`truncate text-sm font-medium ${
+                        mainPanelMode === "orgChart"
+                          ? "text-primary"
+                          : "text-zinc-700 dark:text-zinc-300"
+                      }`}
+                    >
+                      Org chart
+                    </span>
+                  </button>
+                </div>
+
+                {hasUseSavedViews() && (
+                  <>
+                    {savedViews.length === 0 && (
+                      <p className="px-2 py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
+                        No saved views
+                      </p>
+                    )}
+                    {savedViews.map((v) => (
                     <div
                       key={v.id}
                       className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
@@ -942,14 +1050,17 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                         </button>
                       )}
                     </div>
-                  ))}
-                </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-4 mb-6 relative z-10 overflow-visible">
+              {mainPanelMode === "table" && (
+              <>
               <div className="flex flex-col md:flex-row gap-3 relative z-20">
                 <div className="flex gap-2">
                   <Popover className="relative z-20">
@@ -1173,9 +1284,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </button>
                 </div>
               )}
+              </>
+              )}
             </div>
 
-            {isLoading ? (
+            {mainPanelMode === "table" ? (
+              isLoading ? (
               <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
@@ -1296,6 +1410,24 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                 </div>
               </div>
             </div>
+            )
+            )
+            : orgChartLoading ? (
+              <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="animate-spin mb-4 h-12 w-12 rounded-full border-b-2 border-primary"></div>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading org chart...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700/50 dark:bg-zinc-800/50 sm:p-6">
+                <StaffOrgChart
+                  workspaceId={String(router.query.id)}
+                  nodes={orgChartData?.nodes ?? []}
+                  edges={orgChartData?.edges ?? []}
+                  hasViewMemberProfiles={hasViewMemberProfiles}
+                />
+              </div>
             )}
           </div>
         </div>
