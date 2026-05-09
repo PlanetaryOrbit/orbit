@@ -291,20 +291,16 @@ export default function NewToTeam() {
           ) : null}
 
           <div className="min-w-0 overflow-x-auto py-0.5 scrollbar-hide">
-            <div className="flex w-full min-w-0 justify-between gap-x-2 sm:gap-x-3">
+            <div className="flex min-w-0 gap-x-4 sm:gap-x-5">
               {rowMembers.map((m) => {
                 const isMe = m.userid === String(login?.userId);
                 const song = parseSong(m.introSong);
                 const isPlaying = playingId === m.userid;
                 const hasNote = Boolean(m.introNote?.trim());
-                const equalColumns = rowMembers.length > 1;
                 return (
                   <div
                     key={m.userid}
-                    className={clsx(
-                      "flex min-w-0 flex-col items-center",
-                      equalColumns ? "flex-1 basis-0" : "w-auto shrink-0",
-                    )}
+                    className="flex w-auto shrink-0 flex-col items-center"
                   >
                     <div className="relative h-16 w-16 shrink-0">
                       <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
