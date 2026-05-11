@@ -95,6 +95,8 @@ model user {
   createdPolicyLinks   PolicyShareableLink[]
   staffResignations    staffResignation[]
   resignationsReviewed staffResignation[]      @relation("ResignationReviewer")
+  quotaCustomCompletions QuotaCustomCompletion[] @relation("QuotaCompletionUser")
+  quotaCompletionsReviewed QuotaCustomCompletion[] @relation("QuotaCompletionReviewer")
 }
 
 model DiscordUser {
@@ -454,6 +456,23 @@ model Quota {
   workspace        workspace         @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
   quotaDepartments QuotaDepartment[]
+  customCompletions QuotaCustomCompletion[]
+}
+
+model QuotaCustomCompletion {
+  id                 String    @id @default(uuid()) @db.Uuid
+  quotaId            String    @db.Uuid
+  userId             BigInt
+  status             String
+  submittedAt        DateTime  @default(now())
+  reviewedAt         DateTime?
+  reviewedByUserId   BigInt?
+  quota              Quota     @relation(fields: [quotaId], references: [id], onDelete: Cascade)
+  user               user      @relation("QuotaCompletionUser", fields: [userId], references: [userid], onDelete: Cascade)
+  reviewedBy         user?     @relation("QuotaCompletionReviewer", fields: [reviewedByUserId], references: [userid], onDelete: SetNull)
+
+  @@unique([quotaId, userId])
+  @@index([quotaId, status])
 }
 
 model Ally {

@@ -3,7 +3,7 @@ import { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, Fragment, useCallback } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
 import toast, { Toaster } from "react-hot-toast";
@@ -24,6 +24,7 @@ import {
   IconTrophy,
   IconBriefcase,
   IconPencil,
+  IconClock,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -86,6 +87,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           roles: [],
           departments: [],
           canManageQuotas: false,
+          canDeleteQuotas: false,
         },
       };
     }
@@ -384,12 +386,43 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const customQuotaIds = myQuotas
+      .filter((q: { type: string }) => q.type === "custom")
+      .map((q: { id: string }) => q.id);
+    type MyCustomRow = {
+      quotaId: string;
+      status: string;
+      submittedAt: Date;
+      reviewedAt: Date | null;
+    };
+    const myCustomCompletions: MyCustomRow[] =
+      customQuotaIds.length > 0
+        ? await (prisma as any).quotaCustomCompletion.findMany({
+            where: {
+              userId: BigInt(userId),
+              quotaId: { in: customQuotaIds },
+            },
+          })
+        : [];
+    const myCustomByQuotaId = new Map<string, MyCustomRow>(
+      myCustomCompletions.map((row) => [row.quotaId, row])
+    );
+
     const myQuotasWithProgress = myQuotas.map((quota: any) => {
       if (quota.type === "custom") {
+        const c = myCustomByQuotaId.get(quota.id);
+        const approved = c?.status === "approved";
         return {
           ...quota,
-          currentValue:  null,
-          percentage: 0,
+          currentValue: approved ? 1 : 0,
+          percentage: approved ? 100 : 0,
+          customCompletion: c
+            ? {
+                status: c.status,
+                submittedAt: c.submittedAt?.toISOString?.() ?? c.submittedAt,
+                reviewedAt: c.reviewedAt?.toISOString?.() ?? c.reviewedAt,
+              }
+            : null,
         };
       }
       let currentValue = 0;
@@ -450,7 +483,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     let departments: any[] = [];
 
     if (hasManagePermission || hasDeletePermission) {
-      allQuotas = await prisma.quota.findMany({
+      const rawAll = await prisma.quota.findMany({
         where: {
           workspaceGroupId: workspaceId,
         },
@@ -466,6 +499,66 @@ export const getServerSideProps = withPermissionCheckSsr(
             },
           },
         },
+      });
+
+      type PendingCustomRow = {
+        id: string;
+        quotaId: string;
+        userId: bigint;
+        submittedAt: Date;
+        status: string;
+        user: {
+          userid: bigint;
+          username: string | null;
+          picture: string | null;
+        } | null;
+      };
+      const pendingCustom: PendingCustomRow[] = await (prisma as any).quotaCustomCompletion.findMany({
+        where: {
+          status: "pending",
+          quota: {
+            workspaceGroupId: workspaceId,
+            type: "custom",
+          },
+        },
+        include: {
+          user: {
+            select: {
+              userid: true,
+              username: true,
+              picture: true,
+            },
+          },
+        },
+        orderBy: { submittedAt: "asc" },
+      });
+      const pendingByQuotaId = new Map<string, PendingCustomRow[]>();
+      for (const row of pendingCustom) {
+        const list = pendingByQuotaId.get(row.quotaId) ?? [];
+        list.push(row);
+        pendingByQuotaId.set(row.quotaId, list);
+      }
+
+      allQuotas = rawAll.map((q) => {
+        if (q.type !== "custom") {
+          return { ...q, pendingCustomSubmissions: [] as unknown[] };
+        }
+        const list = pendingByQuotaId.get(q.id) ?? [];
+        return {
+          ...q,
+          pendingCustomSubmissions: list.map((p: PendingCustomRow) => ({
+            id: p.id,
+            submittedAt: p.submittedAt?.toISOString?.() ?? p.submittedAt,
+            userId: String(p.userId),
+            user: p.user
+              ? {
+                  userid: String(p.user.userid),
+                  username: p.user.username,
+                  picture: p.user.picture,
+                }
+              : null,
+          })),
+        };
       });
     }
 
@@ -544,6 +637,78 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>("all");
+  const [submittingCustomQuotaId, setSubmittingCustomQuotaId] = useState<string | null>(null);
+  const [reviewingCustomKey, setReviewingCustomKey] = useState<string | null>(null);
+
+  const patchMyQuotaCustom = useCallback((quotaId: string, customCompletion: any) => {
+    setMyQuotas((prev) =>
+      prev.map((q: any) => {
+        if (q.id !== quotaId) return q;
+        const approved = customCompletion?.status === "approved";
+        return {
+          ...q,
+          customCompletion,
+          currentValue: approved ? 1 : 0,
+          percentage: approved ? 100 : 0,
+        };
+      })
+    );
+  }, []);
+
+  const submitCustomComplete = (quota: any) => {
+    if (!id || typeof id !== "string") return;
+    setSubmittingCustomQuotaId(quota.id);
+    const req = axios
+      .post(`/api/workspace/${id}/activity/quotas/${quota.id}/custom-submit`)
+      .then((res) => {
+        const c = res.data.completion;
+        patchMyQuotaCustom(quota.id, {
+          status: c.status,
+          submittedAt: c.submittedAt,
+          reviewedAt: c.reviewedAt ?? null,
+        });
+      })
+      .finally(() => setSubmittingCustomQuotaId(null));
+    toast.promise(req, {
+      loading: "Submitting…",
+      success: "Submitted for approval.",
+      error: (err) => err.response?.data?.error || "Could not submit.",
+    });
+  };
+
+  const reviewCustomCompletion = (
+    quotaId: string,
+    memberUserId: string,
+    decision: "approve" | "deny"
+  ) => {
+    if (!id || typeof id !== "string") return;
+    const key = `${quotaId}-${memberUserId}`;
+    setReviewingCustomKey(key);
+    const req = axios
+      .patch(`/api/workspace/${id}/activity/quotas/${quotaId}/custom-review`, {
+        memberUserId,
+        decision,
+      })
+      .then(() => {
+        setAllQuotas((prev: any[]) =>
+          prev.map((q: any) => {
+            if (q.id !== quotaId) return q;
+            return {
+              ...q,
+              pendingCustomSubmissions: (q.pendingCustomSubmissions ?? []).filter(
+                (p: any) => p.userId !== memberUserId
+              ),
+            };
+          })
+        );
+      })
+      .finally(() => setReviewingCustomKey(null));
+    toast.promise(req, {
+      loading: decision === "approve" ? "Approving…" : "Denying…",
+      success: decision === "approve" ? "Marked complete." : "Request denied.",
+      error: (err) => err.response?.data?.error || "Action failed.",
+    });
+  };
 
   const form = useForm<Form>({
     shouldUnregister: true,
@@ -769,8 +934,18 @@ const Quotas: pageWithLayout<pageProps> = ({
               ) : (
                 <div className="space-y-5">
                   {myQuotas.map((quota: any) => {
-                    const isComplete = quota.type !== "custom" && quota.percentage >= 100;
-                    const barWidth = quota.type === "custom" ? 0 : Math.min(quota.percentage, 100);
+                    const customStatus = quota.customCompletion?.status;
+                    const isCustomApproved = quota.type === "custom" && customStatus === "approved";
+                    const isCustomPending = quota.type === "custom" && customStatus === "pending";
+                    const isCustomDenied = quota.type === "custom" && customStatus === "denied";
+                    const isComplete =
+                      (quota.type !== "custom" && quota.percentage >= 100) || isCustomApproved;
+                    const barWidth =
+                      quota.type === "custom"
+                        ? isCustomApproved
+                          ? 100
+                          : 0
+                        : Math.min(quota.percentage, 100);
                     return (
                       <div
                         key={quota.id}
@@ -780,11 +955,11 @@ const Quotas: pageWithLayout<pageProps> = ({
                           <div className="flex items-start gap-4">
                             <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
                               isComplete
-                                ? "bg-emerald-100 dark:bg-emerald-500/20"
+                                ? "bg-primary/10 dark:bg-primary/20"
                                 : "bg-zinc-100 dark:bg-zinc-700"
                             }`}>
                               <IconTrophy className={`w-5 h-5 ${
-                                isComplete ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500 dark:text-zinc-400"
+                                isComplete ? "text-primary" : "text-zinc-500 dark:text-zinc-400"
                               }`} />
                             </div>
                             <div className="min-w-0 flex-1">
@@ -824,9 +999,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                               </div>
                               <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all ${
-                                    isComplete ? "bg-emerald-500" : "bg-primary"
-                                  }`}
+                                  className="h-full rounded-full transition-all bg-primary"
                                   style={{ width: `${barWidth}%` }}
                                 />
                               </div>
@@ -844,7 +1017,60 @@ const Quotas: pageWithLayout<pageProps> = ({
                             </div>
                           )}
                           {quota.type === "custom" && (
-                            <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 italic">Tracked manually by your team.</p>
+                            <div className="mt-4 space-y-3">
+                              {isCustomPending && (
+                                <div className="flex items-start gap-2.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-600 dark:bg-zinc-900/50">
+                                  <IconClock className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400 mt-px" />
+                                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">
+                                    Submitted — pending review by someone who can manage quotas.
+                                  </p>
+                                </div>
+                              )}
+                              {isCustomApproved && (
+                                <p className="text-sm text-primary">
+                                  Your completion was approved.
+                                </p>
+                              )}
+                              {isCustomDenied && (
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                  Your last completion request was not approved. You can submit again when you are ready.
+                                </p>
+                              )}
+                              {!isCustomPending && !isCustomApproved && !isCustomDenied && (
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+                                  Tracked manually by your team. Mark complete when you have finished; a manager will approve it.
+                                </p>
+                              )}
+                              {!isCustomPending && !isCustomApproved && (
+                                <button
+                                  type="button"
+                                  disabled={submittingCustomQuotaId === quota.id}
+                                  onClick={() => submitCustomComplete(quota)}
+                                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none"
+                                >
+                                  {submittingCustomQuotaId === quota.id ? "Submitting…" : "Mark as complete"}
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {quota.type === "custom" && isCustomApproved && (
+                            <div className="mt-5">
+                              <div className="flex items-baseline justify-between gap-2 mb-2">
+                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                                  Status
+                                </span>
+                                <span className="text-sm font-semibold tabular-nums text-primary">
+                                  Complete
+                                </span>
+                              </div>
+                              <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-primary transition-all"
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                            </div>
                           )}
 
                           <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-700">
@@ -971,6 +1197,75 @@ const Quotas: pageWithLayout<pageProps> = ({
                             </span>
                           ))}
                         </div>
+                        {quota.type === "custom" &&
+                          (quota.pendingCustomSubmissions?.length ?? 0) > 0 && (
+                            <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                              <p className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+                                Awaiting review
+                              </p>
+                              <ul className="divide-y divide-zinc-200 dark:divide-zinc-700 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                                {quota.pendingCustomSubmissions.map((sub: any) => {
+                                  const rk = `${quota.id}-${sub.userId}`;
+                                  const busy = reviewingCustomKey === rk;
+                                  return (
+                                    <li
+                                      key={sub.id}
+                                      className="flex flex-col gap-3 bg-white px-3 py-3 dark:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                                    >
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <img
+                                          src={sub.user?.picture || "/default-avatar.jpg"}
+                                          alt=""
+                                          className="w-8 h-8 rounded-md object-cover bg-zinc-200 dark:bg-zinc-600 shrink-0"
+                                        />
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                                            {sub.user?.username ?? `User ${sub.userId}`}
+                                          </p>
+                                          <p className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">
+                                            {new Date(sub.submittedAt).toLocaleString(undefined, {
+                                              dateStyle: "medium",
+                                              timeStyle: "short",
+                                            })}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {canManageQuotas ? (
+                                        <div className="flex flex-wrap items-center gap-2 shrink-0 sm:justify-end">
+                                          <button
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() =>
+                                              reviewCustomCompletion(quota.id, sub.userId, "approve")
+                                            }
+                                            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                                          >
+                                            <IconCheck className="w-4 h-4" stroke={2} />
+                                            Approve
+                                          </button>
+                                          <button
+                                            type="button"
+                                            disabled={busy}
+                                            onClick={() =>
+                                              reviewCustomCompletion(quota.id, sub.userId, "deny")
+                                            }
+                                            className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-transparent dark:text-zinc-200 dark:hover:bg-zinc-700/80"
+                                          >
+                                            <IconX className="w-4 h-4" stroke={2} />
+                                            Deny
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                          Needs quota edit permission to resolve.
+                                        </p>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
                       </div>
                       <div className="shrink-0 flex items-center gap-1">
                         {canManageQuotas && (
