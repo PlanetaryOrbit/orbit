@@ -225,22 +225,7 @@ return Config
 			</Properties>
 			<Item class="Script" referent="RBX12FAF1DA74C4409E8041C5F8DA6F579A">
 				<Properties>
-					<ProtectedString name="Source"><![CDATA[--[[
- ____  _                  _                      __ ____  
-|  _ \| | __ _ _ __   ___| |_ __ _ _ __ _   _   / // __ \ 
-| |_) | |/ _` | '_ \ / _ \ __/ _` | '__| | | | / // / _` |
-|  __/| | (_| | | | |  __/ || (_| | |  | |_| | \ \ | (_| |
-|_|   |_|\__,_|_| |_|\___|\__\__,_|_|   \__, |  \_\ \__,_|
-            _     _ _                   |___/      \____/ 
-  ___  _ __| |__ (_) |_                                   
- / _ \| '__| '_ \| | __|                                  
-| (_) | |  | |_) | | |_                                   
- \___/|_|  |_.__/|_|\__|       
- 
- Hii! Thank you for using Planetary | Sessions Board! @TiiLxm
-]]
-
-local Config = require(script.Parent)
+					<ProtectedString name="Source"><![CDATA[local Config = require(script.Parent)
 local httpservice = game:GetService("HttpService")
 local Player = game:GetService("Players")
 local Screen = script.Parent.Parent.Screen.SurfaceGui
@@ -373,6 +358,24 @@ for _, color in pairs(COLOR_RESOLVABLE) do
 	table.insert(colors, color)
 end
 
+local function resolveHex(input)
+	if typeof(input) ~= "string" or #input == 0 then return nil end
+	local stripped = input:gsub("#", ""):gsub("%s+", "")
+	if #stripped ~= 6 then return nil end
+	local success, color = pcall(Color3.fromHex, stripped)
+	return success and color or nil
+end
+
+local function resolveColor(input)
+	if typeof(input) ~= "string" or #input == 0 then return nil end
+	local stripped = input:gsub("%s+", "")
+	if string.sub(stripped, 1, 1) == "#" then
+		return resolveHex(stripped)
+	else
+		return COLOR_RESOLVABLE[string.lower(stripped)]
+	end
+end
+
 local function isAllowedSessionType(sessionCategory)
 	local selectedFilter = string.lower(Config.event_type)
 	if selectedFilter == "all" then
@@ -474,11 +477,12 @@ local function getSessions()
 				end)
 
 				if decodeSuccess then
-					ErrorScreen.ErrorLabel.Text = response.StatusCode 
-						.. " (" .. HTTP_ERRORS[response.StatusCode] or nil .. ") - " .. decoded.error or nil
+					ErrorScreen.ErrorLabel.Text = tostring(response.StatusCode)
+						.. " (" .. (HTTP_ERRORS[response.StatusCode] or "Unknown") .. ") - " 
+						.. (decoded.error or "Unknown error")
 				else
-					ErrorScreen.ErrorLabel.Text = response.StatusCode 
-						.. " (" .. HTTP_ERRORS[response.StatusCode] or nil .. ") - Unable to grab response error"
+					ErrorScreen.ErrorLabel.Text = tostring(response.StatusCode)
+						.. " (" .. (HTTP_ERRORS[response.StatusCode] or "Unknown") .. ") - Unable to grab response error"
 				end
 			end
 		end
@@ -537,7 +541,8 @@ local function createSessionFrame(session)
 			newSession.Hosts.Host.hostImage.ImageLabel.Image = 
 				Player:GetUserThumbnailAsync(session.host.userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
 			if Config.customization.colored_profiles then
-				newSession.Hosts.Host.hostImage.ImageLabel.BackgroundColor3 = #Config.customization.color_profile_color > 0 and Color3.fromHex((Config.customization.color_profile_color:gsub("#", ""))) or colors[math.random(1, #colors)]
+				local profileColor = resolveColor(Config.customization.color_profile_color) or colors[math.random(1, #colors)]
+				newSession.Hosts.Host.hostImage.ImageLabel.BackgroundColor3 = profileColor
 			end
 		end
 	else
@@ -560,7 +565,8 @@ local function createSessionFrame(session)
 			newSession.Hosts.Cohost.CohostImage.ImageLabel.Image = 
 				Player:GetUserThumbnailAsync(cohostData.id, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
 			if Config.customization.colored_profiles then
-				newSession.Hosts.Cohost.CohostImage.ImageLabel.BackgroundColor3 = #Config.customization.color_profile_color > 0 and Color3.fromHex((Config.customization.color_profile_color:gsub("#", ""))) or colors[math.random(1, #colors)]
+				local cohostColor = resolveColor(Config.customization.color_profile_color) or colors[math.random(1, #colors)]
+				newSession.Hosts.Cohost.CohostImage.ImageLabel.BackgroundColor3 = cohostColor
 			end
 		else
 			newSession.Hosts.Cohost:Destroy()
@@ -589,7 +595,7 @@ local function createSessionFrame(session)
 	if not isLive(currentTime, sessionStartTime) then
 		newSession.LiveFrame:Destroy()
 	end
-	
+
 	local timeText
 	if timeUntilStart > 0 then
 		timeText = formatTimeRemaining(timeUntilStart)
@@ -629,7 +635,7 @@ local function PopulateSessions()
 		end
 
 		local sessionCategory = session.type.category
-		
+
 		if isAllowedSessionType(sessionCategory) then
 			local sessionFrame = createSessionFrame(session)
 			sessionFrame.Parent = SessionsScreen.ScrollingFrame
@@ -660,25 +666,14 @@ local function InitUI()
 		Screen.Sessions.ScrollingFrame.SessionFrame.Frame.Hosts.Host.TextLabel.TextColor3 = Color3.fromRGB(21, 21, 21)
 		Screen.Sessions.ScrollingFrame.SessionFrame.Frame.Hosts.Host.hostImage.ImageLabel.UIStroke.Color = Color3.fromRGB(116, 116, 116)
 	end
-	local colorInput = Config.join_button.color
-	local finalColor
 
-	if typeof(colorInput) == "string" then
-		if string.sub(colorInput, 1, 1) == "#" then
-			finalColor = Color3.fromHex(colorInput:gsub("#", ""))
-		else
-			finalColor = COLOR_RESOLVABLE[string.lower(colorInput)]
-		end
-	end
-
-	finalColor = finalColor or COLOR_RESOLVABLE["orbit"]
-
+	local finalColor = resolveColor(Config.join_button.color) or COLOR_RESOLVABLE["orbit"]
 	Screen.Sessions.ScrollingFrame.SessionFrame.Frame.TextButton.BackgroundColor3 = finalColor
 end
 
 local function Init()
 	local success, err = pcall(function()
-		
+
 		local PlaceHolder = Screen:FindFirstChild("Placeholder")
 		if PlaceHolder then
 			PlaceHolder:Destroy()
