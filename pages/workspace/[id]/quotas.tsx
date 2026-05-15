@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useState, useMemo, Fragment, useCallback } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { InferGetServerSidePropsType } from "next";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import prisma from "@/utils/database";

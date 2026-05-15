@@ -33,8 +33,6 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import clsx from "clsx";
-import { Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
 import PolicyLinkManager from "@/components/PolicyLinkManager";

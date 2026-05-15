@@ -13,7 +13,7 @@ import Input from "@/components/input"
 import { motion } from "framer-motion"
 import { useForm, FormProvider } from "react-hook-form"
 import { useRecoilState } from "recoil"
-import { toast, Toaster } from "react-hot-toast"
+import { toast } from "react-hot-toast"
 import { IconPlus, IconRefresh, IconChevronRight, IconBuildingSkyscraper, IconSettings, IconX, IconPin, IconPinFilled, IconUsersGroup, IconCalendarEvent, IconChartBar, IconFileText, IconRocket, IconServerCog, IconClock, IconUserCog, IconClockCog } from "@tabler/icons-react"
 import clsx from "clsx"
 

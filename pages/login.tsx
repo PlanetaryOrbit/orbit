@@ -14,7 +14,7 @@ import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
 import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 import { OAuthAvailable } from "@/hooks/useOAuth";
 

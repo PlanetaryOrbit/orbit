@@ -1,12 +1,10 @@
 import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
-import { Toaster } from "react-hot-toast";
 import { InformationTab } from "@/components/profile/information";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { withSessionSsr } from "@/lib/withSession";
 import { loginState } from "@/state";
 import { Tab } from "@headlessui/react";
 import {
@@ -14,15 +12,13 @@ import {
   getUsername,
   getThumbnail,
 } from "@/utils/userinfoEngine";
-import { ActivitySession, Quota, ActivityAdjustment } from "@prisma/client";
+import { ActivitySession, Quota } from "@prisma/client";
 import prisma from "@/utils/database";
 import moment from "moment";
-import { InferGetServerSidePropsType } from "next";
 import { useRecoilState } from "recoil";
 import {
   IconUserCircle,
   IconHistory,
-  IconBell,
   IconBook,
   IconClipboard,
   IconChevronLeft,

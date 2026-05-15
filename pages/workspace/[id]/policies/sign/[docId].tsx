@@ -3,25 +3,19 @@ import { loginState } from "@/state";
 import Workspace from "@/layouts/workspace";
 import { useRecoilState } from "recoil";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import prisma, { document } from "@/utils/database";
-import { GetServerSideProps } from "next";
 import { withSessionSsr } from "@/lib/withSession";
 import {
 	IconFileText,
 	IconClock,
 	IconAlertTriangle,
 	IconExternalLink,
-	IconLink,
 	IconShield,
 	IconCheck,
 	IconArrowLeft
 } from "@tabler/icons-react";
-import { Toaster } from 'react-hot-toast';
-import { motion } from 'framer-motion';
 import PolicyAcknowledgmentModal from "@/components/PolicyAcknowledgmentModal";
-import axios from "axios";
-import toast from "react-hot-toast";
 
 export const getServerSideProps = withSessionSsr(async (context: any): Promise<any> => {
 	const { id, docId } = context.query;

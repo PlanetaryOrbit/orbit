@@ -12,14 +12,10 @@ import {
   IconFileText,
   IconPlus,
   IconClock,
-  IconUser,
-  IconArrowLeft,
   IconAlertTriangle,
   IconExternalLink,
   IconLink,
 } from "@tabler/icons-react";
-import clsx from "clsx";
-import { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useState } from "react";
 

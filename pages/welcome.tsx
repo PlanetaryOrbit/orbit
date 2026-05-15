@@ -7,8 +7,8 @@ import Router from "next/router";
 import Slider from "@/components/slider";
 import Input from "@/components/input";
 import axios from "axios";
-import { toast, Toaster } from "react-hot-toast";
-import { IconCheck, IconCloud, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
+import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
 
 type FormData = {
   username: string;

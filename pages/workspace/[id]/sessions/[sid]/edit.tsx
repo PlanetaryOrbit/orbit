@@ -1,7 +1,7 @@
 import type { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import Button from "@/components/button";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import Input from "@/components/input";
 import Workspace from "@/layouts/workspace";
 import { v4 as uuidv4 } from "uuid";

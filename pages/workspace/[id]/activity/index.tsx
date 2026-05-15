@@ -7,12 +7,10 @@ import { useEffect, useState, useMemo } from "react";
 import { useRecoilState } from "recoil";
 import moment from "moment";
 import {
-	IconChevronRight,
 	IconUsers,
 	IconClock,
 	IconUserCircle,
 	IconMessageCircle2,
-	IconArrowLeft,
 	IconCalendarTime,
 	IconTarget,
 	IconClipboardList,
@@ -23,15 +21,13 @@ import {
 } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 import randomText from "@/utils/randomText";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { ActivitySessionDetailsDialog } from "@/components/activity/ActivitySessionDetailsDialog";
 
 const Activity: pageWithLayout = () => {
 	const router = useRouter();
 	const { id } = router.query;
 	const [login] = useRecoilState(loginState);
-	const [workspace] = useRecoilState(workspacestate);
-	const text = useMemo(() => randomText(login.displayname), []);
 	const [myData, setMyData] = useState<any>(null);
 	const [myQuotas, setMyQuotas] = useState<any[]>([]);
 	const [myAssignments, setMyAssignments] = useState<any[]>([]);

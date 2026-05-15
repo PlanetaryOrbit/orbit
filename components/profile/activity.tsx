@@ -28,7 +28,7 @@ import {
   IconTarget,
 } from "@tabler/icons-react";
 import axios from "axios";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
 import { ActivityOverview } from "@/components/profile/activityoverview";
 import { SessionsHistory } from "@/components/profile/sessions";

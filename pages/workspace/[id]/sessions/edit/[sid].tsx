@@ -23,9 +23,7 @@ import axios from "axios";
 import prisma from "@/utils/database";
 import { useForm, FormProvider } from "react-hook-form";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import toast, { Toaster } from "react-hot-toast";
-import ReactMarkdown from "react-markdown";
-import rehypeSanitize from "rehype-sanitize";
+import toast from "react-hot-toast";
 
 const BG_COLORS = [
   "bg-rose-300",

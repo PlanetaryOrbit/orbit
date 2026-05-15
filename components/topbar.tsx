@@ -10,7 +10,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { themeState } from "@/state/theme";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 

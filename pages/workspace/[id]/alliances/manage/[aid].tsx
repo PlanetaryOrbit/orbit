@@ -7,7 +7,7 @@ import { getConfig } from "@/utils/configEngine";
 import { useState, Fragment, useMemo, useRef, useEffect } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import Button from "@/components/button";
 import { InferGetServerSidePropsType } from "next";
 import { withSessionSsr } from "@/lib/withSession";

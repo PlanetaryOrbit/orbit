@@ -22,7 +22,7 @@ import {
   IconExternalLink,
   IconAlertTriangle,
 } from "@tabler/icons-react";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 

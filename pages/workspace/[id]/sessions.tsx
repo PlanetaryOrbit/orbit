@@ -1,14 +1,11 @@
 import type { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
-import Button from "@/components/button";
 import Workspace from "@/layouts/workspace";
 import {
   IconChevronRight,
   IconChevronLeft,
   IconCalendarEvent,
   IconPlus,
-  IconTrash,
-  IconArrowLeft,
   IconEdit,
   IconUsers,
   IconClock,
@@ -18,19 +15,16 @@ import {
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import randomText from "@/utils/randomText";
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import axios from "axios";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
 import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
-import { Dialog, Transition } from "@headlessui/react";
-import { getConfig } from "@/utils/configEngine";
 
 const BG_COLORS = [
   "bg-rose-300",

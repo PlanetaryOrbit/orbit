@@ -11,7 +11,7 @@ import { Role } from "noblox.js";
 import { role } from "@/utils/database";
 import { useRecoilState } from "recoil";
 import { useRouter } from "next/router";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import clsx from "clsx";
 

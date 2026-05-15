@@ -31,7 +31,7 @@ import prisma from "@/utils/database";
 import { useForm, FormProvider } from "react-hook-form";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import clsx from "clsx";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";

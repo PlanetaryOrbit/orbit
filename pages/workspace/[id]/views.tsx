@@ -3,11 +3,9 @@ import { pageWithLayout } from "@/layoutTypes";
 import { loginState } from "@/state";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Popover, Transition } from "@headlessui/react";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getThumbnail } from "@/utils/userinfoEngine";
+import { GetServerSidePropsContext } from "next";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
-import noblox from "noblox.js";
 import Input from "@/components/input";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "@/utils/database";
@@ -22,16 +20,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { FormProvider, useForm } from "react-hook-form";
-import Button from "@/components/button";
 import {
   inactivityNotice,
-  Session,
-  user,
   userBook,
   wallPost,
 } from "@prisma/client";
 import Checkbox from "@/components/checkbox";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/router";
 import moment from "moment";
