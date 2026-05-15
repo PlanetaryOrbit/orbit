@@ -276,8 +276,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
-
       <div className="max-w-5xl mx-auto">
         <header className="mb-8">
           <div className="flex items-center gap-3">

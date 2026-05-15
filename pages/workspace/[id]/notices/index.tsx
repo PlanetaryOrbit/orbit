@@ -578,7 +578,6 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
 
   return (
     <>
-      <Toaster position="bottom-center" />
       <div className="pagePadding">
         <div className="max-w-5xl mx-auto">
           <header className="mb-8">

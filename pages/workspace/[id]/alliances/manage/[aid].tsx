@@ -677,8 +677,6 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
   return (
     <>
-      <Toaster position="bottom-center" />
-
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog
           as="div"

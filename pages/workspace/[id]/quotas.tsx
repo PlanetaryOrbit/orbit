@@ -1583,8 +1583,6 @@ const Quotas: pageWithLayout<pageProps> = ({
           </div>
         </Dialog>
       </Transition>
-
-      <Toaster position="bottom-center" />
     </>
   );
 };

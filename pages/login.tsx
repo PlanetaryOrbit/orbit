@@ -316,7 +316,6 @@ const Login: NextPage = () => {
 	return (
 		<>
 			<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
-				<Toaster position="bottom-center" />
 				{loginBg ? (
 					<>
 						<div

@@ -995,7 +995,6 @@ const Profile: pageWithLayout<pageProps> = ({
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-white to-zinc-50/90 shadow-sm ring-1 ring-zinc-950/5 dark:border-zinc-700/60 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-900/95 dark:shadow-none dark:ring-white/5">
           <div className="flex flex-col gap-5 p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">

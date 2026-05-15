@@ -862,7 +862,6 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
           </Disclosure>
         ))}
       </div>
-      <Toaster position="bottom-center" />
     </div>
   );
 };

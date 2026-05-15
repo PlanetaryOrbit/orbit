@@ -948,8 +948,6 @@ const Activity: pageWithLayout = () => {
 				concurrentUsers={concurrentUsers}
 				idleTimeEnabled={idleTimeEnabled}
 			/>
-
-			<Toaster position="bottom-center" />
 		</div>
 	);
 };

@@ -407,7 +407,6 @@ const Settings: pageWithLayout<Props> = ({ users, roles, departments, grouproles
           </div>
         </div>
       </div>
-      <Toaster position="bottom-center" />
     </div>
   )
 }

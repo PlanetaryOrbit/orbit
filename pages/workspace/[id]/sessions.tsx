@@ -832,7 +832,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
       <div className="max-w-5xl mx-auto">
         <header className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">

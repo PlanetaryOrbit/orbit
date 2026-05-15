@@ -187,7 +187,6 @@ const Login: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-infobg-light dark:bg-infobg-dark bg-no-repeat bg-cover bg-center flex flex-col">
-      <Toaster position="bottom-center" />
       <div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
         <p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
           👋 Welcome <br /> to <span className="text-pink-100">Orbit</span>

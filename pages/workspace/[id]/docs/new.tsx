@@ -254,7 +254,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <div className="flex items-center gap-4 mb-8">
           <button
