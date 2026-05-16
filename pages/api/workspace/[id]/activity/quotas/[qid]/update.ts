@@ -105,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         parseInt(req.query.id as string),
-        (req as any).session?.userid || null,
+        (req as any).auth?.userId || null,
         "activity.quota.update",
         `quota:${fullQuota?.id}`,
         {

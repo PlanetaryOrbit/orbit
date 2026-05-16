@@ -45,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     if (!gid) return { notFound: true };
 
     const user = await prisma.user.findFirst({
-      where: { userid: BigInt(context.req.session.userid) },
+      where: { userid: BigInt(context.req.auth.userId) },
       include: {
         roles: { where: { workspaceGroupId: Number(id) } },
         workspaceMemberships: { where: { workspaceGroupId: Number(id) } },

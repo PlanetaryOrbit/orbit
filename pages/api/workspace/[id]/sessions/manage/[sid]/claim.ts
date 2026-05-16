@@ -1,17 +1,17 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma, { schedule } from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
 import roles from "../../../settings/roles";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 type Data = {
   success: boolean;
   error?: string;
   session?: schedule;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
@@ -32,7 +32,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const user = await prisma.user.findUnique({
     where: {
-      userid: BigInt(req.session.userid),
+      userid: BigInt(req.auth.userId),
     },
     include: {
       roles: {
@@ -108,7 +108,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               id: findSession.id,
             },
             data: {
-              ownerId: BigInt(req.session.userid),
+              ownerId: BigInt(req.auth.userId),
             },
           },
         },
@@ -144,7 +144,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         create: {
           date: dateTime,
           sessionTypeId: schedule.sessionTypeId,
-          ownerId: req.session.userid,
+          ownerId: req.auth.userId,
           startedAt: dateTime,
         },
       },

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
 import axios from 'axios';
 import Package from '@/package.json'
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type DiscordTokenResponse = {
 	access_token: string;
@@ -17,9 +17,9 @@ type DiscordUserResponse = {
 	avatar: string;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' });
 	}
@@ -100,7 +100,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			where: { discordUserId: discordUserIdBig },
 		});
 
-		if (!hasEntry && !req.session.userid) {
+		if (!hasEntry && !req.auth.userId) {
 			return res.redirect('/login?error=discord-not-linked');
 		}
 
@@ -113,13 +113,13 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			update: {
 				username: discordUser.username,
 				avatar: discordUser.avatar,
-				...(req.session.userid && { robloxUserId: BigInt(req.session.userid) }),
+				...(req.auth.userId && { robloxUserId: BigInt(req.auth.userId) }),
 			},
 			create: {
 				discordUserId: discordUserIdBig,
 				username: discordUser.username,
 				avatar: discordUser.avatar,
-				robloxUserId: req.session.userid ? BigInt(req.session.userid) : null,
+				robloxUserId: req.auth.userId ? BigInt(req.auth.userId) : null,
 			},
 		});
 
@@ -129,13 +129,13 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			});
 
 			if (robloxEntry) {
-				req.session.userid = robloxEntry.userid.toString() as any;
+				req.auth.userId = robloxEntry.userid.toString() as any;
 				await req.session.save();
 				return res.redirect('/');
 			}
 		}
 
-		if (req.session.userid) {
+		if (req.auth.userId) {
 			return res.redirect('/?action=linked');
 		}
 

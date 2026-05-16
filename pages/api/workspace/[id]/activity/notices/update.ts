@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
   success: boolean;
@@ -12,14 +13,14 @@ type Data = {
 export default withPermissionCheck(handler, ['approve_notices', 'manage_notices']);
 
 export async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse<Data>
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  if (!req.session.userid) {
+  if (!req.auth.userId) {
     return res.status(401).json({ success: false, error: 'Not logged in' });
   }
 
@@ -37,7 +38,7 @@ export async function handler(
     const workspaceId = parseInt(req.query.id as string);
     const user = await prisma.user.findFirst({
       where: {
-        userid: BigInt(req.session.userid),
+        userid: BigInt(req.auth.userId),
       },
       include: {
         roles: {
@@ -78,7 +79,7 @@ export async function handler(
       await prisma.inactivityNotice.delete({
         where: { id },
       });
-      try { await logAudit(notice.workspaceGroupId, (req as any).session?.userid || null, 'notice.cancel', `notice:${id}`, { before, after: null, reviewer: (req as any).session?.userid || null }); } catch (e) {}
+      try { await logAudit(notice.workspaceGroupId, (req as any).auth?.userId || null, 'notice.cancel', `notice:${id}`, { before, after: null, reviewer: (req as any).auth?.userId || null }); } catch (e) {}
     } else {
       const after = await prisma.inactivityNotice.update({
         where: { id },
@@ -88,7 +89,7 @@ export async function handler(
           reviewComment: reviewComment || null,
         },
       });
-      try { await logAudit(after.workspaceGroupId, (req as any).session?.userid || null, status === 'approve' ? 'notice.approve' : 'notice.deny', `notice:${id}`, { before, after, reviewer: (req as any).session?.userid || null }); } catch (e) {}
+      try { await logAudit(after.workspaceGroupId, (req as any).auth?.userId || null, status === 'approve' ? 'notice.approve' : 'notice.deny', `notice:${id}`, { before, after, reviewer: (req as any).auth?.userId || null }); } catch (e) {}
     }
 
     return res.status(200).json({ success: true });

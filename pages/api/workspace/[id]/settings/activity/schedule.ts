@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { getConfig, setConfig } from "@/utils/configEngine";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -9,8 +10,8 @@ type Data = {
   error?: string;
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (!req.session.userid) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+  if (!req.auth.userId) {
     return res.status(401).json({ success: false, error: "Not logged in" });
   }
 

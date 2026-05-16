@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (action && !['award','remove'].includes(action)) return res.status(400).json({ success: false, error: 'Invalid action' });
 
   const workspaceGroupId = parseInt(id as string);
-  const actorId = req.session.userid;
+  const actorId = req.auth.userId;
   if (!actorId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
   const signedMinutes = action === 'remove' ? -Math.trunc(minutes) : Math.trunc(minutes);

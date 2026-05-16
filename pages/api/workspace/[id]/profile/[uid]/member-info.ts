@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 
 async function editHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -114,4 +114,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   return editHandler(req, res);
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

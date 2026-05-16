@@ -19,7 +19,7 @@ import PolicyAcknowledgmentModal from "@/components/PolicyAcknowledgmentModal";
 
 export const getServerSideProps = withSessionSsr(async (context: any): Promise<any> => {
 	const { id, docId } = context.query;
-	const userid = context.req.session.userid;
+	const userid = context.req.auth.userId;
 
 	if (!userid) {
 		return {

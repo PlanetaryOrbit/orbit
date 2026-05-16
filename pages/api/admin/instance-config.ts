@@ -1,16 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (!req.session.userid) {
+	if (!req.auth.userId) {
 		return res.status(401).json({ error: 'Not authenticated' });
 	}
 
 	const user = await prisma.user.findUnique({
-		where: { userid: BigInt(req.session.userid) },
+		where: { userid: BigInt(req.auth.userId) },
 		select: { isOwner: true }
 	});
 

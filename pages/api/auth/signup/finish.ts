@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
@@ -21,7 +21,7 @@ async function safeHashPassword(password: string): Promise<string> {
   }
 }
 
-export default withSessionRoute(async function handlerWithTimeout(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default withAuth(async function handlerWithTimeout(req: NextApiRequest, res: NextApiResponse<Data>) {
   const TIMEOUT_MS = 20000;
   const mainHandler = handler(req, res);
   const timeoutPromise = new Promise<void>((_, reject) =>
@@ -145,7 +145,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
     }
 
-    req.session.userid = userid;
+    req.auth.userId = userid;
     await req.session.save();
 
     let thumbnail = (await getRobloxThumbnail(userid)) || undefined;

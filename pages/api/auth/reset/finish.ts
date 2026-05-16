@@ -1,4 +1,4 @@
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
@@ -34,7 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.status(200).json({ success: true });
 }
 
-export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
   const TIMEOUT_MS = 20000;
   const timeoutPromise = new Promise<void>((_, reject) =>
     setTimeout(() => reject(new Error("Request timed out")), TIMEOUT_MS)

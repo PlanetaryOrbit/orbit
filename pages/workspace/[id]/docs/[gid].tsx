@@ -67,7 +67,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     if (!gid) return { notFound: true };
     const user = await prisma.user.findUnique({
       where: {
-        userid: BigInt(context.req.session.userid),
+        userid: BigInt(context.req.auth.userId),
       },
       include: {
         roles: {
@@ -98,7 +98,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     const membership = await prisma.workspaceMember.findFirst({
       where: {
         workspaceGroupId: parseInt(context.query.id as string),
-        userId: BigInt(context.req.session.userid),
+        userId: BigInt(context.req.auth.userId),
       },
     });
     const isAdmin = membership?.isAdmin || false;

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type Data = {
   success: boolean
@@ -13,8 +13,8 @@ type Data = {
   }
 }
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse<Data>
 ) {
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
@@ -22,7 +22,7 @@ export default withSessionRoute(async function handler(
   const workspaceGroupId = parseInt(req.query.id as string, 10);
   if (!workspaceGroupId) return res.status(400).json({ success: false, error: 'Invalid workspace id' });
 
-  const userid = req.session.userid ? Number(req.session.userid) : null;
+  const userid = req.auth.userId ? Number(req.auth.userId) : null;
   if (!userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 
   const member = await prisma.workspaceMember.findUnique({

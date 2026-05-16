@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 import axios from 'axios';
 import { getRobloxThumbnail } from '@/utils/roblox';
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 interface RobloxTokenResponse {
   access_token: string;
@@ -157,7 +157,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 			},
 		});
 
-		req.session.userid = userId;
+		req.auth.userId = userId;
 		await req.session.save();
 		delete req.session.oauthState;
 		await req.session.save();

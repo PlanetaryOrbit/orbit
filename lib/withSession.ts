@@ -38,7 +38,7 @@ const sessionOptions: SessionOptions = {
   ttl: 60 * 60 * 24 * 7, // 1 week
 };
 
-export function withSessionRoute(handler: NextApiHandler) {
+export function withAuth(handler: NextApiHandler) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     // @ts-ignore
     req.session = await getIronSession(req, res, sessionOptions);

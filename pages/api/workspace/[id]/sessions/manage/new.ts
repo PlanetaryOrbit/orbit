@@ -6,7 +6,7 @@ import { withPermissionCheck } from "@/utils/permissionsManager";
 const sessionTypeCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkSessionTypeCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
   const workspaceId = req.query?.id || 'unknown';
-  const userId = (req as any).session?.userid || 'anonymous';
+  const userId = (req as any).auth?.userId || 'anonymous';
   const key = `workspace:${workspaceId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;

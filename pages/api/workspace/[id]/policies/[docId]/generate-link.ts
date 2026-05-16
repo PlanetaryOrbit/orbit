@@ -3,6 +3,7 @@ import prisma from "@/utils/database";
 import { logAudit } from "@/utils/logs";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import crypto from "crypto";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -18,7 +19,7 @@ type Data = {
 
 export default withPermissionCheck(handler, "manage_policies");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
@@ -76,7 +77,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     await logAudit(
       parseInt(id as string),
-      Number(req.session.userid),
+      Number(req.auth.userId),
       "policy.link_generated",
       `policy:${docId}`,
       {
@@ -84,7 +85,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         documentName: document.name,
         linkType: "direct",
         expiresAt: expiresAt?.toISOString(),
-        generatedBy: req.session.userid,
+        generatedBy: req.auth.userId,
       }
     );
   } catch (e) {

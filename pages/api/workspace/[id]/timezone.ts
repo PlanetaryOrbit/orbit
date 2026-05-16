@@ -1,15 +1,15 @@
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }

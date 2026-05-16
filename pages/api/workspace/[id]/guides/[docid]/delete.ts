@@ -6,6 +6,7 @@ import { withPermissionCheck } from '@/utils/permissionsManager'
 import { logAudit } from '@/utils/logs'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -14,7 +15,7 @@ type Data = {
 export default withPermissionCheck(handler, 'delete_docs');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -27,7 +28,7 @@ export async function handler(
 	try {
 		const details: any = { id: req.query.docid as string, name: doc.name };
 		if (doc.content && typeof doc.content === 'object' && (doc.content as any).external) details.url = (doc.content as any).url;
-		await logAudit(workspaceId, Number(req.session.userid), 'document.delete', `document:${doc.name}`, details);
+		await logAudit(workspaceId, Number(req.auth.userId), 'document.delete', `document:${doc.name}`, details);
 	} catch (e) {}
 
 	res.status(200).json({ success: true })

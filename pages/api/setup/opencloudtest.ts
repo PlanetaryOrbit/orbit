@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { NextApiResponse } from "next";
 import axios from "axios";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 interface OpenCloudKeyRes {
   name: string;
@@ -13,7 +13,7 @@ interface OpenCloudKeyRes {
   expired: boolean;
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
@@ -63,4 +63,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

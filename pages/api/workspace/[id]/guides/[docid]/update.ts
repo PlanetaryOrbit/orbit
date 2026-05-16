@@ -3,6 +3,7 @@ import { withPermissionCheck } from "@/utils/permissionsManager";
 import { logAudit } from "@/utils/logs";
 import prisma from "@/utils/database";
 import { sanitizeJSON } from "@/utils/sanitise";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -12,7 +13,7 @@ type Data = {
 
 export default withPermissionCheck(handler, 'edit_docs');
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
@@ -115,7 +116,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
         await logAudit(
           workspaceId,
-          Number(req.session.userid),
+          Number(req.auth.userId),
           "document.update",
           `document:${req.query.docid as string}`,
           { before: beforeDetails, after: afterDetails }

@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { inactivityNotice } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
@@ -20,7 +20,7 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	if (!req.query.qid || typeof req.query.qid !== 'string') return res.status(400).json({ success: false, error: 'Missing or invalid quota id' });
 
 	try {
@@ -44,7 +44,7 @@ export async function handler(
 		});
 
 		try {
-			await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'activity.quota.delete', `quota:${quota?.name || req.query.qid}`, { id: req.query.qid, name: quota?.name, type: quota?.type, value: quota?.value });
+			await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'activity.quota.delete', `quota:${quota?.name || req.query.qid}`, { id: req.query.qid, name: quota?.name, type: quota?.type, value: quota?.value });
 		} catch (e) {}
 
 		return res.status(200).json({ success: true });

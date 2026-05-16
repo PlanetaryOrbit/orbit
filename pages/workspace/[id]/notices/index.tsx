@@ -87,7 +87,7 @@ type ResignationWithUser = staffResignation & {
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ params, req }) => {
-    const userId = req.session?.userid;
+    const userId = (req as any).auth?.userId as bigint
     if (!userId) {
       return {
         props: {
@@ -103,7 +103,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           canManageNotices: false,
           canCreateNotices: false,
         },
-      };
+      }
     }
 
     const workspaceId = parseInt(params?.id as string);
@@ -122,25 +122,17 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     let allNotices: any[] = [];
     const user = await prisma.user.findFirst({
-      where: {
-        userid: BigInt(userId),
-      },
+      where: { userid: userId },
       include: {
         roles: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
-          orderBy: {
-            isOwnerRole: "desc",
-          },
+          where: { workspaceGroupId: workspaceId },
+          orderBy: { isOwnerRole: "desc" },
         },
         workspaceMemberships: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
+          where: { workspaceGroupId: workspaceId },
         },
       },
-    });
+    })
 
     const config = await prisma.config.findFirst({
       where: {

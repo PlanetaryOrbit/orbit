@@ -92,7 +92,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     let filteredSessions = allSessions;
     let isAdmin = false;
     if (req.session?.userid) {
-      const userId = BigInt(req.session.userid);
+      const userId = BigInt(req.auth.userId);
       const user = await prisma.user.findFirst({
         where: { userid: userId },
         include: {
@@ -127,7 +127,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     let userSessionMetrics = null;
     if (req.session?.userid) {
-      const userId = BigInt(req.session.userid);
+      const userId = BigInt(req.auth.userId);
       const lastReset = await prisma.activityReset.findFirst({
         where: {
           workspaceGroupId: parseInt(query.id as string),

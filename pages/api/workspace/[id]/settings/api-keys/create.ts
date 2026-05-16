@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { withPermissionCheck } from "@/utils/permissionsManager"
 import prisma from "@/utils/database"
 import crypto from "crypto"
+import { AuthenticatedRequest } from "@/lib/withAuth"
 
 type Data = {
 	success: boolean
@@ -16,9 +17,9 @@ type Data = {
 
 export default withPermissionCheck(handler, "manage_apikeys")
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" })
-	if (!req.session.userid) return res.status(401).json({ success: false, error: "Not authenticated" })
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: "Not authenticated" })
 	if (!req.query.id) return res.status(400).json({ success: false, error: "Missing workspace ID" })
 
 	const workspaceId = Number.parseInt(req.query.id as string)
@@ -61,7 +62,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 			key: apiKeyValue,
 			expiresAt,
 			workspaceGroupId: workspaceId,
-			createdById: req.session.userid,
+			createdById: req.auth.userId,
 		},
 		})
 

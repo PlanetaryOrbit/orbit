@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import { google } from 'googleapis';
 import prisma from '@/utils/database';
 import Package from '@/package.json';
@@ -11,7 +11,7 @@ type GoogleUserProfile = {
   emailAddresses?: { value: string }[];
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -109,7 +109,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
       where: { googleUserId: googleId },
     });
 
-    if (!hasEntry && !req.session.userid) {
+    if (!hasEntry && !req.auth.userId) {
       return res.redirect('/login?error=google-not-linked');
     }
 
@@ -123,14 +123,14 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
         username: displayName,
         avatar,
         email,
-        ...(req.session.userid && { robloxUserId: BigInt(req.session.userid) }),
+        ...(req.auth.userId && { robloxUserId: BigInt(req.auth.userId) }),
       },
       create: {
         googleUserId: googleId,
         username: displayName,
         avatar,
         email,
-        robloxUserId: req.session.userid ? BigInt(req.session.userid) : null,
+        robloxUserId: req.auth.userId ? BigInt(req.auth.userId) : null,
       },
     });
 
@@ -140,13 +140,13 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       if (robloxEntry) {
-        req.session.userid = robloxEntry.userid.toString() as any;
+        req.auth.userId = robloxEntry.userid.toString() as any;
         await req.session.save();
         return res.redirect('/');
       }
     }
 
-    if (req.session.userid) {
+    if (req.auth.userId) {
       return res.redirect('/?action=linked');
     }
 

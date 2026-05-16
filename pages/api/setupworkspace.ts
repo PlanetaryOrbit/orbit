@@ -1,19 +1,12 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  getUsername,
-  getThumbnail,
-  getDisplayName,
-} from "@/utils/userinfoEngine";
+import { getUsername, getThumbnail, getDisplayName } from "@/utils/userinfoEngine";
 import { User } from "@/types/index.d";
 import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
-import { withSessionRoute } from "@/lib/withSession";
 import bcryptjs from "bcryptjs";
 import { setRegistry } from "@/utils/registryManager";
-import {
-  getRobloxUserId,
-} from "@/utils/roblox";
+import { getRobloxUserId } from "@/utils/roblox";
+import { createSession } from "@/utils/session";
 
 type Data = {
   success: boolean;
@@ -21,7 +14,7 @@ type Data = {
   user?: User & { isOwner: boolean };
   debug?: any;
 };
-// Safe password hashing function
+
 async function safeHashPassword(password: string): Promise<string> {
   try {
     return await bcryptjs.hash(password, 10);
@@ -31,83 +24,46 @@ async function safeHashPassword(password: string): Promise<string> {
   }
 }
 
-export default withSessionRoute(handler);
-
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+    return res.status(405).json({ success: false, error: "Method not allowed" });
 
-  // Ensure body is parsed
   if (!req.body || typeof req.body !== "object") {
-    console.error("Invalid request body:", req.body);
-    return res.status(400).json({
-      success: false,
-      error: "Invalid request body - must be JSON",
-    });
+    return res.status(400).json({ success: false, error: "Invalid request body - must be JSON" });
   }
 
-  // Validate required fields
   const { groupid, username, password, color, opencloudKey } = req.body;
   if (!groupid || !username || !password || !color) {
-    console.error("Missing required fields:", {
-      groupid,
-      username,
-      password,
-      color,
-    });
-    return res.status(400).json({
-      success: false,
-      error: "Missing required fields",
-    });
+    return res.status(400).json({ success: false, error: "Missing required fields" });
   }
 
-  // Convert groupid to number if it's a string
-  const groupIdNumber =
-    typeof groupid === "string" ? parseInt(groupid) : groupid;
+  const groupIdNumber = typeof groupid === "string" ? parseInt(groupid) : groupid;
   if (isNaN(groupIdNumber)) {
-    console.error("Invalid groupid:", groupid);
-    return res.status(400).json({
-      success: false,
-      error: "Invalid groupid",
-    });
+    return res.status(400).json({ success: false, error: "Invalid groupid" });
   }
 
   try {
-    // Get Roblox user ID first
-    let userid = (await getRobloxUserId(username).catch(
-      (e) => {
-        console.error("Error getting Roblox user ID:", e);
-        return null;
-      }
-    )) as number | undefined;
-
-    console.log("Got userid:", userid);
+    let userid = (await getRobloxUserId(username).catch((e) => {
+      console.error("Error getting Roblox user ID:", e);
+      return null;
+    })) as number | undefined;
 
     if (!userid) {
-      console.error("Username not found:", username);
-      return res
-        .status(404)
-        .json({ success: false, error: "Username not found" });
+      return res.status(404).json({ success: false, error: "Username not found" });
     }
 
-    // Check if workspace exists first
-    const existingWorkspace = await prisma.workspace.findFirst().catch((e) => {
+    const existingWorkspace = await prisma.workspace.findFirst({ where: { groupId: Number(groupid) }}).catch((e) => {
       console.error("Error checking existing workspace:", e);
       return null;
     });
 
+    console.log(existingWorkspace)
+
     if (existingWorkspace) {
-      console.error("Workspace already exists");
-      return res
-        .status(403)
-        .json({ success: false, error: "Workspace already exists" });
+      return res.status(403).json({ success: false, error: "Workspace already exists" });
     }
 
-    // Hash password before any database operations
     const hashedPassword = await safeHashPassword(password);
-    console.log("Password hashed successfully");
 
     let groupName = `Group ${groupIdNumber}`;
     let groupLogo = '';
@@ -123,216 +79,72 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       console.error('Failed to fetch group info during workspace setup:', err);
     }
 
-    const workspace = await prisma.workspace
-      .create({
-        data: {
-          groupId: groupIdNumber,
-          groupName,
-          groupLogo,
-          lastSynced: new Date()
-        },
-      })
-      .catch((e) => {
-        console.error("Error creating workspace:", e);
-        throw new Error("Failed to create workspace");
-      });
+    await prisma.workspace.create({
+      data: { groupId: groupIdNumber, groupName, groupLogo, lastSynced: new Date() },
+    }).catch((e) => { throw new Error("Failed to create workspace") });
 
-    console.log("Created workspace:", workspace);
+    await prisma.$transaction([
+      prisma.config.create({ data: { key: "customization", workspaceGroupId: groupIdNumber, value: { color } } }),
+      prisma.config.create({ data: { key: "theme", workspaceGroupId: groupIdNumber, value: color } }),
+      prisma.config.create({ data: { key: "guides", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
+      prisma.config.create({ data: { key: "sessions", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
+      prisma.config.create({ data: { key: "allies", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
+      prisma.config.create({ data: { key: "leaderboard", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
+      prisma.config.create({ data: { key: "notices", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
+      prisma.config.create({ data: { key: "resignations", workspaceGroupId: groupIdNumber, value: { enabled: false } } }),
+      prisma.config.create({ data: { key: "policies", workspaceGroupId: groupIdNumber, value: { enabled: false } } }),
+      prisma.config.create({ data: { key: "home", workspaceGroupId: groupIdNumber, value: { widgets: [] } } }),
+    ]);
 
-    // Create all configs in a single transaction
-    try {
-      await prisma.$transaction([
-        prisma.config.create({
-          data: {
-            key: "customization",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              color: color,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "theme",
-            workspaceGroupId: groupIdNumber,
-            value: color,
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "guides",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "sessions",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "allies",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "leaderboard",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "notices",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "resignations",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: false,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "policies",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: false,
-            },
-          },
-        }),
-        prisma.config.create({
-          data: {
-            key: "home",
-            workspaceGroupId: groupIdNumber,
-            value: {
-              widgets: [],
-            },
-          },
-        }),
-      ]);
-      console.log("Created all configs successfully");
-    } catch (e) {
-      console.error("Error creating configs:", e);
-      throw new Error("Failed to create configs");
-    }
+    await prisma.user.create({
+      data: {
+        userid: BigInt(userid),
+        info: { create: { passwordhash: hashedPassword } },
+        isOwner: true,
+      },
+    }).catch((e) => { throw new Error("Failed to create user") });
 
-    const user = await prisma.user
-      .create({
-        data: {
-          userid: userid,
-          info: {
-            create: {
-              passwordhash: hashedPassword,
-            },
-          },
-          isOwner: true,
-        },
-      })
-      .catch((e) => {
-        console.error("Error creating user:", e);
-        throw new Error("Failed to create user");
-      });
+    const defaultRole = await prisma.role.create({
+      data: { name: "Default", workspaceGroupId: groupIdNumber, permissions: [], groupRoles: [] },
+    }).catch((e) => { throw new Error("Failed to create default role") });
 
-    console.log("Created user:", user);
-    const defaultRole = await prisma.role
-      .create({
-        data: {
-          name: "Default",
-          workspaceGroupId: groupIdNumber,
-          permissions: [],
-          groupRoles: [],
-        },
-      })
-      .catch((e) => {
-        console.error("Error creating default role:", e);
-        throw new Error("Failed to create default role");
-      });
+    await prisma.user.update({
+      where: { userid: BigInt(userid) },
+      data: { roles: { connect: { id: defaultRole.id } } },
+    }).catch((e) => { throw new Error("Failed to assign role to user") });
 
-    console.log("Created default role");
-
-    await prisma.user
-      .update({
-        where: { userid: BigInt(userid) },
-        data: {
-          roles: {
-            connect: { id: defaultRole.id },
-          },
-        },
-      })
-      .catch((e) => {
-        console.error("Error assigning role to user:", e);
-        throw new Error("Failed to assign role to user");
-      });
-
-    console.log("Assigned user to default role");
-
-    await prisma.workspaceMember
-      .create({
-        data: {
-          workspaceGroupId: groupIdNumber,
-          userId: BigInt(userid),
-          joinDate: new Date(),
-          isAdmin: true,
-        },
-      })
-      .catch((e) => {
-        console.error("Error creating workspace member:", e);
-        throw new Error("Failed to create workspace member");
-      });
-
-    console.log("Created workspace member with admin status");
-
-    // Set session after all database operations are complete
-    req.session.userid = userid;
-    await req.session?.save();
-
-    // Get user info after session is set
-    const userInfo: User & { isOwner: boolean } = {
-      userId: req.session.userid,
-      username: await getUsername(req.session.userid),
-      displayname: await getDisplayName(req.session.userid),
-      thumbnail: getThumbnail(req.session.userid, groupIdNumber),
-      isOwner: true,
-    };
+    await prisma.workspaceMember.create({
+      data: { workspaceGroupId: groupIdNumber, userId: BigInt(userid), joinDate: new Date(), isAdmin: true },
+    }).catch((e) => { throw new Error("Failed to create workspace member") });
 
     if (opencloudKey && typeof opencloudKey === "string" && opencloudKey.trim().length > 0) {
       await prisma.config.create({
-        data: {
-          key: "roblox_opencloud",
-          workspaceGroupId: groupIdNumber,
-          value: {
-            enabled: true,
-            key: opencloudKey.trim(),
-          },
-        },
-      }).catch((e) => {
-        console.error("Error saving Open Cloud key:", e);
-      });
+        data: { key: "roblox_opencloud", workspaceGroupId: groupIdNumber, value: { enabled: true, key: opencloudKey.trim() } },
+      }).catch((e) => console.error("Error saving Open Cloud key:", e));
     }
 
-    // Set registry last
+    const session = await createSession(
+      BigInt(userid),
+      req.headers['x-forwarded-for'] as string ?? req.socket.remoteAddress,
+      req.headers['user-agent']
+    )
+
+    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7}`)
+
+    res.setHeader('Set-Cookie', [
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`,
+      `app_setup=true; Path=/; HttpOnly; SameSite=Strict`,
+    ])
+
     await setRegistry(req.headers.host as string);
+
+    const userInfo: User & { isOwner: boolean } = {
+      userId: userid,
+      username: await getUsername(userid),
+      displayname: await getDisplayName(userid),
+      thumbnail: getThumbnail(userid),
+      isOwner: true,
+    };
 
     return res.status(200).json({ success: true, user: userInfo });
   } catch (error) {

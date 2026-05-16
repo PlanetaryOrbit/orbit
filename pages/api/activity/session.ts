@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
 import * as noblox from "noblox.js";
 import { getUsername, getThumbnail } from "@/utils/userinfoEngine";
 import { checkSpecificUser } from "@/utils/permissionsManager";
 import { generateSessionTimeMessage } from "@/utils/sessionMessage";
 import { deriveActivityEndChatFields } from "@/utils/activitySessionChat";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -17,9 +17,9 @@ type Data = {
   data?: any,
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method != "POST" && req.method != "GET") {
     return res
       .status(405)
@@ -103,7 +103,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       }
 
       const username = await getUsername(userid);
-      const picture = getThumbnail(userid, groupId);
+      const picture = getThumbnail(userid);
 
       try {
         await prisma.user.upsert({

@@ -70,7 +70,7 @@ function getRandomBg(userid: string, username?: string) {
 export const getServerSideProps = withPermissionCheckSsr(
   async (context: any) => {
     const { id } = context.query;
-    const userid = context.req.session.userid;
+    const userid = context.req.auth.userId;
     if (!userid) {
       return {
         redirect: {

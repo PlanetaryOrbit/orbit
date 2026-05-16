@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 const sessionCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 
 function checkSessionCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
   const workspaceId = req.query?.id || 'unknown';
-  const userId = (req as any).session?.userid || 'anonymous';
+  const userId = (req as any).auth?.userId || 'anonymous';
   const key = `workspace:${workspaceId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;
@@ -36,9 +36,9 @@ type Data = {
   sessions?: any[];
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (!checkSessionCreationRateLimit(req, res)) return;
 
   if (req.method !== "POST")
@@ -87,7 +87,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
   }
 
-  const userId = BigInt(req.session.userid);
+  const userId = BigInt(req.auth.userId);
   const workspaceId = parseInt(req.query.id as string);
   const user = await prisma.user.findFirst({
     where: { userid: userId },
@@ -249,7 +249,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const logEntries = createdSessions.map(session => ({
       sessionId: session.id,
-      actorId: BigInt(req.session.userid),
+      actorId: BigInt(req.auth.userId),
       action: "session_created",
       metadata: {
         sessionType: sessionType.name,
@@ -268,7 +268,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     try {
       const { logAudit } = await import('@/utils/logs');
-      await logAudit(Number(req.query.id), Number(req.session.userid), 'session.create.scheduled', `session_bulk:${sessionType.id}`, { count: createdSessions.length, sessionType: sessionType.name });
+      await logAudit(Number(req.query.id), Number(req.auth.userId), 'session.create.scheduled', `session_bulk:${sessionType.id}`, { count: createdSessions.length, sessionType: sessionType.name });
     } catch (e) {}
 
     res.status(200).json({

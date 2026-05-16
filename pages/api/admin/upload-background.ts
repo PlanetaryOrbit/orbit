@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 import formidable from 'formidable';
 import fs from 'fs';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 export const config = {
 	api: {
@@ -10,20 +11,20 @@ export const config = {
 	},
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
 	'image/jpeg': 'image/jpeg',
 	'image/png': 'image/png',
 };
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (!req.session.userid) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+	if (!req.auth.userId) {
 		return res.status(401).json({ error: 'Not authenticated' });
 	}
 
 	const user = await prisma.user.findUnique({
-		where: { userid: BigInt(req.session.userid) },
+		where: { userid: BigInt(req.auth.userId) },
 		select: { isOwner: true },
 	});
 

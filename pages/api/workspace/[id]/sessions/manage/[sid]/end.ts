@@ -1,15 +1,15 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 type Data = {
   success: boolean;
   error?: string;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "DELETE")
     return res
       .status(405)
@@ -21,7 +21,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       .json({ success: false, error: "Missing required fields" });
   const user = await prisma.user.findUnique({
     where: {
-      userid: BigInt(req.session.userid),
+      userid: BigInt(req.auth.userId),
     },
     include: {
       roles: {
@@ -43,7 +43,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const session = await prisma.session.findFirst({
     where: {
       id: sid as string,
-      ownerId: req.session.userid,
+      ownerId: req.auth.userId,
     },
     include: {
       sessionType: {

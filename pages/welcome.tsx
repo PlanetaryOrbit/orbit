@@ -33,22 +33,6 @@ const Login: NextPage = () => {
   const [showApiKey, setShowApiKey] = useState(false);
   const testedKey = useRef<string | null>(null);
 
-  useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        await axios.get("/api/@me")
-        setIsRegistered(true)
-      } catch (err: any) {
-        const status = err.response?.status
-        if (status != 200) {
-          setIsRegistered(false)
-        }
-      }
-    }
-
-    checkLogin()
-  }, [])
-
   async function createAccount() {
     setIsLoading(true);
     let request: { data: { success: boolean; user: any } } | undefined;
@@ -249,11 +233,7 @@ const Login: NextPage = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isRegistered) {
-                      Router.push('/');
-                    } else {
-                      handleSubmit(nextSlide)();
-                    }
+                    handleSubmit(nextSlide)();
                   }}
                   className="ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
                 >

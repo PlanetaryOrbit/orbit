@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import { generateCsrfToken } from "@/utils/csrf";
 
 type Data = {
@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
   try {
-    const token = generateCsrfToken(req.session.userid);
+    const token = generateCsrfToken(req.auth.userId);
     return res.status(200).json({ success: true, token });
   } catch (error: any) {
     console.error("Error generating CSRF token:", error);
@@ -27,4 +27,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

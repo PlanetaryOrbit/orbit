@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
 import { deriveActivityEndChatFields } from "@/utils/activitySessionChat";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -10,9 +10,9 @@ type Data = {
   failed?: number;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {
     return res
       .status(405)

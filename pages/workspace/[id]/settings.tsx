@@ -9,6 +9,7 @@ import * as All from "@/components/settings/general"
 import * as Api from "@/components/settings/api"
 import * as Instance from "@/components/settings/instance"
 import * as Integrations from "@/components/settings/integration"
+import * as cookie from 'cookie'
 import toast from "react-hot-toast"
 import * as noblox from "noblox.js"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
@@ -16,6 +17,7 @@ import prisma from "@/utils/database"
 import { getUsername, getDisplayName, getThumbnail } from "@/utils/userinfoEngine"
 import { useState, useEffect } from "react"
 import clsx from "clsx"
+import { getSessionByToken } from "@/utils/session"
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async ({ params, res, req }) => {
   if (!params?.id) {
@@ -23,23 +25,27 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
     return { props: {} }
   }
 
-  const workspaceGroupId = Number.parseInt(params.id as string);
-  const currentUserId = req.session?.userid;
-  const currentUser = await prisma.user.findFirst({
-    where: { userid: BigInt(currentUserId) },
-    include: {
-      workspaceMemberships: {
-        where: { workspaceGroupId },
-      },
-      roles: {
-        where: { workspaceGroupId },
-      },
-    },
-  });
+  const workspaceGroupId = Number.parseInt(params.id as string)
+  const cookies = cookie.parse(req.headers.cookie || '')
+  const token = cookies.session_token
+  if (!token) return { redirect: { destination: '/login', permanent: false } }
 
-  const membership = currentUser?.workspaceMemberships?.[0];
-  const isAdmin = membership?.isAdmin || false;
-  const userPermissions = currentUser?.roles?.[0]?.permissions || [];
+  const session = await getSessionByToken(token)
+  if (!session) return { redirect: { destination: '/login', permanent: false } }
+
+  const currentUserId = session.userId // already a BigInt
+
+  const currentUser = await prisma.user.findFirst({
+    where: { userid: currentUserId },
+    include: {
+      workspaceMemberships: { where: { workspaceGroupId } },
+      roles: { where: { workspaceGroupId } },
+    },
+  })
+
+  const membership = currentUser?.workspaceMemberships?.[0]
+  const isAdmin = membership?.isAdmin || false
+  const userPermissions = currentUser?.roles?.[0]?.permissions || []
 
   const grouproles = await noblox.getRoles(Number(params.id))
   const users = await prisma.user.findMany({
@@ -79,7 +85,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(asy
   const usersWithInfo = await Promise.all(
     users.map(async (user) => {
       const username = user.username || (await getUsername(user.userid))
-      const thumbnail = user.picture || getThumbnail(user.userid, workspaceGroupId)
+      const thumbnail = user.picture || getThumbnail(user.userid)
       const displayName = user.username || (await getDisplayName(user.userid))
       return {
         ...user,

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -9,9 +9,9 @@ type Data = {
   log?: any;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const { id, sid } = req.query;
   if (!id || !sid)
     return res
@@ -86,7 +86,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       const log = await prisma.sessionLog.create({
         data: {
           sessionId: sid as string,
-          actorId: BigInt(req.session.userid),
+          actorId: BigInt(req.auth.userId),
           targetId: targetId ? BigInt(targetId) : null,
           action,
           metadata: metadata || {},

@@ -96,55 +96,47 @@ type User = {
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ params, req }: GetServerSidePropsContext) => {
-    const workspaceGroupId = parseInt(params?.id as string);
-    const currentUserId = req.session?.userid;
+    const workspaceGroupId = parseInt(params?.id as string)
+
+    const currentUserId = (req as any).auth?.userId as bigint
+
     const currentUser = await prisma.user.findFirst({
-      where: { userid: BigInt(currentUserId) },
+      where: { userid: currentUserId },
       include: {
-        workspaceMemberships: {
-          where: { workspaceGroupId },
-        },
-        roles: {
-          where: { workspaceGroupId },
-        },
+        workspaceMemberships: { where: { workspaceGroupId } },
+        roles: { where: { workspaceGroupId } },
       },
-    });
-    
-    const membership = currentUser?.workspaceMemberships?.[0];
-    const isAdmin = membership?.isAdmin || false;
-    const userRole = currentUser?.roles?.[0];
-    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false;
-    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false;
-    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false;
-    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false;
-    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false;
+    })
+
+    const membership = currentUser?.workspaceMemberships?.[0]
+    const isAdmin = membership?.isAdmin || false
+    const userRole = currentUser?.roles?.[0]
+    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false
+    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false
+    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false
+    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false
+    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false
 
     const departments = await prisma.department.findMany({
       where: { workspaceGroupId },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
+      select: { id: true, name: true, color: true },
+      orderBy: { name: 'asc' },
+    })
 
     return {
       props: {
-        isAdmin: isAdmin,
-        hasManageViewsPerm: hasManageViewsPerm,
-        hasCreateViewsPerm: hasCreateViewsPerm,
-        hasDeleteViewsPerm: hasDeleteViewsPerm,
-        hasUseSavedViewsPerm: hasUseSavedViewsPerm,
-        hasViewMemberProfiles: hasViewMemberProfiles,
+        isAdmin,
+        hasManageViewsPerm,
+        hasCreateViewsPerm,
+        hasDeleteViewsPerm,
+        hasUseSavedViewsPerm,
+        hasViewMemberProfiles,
         departments: JSON.parse(JSON.stringify(departments)),
       },
-    };
+    }
   },
   "view_members"
-);
+)
 
 const filters: {
   [key: string]: string[];

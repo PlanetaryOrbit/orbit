@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database'
-import { withSessionRoute } from '@/lib/withSession'
+import { withAuth } from '@/lib/withAuth'
+// import { withAuth } from '@/lib/withSession'
 import { logAudit } from '@/utils/logs'
 
 type Data = {
@@ -8,7 +9,7 @@ type Data = {
 	error?: string
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
 	req: NextApiRequest,
@@ -18,7 +19,7 @@ export async function handler(
 	
 	try {
 		const workspaceId = parseInt(req.query.id as string);
-		const userId = (req as any).session?.userid;
+		const userId = (req as any).auth?.userId;
 		const { newOwnerId } = req.body;
 
 		if (!userId) return res.status(401).json({ success: false, error: 'Not logged in' });

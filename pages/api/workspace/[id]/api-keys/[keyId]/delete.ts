@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { withPermissionCheck } from "@/utils/permissionsManager"
 import prisma from "@/utils/database"
+import { AuthenticatedRequest } from "@/lib/withAuth"
 
 type Data = {
   success: boolean
@@ -9,9 +10,9 @@ type Data = {
 
 export default withPermissionCheck(handler, "admin")
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "DELETE") return res.status(405).json({ success: false, error: "Method not allowed" })
-  if (!req.session.userid) return res.status(401).json({ success: false, error: "Not authenticated" })
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: "Not authenticated" })
   if (!req.query.id || !req.query.keyId)
     return res.status(400).json({ success: false, error: "Missing required parameters" })
 

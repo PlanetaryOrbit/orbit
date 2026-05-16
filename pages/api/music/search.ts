@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 
 export type TrackResult = {
   id: number;
@@ -10,9 +10,9 @@ export type TrackResult = {
   previewUrl: string;
 };
 
-export default withSessionRoute(async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withAuth(async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  if (!req.session.userid) return res.status(401).json({ error: 'Not logged in' });
+  if (!req.auth.userId) return res.status(401).json({ error: 'Not logged in' });
 
   const q = (req.query.q as string)?.trim();
   if (!q) return res.json({ results: [] });

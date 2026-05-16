@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getConfig, setConfig } from "@/utils/configEngine";
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -9,7 +9,7 @@ type Data = {
   value?: unknown;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const userId = (req as NextApiRequest & { session?: { userid?: number } }).session?.userid;

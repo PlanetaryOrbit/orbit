@@ -31,7 +31,7 @@ export async function handler(
 	};
 	await setConfig('activity', newconfig, parseInt(req.query.id as string));
 
-	try { await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.activity.idleTime.update', 'activity.idleTime', { before: activityconfig, after: newconfig }); } catch (e) {}
+	try { await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'settings.activity.idleTime.update', 'activity.idleTime', { before: activityconfig, after: newconfig }); } catch (e) {}
 
 	res.status(200).send({
 		success: true,

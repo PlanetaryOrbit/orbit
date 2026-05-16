@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest } from '@/lib/withAuth'
 
 type Data = {
 	success: boolean
@@ -10,14 +11,14 @@ type Data = {
 export default withPermissionCheck(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' })
 	
 	try {
 		const workspaceId = parseInt(req.query.id as string);
-		const userId = (req as any).session?.userid;
+		const userId = (req as any).auth?.userId
 
 		if (!userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 		if (!workspaceId) return res.status(400).json({ success: false, error: 'No workspace id provided' });

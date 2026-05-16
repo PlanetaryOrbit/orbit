@@ -80,7 +80,7 @@ export async function handler(
 	});
 
 	try {
-		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.delete', `role:${oldrole.name}`, { id: req.query.roleid, name: oldrole.name });
+		await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'settings.roles.delete', `role:${oldrole.name}`, { id: req.query.roleid, name: oldrole.name });
 	} catch (e) {}
 
 	res.status(200).json({ success: true })

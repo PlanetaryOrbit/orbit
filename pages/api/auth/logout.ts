@@ -1,9 +1,9 @@
 //logout of tovy
 
 import { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
 	req: NextApiRequest,

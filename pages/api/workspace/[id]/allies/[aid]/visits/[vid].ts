@@ -2,10 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { allyVisit } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -13,8 +13,8 @@ type Data = {
 }
 
 const withAllyPermissionCheck = (handler: any) => {
-	return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
-		const uid = req.session.userid;
+	return withAuth(async (req: AuthenticatedRequest, res: NextApiResponse) => {
+		const uid = req.auth.userId;
 		if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing required fields' });
 		if (!req.query.aid) return res.status(400).json({ success: false, error: 'Missing ally ID' });
@@ -73,10 +73,10 @@ const withAllyPermissionCheck = (handler: any) => {
 export default withAllyPermissionCheck(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	if (!req.query.vid) return res.status(400).json({ success: false, error: 'Missing ally id' });
 	if (typeof req.query.aid !== 'string') return res.status(400).json({ success: false, error: 'Invalid ally id' })
 	if(req.method == "DELETE") {

@@ -48,7 +48,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       const { logAudit } = await import("@/utils/logs");
       await logAudit(
         Number(req.query.id),
-        Number((req as any).session?.userid),
+        Number((req as any).auth?.userId),
         "session.cancel",
         `session:${sessionId}`,
         { reason: reason.trim() }

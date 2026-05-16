@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import * as noblox from 'noblox.js'
 type Data = {
 	success: boolean
@@ -9,14 +9,14 @@ type Data = {
 	code?: string
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (req.session.userid) return res.status(400).json({ success: false, error: 'Already logged in' })
+	if (req.auth.userId) return res.status(400).json({ success: false, error: 'Already logged in' })
 	const { username } = req.body;
 	if (!username) return res.status(400).json({ success: false, error: 'Missing username' })
 	const userid = await noblox.getIdFromUsername(username).catch(() => null) as number | undefined;

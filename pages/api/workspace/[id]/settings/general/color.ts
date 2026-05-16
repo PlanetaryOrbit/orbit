@@ -30,14 +30,14 @@ export async function handler(
 			const before = await getConfig('theme', workspaceId);
 			await setConfig('theme', color, workspaceId);
 			try {
-				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'theme', { before, after: color });
+				await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.color.update', 'theme', { before, after: color });
 			} catch (e) {}
 		}
 		if (darkColor !== undefined) {
 			const beforeDark = await getConfig('darkTheme', workspaceId);
 			await setConfig('darkTheme', darkColor, workspaceId);
 			try {
-				await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.color.update', 'darkTheme', { before: beforeDark, after: darkColor });
+				await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.color.update', 'darkTheme', { before: beforeDark, after: darkColor });
 			} catch (e) {}
 		}
 		return res.status(200).json({ success: true });

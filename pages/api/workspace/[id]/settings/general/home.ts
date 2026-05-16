@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import { logAudit } from '@/utils/logs'
 import prisma, { role } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
@@ -31,7 +31,7 @@ export async function handler(
 
     await setConfig('home', after, workspaceId);
     updateWidgetsState = true
-    try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.home.update', 'home', { before, after }); } catch (e) { }
+    try { await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.home.update', 'home', { before, after }); } catch (e) { }
     try {
       await prisma.workspace.update(
         {

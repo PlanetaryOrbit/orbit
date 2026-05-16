@@ -191,7 +191,7 @@ function getAction(action: string) {
 	}
 }
 
-export async function logAudit(workspaceGroupId: number, userId: number | null, action: string, entity?: string, details?: AuditDetails) {
+export async function logAudit(workspaceGroupId: number, userId: number | bigint | null, action: string, entity?: string, details?: AuditDetails) {
 	try {
 		const p: any = prisma as any;
 		if (p && p.auditLog) {

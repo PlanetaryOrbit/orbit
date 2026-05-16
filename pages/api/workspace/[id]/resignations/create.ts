@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -10,11 +11,11 @@ type Data = {
 
 export default withPermissionCheck(handler, "submit_resignation");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
-  if (!req.session.userid) {
+  if (!req.auth.userId) {
     return res.status(401).json({ success: false, error: "Not logged in" });
   }
 
@@ -48,7 +49,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const pending = await prisma.staffResignation.count({
       where: {
         workspaceGroupId,
-        userId: BigInt(req.session.userid),
+        userId: BigInt(req.auth.userId),
         reviewed: false,
       },
     });
@@ -61,7 +62,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const resignation = await prisma.staffResignation.create({
       data: {
-        userId: BigInt(req.session.userid),
+        userId: BigInt(req.auth.userId),
         workspaceGroupId,
         lastWorkingDay: lastDay,
         reason: reason.trim(),

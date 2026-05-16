@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 
 type Data = {
 	success: boolean
@@ -10,8 +10,8 @@ type Data = {
 }
 
 const withAllyPermissionCheck = (handler: any) => {
-	return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
-		const uid = req.session.userid;
+	return withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
+		const uid = req.auth.userId;
 		if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing required fields' });
 		if (!req.query.aid) return res.status(400).json({ success: false, error: 'Missing ally ID' });
@@ -73,7 +73,7 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	if (!req.query.aid) return res.status(400).json({ success: false, error: 'Missing ally id' });
 	if (typeof req.query.aid !== 'string') return res.status(400).json({ success: false, error: 'Invalid ally id' })
 	const { name, time, participants } = req.body
@@ -83,7 +83,7 @@ export async function handler(
 	try {
 		const visit = await prisma.allyVisit.create({
 			data: {
-				hostId: req.session.userid,
+				hostId: req.auth.userId,
 				allyId: req.query.aid,
 				name: name,
 				time: new Date(time),

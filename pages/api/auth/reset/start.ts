@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import { getRobloxThumbnail, getRobloxDisplayName } from "@/utils/roblox";
 
-export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
 
 	const { username } = req.body;

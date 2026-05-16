@@ -1,10 +1,10 @@
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET")
@@ -16,7 +16,7 @@ export default withSessionRoute(async function handler(
   const { periodEnd } = req.query;
   const workspaceGroupId = parseInt(id as string);
   const targetUserId = BigInt(userId as string);
-  const sessionUserId = req.session.userid;
+  const sessionUserId = req.auth.userId;
 
   if (!sessionUserId) {
     return res.status(401).json({ success: false, error: "Unauthorized" });

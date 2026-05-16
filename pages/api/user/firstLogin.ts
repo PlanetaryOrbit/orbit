@@ -1,20 +1,20 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-  if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not authenticated' });
   try {
     await prisma.user.update({
       where: {
-        userid: req.session.userid
+        userid: req.auth.userId
       },
       data: {
         isFirstLogin: false

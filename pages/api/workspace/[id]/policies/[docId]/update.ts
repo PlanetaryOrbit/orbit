@@ -3,6 +3,7 @@ import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { sanitizeJSON } from '@/utils/sanitise';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -13,7 +14,7 @@ type Data = {
 export default withPermissionCheck(handler, 'edit_policies');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'PUT') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -137,7 +138,7 @@ export async function handler(
 	});
 
 	try {
-		await logAudit(parseInt(id as string), Number(req.session.userid), 'policy.update', `policy:${docId}`, {
+		await logAudit(parseInt(id as string), Number(req.auth.userId), 'policy.update', `policy:${docId}`, {
 			documentId: docId,
 			name,
 			changesRequired: incrementVersion && requiresAcknowledgment

@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import { getUniverseInfo } from 'noblox.js';
 import axios from 'axios';
@@ -78,4 +78,4 @@ async function handler(
 }
 
 // Export with session wrapper only (permission check happens inside)
-export default withSessionRoute(handler);
+export default withAuth(handler);

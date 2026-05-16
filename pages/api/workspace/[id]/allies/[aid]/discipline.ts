@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import { getConfig } from "@/utils/configEngine";
 import {
@@ -8,8 +8,8 @@ import {
 } from "@/utils/allianceStrikesConfig";
 import { getUsername } from "@/utils/userinfoEngine";
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse,
 ) {
   if (req.method !== "PATCH") {
@@ -23,7 +23,7 @@ export default withSessionRoute(async function handler(
     return res.status(400).json({ success: false, error: "Invalid parameters" });
   }
 
-  const currentUserId = req.session?.userid;
+  const currentUserId = req.auth?.userId;
   if (!currentUserId) {
     return res.status(401).json({ success: false, error: "Not authenticated" });
   }

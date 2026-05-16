@@ -54,7 +54,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     });
 
     const user = await prisma.user.findUnique({
-      where: { userid: req.session.userid },
+      where: { userid: req.auth.userId },
       include: {
         roles: {
           where: { workspaceGroupId: parseInt(query.id as string) },

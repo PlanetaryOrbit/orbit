@@ -16,7 +16,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  if (!req.session.userid)
+  if (!req.auth.userId)
     return res.status(401).json({ success: false, error: "Not logged in" });
   if (!req.body.userId || !req.body.minutes)
     return res.status(400).json({ success: false, error: "Missing data" });

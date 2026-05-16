@@ -9,7 +9,7 @@ export default withPermissionCheck(
     }
 
     const { id, date, timezoneOffset, startDate, endDate } = req.query;
-    const userId = (req as any).session?.userid;
+    const userId = (req as any).auth?.userId;
 
     try {
       const whereClause: any = {

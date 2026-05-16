@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {

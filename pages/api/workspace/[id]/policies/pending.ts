@@ -1,9 +1,10 @@
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 export default withPermissionCheck(async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET")
@@ -12,7 +13,7 @@ export default withPermissionCheck(async function handler(
       .json({ success: false, error: "Method not allowed" });
 
   const { id } = req.query;
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
 
   if (!userId)
     return res.status(401).json({ success: false, error: "Unauthorized" });
