@@ -1,4 +1,5 @@
 import * as crypto from 'crypto'
+import prisma from '@/utils/database'
 
 function generateToken() {
   return crypto.randomBytes(32).toString('hex')

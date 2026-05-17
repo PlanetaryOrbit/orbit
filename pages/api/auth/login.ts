@@ -6,7 +6,7 @@ import * as noblox from "noblox.js";
 import prisma from "@/utils/database";
 import rateLimit from "express-rate-limit";
 import { NextApiHandler } from "next";
-import { createSession } from "@/utils/session"; // <-- your session lib
+import { createSession } from "@/utils/session";
 
 const groupCache = new Map<number, { logo: string; name: string; timestamp: number }>();
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -129,7 +129,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
 
     const user = await prisma.user.findUnique({
       where: { userid: id },
-      select: { info: true, roles: true, isOwner: true, authSessions: true },
+      select: { info: true, roles: true, isOwner: true },
     }).catch((error) => {
       console.error("Database error:", error);
       if (error.name === "PrismaClientInitializationError") {
@@ -166,8 +166,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       ipAddress,
       req.headers["user-agent"]
     )
-
-    console.log(session)
 
     res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`)
 
