@@ -210,7 +210,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         Location: `/workspace/${params?.id}/alliances`,
       });
       res.end();
-      return;
+      return { props: {} };
     }
 
     const strikeCfg = await getConfig("alliance_strikes", wsId);
