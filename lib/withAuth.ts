@@ -34,7 +34,6 @@ export type AuthHandler<T = any> = (
   req: AuthenticatedRequest,
   res: NextApiResponse<T>
 ) => unknown | Promise<unknown>
-
 export interface AuthenticatedRequest
   extends NextApiRequest {
   auth: {

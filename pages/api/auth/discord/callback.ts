@@ -1,9 +1,10 @@
-import type { NextApiResponse } from "next"
+import type { NextApiRequest, NextApiResponse } from "next"
 import axios from "axios"
-import Package from "@/package.json"
 import prisma from "@/utils/database"
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth"
-import { createSession } from "@/utils/session"
+import Package from "@/package.json"
+import * as cookie from 'cookie'
+import { createSession, getSessionByToken } from "@/utils/session"
+import { AuthenticatedRequest } from "@/lib/withAuth"
 
 type DiscordTokenResponse = {
   access_token: string
@@ -23,58 +24,59 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== "GET") {
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed",
-    })
+    return res.status(405).json({ error: "Method not allowed" })
   }
 
-  const { code, error } = req.query
+  const { code, state, error } = req.query
 
   if (error) {
-    console.error("OAuth error:", error)
     return res.redirect("/login?error=oauth_error")
   }
 
-  if (!code) {
-    return res.redirect("/login?error=missing_code")
+  if (!code || !state || typeof state !== "string") {
+    return res.redirect("/login?error=missing_params")
   }
 
-  const originUrl = req.headers.host
-  const isLocalhost = originUrl?.includes("localhost")
+  const oauthState = await prisma.oAuthState.findUnique({
+    where: { state },
+  })
 
-  const baseUrl = `${isLocalhost ? "http://" : "https://"}${originUrl}`
+  if (!oauthState) {
+    return res.redirect("/login?error=invalid_state")
+  }
+
+  if (oauthState.expiresAt < new Date()) {
+    await prisma.oAuthState.delete({ where: { state } })
+    return res.redirect("/login?error=expired_state")
+  }
+
+  await prisma.oAuthState.delete({ where: { state } })
 
   let clientId = process.env.DISCORD_APPLICATION_ID
   let clientSecret = process.env.DISCORD_SECRET
+  let redirectUri = process.env.DISCORD_REDIRECT_URI
 
-  if (!clientId || !clientSecret) {
-    try {
-      const configs = await prisma.instanceConfig.findMany({
-        where: {
-          key: {
-            in: ["discordAppID", "discordAppSecret"],
-          },
+  if (!clientId || !clientSecret || !redirectUri) {
+    const configs = await prisma.instanceConfig.findMany({
+      where: {
+        key: {
+          in: ["discordAppID", "discordAppSecret", "discordRedirectUri"],
         },
-      })
+      },
+    })
 
-      const configMap = configs.reduce((acc, config) => {
-        acc[config.key] =
-          typeof config.value === "string"
-            ? config.value.trim()
-            : config.value
+    const map = configs.reduce((acc, c) => {
+      acc[c.key] =
+        typeof c.value === "string" ? c.value.trim() : c.value
+      return acc
+    }, {} as Record<string, any>)
 
-        return acc
-      }, {} as Record<string, any>)
-
-      clientId ||= configMap.discordAppID
-      clientSecret ||= configMap.discordAppSecret
-    } catch (err) {
-      console.error("Failed fetching OAuth config:", err)
-    }
+    clientId ||= map.discordAppID
+    clientSecret ||= map.discordAppSecret
+    redirectUri ||= map.discordRedirectUri
   }
 
-  if (!clientId || !clientSecret) {
+  if (!clientId || !clientSecret || !redirectUri) {
     return res.redirect("/login?error=config_error")
   }
 
@@ -84,7 +86,7 @@ export default async function handler(
       new URLSearchParams({
         grant_type: "authorization_code",
         code: code as string,
-        redirect_uri: `${baseUrl}/api/auth/discord/callback`,
+        redirect_uri: redirectUri,
         client_id: clientId,
         client_secret: clientSecret,
       }),
@@ -96,58 +98,64 @@ export default async function handler(
       }
     )
 
-    const { access_token } = tokenResponse.data
+    const accessToken = tokenResponse.data.access_token
 
     const userResponse = await axios.get<DiscordUserResponse>(
       "https://discord.com/api/v10/users/@me",
       {
         headers: {
-          Authorization: `Bearer ${access_token}`,
+          Authorization: `Bearer ${accessToken}`,
           "User-Agent": `orbit/${Package.version}`,
         },
       }
     )
 
     const discordUser = userResponse.data
-    const discordUserIdBig = BigInt(discordUser.id)
+    const discordUserId = BigInt(discordUser.id)
 
     const existingDiscord = await prisma.discordUser.findUnique({
-      where: {
-        discordUserId: discordUserIdBig,
-      },
-    })
+      where: { discordUserId },
+    });
 
-    if (req.auth?.userId) {
-      await prisma.discordUser.upsert({
-        where: {
-          discordUserId: discordUserIdBig,
-        },
-        update: {
-          username: discordUser.username,
-          avatar: discordUser.avatar,
-          robloxUserId: req.auth.userId,
-        },
-        create: {
-          discordUserId: discordUserIdBig,
-          username: discordUser.username,
-          avatar: discordUser.avatar,
-          robloxUserId: req.auth.userId,
-        },
-      })
 
-      return res.redirect("/?action=linked")
+    const cookies = cookie.parse(req.headers.cookie || "")
+    const sessionToken = cookies.session_token
+
+    if (sessionToken) {
+      const info = await getSessionByToken(sessionToken)
+
+      if (info) {
+        await prisma.discordUser.upsert({
+          where: { discordUserId },
+          update: {
+            username: discordUser.username,
+            avatar: discordUser.avatar,
+            robloxUserId: info.userId,
+          },
+          create: {
+            discordUserId,
+            username: discordUser.username,
+            avatar: discordUser.avatar,
+            robloxUserId: info.userId,
+          },
+        })
+
+        return res.redirect("/?action=linked")
+      }
     }
 
     if (!existingDiscord?.robloxUserId) {
-      return res.redirect("/login?error=discord-not-linked")
+      return res.redirect("/login?error=not_linked")
     }
 
-    const ipAddress = (
-      req.headers["cf-connecting-ip"] ||
-      req.headers["x-real-ip"] ||
-      (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
-      req.socket.remoteAddress
-    ) as string
+    const ipAddress =
+      (req.headers["cf-connecting-ip"] as string) ||
+      (req.headers["x-real-ip"] as string) ||
+      (req.headers["x-forwarded-for"] as string)
+        ?.split(",")[0]
+        ?.trim() ||
+      req.socket.remoteAddress ||
+      "unknown"
 
     const session = await createSession(
       existingDiscord.robloxUserId,
@@ -157,17 +165,18 @@ export default async function handler(
 
     res.setHeader(
       "Set-Cookie",
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7
+      }; ${process.env.NODE_ENV === "production" ? "Secure;" : ""}`
     )
 
     return res.redirect("/")
   } catch (err) {
-    console.error("OAuth callback error:", err)
+    console.error("Discord OAuth error:", err)
 
     if (axios.isAxiosError(err)) {
-      console.error("Response:", err.response?.data)
+      console.error(err.response?.data)
     }
 
-    return res.redirect("/?error=link-fail")
+    return res.redirect("/login?error=oauth_failed")
   }
 }

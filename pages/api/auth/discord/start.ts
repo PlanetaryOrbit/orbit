@@ -33,8 +33,13 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 	}
 
 	const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-	req.session.oauthState = state;
-	await req.session.save();
+	await prisma.oAuthState.create({
+    data: {
+      state,
+      provider: 'discord',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+    },
+  });
 
 	const authUrl = new URL('https://discord.com/oauth2/authorize');
 	authUrl.searchParams.set('client_id', clientId);
