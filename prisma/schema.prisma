@@ -114,6 +114,18 @@ model AuthSession {
   updatedAt DateTime @updatedAt
   user      user     @relation(fields: [userId], references: [userid])
 }
+
+model OAuthState {
+  id         String   @id @default(cuid())
+  state      String   @unique
+  userId     BigInt?  
+  provider   String   @default("roblox")
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  @@index([state])
+  @@index([expiresAt])
+}
+
 model pendingVerification {
   token            String   @id @unique @default(uuid()) @db.Uuid
   userid           Int

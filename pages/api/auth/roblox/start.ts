@@ -8,7 +8,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 		return res.status(405).json({ error: 'Method not allowed' });
 	}
 
-	if (req.auth.userId) {
+	if (req.auth) {
 		return res.redirect('/');
 	}
 
@@ -40,8 +40,13 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 	}
 
 	const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-	req.session.oauthState = state;
-	await req.session.save();
+	await prisma.oAuthState.create({
+    data: {
+      state,
+      provider: 'roblox',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+    },
+  });
 
 	const authUrl = new URL('https://apis.roblox.com/oauth/v1/authorize');
 	authUrl.searchParams.set('client_id', clientId);

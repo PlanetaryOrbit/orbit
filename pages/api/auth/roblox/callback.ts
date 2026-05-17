@@ -9,7 +9,6 @@ interface RobloxTokenResponse {
   token_type: string
   expires_in: number
   scope: string
-  id_token?: string
 }
 
 interface RobloxUserInfo {
@@ -26,187 +25,155 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
-    return res.status(405).json({
-      error: 'Method not allowed',
-    })
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   const { code, state, error } = req.query
 
   if (error) {
-    console.error('OAuth error:', error)
     return res.redirect('/login?error=oauth_error')
   }
 
-  if (!code || !state) {
+  if (!code || !state || typeof state !== 'string') {
     return res.redirect('/login?error=missing_params')
   }
 
-  if (state !== req.session.oauthState) {
-    console.error('OAuth state mismatch')
-    return res.redirect('/login?error=state_mismatch')
+  const oauthState = await prisma.oAuthState.findUnique({
+    where: { state },
+  })
+
+  if (!oauthState) {
+    return res.redirect('/login?error=invalid_state')
   }
 
-  // clear state immediately after validation
-  delete req.session.oauthState
-  await req.session.save()
+  if (oauthState.expiresAt < new Date()) {
+    await prisma.oAuthState.delete({
+      where: { state },
+    })
+
+    return res.redirect('/login?error=expired_state')
+  }
+
+  await prisma.oAuthState.delete({
+    where: { state },
+  })
 
   let clientId = process.env.ROBLOX_CLIENT_ID
   let clientSecret = process.env.ROBLOX_CLIENT_SECRET
   let redirectUri = process.env.ROBLOX_REDIRECT_URI
 
   if (!clientId || !clientSecret || !redirectUri) {
-    try {
-      const configs = await prisma.instanceConfig.findMany({
-        where: {
-          key: {
-            in: [
-              'robloxClientId',
-              'robloxClientSecret',
-              'robloxRedirectUri',
-            ],
-          },
+    const configs = await prisma.instanceConfig.findMany({
+      where: {
+        key: {
+          in: [
+            'robloxClientId',
+            'robloxClientSecret',
+            'robloxRedirectUri',
+          ],
         },
-      })
+      },
+    })
 
-      const configMap = configs.reduce((acc, config) => {
-        acc[config.key] =
-          typeof config.value === 'string'
-            ? config.value.trim()
-            : config.value
+    const map = configs.reduce((acc, c) => {
+      acc[c.key] =
+        typeof c.value === 'string'
+          ? c.value.trim()
+          : c.value
+      return acc
+    }, {} as Record<string, any>)
 
-        return acc
-      }, {} as Record<string, any>)
-
-      clientId = clientId || configMap.robloxClientId
-      clientSecret =
-        clientSecret || configMap.robloxClientSecret
-      redirectUri =
-        redirectUri || configMap.robloxRedirectUri
-    } catch (error) {
-      console.error(
-        'Failed to fetch OAuth config from database:',
-        error
-      )
-    }
+    clientId ||= map.robloxClientId
+    clientSecret ||= map.robloxClientSecret
+    redirectUri ||= map.robloxRedirectUri
   }
 
   if (!clientId || !clientSecret || !redirectUri) {
-    console.error('Missing Roblox OAuth configuration')
-
     return res.redirect('/login?error=config_error')
   }
 
   try {
-    const tokenResponse =
-      await axios.post<RobloxTokenResponse>(
-        'https://apis.roblox.com/oauth/v1/token',
-        new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          grant_type: 'authorization_code',
-          code: code as string,
-          redirect_uri: redirectUri,
-        }),
-        {
-          headers: {
-            'Content-Type':
-              'application/x-www-form-urlencoded',
-          },
-        }
-      )
+    const tokenResponse = await axios.post<RobloxTokenResponse>(
+      'https://apis.roblox.com/oauth/v1/token',
+      new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: 'authorization_code',
+        code: code as string,
+        redirect_uri: redirectUri,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    )
 
-    const { access_token } = tokenResponse.data
+    const accessToken = tokenResponse.data.access_token
 
-    const userResponse =
-      await axios.get<RobloxUserInfo>(
-        'https://apis.roblox.com/oauth/v1/userinfo',
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        }
-      )
+    const userResponse = await axios.get<RobloxUserInfo>(
+      'https://apis.roblox.com/oauth/v1/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    )
 
     const userInfo = userResponse.data
+    const userId = BigInt(userInfo.sub)
 
-    const userId = parseInt(userInfo.sub, 10)
-
-    if (!userId || isNaN(userId)) {
-      console.error(
-        'Invalid user ID from Roblox:',
-        userInfo.sub
-      )
-
+    if (!userId) {
       return res.redirect('/login?error=invalid_user')
     }
 
     const thumbnail =
-      (await getRobloxThumbnail(userId)) || undefined
+      (await getRobloxThumbnail(Number(userId))) || undefined
 
     const username =
       userInfo.preferred_username || userInfo.name
 
     await prisma.user.upsert({
-      where: {
-        userid: BigInt(userId),
-      },
+      where: { userid: userId },
       update: {
         username,
         picture: thumbnail,
         registered: true,
       },
       create: {
-        userid: BigInt(userId),
+        userid: userId,
         username,
         picture: thumbnail,
         registered: true,
       },
     })
 
-    // create real auth session
     const ipAddress =
       (req.headers['cf-connecting-ip'] as string) ||
       (req.headers['x-real-ip'] as string) ||
-      (req.headers['x-forwarded-for'] as string)
-        ?.split(',')[0] ||
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
       req.socket.remoteAddress ||
       'unknown'
 
     const session = await createSession(
-      BigInt(userId),
+      userId,
       ipAddress,
       req.headers['user-agent']
     )
 
-    // set auth cookie
     res.setHeader(
       'Set-Cookie',
-      [
-        `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${
-          60 * 60 * 24 * 30
-        }; ${
-          process.env.NODE_ENV === 'production'
-            ? 'Secure;'
-            : ''
-        }`,
-      ]
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${
+        60 * 60 * 24 * 30
+      }; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`
     )
 
     return res.redirect('/')
-  } catch (error) {
-    console.error('OAuth callback error:', error)
+  } catch (err) {
+    console.error('OAuth callback error:', err)
 
-    if (axios.isAxiosError(error)) {
-      console.error(
-        'Response data:',
-        error.response?.data
-      )
-
-      console.error(
-        'Response status:',
-        error.response?.status
-      )
+    if (axios.isAxiosError(err)) {
+      console.error(err.response?.data)
     }
 
     return res.redirect('/login?error=oauth_failed')
