@@ -78,7 +78,7 @@ type Form = {
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ req, params }) => {
-    const userId = req.session?.userid;
+    const userId = (req as any).auth?.userId;
     if (!userId) {
       return {
         props: {
