@@ -667,6 +667,8 @@ export const getServerSideProps = withPermissionCheckSsr(
         canAdjustActivity: hasActivityAdjustmentsPermission,
         logbookEnabled: finalLogbookEnabled,
         logbookPermissions: finalLogbookPermissions,
+        canEditBasicInfo: isSelfProfile,
+        canEditMembers: hasManageMembersPermission,
       },
     };
   }
@@ -741,6 +743,7 @@ type pageProps = {
   canManageNotices: boolean;
   canApproveNotices: boolean;
   canRecordNotices: boolean;
+  canEditBasicInfo: boolean;
   canAdjustActivity: boolean;
   logbookEnabled: boolean;
   logbookPermissions: {
@@ -780,6 +783,7 @@ const Profile: pageWithLayout<pageProps> = ({
   allMembers,
   noticesEnabled,
   canManageMembers,
+  canEditBasicInfo,
   canManageNotices,
   canApproveNotices,
   canRecordNotices,
@@ -1170,6 +1174,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   allMembers={allMembers}
                   isUser={isUser}
                   isAdmin={isAdmin}
+                  canEditBasicInfo={canEditBasicInfo}
                   canEditMembers={canManageMembers}
                 />
               </Tab.Panel>
