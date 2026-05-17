@@ -116,7 +116,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       })),
     );
 
-    const currentUserId = req.session?.userid;
+    const currentUserId = (req as any).auth?.userId
     const isAllyRep = currentUserId
       ? infoReps.some((rep: any) => rep.userid === Number(currentUserId))
       : false;
