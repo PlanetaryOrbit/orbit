@@ -660,7 +660,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         allMembers,
         noticesEnabled,
         // Self users can edit their own info (birthday, discord, timezone)
-        canManageMembers: isSelfProfile ? true : hasManageMembersPermission,
+        canManageMembers: hasManageMembersPermission,
         canManageNotices: hasManageNoticesPermission,
         canApproveNotices: hasApproveNoticesPermission,
         canRecordNotices: hasRecordNoticesPermission,
