@@ -5,6 +5,7 @@ import { withPermissionCheck } from '@/utils/permissionsManager'
 // import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import { getConfig } from '@/utils/configEngine'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -15,7 +16,7 @@ type Data = {
 export default withPermissionCheck(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });

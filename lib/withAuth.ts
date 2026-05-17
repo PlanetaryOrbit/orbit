@@ -1,5 +1,3 @@
-// lib/withAuth.ts
-
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 import { getSessionByToken } from "@/utils/session"
 import zxcvbn from "zxcvbn";

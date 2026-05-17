@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import { withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import {
   getUsername,
   getThumbnail,
@@ -31,7 +31,7 @@ type TopStaff = {
 
 export default withPermissionCheck(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")
     return res
       .status(405)

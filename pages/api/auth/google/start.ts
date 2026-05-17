@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 import { google } from 'googleapis';
+import { withAuth } from '@/lib/withAuth';
 
 export default withAuth(handler);
 

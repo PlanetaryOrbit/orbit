@@ -38,14 +38,16 @@ import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
     const { id, gid } = context.query;
     if (!gid) return { notFound: true };
+    const authReq = context.req as AuthenticatedRequest;
 
     const user = await prisma.user.findFirst({
-      where: { userid: BigInt(context.req.auth.userId) },
+      where: { userid: BigInt(authReq.auth.userId) },
       include: {
         roles: { where: { workspaceGroupId: Number(id) } },
         workspaceMemberships: { where: { workspaceGroupId: Number(id) } },

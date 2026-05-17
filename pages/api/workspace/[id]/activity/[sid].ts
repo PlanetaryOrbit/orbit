@@ -6,6 +6,7 @@ import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import { getUniverseInfo } from 'noblox.js';
 import axios from 'axios';
+import { withAuth } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean;

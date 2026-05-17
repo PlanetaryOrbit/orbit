@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 // import { withAuth } from '@/lib/withSession';
 import { getConfig } from '@/utils/configEngine';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -13,7 +14,7 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });

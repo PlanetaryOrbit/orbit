@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 // import { withAuth } from '@/lib/withSession'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -12,7 +13,7 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })

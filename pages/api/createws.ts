@@ -4,6 +4,7 @@ import prisma from '@/utils/database';
 
 // import { withAuth } from '@/lib/withSession'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type User = {
 	userId: number
@@ -28,7 +29,7 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
@@ -60,7 +61,7 @@ export async function handler(
 	// Enforce one workspace per owner
 	//const alreadyOwns = await prisma.workspace.findFirst({ where: { ownerId: BigInt(req.auth.userId) } })
 	//if (alreadyOwns) return res.status(403).json({ success: false, error: 'You already own a workspace' })
-	const urrole = await noblox.getRankInGroup(groupId, req.auth.userId).catch(() => null)
+	const urrole = await noblox.getRankInGroup(groupId, Number(req.auth.userId)).catch(() => null)
 	if (!urrole) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 	if (urrole < 15) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 

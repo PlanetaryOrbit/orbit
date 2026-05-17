@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 // import { withAuth } from '@/lib/withSession';
 
-export default withAuth(async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).end();
   if (!req.auth.userId) return res.status(401).end();
 

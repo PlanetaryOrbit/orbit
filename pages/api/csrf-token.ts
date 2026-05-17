@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { generateCsrfToken } from "@/utils/csrf";
 
 type Data = {
@@ -8,7 +8,7 @@ type Data = {
   error?: string;
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
   try {
-    const token = generateCsrfToken(req.auth.userId);
+    const token = generateCsrfToken(Number(req.auth.userId));
     return res.status(200).json({ success: true, token });
   } catch (error: any) {
     console.error("Error generating CSRF token:", error);

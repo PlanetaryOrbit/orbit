@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' });
 	}

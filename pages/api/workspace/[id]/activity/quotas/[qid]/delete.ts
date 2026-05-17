@@ -7,6 +7,7 @@ import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 import { logAudit } from '@/utils/logs';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -16,7 +17,7 @@ type Data = {
 export default withPermissionCheck(handler, 'delete_quotas');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });

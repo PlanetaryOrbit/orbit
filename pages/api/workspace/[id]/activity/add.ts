@@ -4,6 +4,7 @@ import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { generateSessionTimeMessage } from "@/utils/sessionMessage";
 import moment from "moment";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 type Data = {
   success: boolean;
   error?: string;
@@ -11,7 +12,7 @@ type Data = {
 
 export default withPermissionCheck(handler, "activity_adjustments");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)

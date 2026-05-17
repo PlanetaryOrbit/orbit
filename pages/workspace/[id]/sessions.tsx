@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
 import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -89,10 +90,12 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const authReq = req as AuthenticatedRequest;
+
     let filteredSessions = allSessions;
     let isAdmin = false;
     if (req.session?.userid) {
-      const userId = BigInt(req.auth.userId);
+      const userId = BigInt(authReq.auth.userId);
       const user = await prisma.user.findFirst({
         where: { userid: userId },
         include: {
@@ -127,7 +130,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     let userSessionMetrics = null;
     if (req.session?.userid) {
-      const userId = BigInt(req.auth.userId);
+      const userId = BigInt(authReq.auth.userId);
       const lastReset = await prisma.activityReset.findFirst({
         where: {
           workspaceGroupId: parseInt(query.id as string),

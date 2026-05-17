@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 // import { withAuth } from '@/lib/withSession'
 
 type Data = {
@@ -10,7 +11,7 @@ type Data = {
 }
 
 const withAllyPermissionCheck = (handler: any) => {
-	return withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
+	return withAuth(async (req: AuthenticatedRequest, res: NextApiResponse) => {
 		const uid = req.auth.userId;
 		if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
 		if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -69,7 +70,7 @@ const withAllyPermissionCheck = (handler: any) => {
 export default withAllyPermissionCheck(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })

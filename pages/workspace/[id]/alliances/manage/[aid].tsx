@@ -62,7 +62,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         return {
           ...user,
           userid: Number(user.userid),
-          thumbnail: getThumbnail(user.userid, wsId),
+          thumbnail: getThumbnail(user.userid),
         };
       })
     );
@@ -90,7 +90,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           ...rep,
           userid: Number(rep.userid),
           username: await getUsername(rep.userid),
-          thumbnail: getThumbnail(rep.userid, wsId),
+          thumbnail: getThumbnail(rep.userid),
         };
       })
     );
@@ -128,7 +128,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           ...visit,
           hostId: Number(visit.hostId),
           hostUsername: await getUsername(visit.hostId),
-          hostThumbnail: getThumbnail(visit.hostId, wsId),
+          hostThumbnail: getThumbnail(visit.hostId),
           time: new Date(visit.time).toISOString(),
           participants: visit.participants
             ? visit.participants.map((p: bigint) => Number(p))

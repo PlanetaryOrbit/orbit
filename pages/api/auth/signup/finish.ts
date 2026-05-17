@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
@@ -21,7 +21,7 @@ async function safeHashPassword(password: string): Promise<string> {
   }
 }
 
-export default withAuth(async function handlerWithTimeout(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default withAuth(async function handlerWithTimeout(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const TIMEOUT_MS = 20000;
   const mainHandler = handler(req, res);
   const timeoutPromise = new Promise<void>((_, reject) =>
@@ -43,7 +43,7 @@ export default withAuth(async function handlerWithTimeout(req: NextApiRequest, r
   }
 });
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const startTime = Date.now();
   try {
     if (req.method !== "POST") {

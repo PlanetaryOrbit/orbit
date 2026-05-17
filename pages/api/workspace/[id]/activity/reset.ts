@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
-import { withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 
 import {
@@ -18,7 +18,7 @@ type Data = {
 
 export default withPermissionCheck(handler, "reset_activity");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)

@@ -3,6 +3,7 @@ import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 // import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -12,7 +13,7 @@ type Data = {
 export default withPermissionCheck(handler, 'delete_policies');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });

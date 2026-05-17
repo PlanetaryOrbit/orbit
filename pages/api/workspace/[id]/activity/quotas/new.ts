@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { logAudit } from '@/utils/logs';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -13,7 +14,7 @@ type Data = {
 export default withPermissionCheck(handler, 'create_quotas');
 
 async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') {

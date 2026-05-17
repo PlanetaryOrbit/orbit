@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	if (!req.auth.userId) {
 		return res.status(401).json({ error: 'Not authenticated' });
 	}

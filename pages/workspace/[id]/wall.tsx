@@ -26,6 +26,7 @@ import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 const SANITIZE_OPTIONS = {
   allowedTags: [],
@@ -53,8 +54,10 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const authReq = req as AuthenticatedRequest;
+
     const user = await prisma.user.findUnique({
-      where: { userid: req.auth.userId },
+      where: { userid: authReq.auth.userId },
       include: {
         roles: {
           where: { workspaceGroupId: parseInt(query.id as string) },
