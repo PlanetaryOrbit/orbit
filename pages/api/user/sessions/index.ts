@@ -55,7 +55,8 @@ export default withAuth(
 
     if (req.method === "DELETE") {
       await deleteAllUserSessions(
-        req.auth.userId
+        req.auth.userId,
+        req.auth.token
       )
 
       res.setHeader(

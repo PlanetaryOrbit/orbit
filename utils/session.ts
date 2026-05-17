@@ -209,10 +209,13 @@ async function deleteSession(token: string) {
     .catch(() => null)
 }
 
-async function deleteAllUserSessions(userId: bigint) {
+async function deleteAllUserSessions(userId: bigint, token: string) {
   return prisma.authSession.deleteMany({
     where: {
       userId,
+      token: {
+        not: token
+      }
     },
   })
 }
