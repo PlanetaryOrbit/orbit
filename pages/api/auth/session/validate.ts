@@ -1,19 +1,67 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type {
+  NextApiRequest,
+  NextApiResponse,
+} from 'next'
+
+import crypto from 'crypto'
+
 import prisma from '@/utils/database'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const token = req.headers.authorization?.replace('Bearer ', '')
+function hashToken(token: string): string {
+  return crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex')
+}
 
-  if (!token) return res.status(401).json({ error: 'No token' })
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const token = req.headers.authorization?.replace(
+    'Bearer ',
+    ''
+  )
 
-  const session = await prisma.authSession.findUnique({
-    where: { token },
-    include: { user: true },
-  })
-
-  if (!session || session.expiresAt < new Date()) {
-    return res.status(401).json({ error: 'Invalid or expired session' })
+  if (!token) {
+    return res.status(401).json({
+      error: 'No token',
+    })
   }
 
-  return res.status(200).json({ userId: session.userId.toString() })
+  const hashedToken = hashToken(token)
+
+  const session = await prisma.authSession.findUnique({
+    where: {
+      token: hashedToken,
+    },
+
+    include: {
+      user: true,
+    },
+  })
+
+  if (!session) {
+    return res.status(401).json({
+      error: 'Invalid session',
+    })
+  }
+
+  if (session.expiresAt < new Date()) {
+    await prisma.authSession
+      .delete({
+        where: {
+          token: hashedToken,
+        },
+      })
+      .catch(() => null)
+
+    return res.status(401).json({
+      error: 'Expired session',
+    })
+  }
+
+  return res.status(200).json({
+    userId: session.userId.toString(),
+  })
 }

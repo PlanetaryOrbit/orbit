@@ -1,38 +1,68 @@
-import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
-import { getSessionByToken } from "@/utils/session"
-import zxcvbn from "zxcvbn";
-import * as cookie from "cookie"
-import * as crypto from 'crypto'
+import type {
+  NextApiHandler,
+  NextApiRequest,
+  NextApiResponse,
+  GetServerSidePropsContext,
+  GetServerSidePropsResult,
+} from "next"
 
-if (process.env.NODE_ENV === 'production') {
-  const secret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
-  if (secret === 'supersecretpassword') {
-    throw new Error('SESSION_SECRET must be changed from the default secret in production');
-  }
-  const strength = zxcvbn(secret);
-  if (strength.score < 4) { 
+import { getSessionByToken } from "@/utils/session"
+
+import zxcvbn from "zxcvbn"
+import * as cookie from "cookie"
+import * as crypto from "crypto"
+
+if (process.env.NODE_ENV === "production") {
+  const secret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex")
+
+  if (secret === "supersecretpassword") {
     throw new Error(
-      `SESSION_SECRET is not strong enough. Score: ${strength.score}/4. Please generate a secret, e.g using "openssl rand -base64 32" or use a password manager to generate a secure password.`
-    );
+      "SESSION_SECRET must be changed from the default secret in production"
+    )
+  }
+
+  const strength = zxcvbn(secret)
+
+  if (strength.score < 4) {
+    throw new Error(
+      `SESSION_SECRET is not strong enough. Score: ${strength.score}/4. Please generate a secret using "openssl rand -base64 32".`
+    )
   }
 }
 
-export type AuthHandler<T = any> = (req: AuthenticatedRequest, res: NextApiResponse<T>) => unknown | Promise<unknown>;
+export type AuthHandler<T = any> = (
+  req: AuthenticatedRequest,
+  res: NextApiResponse<T>
+) => unknown | Promise<unknown>
 
-export interface AuthenticatedRequest extends NextApiRequest {
+export interface AuthenticatedRequest
+  extends NextApiRequest {
   auth: {
     userId: bigint
+
     token: string
-    session: Awaited<ReturnType<typeof getSessionByToken>>
+
+    session: Awaited<
+      ReturnType<typeof getSessionByToken>
+    >
   }
 }
 
 export function withAuth(
-  handler: (req: AuthenticatedRequest, res: NextApiResponse) => any
+  handler: (
+    req: AuthenticatedRequest,
+    res: NextApiResponse
+  ) => any
 ): NextApiHandler {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
+  return async (
+    req: NextApiRequest,
+    res: NextApiResponse
+  ) => {
     try {
-      const cookies = cookie.parse(req.headers.cookie || "")
+      const cookies = cookie.parse(
+        req.headers.cookie || ""
+      )
+
       const token = cookies.session_token
 
       if (!token) {
@@ -42,16 +72,30 @@ export function withAuth(
         })
       }
 
-      const session = await getSessionByToken(token)
+      const session =
+        await getSessionByToken(token)
 
       if (!session) {
+        res.setHeader(
+          "Set-Cookie",
+          [
+            "session_token=",
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Strict",
+            "Secure",
+            "Max-Age=0",
+          ].join("; ")
+        )
+
         return res.status(401).json({
           success: false,
           error: "Invalid or expired session",
         })
       }
 
-      const authReq = req as AuthenticatedRequest
+      const authReq =
+        req as AuthenticatedRequest
 
       authReq.auth = {
         userId: session.userId,
@@ -61,12 +105,108 @@ export function withAuth(
 
       return handler(authReq, res)
     } catch (error) {
-      console.error("Authentication error:", error)
+      console.error(
+        "Authentication error:",
+        error
+      )
 
       return res.status(500).json({
         success: false,
         error: "Authentication failed",
       })
+    }
+  }
+}
+
+export function withAuthSsr<
+  P extends {
+    [key: string]: unknown
+  } = {
+    [key: string]: unknown
+  }
+>(
+  handler: (
+    context: GetServerSidePropsContext & {
+      req: GetServerSidePropsContext["req"] & {
+        auth: {
+          userId: bigint
+
+          token: string
+
+          session: Awaited<
+            ReturnType<
+              typeof getSessionByToken
+            >
+          >
+        }
+      }
+    }
+  ) =>
+    | GetServerSidePropsResult<P>
+    | Promise<GetServerSidePropsResult<P>>
+) {
+  return async (
+    context: GetServerSidePropsContext
+  ) => {
+    try {
+      const cookies = cookie.parse(
+        context.req.headers.cookie || ""
+      )
+
+      const token = cookies.session_token
+
+      if (!token) {
+        return {
+          redirect: {
+            destination: "/login",
+            permanent: false,
+          },
+        }
+      }
+
+      const session =
+        await getSessionByToken(token)
+
+      if (!session) {
+        context.res.setHeader(
+          "Set-Cookie",
+          [
+            "session_token=",
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Strict",
+            "Secure",
+            "Max-Age=0",
+          ].join("; ")
+        )
+
+        return {
+          redirect: {
+            destination: "/login",
+            permanent: false,
+          },
+        }
+      }
+
+      ;(context.req as any).auth = {
+        userId: session.userId,
+        token,
+        session,
+      }
+
+      return handler(context as any)
+    } catch (error) {
+      console.error(
+        "SSR Authentication error:",
+        error
+      )
+
+      return {
+        redirect: {
+          destination: "/login",
+          permanent: false,
+        },
+      }
     }
   }
 }

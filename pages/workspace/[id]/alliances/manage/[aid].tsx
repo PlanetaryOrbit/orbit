@@ -10,7 +10,6 @@ import { useRecoilState } from "recoil";
 import toast from "react-hot-toast";
 import Button from "@/components/button";
 import { InferGetServerSidePropsType } from "next";
-import { withSessionSsr } from "@/lib/withSession";
 import moment from "moment";
 import { Dialog, Transition } from "@headlessui/react";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";

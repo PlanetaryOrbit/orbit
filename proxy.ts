@@ -12,6 +12,23 @@ function internalUrl(path: string): string {
   return `${base.replace(/\/$/, "")}${path}`
 }
 
+let setupChecked = false
+let isSetupComplete = true
+
+async function checkSetup(): Promise<boolean> {
+  if (setupChecked) return isSetupComplete
+  try {
+    const res = await fetch(internalUrl("/api/admin/first-setup/config"))
+    if (res.ok) {
+      const data = await res.json()
+      isSetupComplete = data.workspaceCount > 0 || data.userCount > 0
+      setupChecked = true
+    }
+  } catch {
+  }
+  return isSetupComplete
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -26,14 +43,22 @@ export default async function middleware(request: NextRequest) {
   if (pathname.startsWith("/api")) return NextResponse.next();
 
   const appSetupCookie = request.cookies.get("app_setup")?.value;
-  const isSetup = appSetupCookie === undefined ? true : appSetupCookie === "true";
+  const isSetup = appSetupCookie !== undefined
+    ? appSetupCookie === "true"
+    : await checkSetup()
+
+  const stampCookie = appSetupCookie === undefined
 
   if (!isSetup && pathname !== "/welcome") {
-    return NextResponse.redirect(new URL("/welcome", request.url));
+    const res = NextResponse.redirect(new URL("/welcome", request.url))
+    if (stampCookie) res.cookies.set("app_setup", "false", { path: "/", httpOnly: true, sameSite: "strict" })
+    return res
   }
 
   if (isSetup && pathname === "/welcome") {
-    return NextResponse.redirect(new URL("/", request.url));
+    const res = NextResponse.redirect(new URL("/", request.url))
+    if (stampCookie) res.cookies.set("app_setup", "true", { path: "/", httpOnly: true, sameSite: "strict" })
+    return res
   }
 
   if (isSetup && !isPublic(pathname)) {
@@ -52,6 +77,11 @@ export default async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
+
+  if (stampCookie) {
+    response.cookies.set("app_setup", String(isSetup), { path: "/", httpOnly: true, sameSite: "strict" })
+  }
+
   response.headers.set(
     "Content-Security-Policy",
     [
@@ -74,7 +104,3 @@ export default async function middleware(request: NextRequest) {
 
   return response;
 }
-
-export const config = {
-  matcher: ["/:path*"],
-};

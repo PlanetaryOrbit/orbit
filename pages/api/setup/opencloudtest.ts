@@ -13,7 +13,7 @@ interface OpenCloudKeyRes {
   expired: boolean;
 }
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
@@ -62,5 +62,3 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     });
   }
 }
-
-export default withAuth(handler);

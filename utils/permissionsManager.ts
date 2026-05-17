@@ -5,7 +5,6 @@ import type {
   NextApiHandler,
   GetServerSidePropsContext,
 } from "next";
-import { withSessionSsr } from "@/lib/withSession";
 import * as noblox from "noblox.js";
 import * as cookie from 'cookie';
 import { getConfig } from "./configEngine";

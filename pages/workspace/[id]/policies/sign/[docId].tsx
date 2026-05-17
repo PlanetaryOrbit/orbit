@@ -5,7 +5,6 @@ import { useRecoilState } from "recoil";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import prisma, { document } from "@/utils/database";
-import { withSessionSsr } from "@/lib/withSession";
 import {
 	IconFileText,
 	IconClock,
@@ -16,8 +15,9 @@ import {
 	IconArrowLeft
 } from "@tabler/icons-react";
 import PolicyAcknowledgmentModal from "@/components/PolicyAcknowledgmentModal";
+import { withAuthSsr } from "@/lib/withAuth";
 
-export const getServerSideProps = withSessionSsr(async (context: any): Promise<any> => {
+export const getServerSideProps = withAuthSsr(async (context: any): Promise<any> => {
 	const { id, docId } = context.query;
 	const userid = context.req.auth.userId;
 

@@ -986,7 +986,7 @@ const Home: NextPage = () => {
                               <div key={i} className="w-full shrink-0">
                                 <div className="flex items-center justify-center pt-8 pb-4">
                                   <div className="w-16 h-16 rounded-2xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center">
-                                    <Icon className="w-8 h-8 text-primary dark:text-white" stroke={1.5} />
+                                    <Icon className="w-8 h-8 text-primary" stroke={1.5} />
                                   </div>
                                 </div>
 
