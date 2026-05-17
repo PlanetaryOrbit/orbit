@@ -255,7 +255,7 @@ const Topbar: NextPage = () => {
                                   </p>
                                   {s.isCurrent && (
                                     <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
-                                      Now
+                                      Current
                                     </span>
                                   )}
                                 </div>
