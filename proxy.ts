@@ -7,10 +7,17 @@ function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 }
 
+function internalUrl(path: string, requestUrl: string): string {
+  const url = new URL(path, requestUrl)
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    url.protocol = "http:"
+  }
+  return url.toString()
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignore static/internal files
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
@@ -21,9 +28,10 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/api")) return NextResponse.next();
 
-  const isSetup = request.cookies.get("app_setup") ? request.cookies.get("app_setup")?.value : true; // fallback to true, incase if the orbit has gone through a successful setup case
+  const appSetupCookie = request.cookies.get("app_setup")?.value;
+  const isSetup = appSetupCookie === undefined ? true : appSetupCookie === "true";
 
-  if (!isSetup && isSetup != undefined && pathname !== "/welcome") {
+  if (!isSetup && pathname !== "/welcome") {
     return NextResponse.redirect(new URL("/welcome", request.url));
   }
 
@@ -33,16 +41,13 @@ export default async function middleware(request: NextRequest) {
 
   if (isSetup && !isPublic(pathname)) {
     const token = request.cookies.get("session_token")?.value;
-
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    const res = await fetch(new URL("/api/auth/session/validate", request.url), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(internalUrl("/api/auth/session/validate", request.url), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
 
     if (!res.ok) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -50,7 +55,6 @@ export default async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-
   response.headers.set(
     "Content-Security-Policy",
     [
@@ -66,14 +70,10 @@ export default async function middleware(request: NextRequest) {
       "form-action 'self'",
     ].join("; ")
   );
-
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload"
-  );
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
   return response;
 }
