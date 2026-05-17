@@ -7,12 +7,9 @@ function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 }
 
-function internalUrl(path: string, requestUrl: string): string {
-  const url = new URL(path, requestUrl)
-  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-    url.protocol = "http:"
-  }
-  return url.toString()
+function internalUrl(path: string): string {
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+  return `${base.replace(/\/$/, "")}${path}`
 }
 
 export default async function middleware(request: NextRequest) {
@@ -45,7 +42,7 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    const res = await fetch(internalUrl("/api/auth/session/validate", request.url), {
+    const res = await fetch(internalUrl("/api/auth/session/validate"), {
       headers: { Authorization: `Bearer ${token}` },
     })
 
