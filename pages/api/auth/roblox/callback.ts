@@ -4,8 +4,6 @@ import axios from 'axios'
 import { getRobloxThumbnail } from '@/utils/roblox'
 import { createSession } from '@/utils/session'
 
-export default handler
-
 interface RobloxTokenResponse {
   access_token: string
   token_type: string
@@ -23,7 +21,7 @@ interface RobloxUserInfo {
   picture: string
 }
 
-export async function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

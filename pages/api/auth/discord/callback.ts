@@ -18,9 +18,7 @@ type DiscordUserResponse = {
   avatar: string
 }
 
-export default withAuth(handler)
-
-export async function handler(
+export default async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
 ) {

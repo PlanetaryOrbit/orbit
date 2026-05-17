@@ -5,9 +5,7 @@ import prisma from '@/utils/database';
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { createSession } from '@/utils/session';
 
-export default withAuth(handler);
-
-export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({
       error: "Method not allowed",

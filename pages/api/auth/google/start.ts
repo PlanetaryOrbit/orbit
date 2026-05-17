@@ -4,9 +4,7 @@ import prisma from '@/utils/database';
 import { google } from 'googleapis';
 import { withAuth } from '@/lib/withAuth';
 
-export default withAuth(handler);
-
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
