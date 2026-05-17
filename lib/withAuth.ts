@@ -61,7 +61,7 @@ export function withAuth(
       const cookies = cookie.parse(
         req.headers.cookie || ""
       )
-      
+
       if (!cookies.session_token) {
         return res.status(401).json({
           success: false,
@@ -160,8 +160,7 @@ export function withAuthSsr<
         }
       }
 
-      const session =
-        await getSessionByToken(token)
+      const session = await getSessionByToken(token)
 
       if (!session) {
         context.res.setHeader(

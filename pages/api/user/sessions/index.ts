@@ -19,66 +19,63 @@ function hashToken(token: string) {
     .digest("hex")
 }
 
-export default withAuth(
-  async function handler(
-    req: AuthenticatedRequest,
-    res: NextApiResponse
-  ) {
+export async function handler(
+  req: AuthenticatedRequest,
+  res: NextApiResponse
+) {
 
+  try {
     if (req.method === "GET") {
-      const sessions = await listActiveSessions(
-        req.auth.userId
-      )
+      console.log("Fetching sessions for user:", req.auth.userId);
 
-      const currentTokenHash = hashToken(
-        req.auth.token
-      )
+      const sessions = await listActiveSessions(req.auth.userId);
+
+      console.log(`Found ${sessions.length} sessions`);
+
+      const currentTokenHash = hashToken(req.auth.token);
 
       return res.status(200).json({
         sessions: sessions.map((s) => ({
           id: s.id,
-
           browser: s.browser,
           os: s.os,
           device: s.device,
-
           ipAddress: s.ipAddress,
-
           createdAt: s.createdAt,
           expiresAt: s.expiresAt,
-
-          isCurrent:
-            s.token === currentTokenHash,
+          isCurrent: s.token === currentTokenHash,
         })),
-      })
+      });
     }
 
     if (req.method === "DELETE") {
-      await deleteAllUserSessions(
-        req.auth.userId,
-        req.auth.token
-      )
+      await deleteAllUserSessions(req.auth.userId, req.auth.token);
 
-      res.setHeader(
-        "Set-Cookie",
-        [
-          "session_token=",
-          "Path=/",
-          "HttpOnly",
-          "SameSite=Strict",
-          "Secure",
-          "Max-Age=0",
-        ].join("; ")
-      )
+      res.setHeader("Set-Cookie", [
+        "session_token=",
+        "Path=/",
+        "HttpOnly",
+        "SameSite=Strict",
+        "Secure",
+        "Max-Age=0",
+      ].join("; "));
 
       return res.status(200).json({
         success: true,
-      })
+      });
     }
 
     return res.status(405).json({
       success: false,
       error: "Method not allowed",
-    })
+    });
+  } catch (error) {
+    console.error("API Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Internal server error",
+    });
   }
-)
+}
+
+export default withAuth(handler)
