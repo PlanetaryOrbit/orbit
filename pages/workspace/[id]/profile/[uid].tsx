@@ -37,7 +37,7 @@ import noblox from "noblox.js";
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
-    const currentUserId = req.session?.userid;
+    const currentUserId = (req as any).auth?.userId as bigint;
     if (!currentUserId) return { notFound: true };
 
     const currentUser = await prisma.user.findFirst({
