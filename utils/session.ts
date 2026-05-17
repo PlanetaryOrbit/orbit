@@ -4,6 +4,10 @@ function generateToken() {
   return crypto.randomBytes(32).toString('hex')
 }
 
+function hash(value: string) {
+  return crypto.createHash("sha256").update(value).digest("hex")
+}
+
 async function createSession(userId: bigint, ipAddress?: string, userAgent?: string) {
   const session = await prisma.authSession.create({
     data: {
@@ -11,8 +15,8 @@ async function createSession(userId: bigint, ipAddress?: string, userAgent?: str
       token: generateToken(),
       userId,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 day expiry
-      ipAddress,
-      userAgent
+      ipAddress: ipAddress ? hash(ipAddress) : "",
+      userAgent: userAgent ? hash(userAgent) : ""
     },
     include: {
       user: true
