@@ -214,7 +214,7 @@ async function deleteAllUserSessions(userId: bigint, token: string) {
     where: {
       userId,
       token: {
-        not: token
+        not: hashToken(token)
       }
     },
   })
@@ -237,34 +237,30 @@ async function deleteOtherSessions(
 
 async function listActiveSessions(userId: bigint) {
   const sessions = await prisma.authSession.findMany({
-    where: {
-      userId,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    where: { userId, expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: 'desc' },
     select: {
-      id: true,
-      token: true,
-      browser: true,
-      os: true,
-      device: true,
-      ipAddress: true,
-      userAgent: true,
-      createdAt: true,
-      expiresAt: true,
+      id: true, token: true, browser: true, os: true,
+      device: true, ipAddress: true, userAgent: true,
+      createdAt: true, expiresAt: true, 
     },
   })
 
-  return sessions.map((session) => ({
-    ...session,
+  const results = []
 
-    ipAddress: decrypt(session.ipAddress),
-    userAgent: decrypt(session.userAgent),
-  }))
+  for (const session of sessions) {
+    try {
+      results.push({
+        ...session,
+        ipAddress: decrypt(session.ipAddress),
+        userAgent: decrypt(session.userAgent),
+      })
+    } catch {
+      await prisma.authSession.delete({ where: { id: session.id } }).catch(() => null)
+    }
+  }
+
+  return results
 }
 
 async function purgeExpiredSessions() {

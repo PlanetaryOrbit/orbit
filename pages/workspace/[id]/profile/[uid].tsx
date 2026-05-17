@@ -659,7 +659,6 @@ export const getServerSideProps = withPermissionCheckSsr(
         lineManager,
         allMembers,
         noticesEnabled,
-        // Self users can edit their own info (birthday, discord, timezone)
         canManageMembers: hasManageMembersPermission,
         canManageNotices: hasManageNoticesPermission,
         canApproveNotices: hasApproveNoticesPermission,
@@ -668,7 +667,6 @@ export const getServerSideProps = withPermissionCheckSsr(
         logbookEnabled: finalLogbookEnabled,
         logbookPermissions: finalLogbookPermissions,
         canEditBasicInfo: isSelfProfile,
-        canEditMembers: hasManageMembersPermission,
       },
     };
   }

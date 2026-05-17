@@ -356,7 +356,7 @@ const Home: NextPage = () => {
                   Choose a workspace to continue, or create one to get started.
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
                 {isOwner && (
                   <button
                     type="button"
@@ -367,7 +367,8 @@ const Home: NextPage = () => {
                     )}
                   >
                     <IconPlus className="w-5 h-5" stroke={2} />
-                    New Workspace
+                    <span className="hidden sm:inline">New Workspace</span>
+                    <span className="sm:hidden">New</span>
                   </button>
                 )}
                 <button
@@ -380,7 +381,7 @@ const Home: NextPage = () => {
                   )}
                 >
                   <IconRefresh className="w-4 h-4" stroke={1.5} />
-                  Check Roles
+                  <span className="hidden sm:inline">Check Roles</span>
                 </button>
                 {isOwner && (
                   <button
