@@ -30,7 +30,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
   try {
     if (req.method === "DELETE") {
-      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!req.auth.userId) return res.status(401).json({ success: false, error: "Unauthorized" });
       const user = await prisma.user.findFirst({
         where: { userid: BigInt(req.auth.userId) },
         include: {
