@@ -63,7 +63,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           userid: Number(user.userid),
           thumbnail: getThumbnail(user.userid),
         };
-      })
+      }),
     );
 
     const ally: any = await prisma.ally.findUnique({
@@ -80,7 +80,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         Location: `/workspace/${params?.id}/alliances`,
       });
       res.end();
-      return;
+      return { props: {} };
     }
 
     const infoReps = await Promise.all(
@@ -91,7 +91,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           username: await getUsername(rep.userid),
           thumbnail: getThumbnail(rep.userid),
         };
-      })
+      }),
     );
 
     const infoAlly = {
@@ -111,7 +111,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       .map((u: any) => Number(u.userid))
       .filter((id: number) => !eligibleIds.has(id) && !repIds.has(id));
     const missingReps = infoReps.filter(
-      (r: any) => !eligibleIds.has(Number(r.userid))
+      (r: any) => !eligibleIds.has(Number(r.userid)),
     );
     // @ts-ignore
     const visits = await prisma.allyVisit.findMany({
@@ -133,7 +133,7 @@ export const getServerSideProps = withPermissionCheckSsr(
             ? visit.participants.map((p: bigint) => Number(p))
             : [],
         };
-      })
+      }),
     );
 
     const currentUserId = req.session?.userid;
@@ -235,7 +235,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         allianceMaxStrikes,
       },
     };
-  }
+  },
 );
 
 type Notes = {
@@ -318,7 +318,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const [reps, setReps] = useState(
     ally.reps.map((u: any) => {
       return u.userid;
-    })
+    }),
   );
 
   const handleCheckboxChange = (event: any) => {
@@ -356,19 +356,19 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
         discordServer: discordServer.trim(),
         ourReps: reps,
         theirReps: filteredTheirReps,
-      }
+      },
     );
 
     const repsPromise = axios.patch(
       `/api/workspace/${id}/allies/${ally.id}/reps`,
-      { reps: reps }
+      { reps: reps },
     );
 
     const dualPromise = Promise.all([allianceInfoPromise, repsPromise]).then(
       () => {
         setIsEditingInfo(false);
         router.reload();
-      }
+      },
     );
 
     toast.promise(dualPromise, {
@@ -408,7 +408,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState<number[]>(
-    []
+    [],
   );
   const [editSelectedParticipants, setEditSelectedParticipants] = useState<
     number[]
@@ -423,7 +423,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
   const handleVisitChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    field: "name" | "time"
+    field: "name" | "time",
   ) => {
     setEditContent({ ...editContent, [field]: e.target.value });
     return true;
@@ -435,7 +435,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
   const handleNoteChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    index: number
+    index: number,
   ) => {
     const newValue = e.target.value;
     let updateNote = [...notes];
@@ -473,10 +473,14 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     const noteClone = [...notes];
     noteClone.splice(index, 1);
     setNotes(noteClone);
-    setNewNotes(newNotes.filter(i => i !== index).map(i => i > index ? i - 1 : i));
+    setNewNotes(
+      newNotes.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)),
+    );
 
     const axiosPromise = axios
-      .patch(`/api/workspace/${id}/allies/${ally.id}/notes`, { notes: noteClone })
+      .patch(`/api/workspace/${id}/allies/${ally.id}/notes`, {
+        notes: noteClone,
+      })
       .then((req) => {
         setEditNotes([]);
       });
@@ -528,7 +532,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
     visitId: any,
     visitName: any,
     visitTime: any,
-    visitParticipants?: number[]
+    visitParticipants?: number[],
   ) => {
     const formattedTime = new Date(visitTime).toISOString().slice(0, 16);
 
@@ -557,7 +561,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
           name: formValues.name,
           time: formValues.time,
           participants: editSelectedParticipants,
-        }
+        },
       )
       .then((req) => {});
     toast.promise(axiosPromise, {
@@ -602,7 +606,9 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
   ) => {
     const cap = allianceMaxStrikes;
     const clamped = Math.min(cap, Math.max(0, Math.floor(next)));
-    const payload: { strikes: number; strikeReason?: string } = { strikes: clamped };
+    const payload: { strikes: number; strikeReason?: string } = {
+      strikes: clamped,
+    };
     if (opts?.strikeReason !== undefined && clamped > strikesCount) {
       payload.strikeReason = opts.strikeReason.trim();
     }
@@ -665,7 +671,9 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
 
   const clearTermination = () => {
     const req = axios
-      .patch(`/api/workspace/${id}/allies/${ally.id}/discipline`, { termination: null })
+      .patch(`/api/workspace/${id}/allies/${ally.id}/discipline`, {
+        termination: null,
+      })
       .then(() => router.reload());
     toast.promise(req, {
       loading: "Removing schedule…",
@@ -739,7 +747,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                   <input
                                     type="checkbox"
                                     checked={selectedParticipants.includes(
-                                      Number(user.userid)
+                                      Number(user.userid),
                                     )}
                                     onChange={(e) => {
                                       if (e.target.checked) {
@@ -750,8 +758,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                       } else {
                                         setSelectedParticipants(
                                           selectedParticipants.filter(
-                                            (id) => id !== Number(user.userid)
-                                          )
+                                            (id) => id !== Number(user.userid),
+                                          ),
                                         );
                                       }
                                     }}
@@ -856,7 +864,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                   <input
                                     type="checkbox"
                                     checked={editSelectedParticipants.includes(
-                                      Number(user.userid)
+                                      Number(user.userid),
                                     )}
                                     onChange={(e) => {
                                       if (e.target.checked) {
@@ -867,8 +875,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                       } else {
                                         setEditSelectedParticipants(
                                           editSelectedParticipants.filter(
-                                            (id) => id !== Number(user.userid)
-                                          )
+                                            (id) => id !== Number(user.userid),
+                                          ),
                                         );
                                       }
                                     }}
@@ -913,7 +921,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       </Transition>
 
       <Transition appear show={termModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setTermModalOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setTermModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -940,12 +952,16 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 text-left shadow-xl transition-all dark:border-zinc-700 dark:bg-zinc-800">
                   <Dialog.Title className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-white">
                     <span className="rounded-lg bg-primary/10 p-1.5">
-                      <IconCalendar className="h-5 w-5 text-primary" stroke={2} />
+                      <IconCalendar
+                        className="h-5 w-5 text-primary"
+                        stroke={2}
+                      />
                     </span>
                     Schedule alliance termination
                   </Dialog.Title>
                   <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    Choose when this alliance ends and record why. Your workspace leads can clear this later if plans change.
+                    Choose when this alliance ends and record why. Your
+                    workspace leads can clear this later if plans change.
                   </p>
                   <div className="mt-5 space-y-4">
                     <div>
@@ -996,7 +1012,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
       </Transition>
 
       <Transition appear show={strikeModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setStrikeModalOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setStrikeModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -1023,12 +1043,16 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 text-left shadow-xl transition-all dark:border-zinc-700 dark:bg-zinc-800">
                   <Dialog.Title className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-white">
                     <span className="rounded-lg bg-amber-500/10 p-1.5">
-                      <IconAlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" stroke={2} />
+                      <IconAlertTriangle
+                        className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                        stroke={2}
+                      />
                     </span>
                     Add strike
                   </Dialog.Title>
                   <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    You must give a reason. An automatic note will be appended to this alliance&apos;s notes when you confirm.
+                    You must give a reason. An automatic note will be appended
+                    to this alliance&apos;s notes when you confirm.
                   </p>
                   <div className="mt-5 space-y-4">
                     <div>
@@ -1108,11 +1132,11 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                       >
                         <div
                           className={`w-8 h-8 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
-                            rep.userid
+                            rep.userid,
                           )} border-2 ${
                             (props as any).missingReps?.some(
                               (m: any) =>
-                                Number(m.userid) === Number(rep.userid)
+                                Number(m.userid) === Number(rep.userid),
                             )
                               ? "border-amber-400 opacity-70"
                               : "border-white"
@@ -1154,7 +1178,8 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                     Standing & termination
                   </h2>
                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Track strikes and schedule an end date with a recorded reason.
+                    Track strikes and schedule an end date with a recorded
+                    reason.
                   </p>
                 </div>
               </div>
@@ -1269,7 +1294,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 </div>
               )}
             </div>
-            </div>
+          </div>
 
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
@@ -1361,7 +1386,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                           />
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
-                              user.userid
+                              user.userid,
                             )} overflow-hidden`}
                           >
                             <img
@@ -1393,7 +1418,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                             />
                             <div
                               className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
-                                String(m.userid)
+                                String(m.userid),
                               )} overflow-hidden opacity-70`}
                             >
                               <img
@@ -1426,7 +1451,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         >
                           • {rep.username}
                           {(props as any).missingReps?.some(
-                            (m: any) => Number(m.userid) === Number(rep.userid)
+                            (m: any) => Number(m.userid) === Number(rep.userid),
                           ) && (
                             <span className="ml-2 text-xs text-amber-500">
                               (not in workspace)
@@ -1531,7 +1556,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 </div>
               )}
             </div>
-            </div>
+          </div>
 
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
@@ -1589,9 +1614,12 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                         >
                           {notes[index]}
                         </p>
-                        {((canEditNotes || (canAddNotes && newNotes.includes(index))) || canDeleteNotes) && (
+                        {(canEditNotes ||
+                          (canAddNotes && newNotes.includes(index)) ||
+                          canDeleteNotes) && (
                           <div className="flex items-center gap-2">
-                            {(canEditNotes || (canAddNotes && newNotes.includes(index))) && (
+                            {(canEditNotes ||
+                              (canAddNotes && newNotes.includes(index))) && (
                               <button
                                 onClick={() => noteEdit(index)}
                                 className="p-1 text-zinc-400 hover:text-primary transition-colors"
@@ -1635,7 +1663,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                 </div>
               )}
             </div>
-            </div>
+          </div>
 
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6">
             <div className="p-6">
@@ -1693,7 +1721,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                           <div className="flex items-center gap-2 mt-2">
                             <div
                               className={`w-6 h-6 p-0.5 rounded-full flex items-center justify-center ${getRandomBg(
-                                visit.hostId
+                                visit.hostId,
                               )} border-2 border-white`}
                             >
                               <img
@@ -1731,7 +1759,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                     .map((participantId: number) => {
                                       const participant = users.find(
                                         (u: any) =>
-                                          Number(u.userid) === participantId
+                                          Number(u.userid) === participantId,
                                       );
                                       return participant ? (
                                         <span
@@ -1760,7 +1788,7 @@ const ManageAlly: pageWithLayout<pageProps> = (props) => {
                                     visit.id,
                                     visit.name,
                                     visit.time,
-                                    visit.participants
+                                    visit.participants,
                                   )
                                 }
                                 className="p-1 text-zinc-400 hover:text-primary transition-colors"
