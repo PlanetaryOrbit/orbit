@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/utils/database'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceCount = await prisma.workspace.count()
