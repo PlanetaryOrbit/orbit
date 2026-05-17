@@ -307,23 +307,6 @@ const Login: NextPage = () => {
                 <ThemeToggle />
               </div>
 
-              <div className="flex gap-6 mb-8 border-b border-zinc-200 dark:border-zinc-600 -mx-1">
-                {mode !== "link" ? (
-                  ["login", ...(effectiveOAuthOnly ? [] : ["signup"])].map((m) => {
-                    const isActive = mode === m;
-                    return (
-                      <button key={m} onClick={() => setMode(m as any)}
-                        className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${isActive ? "text-primary border-primary" : "text-zinc-500 dark:text-zinc-400 border-transparent hover:text-zinc-700 dark:hover:text-zinc-300"}`}
-                        type="button" disabled={loading}>
-                        {m === "login" ? "Login" : "Sign Up"}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <span className="pb-3 px-1 text-sm font-medium text-primary border-b-2 border-primary -mb-px">Link</span>
-                )}
-              </div>
-
               {mode === "login" && (
                 <>
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Sign in</h2>
