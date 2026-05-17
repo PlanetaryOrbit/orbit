@@ -17,7 +17,7 @@ type Data = {
   data?: any,
 };
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method != "POST" && req.method != "GET") {
     return res
       .status(405)
