@@ -17,9 +17,7 @@ type Data = {
   data?: any,
 };
 
-export default withAuth(handler);
-
-export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method != "POST" && req.method != "GET") {
     return res
       .status(405)

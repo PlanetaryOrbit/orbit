@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { deriveActivityEndChatFields } from "@/utils/activitySessionChat";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import { NextApiRequest } from "next/types";
 
 type Data = {
   success: boolean;
@@ -10,9 +10,7 @@ type Data = {
   failed?: number;
 };
 
-export default withAuth(handler);
-
-export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {
     return res
       .status(405)

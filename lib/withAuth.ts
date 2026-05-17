@@ -61,10 +61,8 @@ export function withAuth(
       const cookies = cookie.parse(
         req.headers.cookie || ""
       )
-
-      const token = cookies.session_token
-
-      if (!token) {
+      
+      if (!cookies.session_token) {
         return res.status(401).json({
           success: false,
           error: "Not authenticated",
@@ -72,7 +70,7 @@ export function withAuth(
       }
 
       const session =
-        await getSessionByToken(token)
+        await getSessionByToken(cookies.session_token)
 
       if (!session) {
         res.setHeader(
@@ -98,10 +96,9 @@ export function withAuth(
 
       authReq.auth = {
         userId: session.userId,
-        token,
+        token: cookies.session_token,
         session,
-      }
-
+      };
       return handler(authReq, res)
     } catch (error) {
       console.error(
