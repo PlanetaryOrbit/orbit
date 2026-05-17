@@ -21,13 +21,9 @@ import {
   IconHistory,
   IconBook,
   IconClipboard,
-  IconChevronLeft,
-  IconChevronRight,
   IconCalendar,
   IconSun,
   IconMoon,
-  IconCloud,
-  IconStars,
   IconBeach,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
@@ -65,45 +61,18 @@ export const getServerSideProps = withPermissionCheckSsr(
         discordUser: true
       },
     });
+
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
+
+    // Define all permissions
     const hasManagePermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_member_profiles")) ?? false);
-
-    const hasManageMembersPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("edit_member_details")
-      ) ??
-        false);
-
-    const hasManageNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("manage_notices")
-      ) ??
-        false);
-
-    const hasApproveNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("approve_notices")
-      ) ??
-        false);
-
-    const hasRecordNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("record_notices")
-      ) ??
-        false);
-
-    const hasActivityAdjustmentsPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("activity_adjustments")
-      ) ??
-        false);
-
+    const hasManageMembersPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("edit_member_details")) ?? false);
+    const hasManageNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("manage_notices")) ?? false);
+    const hasApproveNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("approve_notices")) ?? false);
+    const hasRecordNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("record_notices")) ?? false);
+    const hasActivityAdjustmentsPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("activity_adjustments")) ?? false);
+    
     const logbookPermissions = {
       view: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_logbook")) ?? false),
       rank: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("rank_users")) ?? false),
@@ -115,10 +84,14 @@ export const getServerSideProps = withPermissionCheckSsr(
       redact: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_redact")) ?? false),
       delete: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_delete")) ?? false),
     };
-
+    
     const hasAnyLogbookPermission = Object.values(logbookPermissions).some(p => p);
 
-    if (!hasManagePermission) {
+    // Check if user is viewing their own profile
+    const isSelfProfile = currentUserId.toString() === query.uid;
+    
+    // Allow viewing own profile even without manage permission
+    if (!hasManagePermission && !isSelfProfile) {
       return { notFound: true };
     }
 
@@ -174,7 +147,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    // Use last reset date, or November 30th 2024, whichever is more recent
     const nov30 = new Date("2024-11-30T00:00:00Z");
     const startDate = lastReset?.resetAt
       ? lastReset.resetAt > nov30
@@ -288,7 +260,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       timeSpent = completedSessions.reduce((sum, session) => {
         const totalTime =
           (session.endTime?.getTime() ?? 0) - session.startTime.getTime();
-        const idleTime = session.idleTime ? Number(session.idleTime) : 0; // Already in minutes from Roblox
+        const idleTime = session.idleTime ? Number(session.idleTime) : 0;
         return sum + Math.max(0, totalTime - idleTime * 60000);
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
@@ -604,6 +576,23 @@ export const getServerSideProps = withPermissionCheckSsr(
       return { notFound: true };
     }
 
+    // For self-profile viewing, grant view permission for logbook but not edit permissions
+    const finalLogbookPermissions = isSelfProfile ? {
+      ...logbookPermissions,
+      view: true,  // Users can view their own logbook
+      // Keep all edit permissions as false for self (can't edit own logbook)
+      rank: false,
+      note: false,
+      warning: false,
+      promotion: false,
+      demotion: false,
+      termination: false,
+      redact: false,
+      delete: false,
+    } : logbookPermissions;
+
+    const finalLogbookEnabled = isSelfProfile ? true : hasAnyLogbookPermission;
+
     return {
       props: {
         notices: JSON.parse(
@@ -630,7 +619,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           displayName: await getDisplayName(Number(query?.uid as string)),
           avatar: getThumbnail(Number(query?.uid as string)),
         },
-        isUser: (req as any)?.session?.userid === Number(query?.uid as string),
+        isUser: isSelfProfile,
         isAdmin,
         sessionsHosted: sessionsHosted,
         sessionsAttended: sessionsAttended,
@@ -670,13 +659,14 @@ export const getServerSideProps = withPermissionCheckSsr(
         lineManager,
         allMembers,
         noticesEnabled,
-        canManageMembers: hasManageMembersPermission,
+        // Self users can edit their own info (birthday, discord, timezone)
+        canManageMembers: isSelfProfile ? true : hasManageMembersPermission,
         canManageNotices: hasManageNoticesPermission,
         canApproveNotices: hasApproveNoticesPermission,
         canRecordNotices: hasRecordNoticesPermission,
         canAdjustActivity: hasActivityAdjustmentsPermission,
-        logbookEnabled: hasAnyLogbookPermission,
-        logbookPermissions,
+        logbookEnabled: finalLogbookEnabled,
+        logbookPermissions: finalLogbookPermissions,
       },
     };
   }
@@ -765,6 +755,7 @@ type pageProps = {
     delete: boolean;
   };
 };
+
 const Profile: pageWithLayout<pageProps> = ({
   notices,
   timeSpent,
@@ -803,6 +794,7 @@ const Profile: pageWithLayout<pageProps> = ({
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [availableHistory, setAvailableHistory] = useState<any[]>([]);
+  
   const currentData = {
     timeSpent,
     timesPlayed,
@@ -823,6 +815,7 @@ const Profile: pageWithLayout<pageProps> = ({
   };
 
   const router = useRouter();
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
