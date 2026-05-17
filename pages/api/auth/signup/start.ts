@@ -10,14 +10,12 @@ type Data = {
 	code?: string
 }
 
-export default withAuth(handler);
-
-export async function handler(
-	req: AuthenticatedRequest,
+export default async function handler(
+	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (req.auth.userId) return res.status(400).json({ success: false, error: 'Already logged in' })
+	if ((req as any).auth.userId) return res.status(400).json({ success: false, error: 'Already logged in' })
 	const { username } = req.body;
 	if (!username) return res.status(400).json({ success: false, error: 'Missing username' })
 	const userid = await noblox.getIdFromUsername(username).catch(() => null) as number | undefined;

@@ -21,7 +21,7 @@ async function safeHashPassword(password: string): Promise<string> {
   }
 }
 
-export default withAuth(async function handlerWithTimeout(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+export default async function handlerWithTimeout(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const TIMEOUT_MS = 20000;
   const mainHandler = handler(req, res);
   const timeoutPromise = new Promise<void>((_, reject) =>
@@ -41,7 +41,7 @@ export default withAuth(async function handlerWithTimeout(req: AuthenticatedRequ
 
     return;
   }
-});
+};
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const startTime = Date.now();
