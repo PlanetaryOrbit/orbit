@@ -54,13 +54,12 @@ export default async function handler(
 
   let clientId = process.env.DISCORD_APPLICATION_ID
   let clientSecret = process.env.DISCORD_SECRET
-  let redirectUri = process.env.DISCORD_REDIRECT_URI
 
-  if (!clientId || !clientSecret || !redirectUri) {
+  if (!clientId || !clientSecret) {
     const configs = await prisma.instanceConfig.findMany({
       where: {
         key: {
-          in: ["discordAppID", "discordAppSecret", "discordRedirectUri"],
+          in: ["discordAppID", "discordAppSecret"],
         },
       },
     })
@@ -73,10 +72,9 @@ export default async function handler(
 
     clientId ||= map.discordAppID
     clientSecret ||= map.discordAppSecret
-    redirectUri ||= map.discordRedirectUri
   }
 
-  if (!clientId || !clientSecret || !redirectUri) {
+  if (!clientId || !clientSecret) {
     return res.redirect("/login?error=config_error")
   }
 
@@ -86,7 +84,7 @@ export default async function handler(
       new URLSearchParams({
         grant_type: "authorization_code",
         code: code as string,
-        redirect_uri: redirectUri,
+        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`,
         client_id: clientId,
         client_secret: clientSecret,
       }),
