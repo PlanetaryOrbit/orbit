@@ -5,13 +5,11 @@ import { useRouter } from "next/router";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
 
+type SessionWithOwner = Session & { owner: user; isLive?: boolean };
+
 const Sessions: React.FC = () => {
-  const [activeSessions, setActiveSessions] = useState<
-    (Session & { owner: user; isLive?: boolean })[]
-  >([]);
-  const [nextSession, setNextSession] = useState<
-    (Session & { owner: user; isLive?: boolean }) | null
-  >(null);
+  const [activeSessions, setActiveSessions] = useState<SessionWithOwner[]>([]);
+  const [nextSession, setNextSession] = useState<SessionWithOwner | null>(null);
   const router = useRouter();
   const workspaceId = router.query.id as string;
   const { getSessionTypeColor, getTextColorForBackground } = useSessionColors(workspaceId);
@@ -29,9 +27,12 @@ const Sessions: React.FC = () => {
       )
       .then((res) => {
         if (res.status === 200) {
-          const sessionsWithOwner = (res.data.sessions || []).filter((s: Session) => s.owner);
+          const sessionsWithOwner = (res.data.sessions || []).filter(
+            (s: SessionWithOwner) => s.owner
+          );
           setActiveSessions(sessionsWithOwner);
-          setNextSession(res.data.nextSession?.owner ? res.data.nextSession : null);
+          const next = res.data.nextSession as SessionWithOwner | null | undefined;
+          setNextSession(next?.owner ? next : null);
         }
       })
       .catch(() => {});
