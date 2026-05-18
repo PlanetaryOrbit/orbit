@@ -5,13 +5,22 @@ import { useRouter } from "next/router";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
 
+type SessionWithRelations = Session & {
+  owner: {
+    username: string | null;
+    picture: string | null;
+    userid: bigint;
+  } | null;
+  sessionType: {
+    name: string | null;
+    statues: any;
+  } | null;
+  isLive?: boolean;
+};
+
 const Sessions: React.FC = () => {
-  const [activeSessions, setActiveSessions] = useState<
-    (Session & { owner: user; isLive?: boolean })[]
-  >([]);
-  const [nextSession, setNextSession] = useState<
-    (Session & { owner: user; isLive?: boolean }) | null
-  >(null);
+  const [activeSessions, setActiveSessions] = useState<SessionWithRelations[]>([]);
+  const [nextSession, setNextSession] = useState<SessionWithRelations | null>(null);
   const router = useRouter();
   const workspaceId = router.query.id as string;
   const { getSessionTypeColor, getTextColorForBackground } = useSessionColors(workspaceId);
@@ -29,7 +38,7 @@ const Sessions: React.FC = () => {
       )
       .then((res) => {
         if (res.status === 200) {
-          const sessionsWithOwner = (res.data.sessions || []).filter((s: Session) => s.owner);
+          const sessionsWithOwner = (res.data.sessions || []).filter((s: SessionWithRelations) => s.owner);
           setActiveSessions(sessionsWithOwner);
           setNextSession(res.data.nextSession?.owner ? res.data.nextSession : null);
         }
@@ -47,7 +56,7 @@ const Sessions: React.FC = () => {
     );
   }
 
-  const getCurrentStatus = (session: Session & { sessionType?: { statues?: { timeAfter: number; name: string }[] } }) => {
+  const getCurrentStatus = (session: SessionWithRelations) => {
     const now = new Date();
     const sessionStart = new Date(session.date);
     const sessionEnd = new Date(sessionStart.getTime() + (session.duration || 30) * 60 * 1000);
@@ -61,7 +70,7 @@ const Sessions: React.FC = () => {
     return null;
   };
 
-  const sessionLabel = (session: Session & { sessionType?: { name?: string } }) =>
+  const sessionLabel = (session: SessionWithRelations) =>
     session.name || session.sessionType?.name || "Session";
 
   return (
