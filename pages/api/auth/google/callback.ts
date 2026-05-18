@@ -2,8 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // import { withAuth } from '@/lib/withSession';
 import { google } from 'googleapis';
 import prisma from '@/utils/database';
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
-import { createSession } from '@/utils/session';
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import { createSession, getSessionByToken } from '@/utils/session';
+import cookie from "cookie"
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -124,27 +125,33 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       },
     })
 
-    if (req.auth?.userId) {
-      await prisma.googleUser.upsert({
-        where: {
-          googleUserId: googleId,
-        },
-        update: {
-          username: displayName,
-          avatar,
-          email,
-          robloxUserId: req.auth.userId,
-        },
-        create: {
-          googleUserId: googleId,
-          username: displayName,
-          avatar,
-          email,
-          robloxUserId: req.auth.userId,
-        },
-      })
+    const cookies = cookie.parse(req.headers.cookie || "")
+    const sessionToken = cookies.session_token
 
-      return res.redirect("/?action=linked")
+    if (sessionToken) {
+      const info = await getSessionByToken(sessionToken);
+      if (info) {
+        await prisma.googleUser.upsert({
+          where: {
+            googleUserId: googleId,
+          },
+          update: {
+            username: displayName,
+            avatar,
+            email,
+            robloxUserId: req.auth.userId,
+          },
+          create: {
+            googleUserId: googleId,
+            username: displayName,
+            avatar,
+            email,
+            robloxUserId: req.auth.userId,
+          },
+        })
+
+        return res.redirect("/?action=linked")
+      }
     }
 
     if (!existingGoogle?.robloxUserId) {

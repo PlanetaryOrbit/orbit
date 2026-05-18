@@ -29,9 +29,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       where: { googleUserId: gEntry.googleUserId },
     });
 
-    delete req.session.googleid;
-    await req.session.save();
-
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('Google unlink error:', err);
