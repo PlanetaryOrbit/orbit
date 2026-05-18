@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const groupInfo = await noblox.getGroup(workspace.groupId)
-    const logo = await noblox.getLogo(workspace.groupId)
+    const logo = await noblox.getLogo(workspace.groupId, '420x420')
 
     return res.status(200).json({
       success: true,

@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     try {
       const [logo, group] = await Promise.all([
-        noblox.getLogo(groupIdNumber).catch(() => ''),
+        noblox.getLogo(groupIdNumber, '420x420').catch(() => ''),
         noblox.getGroup(groupIdNumber).catch(() => null)
       ]);
       if (group) groupName = group.name;

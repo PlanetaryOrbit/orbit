@@ -76,7 +76,7 @@ export async function handler(
 	
 	try {
 		const [logo, group] = await Promise.all([
-			noblox.getLogo(groupId).catch(() => ''),
+			noblox.getLogo(groupId, '420x420').catch(() => ''),
 			noblox.getGroup(groupId).catch(() => null)
 		]);
 		if (group) groupName = group.name;

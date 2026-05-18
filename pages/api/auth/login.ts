@@ -21,7 +21,7 @@ async function getCachedGroupInfo(groupId: number) {
   try {
     await new Promise(resolve => setTimeout(resolve, 200));
     const [logo, group] = await Promise.all([
-      noblox.getLogo(groupId).catch(() => '/default-group-logo.svg'),
+      noblox.getLogo(groupId, '420x420').catch(() => '/default-group-logo.svg'),
       noblox.getGroup(groupId).catch(() => ({ name: `Group ${groupId}` })),
     ]);
     groupCache.set(groupId, { logo, name: group.name, timestamp: now });

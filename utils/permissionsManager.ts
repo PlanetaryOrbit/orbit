@@ -316,7 +316,7 @@ export async function checkGroupRoles(groupID: number) {
 
     try {
       const [logo, group] = await Promise.all([
-        noblox.getLogo(groupID).catch(() => null),
+        noblox.getLogo(groupID, '420x420').catch(() => null),
         noblox.getGroup(groupID).catch(() => null),
       ]);
       if (logo || group) {

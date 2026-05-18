@@ -28,7 +28,7 @@ export async function handler(
 
 		const groupInfo = await noblox.getGroup(groupId)
 		if(!groupInfo) return res.status(400).json({ success: false, error: 'Invalid group ID' })
-		const groupIcon = await noblox.getLogo(groupId)
+		const groupIcon = await noblox.getLogo(groupId, '420x420')
 
 		if(reps.length < 1) return res.status(400).json({ success: false, error: 'At least 1 rep required' })
 
