@@ -860,6 +860,15 @@ export async function checkSpecificUser(userID: number | bigint) {
         },
       },
     });
-    return true;
   }
+  const workspaceData = await prisma.workspaceMember.findMany({
+    where: {
+      userId: userID
+    },
+    include: {
+      workspace: true
+    }
+  });
+
+  return workspaceData;
 }
