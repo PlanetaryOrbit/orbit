@@ -126,6 +126,14 @@ model OAuthState {
   @@index([expiresAt])
 }
 
+model ValidationState {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  userId     BigInt
+  createdAt  DateTime @default(now())
+  @@index([code])
+}
+
 model pendingVerification {
   token            String   @id @unique @default(uuid()) @db.Uuid
   userid           Int
