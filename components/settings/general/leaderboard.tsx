@@ -69,30 +69,28 @@ const Leaderboard: FC<props> = (props) => {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg mb-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <IconTrophy size={20} className="text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-              Leaderboard
-            </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              View top performers on your workspace
-            </p>
-          </div>
+    <div className="flex items-center justify-between px-5 py-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <IconTrophy size={18} className="text-primary" />
         </div>
-        <SwitchComponenet
-          checked={workspace.settings?.leaderboardEnabled}
-          onChange={() =>
-            updateLeaderboard(!workspace.settings.leaderboardEnabled)
-          }
-          label=""
-          classoverride="mt-0"
-        />
+        <div>
+          <p className="text-sm font-medium text-zinc-900 dark:text-white">
+            Leaderboard
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            View top performers on your workspace
+          </p>
+        </div>
       </div>
+      <SwitchComponenet
+        checked={workspace.settings?.leaderboardEnabled}
+        onChange={() =>
+          updateLeaderboard(!workspace.settings.leaderboardEnabled)
+        }
+        label=""
+        classoverride="mt-0"
+      />
     </div>
   );
 };

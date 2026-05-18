@@ -1,373 +1,206 @@
 "use client"
 
-import type React from "react"
 import type { pageWithLayout } from "@/layoutTypes"
 import { loginState, workspacestate } from "@/state"
 import Workspace from "@/layouts/workspace"
-import Sessions from "@/components/home/sessions"
-import Notices from "@/components/home/notices"
-import Docs from "@/components/home/docs"
 import randomText from "@/utils/randomText"
-import wall from "@/components/home/wall"
-import StickyNoteAnnouncement from "@/components/stickyannouncement"
-import Birthdays from "@/components/birthdays"
-import NewToTeam from "@/components/newmembers"
 import { useRecoilState } from "recoil"
 import { useMemo, useEffect, useState } from "react"
 import { useRouter } from "next/router"
-import {
-  IconHome,
-  IconWall,
-  IconFileText,
-  IconSpeakerphone,
-  IconPlus,
-  IconAlertTriangle,
-} from "@tabler/icons-react"
-import clsx from "clsx"
+import { IconPlus, IconLayoutDashboard, IconWall, IconBell, IconUsers, IconArrowRight } from "@tabler/icons-react"
 import { withPermissionCheckSsr } from "@/utils/permissionsManager"
 import { GetServerSideProps } from "next"
-import RandomMusic from "@/components/home/randommusic"
-import QuickLinks from "@/components/home/quickLinks"
-import {
-  buildHomeDashboardChunks,
-  normalizeHomeWidgetOrder,
-  type HomeWidgetId,
-} from "@/utils/homeWidgets"
+import { HomeDashboard } from "@/components/home/dashboard"
+import { normalizeHomeWidgetOrder } from "@/utils/homeWidgets"
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
-  async ({ query }) => {
-    return {
-      props: {},
-    }
-  }
-)
-
-interface WidgetConfig {
-  component: React.FC
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description: string
-  color: string
-  beta?: boolean;
-}
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async () => ({
+  props: {},
+}))
 
 const Home: pageWithLayout = () => {
-  const [login, setLogin] = useRecoilState(loginState)
-  const [workspace, setWorkspace] = useRecoilState(workspacestate)
+  const [login] = useRecoilState(loginState)
+  const [workspace] = useRecoilState(workspacestate)
   const router = useRouter()
   const text = useMemo(() => randomText(login.displayname), [login.displayname])
-  const [isLoadingTitle, setIsLoadingTitle] = useState(false)
-  const [titleVisible, setTitleVisible] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [banner, setBanner] = useState<string | null>(null);
-  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false);
+  const [ready, setReady] = useState(false)
+  const [banner, setBanner] = useState<string | null>(null)
+  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false)
   const [workspaceMembership, setWorkspaceMembership] = useState<{
-    userId: number
     isAdmin: boolean | null
-    joinDate: Date | null
-    timezone: string | null
-  } | null>(null);
-
-  const widgets: Record<string, WidgetConfig> = {
-    wall: {
-      component: wall,
-      icon: IconWall,
-      title: "Wall",
-      description: "Latest messages and announcements",
-      color: "text-blue-600 dark:text-blue-400",
-    },
-    sessions: {
-      component: Sessions,
-      icon: IconSpeakerphone,
-      title: "Sessions",
-      description: "Ongoing and upcoming sessions",
-      color: "text-violet-600 dark:text-violet-400",
-    },
-    notices: {
-      component: Notices,
-      icon: IconAlertTriangle,
-      title: "Notices",
-      description: "Staff currently on notice",
-      color: "text-pink-600 dark:text-pink-400",
-    },
-    documents: {
-      component: Docs,
-      icon: IconFileText,
-      title: "Documents",
-      description: "Latest workspace documents",
-      color: "text-amber-600 dark:text-amber-400",
-    },
-  }
+  } | null>(null)
 
   const orderedWidgets = useMemo(
     () => normalizeHomeWidgetOrder(workspace.settings.widgets ?? []),
-    [workspace.settings.widgets],
+    [workspace.settings.widgets]
   )
 
-  const dashboardChunks = useMemo(
-    () => buildHomeDashboardChunks(orderedWidgets),
-    [orderedWidgets],
-  )
-
-  const renderFullWidget = (id: HomeWidgetId) => {
-    switch (id) {
-      case "new_members":
-        return (
-          <div className="mb-8 z-0 relative">
-            <NewToTeam />
-          </div>
-        )
-      case "birthdays":
-        return (
-          <div className="mb-8 z-0 relative">
-            <Birthdays />
-          </div>
-        )
-      case "music_quote":
-        return (
-          <div className="mb-8 z-0 relative">
-            <RandomMusic />
-          </div>
-        )
-      case "quick_links":
-        return (
-          <div className="mb-8 z-0 relative">
-            <QuickLinks />
-          </div>
-        )
-      default:
-        return null
-    }
-  }
-
-  const renderGridCard = (widget: HomeWidgetId) => {
-    const widgetConfig = widgets[widget]
-    if (!widgetConfig) return null
-    const Widget = widgetConfig.component
-    const Icon = widgetConfig.icon
-    return (
-      <div
-        key={widget}
-        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden"
-      >
-        <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-700">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center shrink-0 ${widgetConfig.color}`}>
-              <Icon className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
-                  {widgetConfig.title}
-                </h2>
-                {widgetConfig.beta && (
-                  <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md">
-                    BETA
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                {widgetConfig.description}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="p-5">
-          <Widget />
-        </div>
-      </div>
-    )
-  }
+  const workspaceId = workspace?.groupId ?? Number(router.query.id)
+  const workspaceLabel = workspace.customName || workspace.groupName
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsLoadingTitle(document.title.includes("Loading"))
-    }
-
-    const timer = setTimeout(() => {
-      setTitleVisible(true)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-    if (
-      workspace &&
-      workspace.groupId &&
-      workspace.settings &&
-      Array.isArray(workspace.settings.widgets)
-    ) {
-      setLoading(false)
+    if (workspace?.groupId && workspace.settings && Array.isArray(workspace.settings.widgets)) {
+      setReady(true)
     }
   }, [workspace])
 
   useEffect(() => {
     if (workspace?.groupId && login?.userId) {
-      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
       fetch(`/api/workspace/${workspace.groupId}/timezone`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timezone: detectedTimezone }),
-      }).catch(() => { });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timezone: tz }),
+      }).catch(() => {})
     }
-  }, [workspace?.groupId, login?.userId]);
-
-  useEffect(() => {
-    if (!workspace?.groupId || !login?.userId) return;
-    fetch(`/api/workspace/${workspace.groupId}/member`)
-      .then((r) => r.json())
-      .then((data) => { if (data.success) setWorkspaceMembership(data.member) })
-      .catch(() => { });
   }, [workspace?.groupId, login?.userId])
 
   useEffect(() => {
-    if (!workspace?.groupId) return;
+    if (!workspace?.groupId || !login?.userId) return
+    fetch(`/api/workspace/${workspace.groupId}/member`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setWorkspaceMembership(data.member)
+      })
+      .catch(() => {})
+  }, [workspace?.groupId, login?.userId])
+
+  useEffect(() => {
+    if (!workspace?.groupId) return
     fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
       .then((r) => r.json())
-      .then((data) => { if (data.banner) setBanner(data.banner) })
-      .catch(() => { });
-  }, [workspace?.groupId]);
+      .then((data) => {
+        if (data.banner) setBanner(data.banner)
+      })
+      .catch(() => {})
+  }, [workspace?.groupId])
 
-  console.log(workspaceMembership, login, )
+  const showSyncWarn =
+    (workspaceMembership?.isAdmin || login.isOwner) &&
+    workspace.lastSyncedSuccessful === false &&
+    !syncWarnDismissed
+
+  const dateLabel = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
 
   return (
     <div className="pagePadding">
-      <div className="max-w-5xl mx-auto">{((workspaceMembership?.isAdmin || login.isOwner) && workspace.lastSyncedSuccessful === false && !syncWarnDismissed) && (
-          <div className="mt-4 mb-5 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 px-3.5 py-3">
-            <div className="flex items-start gap-2.5">
-              <IconAlertTriangle
-                className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400"
-                stroke={2}
-              />
-              <div>
-                <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
-                  <b>Sync failed:</b> The last group sync wasn't successful. Your API keys may have been removed or expired — check your integration settings to restore access.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 pl-6">
+      <div className="mx-auto max-w-6xl">
+        {showSyncWarn && (
+          <div className="mb-5 flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="font-medium text-zinc-900 dark:text-zinc-200">Sync failed.</span>{" "}
+              Group sync did not finish — check API keys in settings.
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
               <button
+                type="button"
                 onClick={() => router.push(`/workspace/${workspace.groupId}/settings`)}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500 dark:bg-amber-500/20 text-white dark:text-amber-300 hover:opacity-80 transition-opacity"
+                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90"
               >
-                Rotate keys
+                Settings
               </button>
               <button
+                type="button"
                 onClick={() => setSyncWarnDismissed(true)}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/10 transition-colors"
+                className="rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 Dismiss
               </button>
             </div>
           </div>
         )}
-        {banner ? (
-          <div className="relative w-full h-44 md:h-56 rounded-2xl overflow-hidden mb-8 border border-zinc-200 dark:border-zinc-700">
-            <img
-              src={banner}
-              alt="Workspace banner"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/10 to-transparent" />
-            <div className="absolute inset-0 flex items-end px-6 pb-5">
-              <div
-                className={clsx(
-                  "transition-all duration-500",
-                  titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-                )}
-              >
-                <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
-                  Welcome back
-                </span>
-                <h1 className="text-2xl font-semibold tracking-tight text-white mb-0.5">
+
+        <header className="mb-5 sm:mb-6">
+          {banner ? (
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="relative h-32 sm:h-36 md:h-44">
+                <img src={banner} alt="" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/85 via-zinc-950/50 to-zinc-950/20" />
+              </div>
+              <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 md:p-6">
+                <p className="text-[11px] text-white/60">{dateLabel}</p>
+                <h1 className="mt-0.5 max-w-2xl text-lg font-semibold tracking-tight text-white sm:text-2xl md:text-3xl">
                   {text}
                 </h1>
-                <p className="text-sm text-white/60">
-                  Here's what's happening in your workspace
-                </p>
+                <p className="mt-0.5 text-xs text-white/70 sm:text-sm">{workspaceLabel}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800">
+              <div className="min-w-0">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{dateLabel}</p>
+                <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl md:text-3xl">
+                  {text}
+                </h1>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{workspaceLabel}</p>
+              </div>
+              {workspace.groupThumbnail ? (
+                <img
+                  src={workspace.groupThumbnail}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-xl border border-zinc-200 object-cover dark:border-zinc-700 sm:h-14 sm:w-14"
+                />
+              ) : null}
+            </div>
+          )}
+        </header>
+
+        {!ready ? (
+          <div className="flex items-center gap-3 py-20 text-sm text-zinc-500 dark:text-zinc-400">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-primary dark:border-zinc-600" />
+            Loading…
+          </div>
+        ) : orderedWidgets.length > 0 ? (
+          <HomeDashboard workspaceId={workspaceId} workspaceName={workspaceLabel} widgets={orderedWidgets} />
+        ) : (
+          <div className="mt-2 space-y-6">
+            <div className="rounded-2xl bg-white px-8 py-10 text-center shadow-[0_1px_3px_0_rgb(0,0,0,0.06)] dark:bg-zinc-900/70">
+              <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                <IconLayoutDashboard className="h-5 w-5 text-primary" stroke={1.75} />
+              </div>
+              <p className="text-base font-semibold text-zinc-900 dark:text-white">Your dashboard is empty</p>
+              <p className="mt-1.5 text-sm text-zinc-400 dark:text-zinc-500 max-w-xs mx-auto">
+                Turn on widgets in settings to start building your home screen.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push(`/workspace/${workspace.groupId}/settings`)}
+                className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+              >
+                Go to settings
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs font-medium text-zinc-400 dark:text-zinc-500">Available widgets</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {[
+                  { icon: IconWall, label: "Wall", desc: "Posts from your team" },
+                  { icon: IconBell, label: "Sessions", desc: "Upcoming scheduled sessions" },
+                  { icon: IconUsers, label: "Staff", desc: "New members & birthdays" },
+                ].map(({ icon: Icon, label, desc }) => (
+                  <div key={label} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] dark:bg-zinc-900/70">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      <Icon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" stroke={1.75} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{label}</p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        ) : (
-          <div
-            className={clsx(
-              "mb-8 transition-all duration-500",
-              titleVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-            )}
-          >
-            <span className="text-xs font-medium text-primary uppercase tracking-wider mb-1 block">
-              Welcome back
-            </span>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-1">
-              {text}
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Here's what's happening in your workspace
-            </p>
-          </div>
         )}
-        <div className="mb-8 z-0 relative">
-          <StickyNoteAnnouncement />
-        </div>
-        {loading ? (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-12 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-              <IconHome className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
-            </div>
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-              Loading your workspace
-            </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-              Hold on, we're getting everything ready
-            </p>
-            <div className="flex justify-center gap-1.5">
-              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse [animation-delay:150ms]" />
-              <div className="w-2 h-2 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse [animation-delay:300ms]" />
-            </div>
-          </div>
-        ) : orderedWidgets.length > 0 ? (
-          <div className="space-y-6">
-            {dashboardChunks.map((chunk, chunkIdx) =>
-              chunk.kind === "full" ? (
-                <div key={`full-${chunk.id}-${chunkIdx}`}>{renderFullWidget(chunk.id)}</div>
-              ) : (
-                <div
-                  key={`grid-${chunk.ids.join("-")}-${chunkIdx}`}
-                  className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-                >
-                  {chunk.ids.map((id) => renderGridCard(id))}
-                </div>
-              ),
-            )}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-              <IconHome className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
-            </div>
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-              Dashboard is empty
-            </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-              Add widgets in workspace settings to see updates at a glance.
-            </p>
-            <button
-              onClick={() => (window.location.href = `/workspace/${workspace.groupId}/settings`)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
-            >
-              <IconPlus className="w-4 h-4" />
-              Configure dashboard
-            </button>
-          </div>
-        )}
-
       </div>
     </div>
   )
 }
-
 
 Home.layout = Workspace
 

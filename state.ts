@@ -1,6 +1,15 @@
-import { atom } from "recoil";
+import { atom, RecoilState, AtomOptions } from "recoil";
 import { role } from "@prisma/client";
 import { ALLIANCE_STRIKES_DEFAULT_MAX } from "@/utils/allianceStrikesConfig";
+
+const g = global as any;
+if (!g.__recoilAtoms) g.__recoilAtoms = {};
+function stableAtom<T>(options: AtomOptions<T>): RecoilState<T> {
+	if (!g.__recoilAtoms[options.key]) {
+		g.__recoilAtoms[options.key] = atom<T>(options);
+	}
+	return g.__recoilAtoms[options.key];
+}
 export type workspaceinfo = {
 	groupId: number;
 	groupThumbnail: string;
@@ -25,11 +34,11 @@ export type LoginState = {
 	googleUser?: {
 		username: string,
 		avatar: string | null,
-		email: string | null  // add | null
+		email: string | null
 	} | null
 }
 
-const loginState = atom<LoginState>({
+const loginState = stableAtom<LoginState>({
 	key: "loginState",
 	default: {
 		userId: 1,
@@ -45,7 +54,7 @@ const loginState = atom<LoginState>({
 	},
 });
 
-const workspacestate = atom({
+const workspacestate = stableAtom({
 	key: "workspacestate",
 	default: {
 		groupId: typeof window !== 'undefined' ? parseInt(window.location.pathname.split('/')[2]) || 1 : 1,

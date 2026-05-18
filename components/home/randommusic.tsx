@@ -1,6 +1,7 @@
-import { IconMusic, IconPlayerPlay, IconPlayerPause } from "@tabler/icons-react";
+import { IconPlayerPlay, IconPlayerPause } from "@tabler/icons-react";
 import { useRef, useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { HomeSection } from "@/components/home/shell";
 
 type SongData = {
   song: string;
@@ -24,6 +25,7 @@ export default function RandomMusic() {
       .then((r) => {
         if (r.status === 200) setData(r.data);
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -51,7 +53,7 @@ export default function RandomMusic() {
   if (loading || !data) return null;
 
   return (
-    <div className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative overflow-hidden">
+    <HomeSection title="Music">
       {data.previewUrl && (
         <audio
           ref={audioRef}
@@ -59,44 +61,38 @@ export default function RandomMusic() {
           preload="metadata"
         />
       )}
-
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <IconMusic className="w-5 h-5 text-primary" />
-        </div>
-        <span className="text-lg font-medium text-zinc-900 dark:text-white">Music Quote</span>
-      </div>
-
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={togglePlay}
           disabled={!data.previewUrl}
-          className="relative flex-shrink-0 group focus:outline-none disabled:cursor-default"
-          aria-label={playing ? "Pause preview" : "Play preview"}
+          className="relative shrink-0 disabled:cursor-default"
+          aria-label={playing ? "Pause" : "Play preview"}
         >
           <img
             src={data.artwork}
-            alt={data.song}
-            className="w-16 h-16 rounded-full object-cover border-2 border-white ring-2 ring-transparent group-hover:ring-primary transition"
+            alt=""
+            className="h-14 w-14 rounded-md object-cover ring-1 ring-zinc-200 dark:ring-zinc-700"
           />
           {data.previewUrl && (
-            <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-              {playing
-                ? <IconPlayerPause className="w-5 h-5 text-white" />
-                : <IconPlayerPlay className="w-5 h-5 text-white ml-0.5" />}
-            </div>
+            <span className="absolute inset-0 flex items-center justify-center rounded-md bg-black/35 opacity-0 transition-opacity hover:opacity-100">
+              {playing ? (
+                <IconPlayerPause className="h-5 w-5 text-white" stroke={2} />
+              ) : (
+                <IconPlayerPlay className="h-5 w-5 translate-x-px text-white" stroke={2} />
+              )}
+            </span>
           )}
         </button>
-
-        <div className="min-w-0 flex flex-col gap-0.5">
-          <p className="text-zinc-900 dark:text-white font-medium leading-snug text-sm italic">
-            "{data.featuredLyric}"
+        <div className="min-w-0">
+          <p className="text-sm leading-snug text-zinc-800 dark:text-zinc-200">
+            &ldquo;{data.featuredLyric}&rdquo;
           </p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate mt-0.5">
-            {data.song} - {data.artist}
+          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
+            {data.song} · {data.artist}
           </p>
         </div>
       </div>
-    </div>
+    </HomeSection>
   );
 }

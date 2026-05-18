@@ -1,94 +1,17 @@
 import axios from "axios";
-import {
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from "@/types/settingsComponent";
-import { IconRefresh, IconGripVertical, IconPlus } from "@tabler/icons-react";
+import { IconRefresh } from "@tabler/icons-react";
 import clsx from "clsx";
 import {
-  HOME_WIDGET_IDS,
   HOME_WIDGET_LABELS,
+  DEFAULT_WIDGET_ORDER,
   normalizeHomeWidgetOrder,
-  isHomeWidgetId,
   type HomeWidgetId,
 } from "@/utils/homeWidgets";
-
-type WidgetSortRowProps = {
-  id: HomeWidgetId;
-  label: string;
-  onRemove: () => void;
-};
-
-function WidgetSortRow({ id, label, onRemove }: WidgetSortRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-      className={clsx(
-        "flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-zinc-900/40 transition-opacity",
-        isDragging
-          ? "opacity-80 border-primary/50 shadow-lg z-10"
-          : "border-zinc-200 dark:border-zinc-700",
-      )}
-    >
-      <button
-        type="button"
-        ref={setActivatorNodeRef}
-        className={clsx(
-          "shrink-0 p-1 rounded-md cursor-grab active:cursor-grabbing text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 touch-manipulation",
-          isDragging && "cursor-grabbing",
-        )}
-        style={{ touchAction: "none" }}
-        aria-label={`Drag to reorder ${label}`}
-        {...attributes}
-        {...listeners}
-      >
-        <IconGripVertical className="w-5 h-5 pointer-events-none" aria-hidden />
-      </button>
-      <span className="flex-1 text-sm font-medium text-zinc-900 dark:text-white">
-        {label}
-      </span>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-      >
-        Remove
-      </button>
-    </div>
-  );
-}
 
 type props = {
   triggerToast: typeof toast;
@@ -104,64 +27,17 @@ const home: FC<props> = (props) => {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [iconRefreshing, setIconRefreshing] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const enabledOrdered = useMemo(
-    () => normalizeHomeWidgetOrder(workspace.settings.widgets),
+  const enabledSet = useMemo(
+    () => new Set(normalizeHomeWidgetOrder(workspace.settings.widgets)),
     [workspace.settings.widgets],
   );
 
-  const disabledIds = useMemo(
-    () => HOME_WIDGET_IDS.filter((id) => !enabledOrdered.includes(id)),
-    [enabledOrdered],
-  );
-
-  const handleWidgetDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    if (!isHomeWidgetId(activeId) || !isHomeWidgetId(overId)) return;
-    const normalized = normalizeHomeWidgetOrder(workspace.settings.widgets);
-    const oldIndex = normalized.indexOf(activeId);
-    const newIndex = normalized.indexOf(overId);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(normalized, oldIndex, newIndex);
-    setWorkspace({
-      ...workspace,
-      settings: {
-        ...workspace.settings,
-        widgets: next,
-      },
-    });
-  };
-
-  const addWidget = (id: HomeWidgetId) => {
-    if (workspace.settings.widgets.includes(id)) return;
-    setWorkspace({
-      ...workspace,
-      settings: {
-        ...workspace.settings,
-        widgets: [...workspace.settings.widgets, id],
-      },
-    });
-  };
-
-  const removeWidget = (id: HomeWidgetId) => {
-    setWorkspace({
-      ...workspace,
-      settings: {
-        ...workspace.settings,
-        widgets: workspace.settings.widgets.filter((w) => w !== id),
-      },
-    });
+  const toggleWidget = (id: HomeWidgetId) => {
+    const current = normalizeHomeWidgetOrder(workspace.settings.widgets);
+    const next = enabledSet.has(id)
+      ? current.filter((w) => w !== id)
+      : DEFAULT_WIDGET_ORDER.filter((w) => [...current, id].includes(w));
+    setWorkspace({ ...workspace, settings: { ...workspace.settings, widgets: next } });
   };
 
   const updateHome = async () => {
@@ -342,95 +218,45 @@ const home: FC<props> = (props) => {
       <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6">
         Max 8 MB (JPEG, PNG). Recommended aspect ratio: 4:1 or wider.
       </p>
-      <p className="text-lg font-medium text-zinc-900 dark:text-white mb-2">Widgets</p>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
-        Customize what appears on your workspace home page. Tiles will only be
-        shown to users with the corresponding permissions.
-      </p>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-        Drag rows to change the order on the dashboard. Wall, sessions, documents, and notices share a two-column layout when they appear next to each other.
+      <p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">Widgets</p>
+      <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-5">
+        Choose which sections appear on your workspace home page.
       </p>
 
-      {enabledOrdered.length > 0 ? (
-        <div className="space-y-2 mb-5">
-          <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wide">
-            Enabled — drag to reorder
-          </p>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleWidgetDragEnd}
-          >
-            <SortableContext items={enabledOrdered} strategy={verticalListSortingStrategy}>
-              {enabledOrdered.map((id) => (
-                <WidgetSortRow
-                  key={id}
-                  id={id}
-                  label={HOME_WIDGET_LABELS[id]}
-                  onRemove={() => removeWidget(id)}
+      <div className="mb-6 divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+        {DEFAULT_WIDGET_ORDER.map((id) => {
+          const enabled = enabledSet.has(id);
+          return (
+            <div key={id} className="flex items-center justify-between gap-4 px-4 py-3.5 bg-white dark:bg-zinc-900/60">
+              <span className={clsx("text-sm font-medium", enabled ? "text-zinc-900 dark:text-white" : "text-zinc-400 dark:text-zinc-500")}>
+                {HOME_WIDGET_LABELS[id]}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={enabled}
+                onClick={() => toggleWidget(id)}
+                className={clsx(
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none",
+                  enabled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-700"
+                )}
+              >
+                <span
+                  className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+                  style={{ transform: enabled ? "translateX(20px)" : "translateX(2px)" }}
                 />
-              ))}
-            </SortableContext>
-          </DndContext>
-        </div>
-      ) : (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
-          No widgets enabled yet. Add some below.
-        </p>
-      )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
 
-      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wide mb-2">
-        Add widgets
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-        {disabledIds.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => addWidget(id)}
-            className="flex items-center justify-between gap-2 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/40 text-zinc-900 dark:text-white hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
-          >
-            <span className="text-sm font-medium">{HOME_WIDGET_LABELS[id]}</span>
-            <IconPlus className="w-4 h-4 text-primary shrink-0" aria-hidden />
-          </button>
-        ))}
-      </div>
-      {disabledIds.length === 0 && enabledOrdered.length > 0 ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">All widgets are enabled.</p>
-      ) : null}
-      <div className="mt-4">
-        <button
-          onClick={updateHome}
-          className={clsx(
-            "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-            workspace.groupTheme === "bg-orbit"
-              ? "bg-orbit text-white hover:bg-orbit/90"
-              : workspace.groupTheme === "bg-blue-500"
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : workspace.groupTheme === "bg-red-500"
-                  ? "bg-red-500 text-white hover:bg-red-600"
-                  : workspace.groupTheme === "bg-red-700"
-                    ? "bg-red-700 text-white hover:bg-red-800"
-                    : workspace.groupTheme === "bg-green-500"
-                      ? "bg-green-500 text-white hover:bg-green-600"
-                      : workspace.groupTheme === "bg-green-600"
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : workspace.groupTheme === "bg-yellow-500"
-                          ? "bg-yellow-500 text-white hover:bg-yellow-600"
-                          : workspace.groupTheme === "bg-orange-500"
-                            ? "bg-orange-500 text-white hover:bg-orange-600"
-                            : workspace.groupTheme === "bg-purple-500"
-                              ? "bg-purple-500 text-white hover:bg-purple-600"
-                              : workspace.groupTheme === "bg-pink-500"
-                                ? "bg-pink-500 text-white hover:bg-pink-600"
-                                : workspace.groupTheme === "bg-black"
-                                  ? "bg-black text-white hover:bg-zinc-900"
-                                  : "bg-zinc-500 text-white hover:bg-zinc-600"
-          )}
-        >
-          Save Changes
-        </button>
-      </div>
+      <button
+        onClick={updateHome}
+        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+      >
+        Save changes
+      </button>
     </div>
   );
 };

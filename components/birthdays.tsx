@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import Confetti from "react-confetti";
 import { useRouter } from "next/router";
-import { IconGift } from "@tabler/icons-react";
 import axios from "axios";
+import { IconGift, IconConfetti } from "@tabler/icons-react";
+import { HomeSection } from "@/components/home/shell";
 
 type BirthdayUser = {
   userid: string;
@@ -12,54 +13,26 @@ type BirthdayUser = {
   birthdayMonth: number;
 };
 
-const BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
-];
-
-function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
-  let hash = 5381;
-  for (let i = 0; i < key.length; i++) {
-    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
-  }
-  const index = (hash >>> 0) % BG_COLORS.length;
-  return BG_COLORS[index];
-}
-
-function getDaysUntilBirthday(day: number, month: number) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let nextBirthday = new Date(today.getFullYear(), month - 1, day);
-
-  if (nextBirthday < today) {
-    nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
-  }
-
-  const diffTime = nextBirthday.getTime() - today.getTime();
-  return Math.round(diffTime / (1000 * 60 * 60 * 24));
-}
-
 const monthNames = [
   "", "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function Birthdays() {
+function getDaysUntilBirthday(day: number, month: number) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let nextBirthday = new Date(today.getFullYear(), month - 1, day);
+  if (nextBirthday < today) {
+    nextBirthday = new Date(today.getFullYear() + 1, month - 1, day);
+  }
+  return Math.round((nextBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+type BirthdaysProps = {
+  layout?: "section" | "strip";
+};
+
+export default function Birthdays({ layout = "section" }: BirthdaysProps) {
   const [birthdays, setBirthdays] = useState<BirthdayUser[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
@@ -69,10 +42,8 @@ export default function Birthdays() {
 
   useEffect(() => {
     if (!workspaceId) return;
-    axios.get(`/api/workspace/${workspaceId}/home/upcoming?days=7`).then(res => {
-      if (res.status === 200) {
-        setBirthdays(res.data.birthdays);
-      }
+    axios.get(`/api/workspace/${workspaceId}/home/upcoming?days=7`).then((res) => {
+      if (res.status === 200) setBirthdays(res.data.birthdays);
     });
   }, [workspaceId]);
 
@@ -91,66 +62,136 @@ export default function Birthdays() {
   }, []);
 
   const usersWithDays = birthdays
-    .map(user => ({
+    .map((user) => ({
       ...user,
       daysAway: getDaysUntilBirthday(user.birthdayDay, user.birthdayMonth),
     }))
-    .filter(user => user.daysAway >= 0 && user.daysAway <= 7);
+    .filter((user) => user.daysAway >= 0 && user.daysAway <= 7);
 
   if (usersWithDays.length === 0) return null;
 
-  return (
-    <div ref={cardRef} className="z-0 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-xl shadow-sm p-4 flex flex-col gap-4 mb-6 relative overflow-hidden">
-      {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
-        <Confetti width={cardSize.width} height={cardSize.height} numberOfPieces={300} recycle={true} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }} />
-      )}
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <IconGift className="w-5 h-5 text-primary" />
+  const whenLabel = (daysAway: number, month: number, day: number) => {
+    if (daysAway === 0) return "Today";
+    if (daysAway === 1) return "Tomorrow";
+    return `In ${daysAway} days`;
+  };
+
+  if (layout === "strip") {
+    return (
+      <div ref={cardRef} className="relative">
+        {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
+          <Confetti
+            width={cardSize.width}
+            height={cardSize.height}
+            numberOfPieces={120}
+            recycle
+            style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", zIndex: 10 }}
+          />
+        )}
+        <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain px-4 pb-1 pt-1 scrollbar-hide sm:px-3">
+          {usersWithDays.map((user) => {
+            const isToday = user.daysAway === 0;
+            return (
+              <div
+                key={user.userid}
+                className="relative flex w-44 shrink-0 flex-col gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/80 dark:shadow-zinc-950/20"
+                onMouseEnter={() => {
+                  if (isToday) {
+                    if (cardRef.current) {
+                      setCardSize({
+                        width: cardRef.current.offsetWidth,
+                        height: cardRef.current.offsetHeight,
+                      });
+                    }
+                    setShowConfetti(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (isToday) setShowConfetti(false);
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <img
+                    src={user.picture}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                  {isToday ? (
+                    <IconGift className="h-4 w-4 text-zinc-400 dark:text-zinc-500" stroke={1.5} />
+                  ) : (
+                    <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500">
+                      {whenLabel(user.daysAway, user.birthdayMonth, user.birthdayDay)}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white leading-tight">
+                    {user.username}
+                  </p>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500">
+                    {isToday && <IconConfetti className="h-3 w-3 shrink-0" stroke={1.5} />}
+                    {isToday ? "Today" : `${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <span className="text-lg font-medium text-zinc-900 dark:text-white">Upcoming Birthdays</span>
       </div>
-      <div className="flex flex-col gap-3">
-        {usersWithDays.map(user => (
-          <div
-            key={user.userid}
-            className="flex items-center gap-3 bg-white dark:bg-zinc-800 p-3 rounded-lg shadow-sm"
-            onMouseEnter={() => {
-              if (user.daysAway === 0) {
-                if (cardRef.current) {
-                  setCardSize({
-                    width: cardRef.current.offsetWidth,
-                    height: cardRef.current.offsetHeight,
-                  });
+    );
+  }
+
+  return (
+    <HomeSection title="Birthdays" className="relative overflow-hidden">
+      <div ref={cardRef}>
+        {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
+          <Confetti
+            width={cardSize.width}
+            height={cardSize.height}
+            numberOfPieces={200}
+            recycle
+            style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+          />
+        )}
+        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          {usersWithDays.map((user) => (
+            <li
+              key={user.userid}
+              className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+              onMouseEnter={() => {
+                if (user.daysAway === 0) {
+                  if (cardRef.current) {
+                    setCardSize({
+                      width: cardRef.current.offsetWidth,
+                      height: cardRef.current.offsetHeight,
+                    });
+                  }
+                  setShowConfetti(true);
                 }
-                setShowConfetti(true);
-              }
-            }}
-            onMouseLeave={() => {
-              if (user.daysAway === 0) setShowConfetti(false);
-            }}
-          >
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${getRandomBg(user.userid)}`}>
+              }}
+              onMouseLeave={() => {
+                if (user.daysAway === 0) setShowConfetti(false);
+              }}
+            >
               <img
                 src={user.picture}
-                alt={user.username}
-                className="w-12 h-12 rounded-full object-cover border-2 border-white"
-                style={{ background: "transparent" }}
+                alt=""
+                className="h-9 w-9 rounded-md object-cover bg-zinc-100 dark:bg-zinc-800"
               />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-zinc-900 dark:text-white">{user.username}</div>
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                {user.daysAway === 0
-                  ? "🎉 Birthday Today!"
-                  : user.daysAway === 1
-                  ? "Tomorrow"
-                  : `In ${user.daysAway} days (${monthNames[user.birthdayMonth]} ${user.birthdayDay})`}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                  {user.username}
+                </p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {whenLabel(user.daysAway, user.birthdayMonth, user.birthdayDay)}
+                  {user.daysAway > 1 &&
+                    ` · ${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
+                </p>
               </div>
-            </div>
-          </div>
-        ))}
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+    </HomeSection>
   );
 }

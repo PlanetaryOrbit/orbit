@@ -37,7 +37,7 @@ const workspace: LayoutProps = ({ children }) => {
 
 
 	return (
-		<div className="h-screen bg-zinc-50 dark:bg-zinc-900">
+		<div className="h-screen bg-zinc-50 dark:bg-zinc-950">
 			<Head>
 				<title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : "Loading..."}</title>
 				<link rel="icon" href={`${workspace.groupThumbnail}`} />
@@ -49,8 +49,7 @@ const workspace: LayoutProps = ({ children }) => {
 
 					<main
 						className={clsx(
-							"flex-1 transition-all duration-300 overflow-y-auto",
-							isCollapsed ? "lg:ml-[72px]" : "lg:ml-56",
+							"flex-1 transition-all duration-300 overflow-y-auto bg-zinc-50 dark:bg-zinc-950",
 							"pb-20 lg:pb-0"
 						)}
 					>

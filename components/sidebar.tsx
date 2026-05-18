@@ -398,8 +398,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         <aside
           className={clsx(
             "h-full flex flex-col flex-1 min-w-0",
-            "bg-white/80 dark:bg-zinc-950/95 backdrop-blur-xl",
-            "border-r border-zinc-200/40 dark:border-zinc-800/80"
+            "bg-zinc-50 dark:bg-zinc-950"
           )}
         >
           <div className="flex flex-col h-full min-h-0 py-4 px-3 pb-4">
@@ -493,46 +492,37 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Listbox>
             </div>
 
-            <nav className="flex-1 mt-6 space-y-0.5 min-h-0 overflow-y-auto overflow-x-hidden">
+            <nav className="flex-1 mt-5 space-y-0.5 min-h-0 overflow-y-auto overflow-x-hidden">
               {visiblePages.map((page) => {
                 const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
                 const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
+                const badge = navBadgeCount(page.name);
                 return (
                   <button
                     key={page.name}
                     type="button"
                     onClick={() => gotopage(page.href)}
                     className={clsx(
-                      "w-full flex items-center gap-3 rounded-xl py-2.5 px-3 text-left outline-none select-none transition-colors duration-200",
-                      "focus-visible:ring-0 active:bg-transparent",
+                      "w-full flex items-center gap-2.5 rounded-xl py-2 px-2.5 text-left outline-none select-none transition-all duration-150",
                       isActive
-                        ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
-                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40",
+                        ? "bg-[color:rgb(var(--group-theme)/0.08)] text-[color:rgb(var(--group-theme))] font-semibold"
+                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/50",
                       isCollapsed && "justify-center px-2 relative",
                     )}
                     style={{ WebkitTapHighlightColor: "transparent" }}
                   >
-                    <IconComponent className="w-5 h-5 shrink-0" stroke={1.5} />
+                    <IconComponent className={clsx("w-[18px] h-[18px] shrink-0", isActive && "drop-shadow-sm")} stroke={isActive ? 2 : 1.75} />
                     {!isCollapsed && (
-                      <span className="flex-1 truncate text-sm font-medium">{page.name}</span>
+                      <span className="flex-1 truncate text-[13px]">{page.name}</span>
                     )}
-                    {!isCollapsed && page.name === "Policies" && (
-                      <>
-                        {pendingPolicyCount > 0 && (
-                          <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[color:rgb(var(--group-theme))] text-white text-xs font-semibold flex items-center justify-center shadow-sm shadow-black/10 dark:shadow-black/30">
-                            {pendingPolicyCount}
-                          </span>
-                        )}
-                      </>
-                    )}
-                    {!isCollapsed && page.name !== "Policies" && navBadgeCount(page.name) > 0 && (
-                      <span className="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-[color:rgb(var(--group-theme))] text-white text-xs font-semibold flex items-center justify-center shadow-sm shadow-black/10 dark:shadow-black/30">
-                        {navBadgeCount(page.name)}
+                    {!isCollapsed && badge > 0 && (
+                      <span className="min-w-[1.25rem] h-4.5 px-1.5 py-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[10px] font-semibold flex items-center justify-center leading-none">
+                        {badge}
                       </span>
                     )}
-                    {isCollapsed && navBadgeCount(page.name) > 0 && (
-                      <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[10px] font-bold flex items-center justify-center">
-                        {navBadgeCount(page.name)}
+                    {isCollapsed && badge > 0 && (
+                      <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[8px] font-bold flex items-center justify-center">
+                        {badge}
                       </span>
                     )}
                   </button>
@@ -540,14 +530,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               })}
             </nav>
 
-            <div className={clsx("shrink-0 mt-auto pt-4 flex flex-col gap-2 overflow-visible", !isCollapsed && "border-t border-zinc-200/50 dark:border-zinc-800/80")}>
+            <div className="shrink-0 mt-auto pt-3 flex flex-col gap-1.5 overflow-visible">
               <button
                 type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex items-center justify-center rounded-xl py-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50 transition-colors outline-none w-full"
+                className="hidden lg:flex items-center justify-center rounded-xl py-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors outline-none w-full"
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                <IconChevronLeft className={clsx("w-4 h-4 transition-transform duration-300", isCollapsed && "rotate-180")} stroke={1.5} />
+                <IconChevronLeft className={clsx("w-3.5 h-3.5 transition-transform duration-300", isCollapsed && "rotate-180")} stroke={2} />
               </button>
 
               <Menu as="div" className="relative">
@@ -652,8 +642,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         ref={navRef}
         className={clsx(
           "fixed bottom-0 inset-x-0 z-[99990]",
-          "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl",
-          "border-t border-zinc-200/50 dark:border-zinc-800/80",
+          "bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl",
+          "border-t border-zinc-200/60 dark:border-zinc-800/60",
           isStandalone ? "flex flex-col" : "lg:hidden flex flex-col"
         )}
         style={{

@@ -320,95 +320,70 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   ];
 
   return (
-    <div className="ml-0 space-y-8">
+    <div className="space-y-7">
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <IconSun size={20} className="text-primary" />
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-            Workspace Theme
-          </h3>
+        <div className="flex items-center gap-2 mb-1">
+          <IconSun size={14} className="text-primary" strokeWidth={2} />
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Workspace Theme</p>
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
           Choose a color theme for your workspace (light mode)
         </p>
 
-        <div className="mb-6 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
-          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
-            Custom color (color wheel + hex)
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Pick:</span>
-              <input
-                type="color"
-                value={
-                  String(selectedColor).startsWith("#")
-                    ? selectedColor
-                    : customHex
-                }
-                onChange={(e) => handleCustomColorChange(e.target.value)}
-                className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
-              />
-              {String(selectedColor).startsWith("#") && (
-                <span className="text-xs text-primary font-medium">Active</span>
-              )}
-            </label>
-            <label className="flex items-center gap-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Hex:</span>
-              <input
-                type="text"
-                value={
-                  String(selectedColor).startsWith("#")
-                    ? selectedColor
-                    : customHex
-                }
-                onChange={(e) => setCustomHex(e.target.value)}
-                onBlur={() => {
-                  const raw = customHex.trim();
-                  const hex = raw.startsWith("#") ? raw : `#${raw}`;
-                  if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                    const fullHex =
-                      hex.length === 4
-                        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-                        : hex;
-                    setCustomHex(fullHex);
-                    applyColorLocally(fullHex);
-                    if (saveTimeoutRef.current) {
-                      clearTimeout(saveTimeoutRef.current);
-                      saveTimeoutRef.current = null;
-                    }
-                    saveColorToServer(fullHex);
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4">
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pick</span>
+            <input
+              type="color"
+              value={String(selectedColor).startsWith("#") ? selectedColor : customHex}
+              onChange={(e) => handleCustomColorChange(e.target.value)}
+              className="h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5"
+            />
+            {String(selectedColor).startsWith("#") && (
+              <span className="text-xs font-medium text-primary">Active</span>
+            )}
+          </label>
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+          <label className="flex items-center gap-2">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Hex</span>
+            <input
+              type="text"
+              value={String(selectedColor).startsWith("#") ? selectedColor : customHex}
+              onChange={(e) => setCustomHex(e.target.value)}
+              onBlur={() => {
+                const raw = customHex.trim();
+                const hex = raw.startsWith("#") ? raw : `#${raw}`;
+                if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                  const fullHex =
+                    hex.length === 4
+                      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+                      : hex;
+                  setCustomHex(fullHex);
+                  applyColorLocally(fullHex);
+                  if (saveTimeoutRef.current) {
+                    clearTimeout(saveTimeoutRef.current);
+                    saveTimeoutRef.current = null;
                   }
-                }}
-                placeholder="#ec4899"
-                className={clsx(
-                  "w-28 px-3 py-2 rounded-lg text-sm border-2",
-                  "bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600",
-                  "text-zinc-900 dark:text-white",
-                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                )}
-              />
-            </label>
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-            Click the color square to open the color wheel, or type a hex code (e.g. #ec4899).
-          </p>
+                  saveColorToServer(fullHex);
+                }
+              }}
+              placeholder="#ec4899"
+              className="w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0"
+            />
+          </label>
         </div>
 
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Or pick a preset:</p>
-        <div className="grid grid-cols-10 gap-3">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2.5">Or pick a preset</p>
+        <div className="grid grid-cols-10 gap-2">
           {colors.map((color, i) => (
             <button
               key={i}
               onClick={() => updateColor(color)}
-              className={clsx(
-                "relative aspect-square rounded-lg transition-transform hover:scale-105 z-0",
-                color
-              )}
+              className={clsx("relative aspect-square rounded-xl transition-transform hover:scale-105", color)}
             >
               {selectedColor === color && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 rounded-lg">
-                  <IconCheck size={16} className="text-white" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
+                  <IconCheck size={14} className="text-white" />
                 </div>
               )}
             </button>
@@ -416,107 +391,82 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         </div>
       </div>
 
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <IconMoon size={20} className="text-primary" />
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-            Dark Mode Theme
-          </h3>
+      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
+        <div className="flex items-center gap-2 mb-1">
+          <IconMoon size={14} className="text-primary" strokeWidth={2} />
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Dark Mode Theme</p>
         </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 text-left">
-          Optionally set a different accent color for dark mode. If not set, the light mode color is used.
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+          Optionally set a different accent for dark mode. If not set, the light mode color is used.
         </p>
 
-        <div className="mb-6 p-4 rounded-xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10">
-          <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3">
-            Custom color (color wheel + hex)
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Pick:</span>
-              <input
-                type="color"
-                value={
-                  String(selectedDarkColor).startsWith("#")
-                    ? selectedDarkColor
-                    : customDarkHex
-                }
-                onChange={(e) => handleCustomDarkColorChange(e.target.value)}
-                className="h-11 w-16 rounded-lg cursor-pointer border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 p-0.5"
-              />
-              {String(selectedDarkColor).startsWith("#") && (
-                <span className="text-xs text-primary font-medium">Active</span>
-              )}
-            </label>
-            <label className="flex items-center gap-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Hex:</span>
-              <input
-                type="text"
-                value={
-                  String(selectedDarkColor).startsWith("#")
-                    ? selectedDarkColor
-                    : customDarkHex
-                }
-                onChange={(e) => setCustomDarkHex(e.target.value)}
-                onBlur={() => {
-                  const raw = customDarkHex.trim();
-                  const hex = raw.startsWith("#") ? raw : `#${raw}`;
-                  if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                    const fullHex =
-                      hex.length === 4
-                        ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-                        : hex;
-                    setCustomDarkHex(fullHex);
-                    applyDarkColorLocally(fullHex);
-                    if (saveDarkTimeoutRef.current) {
-                      clearTimeout(saveDarkTimeoutRef.current);
-                      saveDarkTimeoutRef.current = null;
-                    }
-                    saveDarkColorToServer(fullHex);
-                  }
-                }}
-                placeholder="#ec4899"
-                className={clsx(
-                  "w-28 px-3 py-2 rounded-lg text-sm border-2",
-                  "bg-white dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600",
-                  "text-zinc-900 dark:text-white",
-                  "focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                )}
-              />
-            </label>
-            {selectedDarkColor && (
-              <button
-                onClick={() => {
-                  setSelectedDarkColor('');
-                  setCustomDarkHex('#ec4899');
-                  setWorkspace((prev) => ({ ...prev, groupDarkTheme: '' } as any));
-                  saveDarkColorToServer('');
-                }}
-                className="text-xs text-zinc-400 hover:text-red-500 transition-colors"
-              >
-                Clear
-              </button>
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4">
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pick</span>
+            <input
+              type="color"
+              value={String(selectedDarkColor).startsWith("#") ? selectedDarkColor : customDarkHex}
+              onChange={(e) => handleCustomDarkColorChange(e.target.value)}
+              className="h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5"
+            />
+            {String(selectedDarkColor).startsWith("#") && (
+              <span className="text-xs font-medium text-primary">Active</span>
             )}
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-            Click the color square to open the color wheel, or type a hex code (e.g. #ec4899).
-          </p>
+          </label>
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+          <label className="flex items-center gap-2">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Hex</span>
+            <input
+              type="text"
+              value={String(selectedDarkColor).startsWith("#") ? selectedDarkColor : customDarkHex}
+              onChange={(e) => setCustomDarkHex(e.target.value)}
+              onBlur={() => {
+                const raw = customDarkHex.trim();
+                const hex = raw.startsWith("#") ? raw : `#${raw}`;
+                if (/^#[0-9A-Fa-f]{3}$/.test(hex) || /^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                  const fullHex =
+                    hex.length === 4
+                      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+                      : hex;
+                  setCustomDarkHex(fullHex);
+                  applyDarkColorLocally(fullHex);
+                  if (saveDarkTimeoutRef.current) {
+                    clearTimeout(saveDarkTimeoutRef.current);
+                    saveDarkTimeoutRef.current = null;
+                  }
+                  saveDarkColorToServer(fullHex);
+                }
+              }}
+              placeholder="#ec4899"
+              className="w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0"
+            />
+          </label>
+          {selectedDarkColor && (
+            <button
+              onClick={() => {
+                setSelectedDarkColor('');
+                setCustomDarkHex('#ec4899');
+                setWorkspace((prev) => ({ ...prev, groupDarkTheme: '' } as any));
+                saveDarkColorToServer('');
+              }}
+              className="ml-auto text-xs text-zinc-400 hover:text-red-500 transition-colors"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Or pick a preset:</p>
-        <div className="grid grid-cols-10 gap-3">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2.5">Or pick a preset</p>
+        <div className="grid grid-cols-10 gap-2">
           {colors.map((color, i) => (
             <button
               key={i}
               onClick={() => updateDarkColor(color)}
-              className={clsx(
-                "relative aspect-square rounded-lg transition-transform hover:scale-105 z-0",
-                color
-              )}
+              className={clsx("relative aspect-square rounded-xl transition-transform hover:scale-105", color)}
             >
               {selectedDarkColor === color && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 rounded-lg">
-                  <IconCheck size={16} className="text-white" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
+                  <IconCheck size={14} className="text-white" />
                 </div>
               )}
             </button>
@@ -524,106 +474,74 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-700/80 bg-gradient-to-b from-white to-zinc-50/80 dark:from-zinc-900/40 dark:to-zinc-900/20 shadow-sm shadow-zinc-200/40 dark:shadow-none p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div className="flex gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-              <IconPalette size={22} stroke={1.75} />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
-                Session Colors
-              </h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 max-w-xl">
-                Pick accent colors for each session category. They appear on badges, cards, and the calendar.
-              </p>
-            </div>
-          </div>
+      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
+        <div className="flex items-center gap-2 mb-1">
+          <IconPalette size={14} className="text-primary" strokeWidth={2} />
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Session Colors</p>
         </div>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">
+          Pick accent colors for each session category. They appear on badges, cards, and the calendar.
+        </p>
 
         {isLoadingSessionColors ? (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-9 w-9 border-2 border-primary border-t-transparent mx-auto" />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-3">
-              Loading session colors…
-            </p>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {sessionColorTypes.map((colorType) => {
               const Icon = colorType.Icon;
               const current = sessionColors[colorType.key];
               return (
                 <div
                   key={colorType.key}
-                  className="group relative overflow-hidden rounded-xl border border-zinc-200/90 dark:border-zinc-700/80 bg-white/90 dark:bg-zinc-800/50 p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600"
+                  className="rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4"
                 >
-                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 transition-opacity group-hover:opacity-100" />
-                  <div className="flex items-start gap-3 mb-4">
-                    <div
-                      className={clsx(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-inner",
-                        current
-                      )}
-                    >
-                      <Icon size={20} stroke={1.75} />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={clsx("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white", current)}>
+                      <Icon size={18} stroke={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-semibold text-zinc-900 dark:text-white text-sm sm:text-base">
-                          {colorType.label}
-                        </h4>
-                        <span
-                          className={clsx(
-                            "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm",
-                            current
-                          )}
-                        >
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{colorType.label}</p>
+                        <span className={clsx("rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white", current)}>
                           {colorType.shortTag}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
-                        {colorType.description}
-                      </p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{colorType.description}</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">
-                      Color
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {sessionColorOptions.map((color) => {
-                        const selected = current === color;
-                        return (
-                          <button
-                            key={color}
-                            type="button"
-                            title={getColorDisplayName(color)}
-                            onClick={() => updateSessionColor(colorType.key, color)}
-                            className={clsx(
-                              "relative h-9 w-9 rounded-full border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900",
-                              color,
-                              selected
-                                ? "ring-2 ring-offset-2 ring-zinc-900 dark:ring-white ring-offset-white dark:ring-offset-zinc-900 scale-105"
-                                : "border-white/50 dark:border-zinc-900/50 opacity-90 hover:opacity-100 hover:scale-105"
-                            )}
-                          >
-                            {selected && (
-                              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/25">
-                                <IconCheck size={14} className="text-white drop-shadow" />
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
-                      Current:{" "}
-                      <span className="font-medium text-zinc-600 dark:text-zinc-300">
-                        {getColorDisplayName(current)}
-                      </span>
-                    </p>
+
+                  <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2.5">Color</p>
+                  <div className="flex flex-wrap gap-2">
+                    {sessionColorOptions.map((color) => {
+                      const selected = current === color;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          title={getColorDisplayName(color)}
+                          onClick={() => updateSessionColor(colorType.key, color)}
+                          className={clsx(
+                            "relative h-8 w-8 rounded-full transition-all focus:outline-none",
+                            color,
+                            selected
+                              ? "ring-2 ring-offset-2 ring-zinc-800 dark:ring-white ring-offset-white dark:ring-offset-zinc-800 scale-110"
+                              : "opacity-80 hover:opacity-100 hover:scale-105"
+                          )}
+                        >
+                          {selected && (
+                            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20">
+                              <IconCheck size={13} className="text-white" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+                  <p className="mt-2.5 text-xs text-zinc-400 dark:text-zinc-500">
+                    Current: <span className="font-medium text-zinc-600 dark:text-zinc-300">{getColorDisplayName(current)}</span>
+                  </p>
                 </div>
               );
             })}

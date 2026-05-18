@@ -19,33 +19,43 @@ type Result = {
 };
 
 async function fetchLyrics(song: string, artist: string): Promise<string[]> {
-  const response = await axios.get(
-    `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`
-  );
-  return (
-    response.data.lyrics
-      ?.split("\n")
-      .filter((line: string) => line.trim() !== "") ?? []
-  );
+  try {
+    const response = await axios.get(
+      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`,
+      { timeout: 5000 }
+    );
+    return (
+      response.data.lyrics
+        ?.split("\n")
+        .filter((line: string) => line.trim() !== "") ?? []
+    );
+  } catch {
+    return [];
+  }
 }
 
 async function fetchItunesData(
   song: string,
   artist: string
 ): Promise<{ artwork: string; previewUrl: string }> {
-  const response = await axios.get(
-    `https://itunes.apple.com/search?term=${encodeURIComponent(`${song} ${artist}`)}&entity=song&limit=10`
-  );
-  const match =
-    response.data.results?.find(
-      (r: { artistName: string }) =>
-        r.artistName.toLowerCase().includes(artist.toLowerCase())
-    ) ?? response.data.results?.[0];
+  try {
+    const response = await axios.get(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(`${song} ${artist}`)}&entity=song&limit=10`,
+      { timeout: 5000 }
+    );
+    const match =
+      response.data.results?.find(
+        (r: { artistName: string }) =>
+          r.artistName.toLowerCase().includes(artist.toLowerCase())
+      ) ?? response.data.results?.[0];
 
-  return {
-    artwork: match?.artworkUrl100 ?? "",
-    previewUrl: match?.previewUrl ?? "",
-  };
+    return {
+      artwork: match?.artworkUrl100 ?? "",
+      previewUrl: match?.previewUrl ?? "",
+    };
+  } catch {
+    return { artwork: "", previewUrl: "" };
+  }
 }
 
 export default async function handler(

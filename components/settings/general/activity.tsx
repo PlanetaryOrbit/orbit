@@ -20,11 +20,10 @@ import moment from "moment";
 import clsx from "clsx";
 import { FC } from "@/types/settingsComponent";
 
-const listboxButtonClass = "w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-left text-sm font-medium text-zinc-900 dark:text-white hover:border-[color:rgb(var(--group-theme)/0.4)] focus:outline-none focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.3)]";
-// z-50 so an open menu stacks above later listbox buttons in the same card (avoid “List” showing through rank menu)
+const listboxButtonClass = "w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 text-left text-sm font-medium text-zinc-900 dark:text-white ring-1 ring-zinc-200 dark:ring-zinc-700 hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow";
 const listboxOptionsClass =
-  "absolute left-0 z-50 mt-2 w-full min-w-[12rem] rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 shadow-lg py-1 overflow-auto max-h-60";
-const listboxOptionClass = (active: boolean) => clsx("flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer text-sm", active ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]" : "text-zinc-700 dark:text-zinc-300");
+  "absolute left-0 z-50 mt-2 w-full min-w-[12rem] rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_4px_16px_0_rgb(0,0,0,0.10)] dark:shadow-zinc-950/40 py-1.5 overflow-auto max-h-60";
+const listboxOptionClass = (active: boolean) => clsx("flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer text-sm rounded-xl mx-1", active ? "bg-zinc-100 dark:bg-zinc-700/60 text-zinc-900 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300");
 
 const layoutOptionClass = (active: boolean) =>
   clsx(
@@ -279,24 +278,23 @@ const Activity: FC<props> = (props) => {
     }
   };
 
-  // overflow-visible so Listbox popovers are not clipped (clipping + focus can scroll the page / “jump up”)
   const cardClass =
-    "rounded-2xl border border-zinc-200/90 dark:border-zinc-700/80 bg-white dark:bg-zinc-900/30 shadow-sm overflow-visible"
-  const cardHeaderClass = "px-5 py-4 border-b border-zinc-100 dark:border-zinc-800/80"
+    "rounded-2xl bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/70 dark:shadow-zinc-950/30 overflow-visible"
+  const cardHeaderClass = "px-5 pt-5 pb-4"
 
   return (
     <div className="relative z-15 mx-auto max-w-3xl space-y-6">
       {!hasResetActivityOnly && (
         <>
           <section className={cardClass}>
-            <div className={clsx(cardHeaderClass, "bg-zinc-50/80 dark:bg-zinc-800/20")}>
+            <div className={cardHeaderClass}>
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))]">
-                  <IconCalendarTime className="h-5 w-5" stroke={1.5} />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <IconCalendarTime className="h-4 w-4" stroke={1.75} />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Activity</h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
                     Who is tracked, idle detection, and the desktop loader for in-game time.
                   </p>
                 </div>
@@ -357,14 +355,14 @@ const Activity: FC<props> = (props) => {
 
           {leaderboardEnabled && (
             <section className={cardClass}>
-              <div className={clsx(cardHeaderClass, "bg-zinc-50/80 dark:bg-zinc-800/20")}>
+              <div className={cardHeaderClass}>
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))]">
-                    <IconPodium className="h-5 w-5" stroke={1.5} />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <IconPodium className="h-4 w-4" stroke={1.75} />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Leaderboard</h2>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">How rankings appear on the public leaderboard page.</p>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Leaderboard</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">How rankings appear on the public leaderboard page.</p>
                   </div>
                 </div>
               </div>
@@ -473,30 +471,30 @@ const Activity: FC<props> = (props) => {
       )}
 
       <section className={cardClass}>
-        <div className={clsx(cardHeaderClass, "bg-zinc-50/80 dark:bg-zinc-800/20")}>
+        <div className={cardHeaderClass}>
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100/90 dark:bg-red-950/40 text-red-600 dark:text-red-400">
-              <IconHistory className="h-5 w-5" stroke={1.5} />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <IconHistory className="h-4 w-4" stroke={1.75} />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Activity period & resets</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Manual reset clears current metrics. Scheduled resets can run automatically.</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity period & resets</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Manual reset clears current metrics. Scheduled resets can run automatically.</p>
             </div>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
           {lastReset && (
-            <div className="flex gap-3 rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/60 dark:bg-zinc-800/40 px-4 py-3">
+            <div className="flex gap-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 px-4 py-3.5">
               <div className="mt-0.5 text-zinc-400">
                 <IconHistory className="h-4 w-4" stroke={1.5} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Last period reset</p>
-                <p className="text-sm text-zinc-800 dark:text-zinc-200 mt-0.5">
+                <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">Last period reset</p>
+                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mt-0.5">
                   {moment(lastReset.resetAt).format("MMMM Do, YYYY [at] h:mm A")}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
                   {lastReset.resetBy?.username
                     ? `By ${lastReset.resetBy.username}`
                     : lastReset.resetById === null
@@ -507,7 +505,7 @@ const Activity: FC<props> = (props) => {
             </div>
           )}
 
-          <div className="space-y-4 rounded-xl border border-zinc-200/80 p-4 dark:border-zinc-700/80">
+          <div className="space-y-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4">
             <div className="flex flex-col gap-3 sm:min-h-[2.5rem] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0 pr-0 sm:pr-2">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Automatic reset</p>
@@ -524,7 +522,7 @@ const Activity: FC<props> = (props) => {
             </div>
 
             {scheduleEnabled && (
-              <div className="space-y-4 border-t border-zinc-100 dark:border-zinc-800/80 pt-4">
+              <div className="space-y-4 border-t border-zinc-200/60 dark:border-zinc-700/60 pt-4">
                 <SettingField label="Day" hint="The weekday the job runs.">
                   <Listbox value={scheduleDay} onChange={setScheduleDay} as="div" className="relative w-full text-left">
                     <Listbox.Button className={listboxButtonClass}>
@@ -586,19 +584,14 @@ const Activity: FC<props> = (props) => {
             )}
           </div>
 
-          <div className="flex flex-col gap-3 rounded-xl border border-red-200/80 bg-red-50/50 p-4 dark:border-red-900/50 dark:bg-red-950/20 sm:flex-row sm:items-center sm:gap-4">
-            <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:items-center">
-              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center sm:mt-0" aria-hidden>
-                <IconAlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" stroke={1.5} />
-              </span>
-              <p className="min-w-0 flex-1 text-sm leading-snug text-red-900 dark:text-red-200/95">
-                Manual reset saves history, clears current stats, and cannot be undone.
-              </p>
-            </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 pt-1">
+            <p className="min-w-0 flex-1 text-xs text-zinc-400 dark:text-zinc-500">
+              Manual reset saves history, clears current stats, and cannot be undone.
+            </p>
             <button
               type="button"
               onClick={() => setIsResetDialogOpen(true)}
-              className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 sm:ml-0 sm:w-auto sm:py-2"
+              className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600 sm:w-auto sm:py-2"
             >
               Reset activity period
             </button>
@@ -635,41 +628,42 @@ const Activity: FC<props> = (props) => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left shadow-xl transition-all">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg">
-                      <IconAlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 p-6 text-left shadow-2xl transition-all">
+                  <div className="mb-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-950/50 mb-4">
+                      <IconAlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" stroke={1.75} />
                     </div>
-                    <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
-                      Confirm Activity Reset
+                    <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                      Reset activity period?
                     </Dialog.Title>
+                    <p className="mt-1.5 text-sm text-zinc-400 dark:text-zinc-500">
+                      This will archive all current stats and start a fresh period. It cannot be undone.
+                    </p>
                   </div>
 
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-                    Are you sure you want to reset the activity period? This
-                    will:
-                  </p>
-
-                  <ul className="text-sm text-zinc-600 dark:text-zinc-400 mb-6 space-y-1 ml-4">
-                    <li>• Save all current activity data to history</li>
-                    <li>• Clear all current activity metrics</li>
-                    <li>• Start a fresh activity period</li>
+                  <ul className="mb-5 space-y-1.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3">
+                    {["Current activity data saved to history", "All current metrics cleared", "Fresh activity period begins"].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
                   </ul>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-2.5">
                     <button
                       onClick={() => setIsResetDialogOpen(false)}
                       disabled={isResetting}
-                      className="flex-1 rounded-lg border border-gray-300 bg-white dark:bg-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50"
+                      className="flex-1 rounded-2xl bg-zinc-100 dark:bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={resetActivity}
                       disabled={isResetting}
-                      className="flex-1 rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                      className="flex-1 rounded-2xl bg-red-500 hover:bg-red-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 transition-colors"
                     >
-                      {isResetting ? "Resetting..." : "Reset Activity"}
+                      {isResetting ? "Resetting…" : "Reset period"}
                     </button>
                   </div>
                 </Dialog.Panel>
