@@ -13,6 +13,7 @@ import {
   IconPencil,
   IconChevronDown,
   IconBrandDiscord,
+  IconShield,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -92,30 +93,40 @@ type InformationTabProps = {
   }>;
   isUser?: boolean;
   isAdmin?: boolean;
-  canEditMembers?: boolean;
+  canEditMembers?: boolean; // Level 2: can edit everything
+  canEditBasicInfo?: boolean; // Level 1: can only edit birthday, discord, timezone
 };
 
 const Field = ({
   icon: Icon,
   label,
   children,
+  requiresLevel2 = false,
+  currentEditLevel = 0,
 }: {
   icon: React.ElementType;
   label: string;
   children: React.ReactNode;
-}) => (
-  <div className="flex items-start gap-3 py-4">
-    <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
-      <Icon className="w-3.5 h-3.5 text-primary" />
+  requiresLevel2?: boolean;
+  currentEditLevel?: number;
+}) => {
+  const isDisabled = requiresLevel2 && currentEditLevel < 2;
+  
+  return (
+    <div className={`flex items-start gap-3 py-4 ${isDisabled ? 'opacity-60' : ''}`}>
+      <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
+          {label}
+          {isDisabled && <span className="ml-2 text-[10px] text-zinc-400">(Requires higher permissions)</span>}
+        </p>
+        {children}
+      </div>
     </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
-        {label}
-      </p>
-      {children}
-    </div>
-  </div>
-);
+  );
+};
 
 const NullValue = ({ label }: { label: string }) => (
   <span className="text-sm text-zinc-400 dark:text-zinc-500 italic">{label}</span>
@@ -167,7 +178,8 @@ export function InformationTab({
   availableDepartments = [],
   isUser,
   isAdmin,
-  canEditMembers,
+  canEditMembers = false, // Level 2: full edit permissions
+  canEditBasicInfo = false, // Level 1: basic info only
 }: InformationTabProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -185,7 +197,14 @@ export function InformationTab({
   const deptDropdownRef = React.useRef<HTMLDivElement>(null);
 
   const workspaceId = router.query.id as string;
-  const canEdit = isUser || isAdmin || canEditMembers;
+  
+  // Determine edit level:
+  // Level 2: Admin OR canEditMembers (full permissions)
+  // Level 1: isUser OR canEditBasicInfo (basic info only)
+  // Level 0: No edit permissions
+  const editLevel = (isAdmin || canEditMembers) ? 2 : (isUser || canEditBasicInfo) ? 1 : 0;
+  const canEdit = editLevel > 0;
+  const canEditEverything = editLevel >= 2;
 
   const filteredManagers = managerQuery === ""
     ? allMembers.filter((m) => m.userid !== user.userid).slice(0, 5)
@@ -214,16 +233,25 @@ export function InformationTab({
     if (!workspaceId) return;
     setLoading(true);
     try {
+      const updateData: any = {};
+      
+      if (editLevel >= 2) {
+        // Level 2 can edit everything
+        updateData.departmentIds = selectedDepartments.map(d => d.id);
+        updateData.lineManagerId = selectedManager?.userid || null;
+      }
+      
+      // Level 1 and Level 2 can edit basic info
+      if (editLevel >= 1) {
+        updateData.timezone = selectedTimezone || null;
+        updateData.birthdayDay = birthdayDay ? parseInt(birthdayDay as string) : null;
+        updateData.birthdayMonth = birthdayMonth ? parseInt(birthdayMonth as string) : null;
+        updateData.discordId = discordId || null;
+      }
+
       await axios.patch(
         `/api/workspace/${workspaceId}/profile/${user.userid}/member-info`,
-        {
-          departmentIds: selectedDepartments.map(d => d.id),
-          lineManagerId: selectedManager?.userid || null,
-          timezone: selectedTimezone || null,
-          birthdayDay: birthdayDay ? parseInt(birthdayDay as string) : null,
-          birthdayMonth: birthdayMonth ? parseInt(birthdayMonth as string) : null,
-          discordId: discordId || null,
-        }
+        updateData
       );
 
       toast.success("Information updated!");
@@ -257,19 +285,28 @@ export function InformationTab({
     })()
     : null;
 
+  const getEditLevelBadge = () => {
+    if (editLevel === 2) return <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Full Access</span>;
+    if (editLevel === 1) return <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Limited Access</span>;
+    return null;
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
-          Information
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+            Information
+          </h3>
+          {getEditLevelBadge()}
+        </div>
         {canEdit && !editing && (
           <button
             onClick={() => setEditing(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
           >
             <IconPencil className="w-3.5 h-3.5" />
-            Edit
+            Edit {editLevel === 1 ? "Basic Info" : "All Info"}
           </button>
         )}
         {editing && (
@@ -295,20 +332,20 @@ export function InformationTab({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50">
-          <Field icon={IconUser} label="Username">
+          <Field icon={IconUser} label="Username" requiresLevel2={false} currentEditLevel={editLevel}>
             <p className="text-sm font-semibold text-zinc-900 dark:text-white">
               @{user.username}
             </p>
           </Field>
 
-          <Field icon={IconId} label="User ID">
+          <Field icon={IconId} label="User ID" requiresLevel2={false} currentEditLevel={editLevel}>
             <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
               {user.userid}
             </p>
           </Field>
 
-          <Field icon={IconBrandDiscord} label="Discord">
-            {editing ? (
+          <Field icon={IconBrandDiscord} label="Discord" requiresLevel2={false} currentEditLevel={editLevel}>
+            {editing && editLevel >= 1 ? (
               <input
                 type="text"
                 value={discordId}
@@ -344,8 +381,8 @@ export function InformationTab({
             )}
           </Field>
 
-          <Field icon={IconCalendar} label="Birthday">
-            {editing ? (
+          <Field icon={IconCalendar} label="Birthday" requiresLevel2={false} currentEditLevel={editLevel}>
+            {editing && editLevel >= 1 ? (
               <div className="flex gap-2">
                 <select
                   value={birthdayMonth}
@@ -379,8 +416,8 @@ export function InformationTab({
         </div>
 
         <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50 overflow-visible">
-          <Field icon={IconClock} label="Timezone">
-            {editing ? (
+          <Field icon={IconClock} label="Timezone" requiresLevel2={false} currentEditLevel={editLevel}>
+            {editing && editLevel >= 1 ? (
               <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
                 <div className="relative">
                   <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-200 dark:border-zinc-600">
@@ -415,8 +452,8 @@ export function InformationTab({
             )}
           </Field>
 
-          <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`}>
-            {editing ? (
+          <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`} requiresLevel2={true} currentEditLevel={editLevel}>
+            {editing && editLevel >= 2 ? (
               availableDepartments.length > 0 ? (
                 <div className="relative" ref={deptDropdownRef}>
                   <button
@@ -490,8 +527,8 @@ export function InformationTab({
             )}
           </Field>
 
-          <Field icon={IconUserCheck} label="Line Manager">
-            {editing ? (
+          <Field icon={IconUserCheck} label="Line Manager" requiresLevel2={true} currentEditLevel={editLevel}>
+            {editing && editLevel >= 2 ? (
               <Combobox value={selectedManager} onChange={setSelectedManager}>
                 <div className="relative">
                   <Combobox.Input
@@ -535,7 +572,7 @@ export function InformationTab({
             )}
           </Field>
 
-          <Field icon={IconCalendar} label="Join Date">
+          <Field icon={IconCalendar} label="Join Date" requiresLevel2={false} currentEditLevel={editLevel}>
             {user.joinDate ? (
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">

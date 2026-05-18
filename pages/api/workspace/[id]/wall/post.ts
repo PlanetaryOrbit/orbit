@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import {
   getUsername,
   getThumbnail,
@@ -14,6 +14,7 @@ import sanitizeHtml from "sanitize-html";
 import { fileTypeFromBuffer } from "file-type";
 import isSvg from "is-svg";
 import sharp from "sharp";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -118,12 +119,12 @@ async function validateAndSanitizeImage(dataUrl: string): Promise<string> {
   }
 }
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  if (!req.session.userid)
+  if (!req.auth.userId)
     return res.status(401).json({ success: false, error: "Not logged in" });
   if (!req.body?.content)
     return res.status(400).json({ success: false, error: "Missing content" });
@@ -147,7 +148,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     if (image) {
       const workspaceId = parseInt(req.query.id as string);
       const user = await prisma.user.findFirst({
-        where: { userid: BigInt(req.session.userid) },
+        where: { userid: BigInt(req.auth.userId) },
         include: {
           roles: {
             where: { workspaceGroupId: workspaceId },
@@ -184,7 +185,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       data: {
         content,
         image: image || undefined,
-        authorId: req.session.userid,
+        authorId: req.auth.userId,
         workspaceGroupId: parseInt(req.query.id as string),
       },
       include: {

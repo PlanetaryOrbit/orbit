@@ -2,17 +2,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getConfig, setConfig } from "@/utils/configEngine";
 import { logAudit } from "@/utils/logs";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
 import {
   ALLIANCE_STRIKES_DEFAULT_MAX,
   normalizeAllianceMaxStrikes,
 } from "@/utils/allianceStrikesConfig";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse,
 ) {
-  const userId = req.session?.userid;
+  const userId = req.auth?.userId;
   if (!userId) {
     res.status(401).json({ success: false, error: "Unauthorized" });
     return;

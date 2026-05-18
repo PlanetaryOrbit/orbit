@@ -11,7 +11,7 @@ import { Role } from "noblox.js";
 import { role } from "@/utils/database";
 import { useRecoilState } from "recoil";
 import { useRouter } from "next/router";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import clsx from "clsx";
 
@@ -24,17 +24,21 @@ type Props = {
 const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   const [workspace] = useRecoilState(workspacestate);
   const router = useRouter();
-  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(
-    new Set()
-  );
-  const [expandedSubcategories, setExpandedSubcategories] = React.useState<Set<string>>(
-    new Set()
-  );
+  const [expandedCategories, setExpandedCategories] = React.useState<
+    Set<string>
+  >(new Set());
+  const [expandedSubcategories, setExpandedSubcategories] = React.useState<
+    Set<string>
+  >(new Set());
 
   const sessionTypes = ["shift", "training", "event", "other"];
   const sessionSubcategories: Record<string, Record<string, string>> = {};
-  
-  sessionTypes.forEach(type => {
+
+  const groles = Array.from(new Map(grouproles.map((r) => [r.rank, r])).values());
+
+  const filteredRoles = groles.filter((gr) => gr.name !== "Guest");
+
+  sessionTypes.forEach((type) => {
     const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
     sessionSubcategories[`${typeCapitalized}`] = {
       [`See ${typeCapitalized} Sessions`]: `sessions_${type}_see`,
@@ -48,7 +52,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     };
   });
 
-  const permissionCategories: Record<string, Record<string, string> | { _subcategories: Record<string, Record<string, string>> }> = {
+  const permissionCategories: Record<
+    string,
+    | Record<string, string>
+    | { _subcategories: Record<string, Record<string, string>> }
+  > = {
     Wall: {
       "View wall": "view_wall",
       "Post on wall": "post_on_wall",
@@ -57,7 +65,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
       "Edit sticky post": "edit_sticky_post",
     },
     Sessions: {
-      _subcategories: sessionSubcategories
+      _subcategories: sessionSubcategories,
     },
     Views: {
       "View members": "view_members",
@@ -151,29 +159,36 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   const toggleCategoryPermissions = (roleId: string, category: string) => {
     const index = roles.findIndex((role: any) => role.id === roleId);
     if (index === -1) return;
-    
+
     const rroles = Object.assign([] as typeof roles, roles);
     if (rroles[index].isOwnerRole) {
       toast.error("Owner role permissions cannot be modified");
       return;
     }
 
-    const categoryData = permissionCategories[category as keyof typeof permissionCategories];
+    const categoryData =
+      permissionCategories[category as keyof typeof permissionCategories];
     let categoryPerms: string[] = [];
-    if (categoryData && typeof categoryData === 'object' && '_subcategories' in categoryData) {
+    if (
+      categoryData &&
+      typeof categoryData === "object" &&
+      "_subcategories" in categoryData
+    ) {
       const subcats = (categoryData as any)._subcategories;
-      categoryPerms = Object.values(subcats).flatMap((subcat: any) => Object.values(subcat));
+      categoryPerms = Object.values(subcats).flatMap((subcat: any) =>
+        Object.values(subcat),
+      );
     } else {
       categoryPerms = Object.values(categoryData as Record<string, string>);
     }
-    
+
     const allChecked = categoryPerms.every((perm) =>
-      rroles[index].permissions.includes(perm)
+      rroles[index].permissions.includes(perm),
     );
 
     if (allChecked) {
       rroles[index].permissions = rroles[index].permissions.filter(
-        (perm: any) => !categoryPerms.includes(perm)
+        (perm: any) => !categoryPerms.includes(perm),
       );
     } else {
       categoryPerms.forEach((perm) => {
@@ -188,7 +203,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   const newRole = async () => {
     const res = await axios.post(
       "/api/workspace/" + workspace.groupId + "/settings/roles/new",
-      {}
+      {},
     );
     if (res.status === 200) {
       setRoles([...roles, res.data.role]);
@@ -204,7 +219,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     if (rroles[index].isOwnerRole) {
       toast.error("Owner role name cannot be modified");
       const input = document.querySelector(
-        `input[value="${value}"]`
+        `input[value="${value}"]`,
       ) as HTMLInputElement;
       if (input) input.value = rroles[index].name;
       return;
@@ -234,7 +249,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
 
     if (rroles[index].permissions.includes(permission)) {
       rroles[index].permissions = rroles[index].permissions.filter(
-        (perm: any) => perm !== permission
+        (perm: any) => perm !== permission,
       );
     } else {
       rroles[index].permissions.push(permission);
@@ -248,25 +263,25 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     const rroles = Object.assign([] as typeof roles, roles);
 
     if (rroles[index].isOwnerRole) {
-        toast.error("Owner role group assignments cannot be modified.");
-        return;
+      toast.error("Owner role group assignments cannot be modified.");
+      return;
     }
 
     const roleIdStr = String(role.id);
 
     if (rroles[index].groupRoles.map(String).includes(roleIdStr)) {
-        rroles[index].groupRoles = rroles[index].groupRoles.filter(
-            (r) => String(r) !== roleIdStr
-        );
+      rroles[index].groupRoles = rroles[index].groupRoles.filter(
+        (r) => String(r) !== roleIdStr,
+      );
     } else {
-        if (aroledoesincludegrouprole(id, role)) {
-            toast.error(`This rank is already assigned to another role.`);
-            return;
-        }
-        rroles[index].groupRoles.push(roleIdStr as any);
+      if (aroledoesincludegrouprole(id, role)) {
+        toast.error(`This rank is already assigned to another role.`);
+        return;
+      }
+      rroles[index].groupRoles.push(roleIdStr as any);
     }
     setRoles(rroles);
-};
+  };
 
   const saveRole = async (id: string) => {
     const index = roles.findIndex((r: any) => r.id === id);
@@ -280,7 +295,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     try {
       await axios.post(
         `/api/workspace/${workspace.groupId}/settings/roles/${id}/update`,
-        payload
+        payload,
       );
       toast.success("Role saved!");
     } catch (e) {
@@ -289,34 +304,38 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   const checkRoles = async () => {
-  try {
-    const keyres = await axios.get(`/api/workspace/${workspace.groupId}/settings/general/roblox/key`);
+    try {
+      const keyres = await axios.get(
+        `/api/workspace/${workspace.groupId}/settings/general/roblox/key`,
+      );
 
-    if (!keyres.data.success) {
+      if (!keyres.data.success) {
+        return toast.error("An error occurred while checking your API key");
+      }
+
+      const { enabled, keySet } = keyres.data.value;
+
+      if (!enabled) {
+        return toast.error("Open Cloud API key is not configured");
+      }
+
+      if (!keySet) {
+        return toast.error("Open Cloud API key cannot be empty.");
+      }
+    } catch (err) {
+      console.log(err);
       return toast.error("An error occurred while checking your API key");
     }
 
-    const { enabled, keySet } = keyres.data.value;
-
-    if (!enabled) {
-      return toast.error("Open Cloud API key is not configured");
-    }
-
-    if (!keySet) {
-      return toast.error("Open Cloud API key cannot be empty.");
-    }
-  } catch (err) {
-    console.log(err);
-    return toast.error("An error occurred while checking your API key");
-  }
-
-  const res = axios.post(`/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`);
-  toast.promise(res, {
-    loading: "Checking roles...",
-    success: "Roles updated!",
-    error: "Error updating roles",
-  });
-};
+    const res = axios.post(
+      `/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`,
+    );
+    toast.promise(res, {
+      loading: "Checking roles...",
+      success: "Roles updated!",
+      error: "Error updating roles",
+    });
+  };
 
   const deleteRole = async (id: string) => {
     const res = axios
@@ -335,12 +354,12 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
     const rs = roles.filter((r: any) => r.id !== id);
     const roleIdStr = String(role.id);
     for (let i = 0; i < rs.length; i++) {
-        if (rs[i].groupRoles.map(String).includes(roleIdStr)) {
-            return true;
-        }
+      if (rs[i].groupRoles.map(String).includes(roleIdStr)) {
+        return true;
+      }
     }
     return false;
-};
+  };
 
   return (
     <div className="mt-6 space-y-5">
@@ -399,7 +418,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                     <span
                       className={clsx(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200/80 bg-zinc-50 text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400",
-                        open && "rotate-180"
+                        open && "rotate-180",
                       )}
                     >
                       <IconChevronDown className="h-4 w-4" stroke={2} />
@@ -445,13 +464,17 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                             type="color"
                             className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-600"
                             value={role.color || "#6b7280"}
-                            onChange={(e) => updateRoleColor(e.target.value, role.id)}
+                            onChange={(e) =>
+                              updateRoleColor(e.target.value, role.id)
+                            }
                           />
                           <input
                             type="text"
                             className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
                             value={role.color || "#6b7280"}
-                            onChange={(e) => updateRoleColor(e.target.value, role.id)}
+                            onChange={(e) =>
+                              updateRoleColor(e.target.value, role.id)
+                            }
                             placeholder="#6b7280"
                           />
                         </div>
@@ -465,39 +488,53 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                           Manage the permissions assigned to this role
                         </p>
                         <div className="mt-3 space-y-2">
-                          {Object.entries(permissionCategories).map(([category, perms]) => {
-                            const isExpanded = expandedCategories.has(category);
-                            const hasSubcategories = perms && typeof perms === 'object' && '_subcategories' in perms;
-                            let categoryPerms: string[] = [];
-                            
-                            if (hasSubcategories) {
-                              const subcats = (perms as any)._subcategories;
-                              categoryPerms = Object.values(subcats).flatMap((subcat: any) => Object.values(subcat));
-                            } else {
-                              categoryPerms = Object.values(perms as Record<string, string>);
-                            }
-                            
-                            const allChecked = categoryPerms.every((perm) =>
-                              role.permissions.includes(perm)
-                            );
-                            const someChecked = categoryPerms.some((perm) =>
-                              role.permissions.includes(perm)
-                            );
+                          {Object.entries(permissionCategories).map(
+                            ([category, perms]) => {
+                              const isExpanded =
+                                expandedCategories.has(category);
+                              const hasSubcategories =
+                                perms &&
+                                typeof perms === "object" &&
+                                "_subcategories" in perms;
+                              let categoryPerms: string[] = [];
 
-                            return (
-                              <div
-                                key={category}
-                                className="overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-50/50 dark:border-zinc-700/60 dark:bg-zinc-900/35"
-                              >
-                                <div className="flex items-center gap-2 px-3 py-2.5">
+                              if (hasSubcategories) {
+                                const subcats = (perms as any)._subcategories;
+                                categoryPerms = Object.values(subcats).flatMap(
+                                  (subcat: any) => Object.values(subcat),
+                                );
+                              } else {
+                                categoryPerms = Object.values(
+                                  perms as Record<string, string>,
+                                );
+                              }
+
+                              const allChecked = categoryPerms.every((perm) =>
+                                role.permissions.includes(perm),
+                              );
+                              const someChecked = categoryPerms.some((perm) =>
+                                role.permissions.includes(perm),
+                              );
+
+                              return (
+                                <div
+                                  key={category}
+                                  className="overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-50/50 dark:border-zinc-700/60 dark:bg-zinc-900/35"
+                                >
+                                  <div className="flex items-center gap-2 px-3 py-2.5">
                                     <input
                                       type="checkbox"
                                       checked={allChecked}
                                       ref={(el) => {
-                                        if (el) el.indeterminate = someChecked && !allChecked;
+                                        if (el)
+                                          el.indeterminate =
+                                            someChecked && !allChecked;
                                       }}
                                       onChange={() =>
-                                        toggleCategoryPermissions(role.id, category)
+                                        toggleCategoryPermissions(
+                                          role.id,
+                                          category,
+                                        )
                                       }
                                       disabled={role.isOwnerRole === true}
                                       className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
@@ -513,129 +550,227 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                       <span
                                         className={clsx(
                                           "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-zinc-200/80 bg-white text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
-                                          isExpanded && "rotate-180"
+                                          isExpanded && "rotate-180",
                                         )}
                                       >
-                                        <IconChevronDown className="h-3.5 w-3.5" stroke={2} />
+                                        <IconChevronDown
+                                          className="h-3.5 w-3.5"
+                                          stroke={2}
+                                        />
                                       </span>
                                     </button>
-                                </div>
-                                {isExpanded && (
-                                  <div className="space-y-2 border-t border-zinc-200/60 bg-white px-3 py-3 dark:border-zinc-700/60 dark:bg-zinc-800/50">
-                                    {hasSubcategories ? (
-                                      Object.entries((perms as any)._subcategories).map(([subcat, subPerms]: [string, any]) => {
-                                        const subcatKey = `${category}-${subcat}`;
-                                        const isSubExpanded = expandedSubcategories.has(subcatKey);
-                                        const subcatPerms = Object.values(subPerms);
-                                        const allSubChecked = subcatPerms.every((perm: any) =>
-                                          role.permissions.includes(perm)
-                                        );
-                                        const someSubChecked = subcatPerms.some((perm: any) =>
-                                          role.permissions.includes(perm)
-                                        );
-                                        
-                                        return (
-                                          <div key={subcat} className="ml-3 overflow-hidden rounded-lg border border-zinc-200/80 dark:border-zinc-700/70 sm:ml-4">
-                                            <div className="flex items-center gap-2 bg-zinc-100/80 px-3 py-2 dark:bg-zinc-900/70">
-                                              <input
-                                                type="checkbox"
-                                                checked={allSubChecked}
-                                                ref={(el) => {
-                                                  if (el) el.indeterminate = someSubChecked && !allSubChecked;
-                                                }}
-                                                onChange={() => {
-                                                  const index = roles.findIndex((r: any) => r.id === role.id);
-                                                  if (index === -1 || role.isOwnerRole) return;
-                                                  const rroles = Object.assign([] as typeof roles, roles);
-                                                  const allChecked = subcatPerms.every((perm: any) =>
-                                                    rroles[index].permissions.includes(perm)
-                                                  );
-                                                  if (allChecked) {
-                                                    rroles[index].permissions = rroles[index].permissions.filter(
-                                                      (perm: any) => !subcatPerms.includes(perm)
-                                                    );
-                                                  } else {
-                                                    subcatPerms.forEach((perm: any) => {
-                                                      if (!rroles[index].permissions.includes(perm)) {
-                                                        rroles[index].permissions.push(perm);
-                                                      }
-                                                    });
-                                                  }
-                                                  setRoles(rroles);
-                                                }}
-                                                disabled={role.isOwnerRole === true}
-                                                className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                              />
-                                              <button
-                                                type="button"
-                                                onClick={() => toggleSubcategory(subcatKey)}
-                                                className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
-                                              >
-                                                <span className="text-xs font-medium text-zinc-900 dark:text-white">
-                                                  {subcat} Sessions
-                                                </span>
-                                                <span
-                                                  className={clsx(
-                                                    "flex h-6 w-6 shrink-0 items-center justify-center rounded border border-zinc-200/80 bg-white text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
-                                                    isSubExpanded && "rotate-180"
-                                                  )}
+                                  </div>
+                                  {isExpanded && (
+                                    <div className="space-y-2 border-t border-zinc-200/60 bg-white px-3 py-3 dark:border-zinc-700/60 dark:bg-zinc-800/50">
+                                      {hasSubcategories
+                                        ? Object.entries(
+                                            (perms as any)._subcategories,
+                                          ).map(
+                                            ([subcat, subPerms]: [
+                                              string,
+                                              any,
+                                            ]) => {
+                                              const subcatKey = `${category}-${subcat}`;
+                                              const isSubExpanded =
+                                                expandedSubcategories.has(
+                                                  subcatKey,
+                                                );
+                                              const subcatPerms =
+                                                Object.values(subPerms);
+                                              const allSubChecked =
+                                                subcatPerms.every((perm: any) =>
+                                                  role.permissions.includes(
+                                                    perm,
+                                                  ),
+                                                );
+                                              const someSubChecked =
+                                                subcatPerms.some((perm: any) =>
+                                                  role.permissions.includes(
+                                                    perm,
+                                                  ),
+                                                );
+
+                                              return (
+                                                <div
+                                                  key={subcat}
+                                                  className="ml-3 overflow-hidden rounded-lg border border-zinc-200/80 dark:border-zinc-700/70 sm:ml-4"
                                                 >
-                                                  <IconChevronDown className="h-3 w-3" stroke={2} />
-                                                </span>
-                                              </button>
-                                            </div>
-                                            {isSubExpanded && (
-                                              <div className="space-y-1.5 border-t border-zinc-200/60 px-3 py-2 dark:border-zinc-700/60">
-                                                {Object.entries(subPerms).map(([label, value]: [string, any]) => (
-                                                  <label
-                                                    key={value}
-                                                    className="flex cursor-pointer items-center gap-2.5 pl-4"
-                                                  >
+                                                  <div className="flex items-center gap-2 bg-zinc-100/80 px-3 py-2 dark:bg-zinc-900/70">
                                                     <input
                                                       type="checkbox"
-                                                      checked={role.permissions.includes(value)}
-                                                      onChange={() =>
-                                                        togglePermission(role.id, value)
+                                                      checked={allSubChecked}
+                                                      ref={(el) => {
+                                                        if (el)
+                                                          el.indeterminate =
+                                                            someSubChecked &&
+                                                            !allSubChecked;
+                                                      }}
+                                                      onChange={() => {
+                                                        const index =
+                                                          roles.findIndex(
+                                                            (r: any) =>
+                                                              r.id === role.id,
+                                                          );
+                                                        if (
+                                                          index === -1 ||
+                                                          role.isOwnerRole
+                                                        )
+                                                          return;
+                                                        const rroles =
+                                                          Object.assign(
+                                                            [] as typeof roles,
+                                                            roles,
+                                                          );
+                                                        const allChecked =
+                                                          subcatPerms.every(
+                                                            (perm: any) =>
+                                                              rroles[
+                                                                index
+                                                              ].permissions.includes(
+                                                                perm,
+                                                              ),
+                                                          );
+                                                        if (allChecked) {
+                                                          rroles[
+                                                            index
+                                                          ].permissions =
+                                                            rroles[
+                                                              index
+                                                            ].permissions.filter(
+                                                              (perm: any) =>
+                                                                !subcatPerms.includes(
+                                                                  perm,
+                                                                ),
+                                                            );
+                                                        } else {
+                                                          subcatPerms.forEach(
+                                                            (perm: any) => {
+                                                              if (
+                                                                !rroles[
+                                                                  index
+                                                                ].permissions.includes(
+                                                                  perm,
+                                                                )
+                                                              ) {
+                                                                rroles[
+                                                                  index
+                                                                ].permissions.push(
+                                                                  perm,
+                                                                );
+                                                              }
+                                                            },
+                                                          );
+                                                        }
+                                                        setRoles(rroles);
+                                                      }}
+                                                      disabled={
+                                                        role.isOwnerRole ===
+                                                        true
                                                       }
-                                                      disabled={role.isOwnerRole === true}
                                                       className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
                                                     />
-                                                    <span className="text-xs text-zinc-700 dark:text-zinc-200">
-                                                      {label}
-                                                    </span>
-                                                  </label>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      })
-                                    ) : (
-                                      Object.entries(perms as Record<string, string>).map(([label, value]) => (
-                                        <label
-                                          key={value}
-                                          className="flex cursor-pointer items-center gap-2.5 pl-1"
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={role.permissions.includes(value)}
-                                            onChange={() =>
-                                              togglePermission(role.id, value)
-                                            }
-                                            disabled={role.isOwnerRole === true}
-                                            className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                          />
-                                          <span className="text-sm text-zinc-700 dark:text-zinc-200">
-                                            {label}
-                                          </span>
-                                        </label>
-                                      ))
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                                    <button
+                                                      type="button"
+                                                      onClick={() =>
+                                                        toggleSubcategory(
+                                                          subcatKey,
+                                                        )
+                                                      }
+                                                      className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
+                                                    >
+                                                      <span className="text-xs font-medium text-zinc-900 dark:text-white">
+                                                        {subcat} Sessions
+                                                      </span>
+                                                      <span
+                                                        className={clsx(
+                                                          "flex h-6 w-6 shrink-0 items-center justify-center rounded border border-zinc-200/80 bg-white text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
+                                                          isSubExpanded &&
+                                                            "rotate-180",
+                                                        )}
+                                                      >
+                                                        <IconChevronDown
+                                                          className="h-3 w-3"
+                                                          stroke={2}
+                                                        />
+                                                      </span>
+                                                    </button>
+                                                  </div>
+                                                  {isSubExpanded && (
+                                                    <div className="space-y-1.5 border-t border-zinc-200/60 px-3 py-2 dark:border-zinc-700/60">
+                                                      {Object.entries(
+                                                        subPerms,
+                                                      ).map(
+                                                        ([label, value]: [
+                                                          string,
+                                                          any,
+                                                        ]) => (
+                                                          <label
+                                                            key={value}
+                                                            className="flex cursor-pointer items-center gap-2.5 pl-4"
+                                                          >
+                                                            <input
+                                                              type="checkbox"
+                                                              checked={role.permissions.includes(
+                                                                value,
+                                                              )}
+                                                              onChange={() =>
+                                                                togglePermission(
+                                                                  role.id,
+                                                                  value,
+                                                                )
+                                                              }
+                                                              disabled={
+                                                                role.isOwnerRole ===
+                                                                true
+                                                              }
+                                                              className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            />
+                                                            <span className="text-xs text-zinc-700 dark:text-zinc-200">
+                                                              {label}
+                                                            </span>
+                                                          </label>
+                                                        ),
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              );
+                                            },
+                                          )
+                                        : Object.entries(
+                                            perms as Record<string, string>,
+                                          ).map(([label, value]) => (
+                                            <label
+                                              key={value}
+                                              className="flex cursor-pointer items-center gap-2.5 pl-1"
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={role.permissions.includes(
+                                                  value,
+                                                )}
+                                                onChange={() =>
+                                                  togglePermission(
+                                                    role.id,
+                                                    value,
+                                                  )
+                                                }
+                                                disabled={
+                                                  role.isOwnerRole === true
+                                                }
+                                                className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                              />
+                                              <span className="text-sm text-zinc-700 dark:text-zinc-200">
+                                                {label}
+                                              </span>
+                                            </label>
+                                          ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            },
+                          )}
                         </div>
                         {role.isOwnerRole === true && (
                           <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
@@ -652,7 +787,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                           Each rank can only be assigned to one role
                         </p>
                         <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
-                          {grouproles.map((groupRole) => {
+                          {filteredRoles.map((groupRole) => {
                             const isAssignedElsewhere =
                               aroledoesincludegrouprole(role.id, groupRole);
                             return (
@@ -663,7 +798,9 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                 <div className="flex min-w-0 items-center gap-2.5">
                                   <input
                                     type="checkbox"
-                                    checked={role.groupRoles.map(String).includes(String(groupRole.id))}
+                                    checked={role.groupRoles
+                                      .map(String)
+                                      .includes(String(groupRole.id))}
                                     onChange={() =>
                                       toggleGroupRole(role.id, groupRole)
                                     }
@@ -678,10 +815,13 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                       "truncate text-sm",
                                       isAssignedElsewhere
                                         ? "text-zinc-400 dark:text-zinc-500"
-                                        : "text-zinc-700 dark:text-zinc-200"
+                                        : "text-zinc-700 dark:text-zinc-200",
                                     )}
                                   >
-                                    {groupRole.name}
+                                    {groupRole.name}{" "}
+                                    <span className="text-zinc-400 dark:text-zinc-500">
+                                      (rank: {groupRole.rank})
+                                    </span>
                                   </span>
                                 </div>
                               </label>
@@ -722,7 +862,6 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
           </Disclosure>
         ))}
       </div>
-      <Toaster position="bottom-center" />
     </div>
   );
 };

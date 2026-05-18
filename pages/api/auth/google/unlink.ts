@@ -1,20 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!req.session.userid) {
+  if (!req.auth.userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
   try {
-    const robloxUserId = BigInt(req.session.userid);
+    const robloxUserId = BigInt(req.auth.userId);
 
     const gEntry = await prisma.googleUser.findFirst({
       where: { robloxUserId },
@@ -27,9 +28,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await prisma.googleUser.delete({
       where: { googleUserId: gEntry.googleUserId },
     });
-
-    delete req.session.googleid;
-    await req.session.save();
 
     return res.status(200).json({ success: true });
   } catch (err) {

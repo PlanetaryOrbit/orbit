@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig } from '@/utils/configEngine'
-import { withSessionRoute } from '@/lib/withSession'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth'
 
 type Data = {
   success: boolean
@@ -18,11 +18,11 @@ type Data = {
 */
 
 async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse<Data>
 ) {
 	if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" });
-	if(!req.session.userid) return res.status(401).json({ success: false, error: "Not logged in" });
+	if(!req.auth.userId) return res.status(401).json({ success: false, error: "Not logged in" });
 
 	const configuration = await Promise.all([
 		getConfig("guides", parseInt(req.query.id as string)),
@@ -44,4 +44,4 @@ async function handler(
 	})
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

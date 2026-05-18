@@ -34,19 +34,20 @@ import axios from "axios";
 import prisma from "@/utils/database";
 import { useForm, FormProvider } from "react-hook-form";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import clsx from "clsx";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
     const { id, gid } = context.query;
     if (!gid) return { notFound: true };
+    const authReq = context.req as AuthenticatedRequest;
 
     const user = await prisma.user.findFirst({
-      where: { userid: BigInt(context.req.session.userid) },
+      where: { userid: BigInt(authReq.auth.userId) },
       include: {
         roles: { where: { workspaceGroupId: Number(id) } },
         workspaceMemberships: { where: { workspaceGroupId: Number(id) } },
@@ -507,7 +508,6 @@ const EditDoc: pageWithLayout<any> = ({ roles, departments, document, canEdit, c
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <div className="flex items-center gap-4 mb-8">
           <button

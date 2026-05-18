@@ -1,17 +1,17 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
 import { checkGroupRoles } from '@/utils/permissionsManager'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });

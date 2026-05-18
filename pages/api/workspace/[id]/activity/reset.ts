@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 
 import {
@@ -18,12 +18,12 @@ type Data = {
 
 export default withPermissionCheck(handler, "reset_activity");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  if (!req.session.userid)
+  if (!req.auth.userId)
     return res.status(401).json({ success: false, error: "Not logged in" });
 
   const workspaceGroupId = Number(req.query.id as string);
@@ -345,7 +345,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       await tx.activityReset.create({
         data: {
           workspaceGroupId,
-          resetById: req.session.userid,
+          resetById: req.auth.userId,
           previousPeriodStart: periodStart,
           previousPeriodEnd: periodEnd,
         },

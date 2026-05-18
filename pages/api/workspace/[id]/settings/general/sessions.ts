@@ -3,7 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConfig, setConfig } from '@/utils/configEngine'
 import { logAudit } from '@/utils/logs'
 import { withPermissionCheck } from '@/utils/permissionsManager'
-import { withSessionRoute } from '@/lib/withSession'
+import { withAuth } from '@/lib/withAuth'
+// import { withAuth } from '@/lib/withSession'
 
 type Data = {
   success: boolean
@@ -11,13 +12,13 @@ type Data = {
   value?: any
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const userId = (req as any).session?.userid;
+  const userId = (req as any).auth?.userId;
   if (!userId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
@@ -36,7 +37,7 @@ async function handler(
       const before = await getConfig('sessions', workspaceId);
       const after = { enabled: req.body.enabled };
       await setConfig('sessions', after, workspaceId);
-      try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.sessions.update', 'sessions', { before, after }); } catch (e) {}
+      try { await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.sessions.update', 'sessions', { before, after }); } catch (e) {}
       return res.status(200).json({ success: true });
     }, 'manage_features')(req, res);
   }

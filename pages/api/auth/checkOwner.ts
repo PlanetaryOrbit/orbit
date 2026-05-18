@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
-import { withSessionRoute } from "@/lib/withSession"
 import prisma from "@/utils/database"
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth"
 
 type Data = {
   success: boolean
@@ -8,17 +8,17 @@ type Data = {
   isOwner?: boolean
 }
 
-export default withSessionRoute(handler)
+export default withAuth(handler)
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
-  if (!req.session.userid) return res.status(401).json({ success: false, error: "Not logged in" })
+  if (!req.auth.session?.userId) return res.status(401).json({ success: false, error: "Not logged in" })
 
   try {
     // Check if the user is the owner of any workspace
     const user = await prisma.user.findUnique({
       where: {
-        userid: req.session.userid,
+        userid: req.auth.userId,
       },
       select: {
         isOwner: true,

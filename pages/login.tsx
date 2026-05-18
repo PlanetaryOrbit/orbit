@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRecoilState } from "recoil";
 import { loginState } from "@/state";
 import Button from "@/components/button";
-import { withSessionSsr } from "@/lib/withSession"
 import Router from "next/router";
 import axios from "axios";
 import Input from "@/components/input";
@@ -14,811 +13,530 @@ import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
 import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 import { OAuthAvailable } from "@/hooks/useOAuth";
 
 type LoginForm = { username: string; password: string };
 type SignupForm = {
-	username: string;
-	password: string;
-	verifypassword: string;
+  username: string;
+  password: string;
+  verifypassword: string;
 };
 
 const AVATAR_BG_COLORS = [
-	"#fce7f3", "#fbcfe8", "#f9a8d4", "#f472b6", "#ec4899",
-	"#e0e7ff", "#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1",
-	"#d1fae5", "#a7f3d0", "#6ee7b7", "#34d399", "#10b981",
-	"#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4",
-	"#fef3c7", "#fde68a", "#fcd34d", "#fbbf24", "#f59e0b",
+  "#fce7f3", "#fbcfe8", "#f9a8d4", "#f472b6", "#ec4899",
+  "#e0e7ff", "#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1",
+  "#d1fae5", "#a7f3d0", "#6ee7b7", "#34d399", "#10b981",
+  "#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4",
+  "#fef3c7", "#fde68a", "#fcd34d", "#fbbf24", "#f59e0b",
 ];
+
 function getAvatarBgColor(displayName: string): string {
-	let n = 0;
-	for (let i = 0; i < displayName.length; i++) n = (n * 31 + displayName.charCodeAt(i)) >>> 0;
-	return AVATAR_BG_COLORS[n % AVATAR_BG_COLORS.length];
+  let n = 0;
+  for (let i = 0; i < displayName.length; i++) n = (n * 31 + displayName.charCodeAt(i)) >>> 0;
+  return AVATAR_BG_COLORS[n % AVATAR_BG_COLORS.length];
 }
 
 const Login: NextPage = () => {
-	const [login, setLogin] = useRecoilState(loginState);
-	const { isAvailable: isRobloxOAuth } = RobloxOAuthAvailable();
-	const { oauthOnly, isAvailable: isOAuthAvailable } = OAuthAvailable();
-	const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
-	const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
+  const [login, setLogin] = useRecoilState(loginState);
+  const { isAvailable: isRobloxOAuth } = RobloxOAuthAvailable();
+  const { oauthOnly, isAvailable: isOAuthAvailable } = OAuthAvailable();
+  const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
+  const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
 
-	const loginMethods = useForm<LoginForm>();
-	const signupMethods = useForm<SignupForm>();
+  const loginMethods = useForm<LoginForm>();
+  const signupMethods = useForm<SignupForm>();
 
-	const {
-		register: regLogin,
-		handleSubmit: submitLogin,
-		setError: setErrLogin,
-	} = loginMethods;
-	const {
-		register: regSignup,
-		handleSubmit: submitSignup,
-		setError: setErrSignup,
-		getValues: getSignupValues,
-	} = signupMethods;
+  const {
+    register: regLogin,
+    handleSubmit: submitLogin,
+    setError: setErrLogin,
+  } = loginMethods;
+  const {
+    register: regSignup,
+    handleSubmit: submitSignup,
+    setError: setErrSignup,
+    getValues: getSignupValues,
+  } = signupMethods;
 
-	const [loading, setLoading] = useState(false);
-	const [loginBg, setLoginBg] = useState<string | null>(null);
-	const [mode, setMode] = useState<"login" | "signup" | "link">("login");
-	const [signupStep, setSignupStep] = useState<0 | 1 | 2 | 3>(0);
-	const [signupThumbnail, setSignupThumbnail] = useState("");
-	const [signupDisplayName, setSignupDisplayName] = useState("");
-	const [verificationCode, setVerificationCode] = useState("");
-	const [verificationError, setVerificationError] = useState<string | null>(null);
-	const [showPassword, setShowPassword] = useState(false);
-	const [showCopyright, setShowCopyright] = useState(false);
-	const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
-	const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loginBg, setLoginBg] = useState<string | null>(null);
+  const [mode, setMode] = useState<"login" | "signup" | "link">("login");
+  const [signupStep, setSignupStep] = useState<0 | 1 | 2 | 3>(0);
+  const [signupThumbnail, setSignupThumbnail] = useState("");
+  const [signupDisplayName, setSignupDisplayName] = useState("");
+  const [signupUserid, setSignupUserid] = useState<number | undefined>(undefined);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCopyright, setShowCopyright] = useState(false);
+  const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
-	const errorToastShown = useRef(false);
-	const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
+  const errorToastShown = useRef(false);
+  const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
-	// true when oauthOnly is set AND at least one provider is actually configured
-	const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
+  const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
 
-	useEffect(() => {
-		loginMethods.reset();
-		signupMethods.reset();
-		setVerificationError(null);
-		setSignupStep(0);
-		setSignupThumbnail("");
-		setSignupDisplayName("");
-		setLoading(false);
-		setUsernameCheckLoading(false);
-		setUsernameAvailable(null);
-		if (usernameCheckTimeout.current) {
-			clearTimeout(usernameCheckTimeout.current);
-		}
-	}, [mode]);
+  useEffect(() => {
+    loginMethods.reset();
+    signupMethods.reset();
+    setVerificationError(null);
+    setSignupStep(0);
+    setSignupThumbnail("");
+    setSignupDisplayName("");
+    setVerificationCode("");
+    setLoading(false);
+    setUsernameCheckLoading(false);
+    setUsernameAvailable(null);
+    if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
+  }, [mode]);
 
-	useEffect(() => {
-		async function fetchMe() {
-			const userInfo = await axios.get('/api/@me');
-			if (userInfo.status == 200) {
-				Router.push('/');
-			}
-		}
+  useEffect(() => {
+    async function fetchMe() {
+      const userInfo = await axios.get('/api/@me');
+      if (userInfo.status === 200) Router.push('/');
+    }
 
-		async function fetchBackground() {
-			try {
-				const res = await axios.get('/api/instance/login-background');
-				if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl);
-				if (res.data.themeRgb) {
-					document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
-				}
-			} catch {}
-		}
+    async function fetchBackground() {
+      try {
+        const res = await axios.get('/api/instance/login-background');
+        if (res.data.backgroundUrl) setLoginBg(res.data.backgroundUrl);
+        if (res.data.themeRgb) {
+          document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
+        }
+      } catch {}
+    }
 
-		fetchMe();
-		fetchBackground();
-	}, []);
+    fetchMe();
+    fetchBackground();
+  }, []);
 
-	useEffect(() => {
-		return () => {
-			if (usernameCheckTimeout.current) {
-				clearTimeout(usernameCheckTimeout.current);
-			}
-		};
-	}, []);
+  useEffect(() => {
+    return () => {
+      if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
+    };
+  }, []);
 
-	const checkUsernameAvailability = async (username: string) => {
-		if (!username || username.length < 2) {
-			setUsernameAvailable(null);
-			return;
-		}
+  const checkUsernameAvailability = async (username: string) => {
+    if (!username || username.length < 2) {
+      setUsernameAvailable(null);
+      return;
+    }
+    setUsernameCheckLoading(true);
+    setUsernameAvailable(null);
+    try {
+      await axios.post("/api/auth/checkUsername", { username });
+      signupMethods.clearErrors("username");
+      setUsernameAvailable(true);
+    } catch (e: any) {
+      const errorMessage = e?.response?.data?.error;
+      if (errorMessage) {
+        setErrSignup("username", { type: "custom", message: errorMessage });
+        setUsernameAvailable(false);
+      }
+    } finally {
+      setUsernameCheckLoading(false);
+    }
+  };
 
-		setUsernameCheckLoading(true);
-		setUsernameAvailable(null);
-		try {
-			await axios.post("/api/auth/checkUsername", { username });
-			signupMethods.clearErrors("username");
-			setUsernameAvailable(true);
-		} catch (e: any) {
-			const errorMessage = e?.response?.data?.error;
-			if (errorMessage) {
-				setErrSignup("username", { type: "custom", message: errorMessage });
-				setUsernameAvailable(false);
-			}
-		} finally {
-			setUsernameCheckLoading(false);
-		}
-	};
+  const onUsernameChange = (username: string) => {
+    if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
+    signupMethods.clearErrors("username");
+    setUsernameAvailable(null);
+    usernameCheckTimeout.current = setTimeout(() => {
+      checkUsernameAvailability(username);
+    }, 800);
+  };
 
-	const onUsernameChange = (username: string) => {
-		if (usernameCheckTimeout.current) {
-			clearTimeout(usernameCheckTimeout.current);
-		}
+  const signupUsernameReg = regSignup("username", { required: "This field is required" });
+  const signupUsernameProps = {
+    ...signupUsernameReg,
+    onChange: (e: Parameters<typeof signupUsernameReg.onChange>[0]) => {
+      const result = signupUsernameReg.onChange(e);
+      onUsernameChange((e.target as HTMLInputElement).value);
+      return result;
+    },
+  };
 
-		signupMethods.clearErrors("username");
-		setUsernameAvailable(null);
+  const onSubmitLogin: SubmitHandler<LoginForm> = async (data) => {
+    setLoading(true);
+    try {
+      const req = await axios.post("/api/auth/login", data).catch((e: any) => {
+        setLoading(false);
+        if (e.response?.status === 404) {
+          setErrLogin("username", { type: "custom", message: e.response.data.error });
+        } else if (e.response?.status === 401) {
+          setErrLogin("password", { type: "custom", message: e.response.data.error });
+        } else {
+          setErrLogin("username", { type: "custom", message: "Something went wrong" });
+          setErrLogin("password", { type: "custom", message: "Something went wrong" });
+        }
+        throw e;
+      });
+      const { data: res } = req;
+      setLogin({ ...res.user, workspaces: res.workspaces });
+      Router.push("/");
+    } catch {}
+    finally {
+      setLoading(false);
+    }
+  };
 
-		usernameCheckTimeout.current = setTimeout(() => {
-			checkUsernameAvailability(username);
-		}, 800);
-	};
+  // Step 2 → 3: call start, store both code and token
+  const onSubmitSignup: SubmitHandler<SignupForm> = async ({ username, password, verifypassword }) => {
+  if (password !== verifypassword) {
+    setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
+    return;
+  }
+  setLoading(true);
+  setVerificationError(null);
+  try {
+    const { data } = await axios.post("/api/auth/signup/start", { username });
+    setVerificationCode(data.code);
+    setSignupUserid(data.userid);
+    setSignupStep(3);
+  } catch (e: any) {
+    setErrSignup("username", {
+      type: "custom",
+      message: e.response?.data?.error || "Unexpected error occurred.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
-	const signupUsernameReg = regSignup("username", { required: "This field is required" });
-	const signupUsernameProps = {
-		...signupUsernameReg,
-		onChange: (e: Parameters<typeof signupUsernameReg.onChange>[0]) => {
-			const result = signupUsernameReg.onChange(e);
-			onUsernameChange((e.target as HTMLInputElement).value);
-			return result;
-		},
-	};
+  // Step 3: verify — pass token back to finish route
+  const onVerifyAgain = async () => {
+  setLoading(true);
+  setVerificationError(null);
+  const { password } = getSignupValues();
+  try {
+    const { data } = await axios.post("/api/auth/signup/finish", {
+      password,
+      code: verificationCode,
+      userid: signupUserid,
+    });
+    if (data.success) Router.push("/");
+    else setVerificationError("Verification failed. Please try again.");
+  } catch (e: any) {
+    setVerificationError(e?.response?.data?.error || "Verification not found. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-	const onSubmitLogin: SubmitHandler<LoginForm> = async (data) => {
-		setLoading(true);
-		try {
-			let req;
-			try {
-				req = await axios.post("/api/auth/login", data);
-			} catch (e: any) {
-				setLoading(false);
-				if (e.response.status === 404) {
-					setErrLogin("username", { type: "custom", message: e.response.data.error });
-					return;
-				}
-				if (e.response.status === 401) {
-					setErrLogin("password", { type: "custom", message: e.response.data.error });
-					return;
-				}
-				setErrLogin("username", { type: "custom", message: "Something went wrong" });
-				setErrLogin("password", { type: "custom", message: "Something went wrong" });
-				return;
-			}
-			const { data: res } = req;
-			setLogin({ ...res.user, workspaces: res.workspaces });
-			Router.push("/");
-		} catch (e: any) {
-			const msg = e.response?.data?.error || "Something went wrong";
-			const status = e.response?.status;
+  useEffect(() => {
+    if (!Router.isReady || errorToastShown.current) return;
+    const { error, action, ...rest } = Router.query;
+    if (error) {
+      if (error === "discord-not-linked") toast.error("This account isn't linked to any Orbit account.");
+      else if (error === "google-not-linked") toast.error("Your Google account is not linked.");
+      else if (error === "state-mismatch") toast.error("We detected a state mismatch, OAuth process was discontinued.");
+      else if (error === "missing_params") toast.error("Not enough params were provided.");
+      else if (error === "unauthorized-domain") toast.error("This domain is not allowed to sign in.");
+      else toast.error("There was an error while logging in.");
+      errorToastShown.current = true;
+      Router.replace({ pathname: Router.pathname, query: rest }, undefined, { shallow: true });
+    }
+  }, [Router.isReady, Router.query]);
 
-			if (status === 404 || status === 401) {
-				setErrLogin("username", { type: "custom", message: msg });
-				if (status === 401) setErrLogin("password", { type: "custom", message: msg });
-			} else {
-				setErrLogin("username", { type: "custom", message: msg });
-				setErrLogin("password", { type: "custom", message: msg });
-			}
-		} finally {
-			setLoading(false);
-		}
-	};
+  const OAuthButtons = ({ className }: { className?: string }) => (
+    <div className={`flex flex-col gap-3 ${className ?? ""}`}>
+      {isRobloxOAuth && (
+        <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
+          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
+          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          Continue with Roblox
+        </button>
+      )}
+      {isDiscordOAuth && (
+        <button type="button" onClick={() => (window.location.href = "/api/auth/discord/start")} disabled={loading}
+          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
+          <img src="/discord.svg" alt="Discord" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          Continue with Discord
+        </button>
+      )}
+      {isGoogleOAuth && (
+        <button type="button" onClick={() => (window.location.href = "/api/auth/google/start")} disabled={loading}
+          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
+          <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          Continue with Google
+        </button>
+      )}
+    </div>
+  );
 
-	const onSubmitSignup: SubmitHandler<SignupForm> = async ({ username, password, verifypassword }) => {
-		if (password !== verifypassword) {
-			setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
-			return;
-		}
-		setLoading(true);
-		setVerificationError(null);
-		try {
-			const { data } = await axios.post("/api/auth/signup/start", { username });
-			setVerificationCode(data.code);
-			setSignupStep(3);
-		} catch (e: any) {
-			setErrSignup("username", {
-				type: "custom",
-				message: e.response?.data?.error || "Unexpected error occurred.",
-			});
-		} finally {
-			setLoading(false);
-		}
-	};
+  return (
+    <>
+      <div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
+        {loginBg ? (
+          <>
+            <div className="fixed inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${loginBg})` }} aria-hidden />
+            <div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
+          </>
+        ) : (
+          <>
+            <div className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40" aria-hidden />
+            <div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
+          </>
+        )}
 
-	const onVerifyAgain = async () => {
-		setLoading(true);
-		setVerificationError(null);
+        <div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
+          <div className="max-w-md">
+            <span className="inline-flex items-center gap-2 text-zinc-400 text-sm font-medium tracking-wide uppercase mb-6">
+              <span className="w-8 h-px bg-primary rounded-full" />
+              Account
+            </span>
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
+              Welcome to{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Orbit</span>
+            </h1>
+            <p className="mt-4 text-lg text-zinc-400 leading-relaxed">
+              Sign in or create an account to access your workspaces.
+            </p>
+          </div>
+        </div>
 
-		const { password } = getSignupValues();
+        <div className="relative z-10 flex flex-col justify-center items-center w-full md:w-[58%] lg:w-[62%] px-4 sm:px-6 py-12 md:py-16">
+          <div className="w-full max-w-md">
+            <div className="relative rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 p-8">
+              <div className="absolute top-6 right-6">
+                <ThemeToggle />
+              </div>
 
-		try {
-			const { data } = await axios.post("/api/auth/signup/finish", {
-				password,
-				code: verificationCode,
-			});
-			if (data.success) Router.push("/");
-			else setVerificationError("Verification failed. Please try again.");
-		} catch (e: any) {
-			const errorMessage = e?.response?.data?.error || "Verification not found. Please try again.";
-			setVerificationError(errorMessage);
-		} finally {
-			setLoading(false);
-		}
-	};
+              {mode === "login" && (
+                <>
+                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Sign in</h2>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                    {effectiveOAuthOnly ? "Use one of the options below to sign in." : "Use your username and password to continue."}
+                  </p>
+                  {!effectiveOAuthOnly && (
+                    <FormProvider {...loginMethods}>
+                      <form onSubmit={submitLogin(onSubmitLogin)} className="space-y-4 mb-6" noValidate>
+                        <Input label="Username" placeholder="Username" id="username" {...regLogin("username", { required: "This field is required" })} />
+                        <Input label="Password" placeholder="Password" type={showPassword ? "text" : "password"} id="password" {...regLogin("password", { required: "This field is required" })} />
+                        <div className="flex items-center gap-2">
+                          <input id="show-password" type="checkbox" checked={showPassword} onChange={() => setShowPassword((v) => !v)}
+                            className="rounded border-zinc-300 dark:border-zinc-600 text-primary focus:ring-primary/30" />
+                          <label htmlFor="show-password" className="text-sm text-zinc-600 dark:text-zinc-400 select-none">Show password</label>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                          <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">Forgot password?</Link>
+                          <Button type="submit" classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading}>Login</Button>
+                        </div>
+                        {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
+                          <>
+                            <div className="relative my-6">
+                              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
+                              <div className="relative flex justify-center text-xs"><span className="bg-zinc-100 dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
+                            </div>
+                            <OAuthButtons />
+                          </>
+                        )}
+                      </form>
+                    </FormProvider>
+                  )}
+                  {effectiveOAuthOnly && <OAuthButtons />}
+                </>
+              )}
 
-	useEffect(() => {
-		if (!Router.isReady || errorToastShown.current) return;
+              {mode === "signup" && (
+                <>
+                  {signupStep === 0 && (
+                    <>
+                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Create an account</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Choose a username to get started.</p>
+                      {!effectiveOAuthOnly && (
+                        <FormProvider {...signupMethods}>
+                          <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const username = getSignupValues("username");
+                            if (!username) return;
+                            setLoading(true);
+                            try {
+                              const { data } = await axios.post("/api/auth/signup/preview", { username });
+                              setSignupThumbnail(data.thumbnail || "");
+                              setSignupDisplayName(data.displayName || username);
+                              setSignupStep(1);
+                            } catch (err: any) {
+                              setErrSignup("username", { type: "custom", message: err?.response?.data?.error || "Something went wrong" });
+                            } finally {
+                              setLoading(false);
+                            }
+                          }} className="space-y-4 mb-6" noValidate>
+                            <Input label="Username" placeholder="Username" id="signup-username" {...signupUsernameProps} />
+                            {usernameCheckLoading && <p className="text-sm text-primary mt-1">Checking username...</p>}
+                            {!usernameCheckLoading && usernameAvailable === true && (
+                              <p className="text-sm text-emerald-500 dark:text-emerald-400 mt-1">✓ Username is available</p>
+                            )}
+                            <div className="flex justify-end pt-1">
+                              <Button type="submit" classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading}
+                                disabled={loading || usernameCheckLoading || usernameAvailable !== true || !!signupMethods.formState.errors.username}>
+                                Continue
+                              </Button>
+                            </div>
+                          </form>
+                        </FormProvider>
+                      )}
+                      {isRobloxOAuth && (
+                        <>
+                          {!effectiveOAuthOnly && (
+                            <div className="relative my-6">
+                              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
+                              <div className="relative flex justify-center text-xs"><span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
+                            </div>
+                          )}
+                          <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
+                            className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
+                            <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+                            Sign up with Roblox
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
 
-		const { error, action, ...rest } = Router.query;
+                  {signupStep === 1 && (
+                    <>
+                      <div className="flex items-start gap-5 mb-6">
+                        <div className="flex shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-600/60 w-[5.5rem] h-[5.5rem]"
+                          style={{ backgroundColor: getAvatarBgColor(signupDisplayName || "") }}>
+                          {signupThumbnail ? (
+                            <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center bg-transparent shrink-0">
+                              <img src={signupThumbnail} alt="" className="max-w-full max-h-full w-full h-full rounded-xl object-contain object-bottom block" />
+                            </div>
+                          ) : (
+                            <div className="w-20 h-20 rounded-xl bg-zinc-200/80 dark:bg-zinc-600/80 flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-2xl font-medium shrink-0">?</div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 pt-0.5">
+                          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+                            Is <span className="text-primary">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
+                          </h2>
+                          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">Confirm this is your Roblox account, then choose a password.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                          onPress={() => setSignupStep(0)} disabled={loading}>Back</Button>
+                        <Button type="button" classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" onPress={() => setSignupStep(2)} disabled={loading}>Yes, continue</Button>
+                      </div>
+                    </>
+                  )}
 
-		if (error) {
-			if (error == "discord-not-linked") {
-				toast.error("This account isn't linked to any Orbit account.");
-			} else if (error == "google-not-linked") {
-				toast.error("Your Google account is not linked.");
-			} else if (error == "state-mismatch") {
-				toast.error("We detected a state mismatch, OAuth process was discontinued.");
-			} else if (error == "missing_params") {
-				toast.error("Not enough params were provided.");
-			} else if (error == "unauthorized-domain") {
-				toast.error("This domain is not allowed to sign in.");
-			} else {
-				toast.error("There was an error while logging in.");
-			}
-			errorToastShown.current = true;
-			Router.replace({ pathname: Router.pathname, query: rest }, undefined, { shallow: true });
-		}
-	}, [Router.isReady, Router.query]);
+                  {signupStep === 2 && (
+                    <>
+                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Set a password</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Choose a secure password for your account.</p>
+                      <FormProvider {...signupMethods}>
+                        <form onSubmit={submitSignup(onSubmitSignup)} className="space-y-4 mb-6" noValidate>
+                          <Input label="Password" placeholder="Password" type="password" id="signup-password"
+                            {...regSignup("password", {
+                              required: "Password is required",
+                              minLength: { value: 7, message: "Password must be at least 7 characters" },
+                              pattern: { value: /^(?=.*[0-9!@#$%^&*])/, message: "Password must contain at least one number or special character" },
+                            })} />
+                          <Input label="Verify password" placeholder="Verify password" type="password" id="signup-verify-password"
+                            {...regSignup("verifypassword", {
+                              required: "Please verify your password",
+                              validate: (value) => value === getSignupValues("password") || "Passwords must match",
+                            })} />
+                          <div className="flex gap-3 pt-1">
+                            <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                              onPress={() => setSignupStep(1)} disabled={loading}>Back</Button>
+                            <Button type="submit" classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading}>Continue</Button>
+                          </div>
+                          {isRobloxOAuth && (
+                            <>
+                              <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
+                                <div className="relative flex justify-center text-xs"><span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
+                              </div>
+                              <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
+                                className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
+                                <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                                Sign up with Roblox
+                              </button>
+                            </>
+                          )}
+                          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
+                            Don't share your password. Don't use the same password as your Roblox account.
+                          </p>
+                        </form>
+                      </FormProvider>
+                    </>
+                  )}
 
-	const OAuthButtons = ({ className }: { className?: string }) => (
-		<div className={`flex flex-col gap-3 ${className ?? ""}`}>
-			{isRobloxOAuth && (
-				<button
-					type="button"
-					onClick={() => (window.location.href = "/api/auth/roblox/start")}
-					disabled={loading}
-					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-				>
-					<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
-					Continue with Roblox
-				</button>
-			)}
-			{isDiscordOAuth && (
-				<button
-					type="button"
-					onClick={() => (window.location.href = "/api/auth/discord/start")}
-					disabled={loading}
-					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-				>
-					<img src="/discord.svg" alt="Discord" className="w-5 h-5 mr-2 dark:invert-0 invert" />
-					Continue with Discord
-				</button>
-			)}
-			{isGoogleOAuth && (
-				<button
-					type="button"
-					onClick={() => (window.location.href = "/api/auth/google/start")}
-					disabled={loading}
-					className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-				>
-					<img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert-0 invert" />
-					Continue with Google
-				</button>
-			)}
-		</div>
-	);
+                  {signupStep === 3 && (
+                    <>
+                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Verify your account</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                        Paste this code into your Roblox profile bio, then click Verify.
+                      </p>
+                      <p className="text-center font-mono text-sm bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white py-3 px-4 rounded-xl mb-4 select-all border border-zinc-200 dark:border-zinc-600">
+                        {verificationCode}
+                      </p>
+                      <ul className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 space-y-1 list-disc list-inside">
+                        <li>Go to your Roblox profile</li>
+                        <li>Click "Edit Profile"</li>
+                        <li>Paste the code into your Bio / About section</li>
+                        <li>Save and click Verify below</li>
+                      </ul>
+                      {verificationError && <p className="text-center text-red-500 text-sm mb-4">{verificationError}</p>}
+                      <div className="flex gap-3">
+                        <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                          onPress={() => setSignupStep(2)} disabled={loading}>Back</Button>
+                        <Button classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading} onPress={onVerifyAgain}>Verify</Button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
 
-	return (
-		<>
-			<div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
-				<Toaster position="bottom-center" />
-				{loginBg ? (
-					<>
-						<div
-							className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-							style={{ backgroundImage: `url(${loginBg})` }}
-							aria-hidden
-						/>
-						<div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
-					</>
-				) : (
-					<>
-						<div
-							className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40"
-							aria-hidden
-						/>
-						<div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
-					</>
-				)}
+              {mode === "link" && (
+                <>
+                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Link your Discord Account</h2>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Link your account for faster access</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
 
-				<div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
-					<div className="max-w-md">
-						<span className="inline-flex items-center gap-2 text-zinc-400 text-sm font-medium tracking-wide uppercase mb-6">
-							<span className="w-8 h-px bg-primary rounded-full" />
-							Account
-						</span>
-						<h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
-							Welcome to{" "}
-							<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-								Orbit
-							</span>
-						</h1>
-						<p className="mt-4 text-lg text-zinc-400 leading-relaxed">
-							Sign in or create an account to access your workspaces.
-						</p>
-					</div>
-				</div>
+        <div className="fixed bottom-4 left-4 z-40">
+          <button onClick={() => setShowCopyright(true)} className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors" type="button">
+            © Copyright Notices
+          </button>
+        </div>
+      </div>
 
-				<div className="relative z-10 flex flex-col justify-center items-center w-full md:w-[58%] lg:w-[62%] px-4 sm:px-6 py-12 md:py-16">
-					<div className="w-full max-w-md">
-						<div className="relative rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 p-8">
-							<div className="absolute top-6 right-6">
-								<ThemeToggle />
-							</div>
-
-							<div className="flex gap-6 mb-8 border-b border-zinc-200 dark:border-zinc-600 -mx-1">
-								{mode !== "link" ? (
-									["login", ...(effectiveOAuthOnly ? [] : ["signup"])].map((m) => {
-										const isActive = mode === m;
-										return (
-											<button
-												key={m}
-												onClick={() => setMode(m as any)}
-												className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${
-													isActive
-														? "text-primary border-primary"
-														: "text-zinc-500 dark:text-zinc-400 border-transparent hover:text-zinc-700 dark:hover:text-zinc-300"
-												}`}
-												type="button"
-												disabled={loading}
-											>
-												{m === "login" ? "Login" : "Sign Up"}
-											</button>
-										);
-									})
-								) : (
-									<span className="pb-3 px-1 text-sm font-medium text-primary border-b-2 border-primary -mb-px">
-										Link
-									</span>
-								)}
-							</div>
-
-							{mode === "login" && (
-								<>
-									<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-										Sign in
-									</h2>
-									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-										{effectiveOAuthOnly
-											? "Use one of the options below to sign in."
-											: "Use your username and password to continue."}
-									</p>
-
-									{!effectiveOAuthOnly && (
-										<FormProvider {...loginMethods}>
-											<form
-												onSubmit={submitLogin(onSubmitLogin)}
-												className="space-y-4 mb-6"
-												noValidate
-											>
-												<Input
-													label="Username"
-													placeholder="Username"
-													id="username"
-													{...regLogin("username", { required: "This field is required" })}
-												/>
-												<Input
-													label="Password"
-													placeholder="Password"
-													type={showPassword ? "text" : "password"}
-													id="password"
-													{...regLogin("password", { required: "This field is required" })}
-												/>
-												<div className="flex items-center gap-2">
-													<input
-														id="show-password"
-														type="checkbox"
-														checked={showPassword}
-														onChange={() => setShowPassword((v) => !v)}
-														className="rounded border-zinc-300 dark:border-zinc-600 text-primary focus:ring-primary/30"
-													/>
-													<label
-														htmlFor="show-password"
-														className="text-sm text-zinc-600 dark:text-zinc-400 select-none"
-													>
-														Show password
-													</label>
-												</div>
-												<div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-													<Link
-														href="/forgot-password"
-														className="text-sm text-primary hover:text-primary/80 transition-colors"
-													>
-														Forgot password?
-													</Link>
-													<Button
-														type="submit"
-														classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-														loading={loading}
-														disabled={loading}
-													>
-														Login
-													</Button>
-												</div>
-
-												{(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
-													<>
-														<div className="relative my-6">
-															<div className="absolute inset-0 flex items-center">
-																<span className="w-full border-t border-zinc-200 dark:border-zinc-600" />
-															</div>
-															<div className="relative flex justify-center text-xs">
-																<span className="bg-zinc-100 dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">
-																	or
-																</span>
-															</div>
-														</div>
-														<OAuthButtons />
-													</>
-												)}
-											</form>
-										</FormProvider>
-									)}
-
-									{effectiveOAuthOnly && <OAuthButtons />}
-								</>
-							)}
-
-							{mode === "signup" && (
-								<>
-									{signupStep === 0 && (
-										<>
-											<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-												Create an account
-											</h2>
-											<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-												Choose a username to get started.
-											</p>
-
-											{!effectiveOAuthOnly && (
-												<FormProvider {...signupMethods}>
-													<form
-														onSubmit={async (e) => {
-															e.preventDefault();
-															const username = getSignupValues("username");
-															if (!username) return;
-															setLoading(true);
-															try {
-																const { data } = await axios.post("/api/auth/signup/preview", { username });
-																setSignupThumbnail(data.thumbnail || "");
-																setSignupDisplayName(data.displayName || username);
-																setSignupStep(1);
-															} catch (err: any) {
-																setErrSignup("username", {
-																	type: "custom",
-																	message: err?.response?.data?.error || "Something went wrong",
-																});
-															} finally {
-																setLoading(false);
-															}
-														}}
-														className="space-y-4 mb-6"
-														noValidate
-													>
-														<Input
-															label="Username"
-															placeholder="Username"
-															id="signup-username"
-															{...signupUsernameProps}
-														/>
-														{usernameCheckLoading && (
-															<p className="text-sm text-primary mt-1">Checking username...</p>
-														)}
-														{!usernameCheckLoading && usernameAvailable === true && (
-															<p className="text-sm text-emerald-500 dark:text-emerald-400 mt-1">
-																✓ Username is available
-															</p>
-														)}
-														<div className="flex justify-end pt-1">
-															<Button
-																type="submit"
-																classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-																loading={loading}
-																disabled={
-																	loading ||
-																	usernameCheckLoading ||
-																	usernameAvailable !== true ||
-																	!!signupMethods.formState.errors.username
-																}
-															>
-																Continue
-															</Button>
-														</div>
-													</form>
-												</FormProvider>
-											)}
-
-											{isRobloxOAuth && (
-												<>
-													{!effectiveOAuthOnly && (
-														<div className="relative my-6">
-															<div className="absolute inset-0 flex items-center">
-																<span className="w-full border-t border-zinc-200 dark:border-zinc-600" />
-															</div>
-															<div className="relative flex justify-center text-xs">
-																<span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">
-																	or
-																</span>
-															</div>
-														</div>
-													)}
-													<button
-														type="button"
-														onClick={() => (window.location.href = "/api/auth/roblox/start")}
-														disabled={loading}
-														className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-													>
-														<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
-														Sign up with Roblox
-													</button>
-												</>
-											)}
-										</>
-									)}
-
-									{signupStep === 1 && (
-										<>
-											<div className="flex items-start gap-5 mb-6">
-												<div
-													className="flex shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-600/60 w-[5.5rem] h-[5.5rem]"
-													style={{ backgroundColor: getAvatarBgColor(signupDisplayName || "") }}
-												>
-													{signupThumbnail ? (
-														<div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center bg-transparent shrink-0">
-															<img
-																src={signupThumbnail}
-																alt=""
-																className="max-w-full max-h-full w-full h-full rounded-xl object-contain object-bottom block"
-															/>
-														</div>
-													) : (
-														<div className="w-20 h-20 rounded-xl bg-zinc-200/80 dark:bg-zinc-600/80 flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-2xl font-medium shrink-0">
-															?
-														</div>
-													)}
-												</div>
-												<div className="min-w-0 flex-1 pt-0.5">
-													<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-														Is <span className="text-primary">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
-													</h2>
-													<p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-														Confirm this is your Roblox account, then choose a password.
-													</p>
-												</div>
-											</div>
-											<div className="flex gap-3">
-												<Button
-													type="button"
-													classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-													onPress={() => setSignupStep(0)}
-													disabled={loading}
-												>
-													Back
-												</Button>
-												<Button
-													type="button"
-													classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-													onPress={() => setSignupStep(2)}
-													disabled={loading}
-												>
-													Yes, continue
-												</Button>
-											</div>
-										</>
-									)}
-
-									{signupStep === 2 && (
-										<>
-											<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-												Set a password
-											</h2>
-											<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-												Choose a secure password for your account.
-											</p>
-
-											<FormProvider {...signupMethods}>
-												<form
-													onSubmit={submitSignup(onSubmitSignup)}
-													className="space-y-4 mb-6"
-													noValidate
-												>
-													<Input
-														label="Password"
-														placeholder="Password"
-														type="password"
-														id="signup-password"
-														{...regSignup("password", {
-															required: "Password is required",
-															minLength: { value: 7, message: "Password must be at least 7 characters" },
-															pattern: {
-																value: /^(?=.*[0-9!@#$%^&*])/,
-																message: "Password must contain at least one number or special character",
-															},
-														})}
-													/>
-													<Input
-														label="Verify password"
-														placeholder="Verify password"
-														type="password"
-														id="signup-verify-password"
-														{...regSignup("verifypassword", {
-															required: "Please verify your password",
-															validate: (value) =>
-																value === getSignupValues("password") || "Passwords must match",
-														})}
-													/>
-													<div className="flex gap-3 pt-1">
-														<Button
-															type="button"
-															classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-															onPress={() => setSignupStep(1)}
-															disabled={loading}
-														>
-															Back
-														</Button>
-														<Button
-															type="submit"
-															classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-															loading={loading}
-															disabled={loading}
-														>
-															Continue
-														</Button>
-													</div>
-
-													{isRobloxOAuth && (
-														<>
-															<div className="relative my-6">
-																<div className="absolute inset-0 flex items-center">
-																	<span className="w-full border-t border-zinc-200 dark:border-zinc-600" />
-																</div>
-																<div className="relative flex justify-center text-xs">
-																	<span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">
-																		or
-																	</span>
-																</div>
-															</div>
-															<button
-																type="button"
-																onClick={() => (window.location.href = "/api/auth/roblox/start")}
-																disabled={loading}
-																className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors"
-															>
-																<img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
-																Sign up with Roblox
-															</button>
-														</>
-													)}
-
-													<p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
-														Don't share your password. Don't use the same password as your Roblox account.
-													</p>
-												</form>
-											</FormProvider>
-										</>
-									)}
-
-									{signupStep === 3 && (
-										<>
-											<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-												Verify your account
-											</h2>
-											<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-												Paste this code into your Roblox profile bio, then click Verify.
-											</p>
-											<p className="text-center font-mono text-sm bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white py-3 px-4 rounded-xl mb-4 select-all border border-zinc-200 dark:border-zinc-600">
-												{verificationCode}
-											</p>
-											<ul className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 space-y-1 list-disc list-inside">
-												<li>Go to your Roblox profile</li>
-												<li>Click "Edit Profile"</li>
-												<li>Paste the code into your Bio / About section</li>
-												<li>Save and click Verify below</li>
-											</ul>
-											{verificationError && (
-												<p className="text-center text-red-500 text-sm mb-4">{verificationError}</p>
-											)}
-											<div className="flex gap-3">
-												<Button
-													type="button"
-													classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-													onPress={() => setSignupStep(2)}
-													disabled={loading}
-												>
-													Back
-												</Button>
-												<Button
-													classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
-													loading={loading}
-													disabled={loading}
-													onPress={onVerifyAgain}
-												>
-													Verify
-												</Button>
-											</div>
-										</>
-									)}
-								</>
-							)}
-
-							{mode === "link" && (
-								<>
-									<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-										Link your Discord Account
-									</h2>
-									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-										Link your account for faster access
-									</p>
-								</>
-							)}
-						</div>
-					</div>
-				</div>
-
-				<div className="fixed bottom-4 left-4 z-40">
-					<button
-						onClick={() => setShowCopyright(true)}
-						className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
-						type="button"
-					>
-						© Copyright Notices
-					</button>
-				</div>
-			</div>
-
-			<Dialog open={showCopyright} onClose={() => setShowCopyright(false)} className="relative z-50">
-				<div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-				<div className="fixed inset-0 flex items-center justify-center p-4">
-					<Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
-						<div className="flex items-center justify-between mb-4">
-							<Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">
-								Copyright Notices
-							</Dialog.Title>
-							<button
-								onClick={() => setShowCopyright(false)}
-								className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700"
-							>
-								<IconX className="w-5 h-5 text-zinc-500" />
-							</button>
-						</div>
-						<div className="space-y-4">
-							<div>
-								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
-									Orbit features, enhancements, and modifications:
-								</h3>
-								<p className="text-sm text-zinc-500 dark:text-zinc-400">
-									Copyright © 2026 Planetary. All rights reserved.
-								</p>
-							</div>
-							<div>
-								<h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
-									Original Tovy features and code:
-								</h3>
-								<p className="text-sm text-zinc-500 dark:text-zinc-400">
-									Copyright © 2022 Tovy. All rights reserved.
-								</p>
-							</div>
-						</div>
-					</Dialog.Panel>
-				</div>
-			</Dialog>
-		</>
-	);
+      <Dialog open={showCopyright} onClose={() => setShowCopyright(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">Copyright Notices</Dialog.Title>
+              <button onClick={() => setShowCopyright(false)} className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700">
+                <IconX className="w-5 h-5 text-zinc-500" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Orbit features, enhancements, and modifications:</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Copyright © 2026 Planetary. All rights reserved.</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Original Tovy features and code:</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Copyright © 2022 Tovy. All rights reserved.</p>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+    </>
+  );
 };
 
 export default Login;

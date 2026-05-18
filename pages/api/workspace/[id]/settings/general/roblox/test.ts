@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
 import prisma from "@/utils/database";
 import axios from "axios";
 import { getConfig } from "@/utils/configEngine";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 interface OpenCloudKeyRes {
   name: string;
@@ -15,13 +15,13 @@ interface OpenCloudKeyRes {
   expired: boolean;
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
   const workspaceId = parseInt(req.query.id as string);
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
 
   if (!userId || isNaN(workspaceId)) {
     return res.status(400).json({ success: false, error: "Invalid request" });
@@ -98,4 +98,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

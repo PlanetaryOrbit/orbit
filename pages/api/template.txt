@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 type Data = {
@@ -10,7 +10,7 @@ type Data = {
 	error?: string
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
 	req: NextApiRequest,

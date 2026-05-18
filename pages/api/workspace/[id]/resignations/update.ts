@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { logAudit } from "@/utils/logs";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -13,12 +14,12 @@ export default withPermissionCheck(handler, [
   "manage_resignations",
 ]);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  if (!req.session.userid) {
+  if (!req.auth.userId) {
     return res.status(401).json({ success: false, error: "Not logged in" });
   }
 
@@ -37,7 +38,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (status === "cancel") {
     const user = await prisma.user.findFirst({
       where: {
-        userid: BigInt(req.session.userid),
+        userid: BigInt(req.auth.userId),
       },
       include: {
         roles: {
@@ -102,7 +103,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           approved: status === "approve",
           reviewed: true,
           reviewComment: reviewComment || null,
-          reviewerId: BigInt(req.session.userid),
+          reviewerId: BigInt(req.auth.userId),
         },
       });
       try {

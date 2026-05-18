@@ -6,9 +6,8 @@ import { useRouter } from "next/router";
 import { useState, Fragment, useMemo, useEffect } from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { InferGetServerSidePropsType } from "next";
-import { withSessionSsr } from "@/lib/withSession";
 import { Dialog, Transition } from "@headlessui/react";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
@@ -50,7 +49,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         return {
           ...user,
           userid: Number(user.userid),
-          thumbnail: getThumbnail(user.userid, wsId),
+          thumbnail: getThumbnail(user.userid),
         };
       })
     );
@@ -71,7 +70,7 @@ export const getServerSideProps = withPermissionCheckSsr(
               ...rep,
               userid: Number(rep.userid),
               username: await getUsername(rep.userid),
-              thumbnail: getThumbnail(rep.userid, wsId),
+              thumbnail: getThumbnail(rep.userid),
             };
           })
         );
@@ -238,8 +237,6 @@ const Allies: pageWithLayout<pageProps> = (props) => {
 
   return (
     <>
-      <Toaster position="bottom-center" />
-
       <div className="pagePadding">
         <div className="max-w-5xl mx-auto">
           <header className="mb-8">

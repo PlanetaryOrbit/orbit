@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withSessionRoute(async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	const workspaceGroupId = parseInt(req.query.id as string, 10);
 	if (!workspaceGroupId) return res.status(400).json({ success: false, error: 'Invalid workspace id' });
 
-	const actingUserId = req.session.userid ? Number(req.session.userid) : null;
+	const actingUserId = req.auth.userId ? Number(req.auth.userId) : null;
 	if (!actingUserId) return res.status(401).json({ success: false, error: 'Not logged in' });
 
 	const targetUserId = parseInt(req.query.userId as string, 10);

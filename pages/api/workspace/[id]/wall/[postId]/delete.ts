@@ -1,14 +1,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
 import prisma from "@/utils/database";
 import { logAudit } from '@/utils/logs';
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== "DELETE") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
   const groupId = parseInt(req.query.id as string);
   const postId = parseInt(req.query.postId as string);
 
@@ -47,4 +47,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   return res.status(200).json({ success: true });
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

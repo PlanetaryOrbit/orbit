@@ -28,7 +28,7 @@ import {
   IconTarget,
 } from "@tabler/icons-react";
 import axios from "axios";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
 import { ActivityOverview } from "@/components/profile/activityoverview";
 import { SessionsHistory } from "@/components/profile/sessions";
@@ -194,8 +194,6 @@ const Activity: FC<Props> = ({
 
   return (
     <>
-      <Toaster position="bottom-center" />
-      
       <Tab.Group>
         <Tab.List className="flex p-1 gap-1 mx-1 mt-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-x-auto scrollbar-hide">
           <Tab

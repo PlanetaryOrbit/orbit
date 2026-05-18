@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { logAudit } from "@/utils/logs";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -12,7 +13,7 @@ type Data = {
 
 export default withPermissionCheck(handler, "manage_policies");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const { id, docId } = req.query;
 
   if (!id || !docId)
@@ -103,7 +104,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         workspaceGroupId: parseInt(id as string),
         name: name.trim(),
         description: description?.trim() || null,
-        createdById: BigInt(req.session.userid),
+        createdById: BigInt(req.auth.userId),
         expiresAt,
       },
       include: {
@@ -138,7 +139,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         parseInt(id as string),
-        Number(req.session.userid),
+        Number(req.auth.userId),
         "policy.link_created",
         `policy:${docId}`,
         {
@@ -195,7 +196,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         parseInt(id as string),
-        Number(req.session.userid),
+        Number(req.auth.userId),
         "policy.link_deleted",
         `policy:${docId}`,
         {
@@ -255,7 +256,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         parseInt(id as string),
-        Number(req.session.userid),
+        Number(req.auth.userId),
         "policy.link_updated",
         `policy:${docId}`,
         {

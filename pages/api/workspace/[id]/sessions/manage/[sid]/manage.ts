@@ -12,7 +12,7 @@ function checkSessionEditRateLimit(
 ): boolean {
   const workspaceId = req.query?.id || "unknown";
   const sessionId = req.query?.sid || "unknown";
-  const userId = (req as any).session?.userid || "anonymous";
+  const userId = (req as any).auth?.userId || "anonymous";
   const key = `workspace:${workspaceId}:session:${sessionId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;

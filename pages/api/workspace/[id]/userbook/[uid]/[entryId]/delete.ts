@@ -2,13 +2,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { logAudit } from "@/utils/logs";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
   error?: string;
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "DELETE")
     return res.status(405).json({ success: false, error: "Method not allowed" });
 
@@ -34,7 +35,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         workspaceGroupId,
-        req.session.userid || null,
+        req.auth.userId || null,
         "userbook.delete",
         `userbook:${entryId}`,
         { entryId }

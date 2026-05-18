@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { validateCsrf } from "@/utils/csrf";
 
 // Simple in-memory rate limiting for notes creation
@@ -9,7 +9,7 @@ const notesCreationLimits: { [key: string]: { count: number; resetTime: number }
 function checkNotesCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
   const workspaceId = req.query?.id || 'unknown';
   const sessionId = req.query?.sid || 'unknown';
-  const userId = (req as any).session?.userid || 'anonymous';
+  const userId = (req as any).auth?.userId || 'anonymous';
   const key = `workspace:${workspaceId}:session:${sessionId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000; // 1 minute
@@ -39,9 +39,9 @@ type Data = {
   note?: any;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method === "POST") {
     if (!checkNotesCreationRateLimit(req, res)) return;
   }
@@ -155,7 +155,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       const note = await prisma.sessionNote.create({
         data: {
           sessionId: sid as string,
-          authorId: BigInt(req.session.userid),
+          authorId: BigInt(req.auth.userId),
           content: content.trim(),
         },
         include: {

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,7 +10,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const workspaceId = parseInt(req.query.id as string);
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
 
   if (!userId || isNaN(workspaceId)) {
     return res.status(400).json({ success: false, error: "Invalid request" });
@@ -116,4 +116,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

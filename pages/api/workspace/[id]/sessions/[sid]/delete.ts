@@ -57,7 +57,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       );
       try {
         const { logAudit } = await import('@/utils/logs');
-        await logAudit(Number(req.query.id), Number((req as any).session?.userid), 'session.delete.range', `sessionSchedule:${session.scheduleId}`, { from: session.date.toISOString(), scheduleId: session.scheduleId });
+        await logAudit(Number(req.query.id), Number((req as any).auth?.userId), 'session.delete.range', `sessionSchedule:${session.scheduleId}`, { from: session.date.toISOString(), scheduleId: session.scheduleId });
       } catch (e) {}
     } else {
       await prisma.session.delete({
@@ -66,7 +66,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       console.log(`[Sessions] Deleted individual session ${sessionId}`);
       try {
         const { logAudit } = await import('@/utils/logs');
-        await logAudit(Number(req.query.id), Number((req as any).session?.userid), 'session.delete', `session:${sessionId}`, { id: sessionId });
+        await logAudit(Number(req.query.id), Number((req as any).auth?.userId), 'session.delete', `session:${sessionId}`, { id: sessionId });
       } catch (e) {}
     }
 

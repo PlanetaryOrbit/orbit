@@ -2,10 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import { getUniverseInfo } from 'noblox.js';
 import axios from 'axios';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean;
@@ -15,7 +16,7 @@ type Data = {
 }
 
 async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -25,7 +26,7 @@ async function handler(
 	const { authorization } = req.headers;
 	let isAuthenticated = false;
 
-	if (req.session?.userid) {
+	if (req.auth?.userId) {
 		isAuthenticated = true;
 	} 
 	else if (authorization) {
@@ -78,4 +79,4 @@ async function handler(
 }
 
 // Export with session wrapper only (permission check happens inside)
-export default withSessionRoute(handler);
+export default withAuth(handler);

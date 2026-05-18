@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { logAudit } from "@/utils/logs";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -11,7 +12,7 @@ type Data = {
 
 export default withPermissionCheck(handler, "manage_members");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res.status(405).json({ success: false, error: "Method not allowed" });
 
@@ -36,7 +37,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       where: { id: entryId as string },
       data: {
         redacted: setRedacted,
-        redactedBy: setRedacted ? BigInt(req.session.userid as number) : null,
+        redactedBy: setRedacted ? BigInt(req.auth.userId) : null,
         redactedAt: setRedacted ? new Date() : null,
       },
       include: {
@@ -65,7 +66,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
       await logAudit(
         workspaceGroupId,
-        req.session.userid || null,
+        req.auth.userId || null,
         setRedacted ? "userbook.redact" : "userbook.unredact",
         `userbook:${updated.id}`,
         { entryId: updated.id, redacted: updated.redacted }

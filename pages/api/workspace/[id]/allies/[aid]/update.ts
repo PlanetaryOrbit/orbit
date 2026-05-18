@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withSessionRoute } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -17,7 +17,7 @@ export default withSessionRoute(async function handler(
     return res.status(400).json({ success: false, error: 'Invalid parameters' });
   }
 
-  const currentUserId = req.session?.userid;
+  const currentUserId = req.auth?.userId;
   if (!currentUserId) {
     return res.status(401).json({ success: false, error: 'Not authenticated' });
   }

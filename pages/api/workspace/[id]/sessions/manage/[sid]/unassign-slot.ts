@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { withAuth } from "@/lib/withAuth";
 
-export default withSessionRoute(
+export default withAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method !== "DELETE") {
       return res.status(405).json({ error: "Method not allowed" });
@@ -33,7 +33,7 @@ export default withSessionRoute(
       }
 
       const sessionType = schedule.sessionType.name.toLowerCase();
-      const userId = (req as any).session?.userid;
+      const userId = (req as any).auth?.userId
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }

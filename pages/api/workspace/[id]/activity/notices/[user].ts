@@ -2,11 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 import { inactivityNotice } from '@prisma/client';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type SerializedInactivityNotice = Omit<inactivityNotice, 'userId'> & {
 	userId: string;
@@ -21,18 +22,18 @@ type Data = {
 export default withPermissionCheck(handler, 'manage_notices');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!req.session.userid) {
+	if (!req.auth.userId) {
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
-	if (req.session.userid !== parseInt(req.query.user as string)) return res.status(401).json({ success: false, error: 'Not allowed' });
+	if (req.auth.userId !== BigInt(req.query.user as string)) return res.status(401).json({ success: false, error: 'Not allowed' });
 
 	const notices = await prisma.inactivityNotice.findMany({
 		where: {
-			userId: BigInt(req.session.userid),
+			userId: BigInt(req.auth.userId),
 			workspaceGroupId: parseInt(req.query.id as string),
 			approved: false
 		}

@@ -25,6 +25,7 @@ import AuthProvider from "./AuthProvider";
 import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
+import { Toaster } from "react-hot-toast";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -43,7 +44,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   PointElement,
-  LineElement
+  LineElement,
 );
 
 function ThemeHandler() {
@@ -67,15 +68,16 @@ function ColorThemeHandler() {
     const darkTheme = (workspace as any)?.groupDarkTheme;
     const lightTheme = workspace?.groupTheme;
 
-    const active = isDark && darkTheme && typeof darkTheme === "string"
-      ? darkTheme
-      : lightTheme && typeof lightTheme === "string"
-        ? lightTheme
-        : null;
+    const active =
+      isDark && darkTheme && typeof darkTheme === "string"
+        ? darkTheme
+        : lightTheme && typeof lightTheme === "string"
+          ? lightTheme
+          : null;
 
     document.documentElement.style.setProperty(
       "--group-theme",
-      active ? getRGBFromTailwindColor(active) : DEFAULT_THEME_RGB
+      active ? getRGBFromTailwindColor(active) : DEFAULT_THEME_RGB,
     );
   }, [workspace, theme]);
 
@@ -85,11 +87,25 @@ function ColorThemeHandler() {
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
   const Layout =
     Component.layout ||
     (({ children }: { children: React.ReactNode }) => <>{children}</>);
 
-	useEffect(() => {
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)");
+
+    const update = () => setIsMobile(media.matches);
+
+    update();
+
+    media.addEventListener("change", update);
+
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
     if (!loading) {
       const t = setTimeout(() => setShowLoader(false), 1200);
       return () => clearTimeout(t);
@@ -117,6 +133,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       {!showLoader && (
         <Layout>
           <div className="pb-8 sm:pb-0">
+            <Toaster position={isMobile ? "top-center" : "bottom-center"} />
             <Component {...pageProps} />
           </div>
         </Layout>
@@ -183,7 +200,7 @@ function Initializer() {
         const cfg = cfgResp.ok ? await cfgResp.json() : { configured: false };
         if (!cfg.configured) {
           console.warn(
-            "Intercom server-side JWT not configured; skipping Intercom load."
+            "Intercom server-side JWT not configured; skipping Intercom load.",
           );
           return;
         }

@@ -1,15 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
   error?: string;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "DELETE")
     return res
       .status(405)
@@ -40,7 +40,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const user = await prisma.user.findUnique({
       where: {
-        userid: BigInt(req.session.userid),
+        userid: BigInt(req.auth.userId),
       },
       include: {
         roles: {
@@ -58,7 +58,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     const membership = user?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
-    const isAuthor = note.authorId.toString() === req.session.userid.toString();
+    const isAuthor = note.authorId.toString() === req.auth.userId.toString();
     if (!isAdmin && !isAuthor) {
       return res
         .status(403)

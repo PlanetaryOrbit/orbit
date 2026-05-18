@@ -3,13 +3,12 @@ import { loginState, workspacestate } from "@/state";
 import Workspace from "@/layouts/workspace";
 import { useState, useRef, useEffect, Fragment } from "react";
 import { useRecoilState } from "recoil";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSideProps } from "next";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import prisma from "@/utils/database";
 import type { wallPost } from "@prisma/client";
 import moment from "moment";
-import { withSessionSsr } from "@/lib/withSession";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { Dialog, Transition } from "@headlessui/react";
@@ -27,6 +26,7 @@ import EmojiPicker, { Theme } from "emoji-picker-react";
 import sanitizeHtml from "sanitize-html";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 const SANITIZE_OPTIONS = {
   allowedTags: [],
@@ -54,8 +54,10 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const authReq = req as AuthenticatedRequest;
+
     const user = await prisma.user.findUnique({
-      where: { userid: req.session.userid },
+      where: { userid: authReq.auth.userId },
       include: {
         roles: {
           where: { workspaceGroupId: parseInt(query.id as string) },
@@ -276,8 +278,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
-
       <div className="max-w-5xl mx-auto">
         <header className="mb-8">
           <div className="flex items-center gap-3">

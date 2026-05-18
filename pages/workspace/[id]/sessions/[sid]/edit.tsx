@@ -1,7 +1,7 @@
 import type { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import Button from "@/components/button";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import Input from "@/components/input";
 import Workspace from "@/layouts/workspace";
 import { v4 as uuidv4 } from "uuid";
@@ -748,7 +748,6 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           )}
         </div>
       </FormProvider>
-      <Toaster />
 
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

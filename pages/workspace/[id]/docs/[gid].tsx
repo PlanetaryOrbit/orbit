@@ -22,9 +22,10 @@ import {
   IconExternalLink,
   IconAlertTriangle,
 } from "@tabler/icons-react";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import clsx from "clsx";
 import { motion } from "framer-motion";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -64,10 +65,11 @@ type Props = {
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
     const { gid } = context.query;
+    const authReq = context.req as AuthenticatedRequest;
     if (!gid) return { notFound: true };
     const user = await prisma.user.findUnique({
       where: {
-        userid: BigInt(context.req.session.userid),
+        userid: BigInt(authReq.auth.userId),
       },
       include: {
         roles: {
@@ -98,7 +100,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     const membership = await prisma.workspaceMember.findFirst({
       where: {
         workspaceGroupId: parseInt(context.query.id as string),
-        userId: BigInt(context.req.session.userid),
+        userId: BigInt(authReq.auth.userId),
       },
     });
     const isAdmin = membership?.isAdmin || false;
@@ -203,7 +205,6 @@ const Settings: pageWithLayout<Props> = ({ document, canEdit, canDelete }) => {
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">

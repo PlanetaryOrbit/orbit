@@ -3,11 +3,9 @@ import { pageWithLayout } from "@/layoutTypes";
 import { loginState } from "@/state";
 import { Fragment, useEffect, useState } from "react";
 import { Dialog, Popover, Transition } from "@headlessui/react";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { getThumbnail } from "@/utils/userinfoEngine";
+import { GetServerSidePropsContext } from "next";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
-import noblox from "noblox.js";
 import Input from "@/components/input";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "@/utils/database";
@@ -22,16 +20,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { FormProvider, useForm } from "react-hook-form";
-import Button from "@/components/button";
 import {
   inactivityNotice,
-  Session,
-  user,
   userBook,
   wallPost,
 } from "@prisma/client";
 import Checkbox from "@/components/checkbox";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/router";
 import moment from "moment";
@@ -101,55 +96,47 @@ type User = {
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ params, req }: GetServerSidePropsContext) => {
-    const workspaceGroupId = parseInt(params?.id as string);
-    const currentUserId = req.session?.userid;
+    const workspaceGroupId = parseInt(params?.id as string)
+
+    const currentUserId = (req as any).auth?.userId as bigint
+
     const currentUser = await prisma.user.findFirst({
-      where: { userid: BigInt(currentUserId) },
+      where: { userid: currentUserId },
       include: {
-        workspaceMemberships: {
-          where: { workspaceGroupId },
-        },
-        roles: {
-          where: { workspaceGroupId },
-        },
+        workspaceMemberships: { where: { workspaceGroupId } },
+        roles: { where: { workspaceGroupId } },
       },
-    });
-    
-    const membership = currentUser?.workspaceMemberships?.[0];
-    const isAdmin = membership?.isAdmin || false;
-    const userRole = currentUser?.roles?.[0];
-    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false;
-    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false;
-    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false;
-    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false;
-    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false;
+    })
+
+    const membership = currentUser?.workspaceMemberships?.[0]
+    const isAdmin = membership?.isAdmin || false
+    const userRole = currentUser?.roles?.[0]
+    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false
+    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false
+    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false
+    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false
+    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false
 
     const departments = await prisma.department.findMany({
       where: { workspaceGroupId },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
+      select: { id: true, name: true, color: true },
+      orderBy: { name: 'asc' },
+    })
 
     return {
       props: {
-        isAdmin: isAdmin,
-        hasManageViewsPerm: hasManageViewsPerm,
-        hasCreateViewsPerm: hasCreateViewsPerm,
-        hasDeleteViewsPerm: hasDeleteViewsPerm,
-        hasUseSavedViewsPerm: hasUseSavedViewsPerm,
-        hasViewMemberProfiles: hasViewMemberProfiles,
+        isAdmin,
+        hasManageViewsPerm,
+        hasCreateViewsPerm,
+        hasDeleteViewsPerm,
+        hasUseSavedViewsPerm,
+        hasViewMemberProfiles,
         departments: JSON.parse(JSON.stringify(departments)),
       },
-    };
+    }
   },
   "view_members"
-);
+)
 
 const filters: {
   [key: string]: string[];
@@ -892,7 +879,6 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-start gap-4">

@@ -1,12 +1,13 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type User = {
-  userId: number
+  userId: bigint
   username: string
   canMakeWorkspace: boolean
   displayname: string
@@ -51,17 +52,16 @@ setInterval(() => {
   }
 }, 60000); // Clean every minute
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse<Data>
 ) {
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' })
-  if (!await prisma.workspace.count()) return res.status(400).json({ success: false, error: 'Workspace not setup' })
-  if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+  if (!await prisma.workspace.count()) return res.status(400).json({ success: false, error: 'Workspace not setup' });
 
-  const userId = req.session.userid;
+  const userId = req.auth.session?.userId!;
   const cacheKey = `user_${userId}`;
   const now = Date.now();
   const cached = userCache.get(cacheKey);

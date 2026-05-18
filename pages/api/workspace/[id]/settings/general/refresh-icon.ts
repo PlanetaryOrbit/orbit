@@ -23,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
 	let logo: string;
 	try {
-		logo = await noblox.getLogo(workspaceId);
+		logo = await noblox.getLogo(workspaceId, '420x420');
 	} catch (e) {
 		console.error('[refresh-icon] noblox.getLogo failed:', e);
 		return res.status(502).json({

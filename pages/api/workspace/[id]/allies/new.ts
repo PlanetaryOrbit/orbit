@@ -4,6 +4,7 @@ import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import moment from 'moment';
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -12,11 +13,11 @@ type Data = {
 export default withPermissionCheck(handler, 'create_alliances');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	if (!req.body.groupId || !req.body.reps) return res.status(400).json({ success: false, error: "Missing data" });
 
 	try {
@@ -27,7 +28,7 @@ export async function handler(
 
 		const groupInfo = await noblox.getGroup(groupId)
 		if(!groupInfo) return res.status(400).json({ success: false, error: 'Invalid group ID' })
-		const groupIcon = await noblox.getLogo(groupId)
+		const groupIcon = await noblox.getLogo(groupId, '420x420')
 
 		if(reps.length < 1) return res.status(400).json({ success: false, error: 'At least 1 rep required' })
 

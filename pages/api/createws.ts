@@ -2,8 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type User = {
 	userId: number
@@ -25,19 +26,19 @@ type Data = {
 	workspaceGroupId?: number
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
 	// Accept groupId as number or numeric string; optional color (currently unused beyond default)
 	let { groupId } = req.body || {}
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	const dbuser = await prisma.user.findUnique({
 		where: {
-			userid: req.session.userid
+			userid: req.auth.userId
 		}
 	});
 
@@ -58,16 +59,16 @@ export async function handler(
 	if (tryandfind) return res.status(409).json({ success: false, error: 'Workspace already exists' })
 
 	// Enforce one workspace per owner
-	//const alreadyOwns = await prisma.workspace.findFirst({ where: { ownerId: BigInt(req.session.userid) } })
+	//const alreadyOwns = await prisma.workspace.findFirst({ where: { ownerId: BigInt(req.auth.userId) } })
 	//if (alreadyOwns) return res.status(403).json({ success: false, error: 'You already own a workspace' })
-	const urrole = await noblox.getRankInGroup(groupId, req.session.userid).catch(() => null)
+	const urrole = await noblox.getRankInGroup(groupId, Number(req.auth.userId)).catch(() => null)
 	if (!urrole) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 	if (urrole < 15) return res.status(400).json({ success: false, error: 'You are not a high enough rank' })
 
 	await prisma.user.upsert({
-		where: { userid: req.session.userid },
+		where: { userid: req.auth.userId },
 		update: {},
-		create: { userid: req.session.userid }
+		create: { userid: req.auth.userId }
 	})
 
 	let groupName = `Group ${groupId}`;
@@ -75,7 +76,7 @@ export async function handler(
 	
 	try {
 		const [logo, group] = await Promise.all([
-			noblox.getLogo(groupId).catch(() => ''),
+			noblox.getLogo(groupId, '420x420').catch(() => ''),
 			noblox.getGroup(groupId).catch(() => null)
 		]);
 		if (group) groupName = group.name;
@@ -91,14 +92,14 @@ export async function handler(
 		  groupName,
 		  groupLogo,
 		  lastSynced: new Date()
-		  //ownerId: BigInt(req.session.userid)
+		  //ownerId: BigInt(req.auth.userId)
 			}
 		})
 
 		await tx.workspaceMember.create({
 			data: {
 				workspaceGroupId: groupId,
-				userId: BigInt(req.session.userid),
+				userId: BigInt(req.auth.userId),
 				joinDate: new Date(),
 				isAdmin: true
 			}
@@ -114,7 +115,7 @@ export async function handler(
 		})
 
 		await tx.user.update({
-			where: { userid: req.session.userid },
+			where: { userid: req.auth.userId },
 			data: {
 				roles: {
 					connect: { id: defaultRole.id }
@@ -179,7 +180,7 @@ export async function handler(
 		})
 // Removed as secondary workspace creators are NOT the instance owner, which would give them equal access to edit oauth.
 		//await tx.user.update({
-			//where: { userid: req.session.userid },
+			//where: { userid: req.auth.userId },
 			//data: { isOwner: true }
 		//})
 

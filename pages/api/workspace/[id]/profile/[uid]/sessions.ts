@@ -1,9 +1,9 @@
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
   if (req.method !== "GET")
@@ -14,7 +14,7 @@ export default withSessionRoute(async function handler(
   const { id, uid } = req.query;
   const workspaceGroupId = parseInt(id as string);
   const targetUserId = BigInt(uid as string);
-  const sessionUserId = req.session.userid;
+  const sessionUserId = req.auth.userId;
   const periodStart = req.query.periodStart as string | undefined;
   const periodEnd = req.query.periodEnd as string | undefined;
   const isHistoricalView = !!(periodStart && periodEnd);

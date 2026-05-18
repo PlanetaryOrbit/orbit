@@ -5,6 +5,7 @@ import { withPermissionCheck } from "@/utils/permissionsManager";
 import { getThumbnail } from "@/utils/userinfoEngine";
 import moment from "moment";
 import axios from "axios";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -14,12 +15,12 @@ type Data = {
 
 export default withPermissionCheck(handler, "view_members");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  if (!req.session.userid)
+  if (!req.auth.userId)
     return res.status(401).json({ success: false, error: "Not logged in" });
 
   try {
@@ -49,7 +50,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const infoUsers = users.map((user: any) => {
       return {
         username: user.username,
-        thumbnail: getThumbnail(user.userid, parseInt(req.query.id as string)),
+        thumbnail: getThumbnail(user.userid),
       };
     });
 

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-import { withSessionRoute } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -10,10 +10,10 @@ type Data = {
 	acknowledgment?: any
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -22,7 +22,7 @@ export async function handler(
 	const { id, docId } = req.query;
 
 	if (!id || !docId) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Unauthorized' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
 	// Check if user has access to this document
 	const document = await prisma.document.findFirst({
@@ -54,11 +54,11 @@ export async function handler(
 	}
 
 	const userHasRoleAccess = document.roles.some(role => 
-		role.members.some(member => member.userid.toString() === req.session.userid.toString())
+		role.members.some(member => member.userid.toString() === req.auth.userId.toString())
 	);
 	const userHasDepartmentAccess = document.departments.some(dept =>
 		dept.departmentMembers.some(dm => 
-			dm.userId.toString() === req.session.userid.toString() &&
+			dm.userId.toString() === req.auth.userId.toString() &&
 			dm.workspaceGroupId === parseInt(id as string)
 		)
 	);
@@ -71,7 +71,7 @@ export async function handler(
 	// Check if already acknowledged
 	const existingAcknowledgment = await prisma.policyAcknowledgment.findFirst({
 		where: {
-			userId: BigInt(req.session.userid),
+			userId: BigInt(req.auth.userId),
 			documentId: docId as string
 		}
 	});
@@ -83,7 +83,7 @@ export async function handler(
 	// Create acknowledgment
 	const acknowledgment = await prisma.policyAcknowledgment.create({
 		data: {
-			userId: BigInt(req.session.userid),
+			userId: BigInt(req.auth.userId),
 			documentId: docId as string,
 			signature: signature || `Acknowledged by user at ${new Date().toISOString()}`,
 			ipAddress: ipAddress || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown',
@@ -92,7 +92,7 @@ export async function handler(
 	});
 
 	try {
-		await logAudit(parseInt(id as string), Number(req.session.userid), 'policy.acknowledge', `policy:${document.id}`, {
+		await logAudit(parseInt(id as string), Number(req.auth.userId), 'policy.acknowledge', `policy:${document.id}`, {
 			documentId: document.id,
 			documentName: document.name,
 			signature: signature ? 'provided' : 'default'

@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma, { document } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
   success: boolean
@@ -12,14 +13,14 @@ type Data = {
 export default withPermissionCheck(handler);
 
 export async function handler(
-  req: NextApiRequest,
+  req: AuthenticatedRequest,
   res: NextApiResponse<Data>
 ) {
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
   const id = parseInt(req.query.id as string);
   const user = await prisma.user.findFirst({
     where: {
-      userid: req.session.userid
+      userid: req.auth.userId
     },
     include: {
       roles: {

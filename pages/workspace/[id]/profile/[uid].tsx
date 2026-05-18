@@ -1,12 +1,10 @@
 import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
-import { Toaster } from "react-hot-toast";
 import { InformationTab } from "@/components/profile/information";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { withSessionSsr } from "@/lib/withSession";
 import { loginState } from "@/state";
 import { Tab } from "@headlessui/react";
 import {
@@ -14,24 +12,18 @@ import {
   getUsername,
   getThumbnail,
 } from "@/utils/userinfoEngine";
-import { ActivitySession, Quota, ActivityAdjustment } from "@prisma/client";
+import { ActivitySession, Quota } from "@prisma/client";
 import prisma from "@/utils/database";
 import moment from "moment";
-import { InferGetServerSidePropsType } from "next";
 import { useRecoilState } from "recoil";
 import {
   IconUserCircle,
   IconHistory,
-  IconBell,
   IconBook,
   IconClipboard,
-  IconChevronLeft,
-  IconChevronRight,
   IconCalendar,
   IconSun,
   IconMoon,
-  IconCloud,
-  IconStars,
   IconBeach,
 } from "@tabler/icons-react";
 import { useRouter } from "next/router";
@@ -41,7 +33,7 @@ import noblox from "noblox.js";
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ query, req }) => {
-    const currentUserId = req.session?.userid;
+    const currentUserId = (req as any).auth?.userId as bigint;
     if (!currentUserId) return { notFound: true };
 
     const currentUser = await prisma.user.findFirst({
@@ -69,45 +61,18 @@ export const getServerSideProps = withPermissionCheckSsr(
         discordUser: true
       },
     });
+
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
+
+    // Define all permissions
     const hasManagePermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_member_profiles")) ?? false);
-
-    const hasManageMembersPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("edit_member_details")
-      ) ??
-        false);
-
-    const hasManageNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("manage_notices")
-      ) ??
-        false);
-
-    const hasApproveNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("approve_notices")
-      ) ??
-        false);
-
-    const hasRecordNoticesPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("record_notices")
-      ) ??
-        false);
-
-    const hasActivityAdjustmentsPermission =
-      isAdmin ||
-      (currentUser?.roles?.some((role) =>
-        role.permissions?.includes("activity_adjustments")
-      ) ??
-        false);
-
+    const hasManageMembersPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("edit_member_details")) ?? false);
+    const hasManageNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("manage_notices")) ?? false);
+    const hasApproveNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("approve_notices")) ?? false);
+    const hasRecordNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("record_notices")) ?? false);
+    const hasActivityAdjustmentsPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("activity_adjustments")) ?? false);
+    
     const logbookPermissions = {
       view: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_logbook")) ?? false),
       rank: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("rank_users")) ?? false),
@@ -119,10 +84,14 @@ export const getServerSideProps = withPermissionCheckSsr(
       redact: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_redact")) ?? false),
       delete: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_delete")) ?? false),
     };
-
+    
     const hasAnyLogbookPermission = Object.values(logbookPermissions).some(p => p);
 
-    if (!hasManagePermission) {
+    // Check if user is viewing their own profile
+    const isSelfProfile = currentUserId.toString() === query.uid;
+    
+    // Allow viewing own profile even without manage permission
+    if (!hasManagePermission && !isSelfProfile) {
       return { notFound: true };
     }
 
@@ -178,7 +147,6 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
-    // Use last reset date, or November 30th 2024, whichever is more recent
     const nov30 = new Date("2024-11-30T00:00:00Z");
     const startDate = lastReset?.resetAt
       ? lastReset.resetAt > nov30
@@ -292,7 +260,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       timeSpent = completedSessions.reduce((sum, session) => {
         const totalTime =
           (session.endTime?.getTime() ?? 0) - session.startTime.getTime();
-        const idleTime = session.idleTime ? Number(session.idleTime) : 0; // Already in minutes from Roblox
+        const idleTime = session.idleTime ? Number(session.idleTime) : 0;
         return sum + Math.max(0, totalTime - idleTime * 60000);
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
@@ -608,6 +576,23 @@ export const getServerSideProps = withPermissionCheckSsr(
       return { notFound: true };
     }
 
+    // For self-profile viewing, grant view permission for logbook but not edit permissions
+    const finalLogbookPermissions = isSelfProfile ? {
+      ...logbookPermissions,
+      view: true,  // Users can view their own logbook
+      // Keep all edit permissions as false for self (can't edit own logbook)
+      rank: false,
+      note: false,
+      warning: false,
+      promotion: false,
+      demotion: false,
+      termination: false,
+      redact: false,
+      delete: false,
+    } : logbookPermissions;
+
+    const finalLogbookEnabled = isSelfProfile ? true : hasAnyLogbookPermission;
+
     return {
       props: {
         notices: JSON.parse(
@@ -632,9 +617,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         info: {
           username: await getUsername(Number(query?.uid as string)),
           displayName: await getDisplayName(Number(query?.uid as string)),
-          avatar: getThumbnail(Number(query?.uid as string), Number(query?.id as string)),
+          avatar: getThumbnail(Number(query?.uid as string)),
         },
-        isUser: (req as any)?.session?.userid === Number(query?.uid as string),
+        isUser: isSelfProfile,
         isAdmin,
         sessionsHosted: sessionsHosted,
         sessionsAttended: sessionsAttended,
@@ -679,8 +664,9 @@ export const getServerSideProps = withPermissionCheckSsr(
         canApproveNotices: hasApproveNoticesPermission,
         canRecordNotices: hasRecordNoticesPermission,
         canAdjustActivity: hasActivityAdjustmentsPermission,
-        logbookEnabled: hasAnyLogbookPermission,
-        logbookPermissions,
+        logbookEnabled: finalLogbookEnabled,
+        logbookPermissions: finalLogbookPermissions,
+        canEditBasicInfo: isSelfProfile,
       },
     };
   }
@@ -755,6 +741,7 @@ type pageProps = {
   canManageNotices: boolean;
   canApproveNotices: boolean;
   canRecordNotices: boolean;
+  canEditBasicInfo: boolean;
   canAdjustActivity: boolean;
   logbookEnabled: boolean;
   logbookPermissions: {
@@ -769,6 +756,7 @@ type pageProps = {
     delete: boolean;
   };
 };
+
 const Profile: pageWithLayout<pageProps> = ({
   notices,
   timeSpent,
@@ -793,6 +781,7 @@ const Profile: pageWithLayout<pageProps> = ({
   allMembers,
   noticesEnabled,
   canManageMembers,
+  canEditBasicInfo,
   canManageNotices,
   canApproveNotices,
   canRecordNotices,
@@ -807,6 +796,7 @@ const Profile: pageWithLayout<pageProps> = ({
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [availableHistory, setAvailableHistory] = useState<any[]>([]);
+  
   const currentData = {
     timeSpent,
     timesPlayed,
@@ -827,6 +817,7 @@ const Profile: pageWithLayout<pageProps> = ({
   };
 
   const router = useRouter();
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -995,7 +986,6 @@ const Profile: pageWithLayout<pageProps> = ({
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-white to-zinc-50/90 shadow-sm ring-1 ring-zinc-950/5 dark:border-zinc-700/60 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-900/95 dark:shadow-none dark:ring-white/5">
           <div className="flex flex-col gap-5 p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
@@ -1182,6 +1172,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   allMembers={allMembers}
                   isUser={isUser}
                   isAdmin={isAdmin}
+                  canEditBasicInfo={canEditBasicInfo}
                   canEditMembers={canManageMembers}
                 />
               </Tab.Panel>

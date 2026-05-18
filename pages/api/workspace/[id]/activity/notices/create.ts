@@ -2,10 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { inactivityNotice } from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -15,18 +16,18 @@ type Data = {
 export default withPermissionCheck(handler, "create_notices");
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' })
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Not logged in' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 	if (!req.body.startTime || !req.body.endTime || !req.body.reason) return res.status(400).json({ success: false, error: "Missing data" });
 	if (typeof req.body.startTime !== "number" || typeof req.body.endTime !== "number") return res.status(400).json({ success: false, error: "Invalid type(s)" });
 
 	try {
 		const session = await prisma.inactivityNotice.create({
 			data: {
-				userId: BigInt(req.session.userid),
+				userId: BigInt(req.auth.userId),
 				startTime: new Date(req.body.startTime),
 				endTime: new Date(req.body.endTime),
 				reason: req.body.reason,

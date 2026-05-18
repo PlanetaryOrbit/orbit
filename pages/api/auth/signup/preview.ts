@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import { getRobloxThumbnail, getRobloxDisplayName } from "@/utils/roblox";
 
-export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
-	if (req.session.userid) return res.status(400).json({ success: false, error: "Already logged in" });
 
 	const { username } = req.body;
 	if (!username) return res.status(400).json({ success: false, error: "Missing username" });
@@ -35,4 +34,4 @@ export default withSessionRoute(async (req: NextApiRequest, res: NextApiResponse
 		thumbnail: thumbnail || undefined,
 		displayName: displayName || username,
 	});
-});
+};

@@ -1,14 +1,11 @@
 import type { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
-import Button from "@/components/button";
 import Workspace from "@/layouts/workspace";
 import {
   IconChevronRight,
   IconChevronLeft,
   IconCalendarEvent,
   IconPlus,
-  IconTrash,
-  IconArrowLeft,
   IconEdit,
   IconUsers,
   IconClock,
@@ -18,19 +15,17 @@ import {
 } from "@tabler/icons-react";
 import prisma, { Session, user, SessionType } from "@/utils/database";
 import { useRecoilState } from "recoil";
-import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import randomText from "@/utils/randomText";
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import axios from "axios";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
 import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
-import { Dialog, Transition } from "@headlessui/react";
-import { getConfig } from "@/utils/configEngine";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -95,10 +90,12 @@ export const getServerSideProps = withPermissionCheckSsr(
       },
     });
 
+    const authReq = req as AuthenticatedRequest;
+
     let filteredSessions = allSessions;
     let isAdmin = false;
-    if (req.session?.userid) {
-      const userId = BigInt(req.session.userid);
+    if ((req as any).auth?.userId) {
+      const userId = BigInt(authReq.auth.userId);
       const user = await prisma.user.findFirst({
         where: { userid: userId },
         include: {
@@ -132,8 +129,8 @@ export const getServerSideProps = withPermissionCheckSsr(
     }
 
     let userSessionMetrics = null;
-    if (req.session?.userid) {
-      const userId = BigInt(req.session.userid);
+    if ((req as any).auth?.userId) {
+      const userId = BigInt(authReq.auth.userId);
       const lastReset = await prisma.activityReset.findFirst({
         where: {
           workspaceGroupId: parseInt(query.id as string),
@@ -832,7 +829,6 @@ const Home: pageWithLayout<pageProps> = (props) => {
 
   return (
     <div className="pagePadding">
-      <Toaster position="bottom-center" />
       <div className="max-w-5xl mx-auto">
         <header className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">

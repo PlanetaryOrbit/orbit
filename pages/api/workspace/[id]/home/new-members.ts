@@ -1,18 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withSessionRoute(async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 	const workspaceGroupId = parseInt(req.query.id as string, 10);
 	if (!workspaceGroupId) return res.status(400).json({ success: false, error: 'Invalid workspace id' });
-	if (!req.session.userid) {
+	if (!req.auth.userId) {
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
 
 	const days = req.query.days ? parseInt(req.query.days as string, 10) : 7;
 	const windowDays = isNaN(days) || days <= 0 || days > 30 ? 7 : days;
 
-	const userid = Number(req.session.userid);
+	const userid = Number(req.auth.userId);
 	
 	const userRoles = await prisma.role.findMany({
 		where: { 

@@ -463,7 +463,7 @@ export default withPermissionCheck(
         computedUsers.push({
           info: {
             userId: Number(user.userid),
-            picture: getThumbnail(user.userid, workspaceGroupId),
+            picture: getThumbnail(user.userid),
             username: user.username,
           },
           book: user.book,

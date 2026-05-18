@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
-export default withSessionRoute(async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
-  if (!req.session.userid) {
+  if (!req.auth.userId) {
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
 
@@ -16,7 +16,7 @@ export default withSessionRoute(async function handler(
       .status(400)
       .json({ success: false, error: "Invalid workspace id" });
 
-  const userid = Number(req.session.userid);
+  const userid = Number(req.auth.userId);
   try {
     await prisma.workspaceMember.upsert({
       where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },

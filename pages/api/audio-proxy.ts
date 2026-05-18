@@ -1,6 +1,7 @@
+import { AuthenticatedRequest } from "@/lib/withAuth";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const { url } = req.query;
   if (!url || typeof url !== "string") return res.status(400).end();
 

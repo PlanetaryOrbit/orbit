@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
-async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number) {
+async function hasManageViewsPermission(req: AuthenticatedRequest, workspaceId: number) {
   if (!req.session?.userid) return false;
   const user = await prisma.user.findFirst({
-    where: { userid: BigInt(req.session.userid) },
+    where: { userid: BigInt(req.auth.userId) },
     include: {
       roles: {
         where: { workspaceGroupId: workspaceId },
@@ -22,7 +22,7 @@ async function hasManageViewsPermission(req: NextApiRequest, workspaceId: number
   return isAdmin || (role.permissions || []).includes("edit_views");
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);
   const viewId = String(req.query.viewId as string);
   if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" });
@@ -30,9 +30,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     if (req.method === "DELETE") {
-      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!req.auth.userId) return res.status(401).json({ success: false, error: "Unauthorized" });
       const user = await prisma.user.findFirst({
-        where: { userid: BigInt(req.session.userid) },
+        where: { userid: BigInt(req.auth.userId) },
         include: {
           roles: { where: { workspaceGroupId: workspaceId } },
           workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
@@ -51,7 +51,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "PATCH") {
       if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
       const user = await prisma.user.findFirst({
-        where: { userid: BigInt(req.session.userid) },
+        where: { userid: BigInt(req.auth.userId) },
         include: {
           roles: { where: { workspaceGroupId: workspaceId } },
           workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
@@ -90,4 +90,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

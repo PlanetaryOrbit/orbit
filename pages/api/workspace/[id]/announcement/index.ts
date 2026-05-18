@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withSessionRoute } from "@/lib/withSession";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import packageinfo from '@/package.json'
 
 type Data = {
@@ -10,13 +10,13 @@ type Data = {
   canEdit?: boolean;
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
   const workspaceId = parseInt(req.query.id as string);
-  const userId = req.session.userid;
+  const userId = req.auth.userId;
 
   if (!userId || !workspaceId) {
     return res.status(401).json({ success: false, error: "Unauthorized" });
@@ -132,4 +132,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

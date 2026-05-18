@@ -33,8 +33,6 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import clsx from "clsx";
-import { Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
 import PolicyLinkManager from "@/components/PolicyLinkManager";
@@ -72,7 +70,7 @@ function getRandomBg(userid: string, username?: string) {
 export const getServerSideProps = withPermissionCheckSsr(
   async (context: any) => {
     const { id } = context.query;
-    const userid = context.req.session.userid;
+    const userid = context.req.auth.userId;
     if (!userid) {
       return {
         redirect: {
@@ -659,7 +657,6 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <Toaster position="bottom-center" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">

@@ -1,10 +1,9 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
+import { fetchworkspace } from '@/utils/configEngine'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { logAudit } from '@/utils/logs';
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 type Data = {
 	success: boolean
@@ -77,7 +76,7 @@ export async function handler(
 
 	try {
 		const after = await prisma.role.findUnique({ where: { id: (req.query.roleid as string) } });
-		await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'settings.roles.update', `role:${req.query.roleid}`, {
+		await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'settings.roles.update', `role:${req.query.roleid}`, {
 			roleName: after?.name || role.name,
 			before: role,
 			after

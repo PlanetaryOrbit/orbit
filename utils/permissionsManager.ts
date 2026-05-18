@@ -5,12 +5,14 @@ import type {
   NextApiHandler,
   GetServerSidePropsContext,
 } from "next";
-import { withSessionRoute, withSessionSsr } from "@/lib/withSession";
 import * as noblox from "noblox.js";
+import * as cookie from 'cookie';
 import { getConfig } from "./configEngine";
 import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
 import { getRobloxUserInfo, getUsersWithinAGroupRoleset } from './roblox'
+import { AuthenticatedRequest, AuthHandler, withAuth } from "@/lib/withAuth";
+import { getSessionByToken } from "./session";
 
 const permissionsCache = new Map<string, { data: any; timestamp: number }>();
 const PERMISSIONS_CACHE_DURATION = 120000;
@@ -32,24 +34,11 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function removeRoleFromUser(userid: bigint, roleId: string) {
   await prisma.user
-    .update({
-      where: { userid },
-      data: { roles: { disconnect: { id: roleId } } },
-    })
-    .catch((err: any) =>
-      console.error(
-        `[update-group] Disconnect role ${roleId} from ${userid} failed:`,
-        err
-      )
-    );
+    .update({ where: { userid }, data: { roles: { disconnect: { id: roleId } } } })
+    .catch((err: any) => console.error(`[update-group] Disconnect role ${roleId} from ${userid} failed:`, err));
   await prisma.roleMember
     .deleteMany({ where: { roleId, userId: userid } })
-    .catch((err: any) =>
-      console.error(
-        `[update-group] Delete RoleMember ${roleId}/${userid} failed:`,
-        err
-      )
-    );
+    .catch((err: any) => console.error(`[update-group] Delete RoleMember ${roleId}/${userid} failed:`, err));
 }
 
 async function retryNobloxRequest<T>(
@@ -97,86 +86,46 @@ async function retryNobloxRequest<T>(
   throw lastError;
 }
 
-async function buildGroupCache(
-  groupID: number,
-  ranks: noblox.Role[],
-  batchSize = 5
-): Promise<Map<number, { robloxRoleId: number; username: string }>> {
-  const internalMap = new Map<number,
-    { robloxRoleId: number; username: string; _rank: number }
-  >();
+async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize = 5): Promise<Map<number, { robloxRoleId: number; username: string }>> {
+  const internalMap = new Map<number, { robloxRoleId: number; username: string; _rank: number }>();
   const trackedRanks = ranks.filter((r) => r.rank !== 0);
-
-  const apiKey = await getConfig("roblox_opencloud", groupID)
-
-  console.log(
-    `[update-group] Building cache: fetching ${trackedRanks.length} ranks in batches of ${batchSize}...`
-  );
+  const apiKey = await getConfig("roblox_opencloud", groupID);
 
   for (let i = 0; i < trackedRanks.length; i += batchSize) {
     const batch = trackedRanks.slice(i, i + batchSize);
-
     const results = await Promise.allSettled(
       batch.map(async (rank) => {
         await delay(200);
-        console.log(`[update-group] Fetching roleset id=${rank.id} rank=${rank.rank} name=${rank.name}`);
         const result = await getUsersWithinAGroupRoleset(groupID, rank.id, apiKey.key) as any;
-        if (!result.success) {
-          console.log(result.response)
-          throw new Error(`Failed to fetch roleset ${rank.id}: ${result.message}`)
-        };
+        if (!result.success) throw new Error(`Failed to fetch roleset ${rank.id}: ${result.message}`);
         return { rank, members: result.data };
       })
     );
 
     for (const result of results) {
       if (result.status === "rejected") {
-        console.error(`[update-group] Batch fetch failed:`, result.reason);
         const msg: string = result.reason?.message ?? "";
-        if (
-          msg.includes("401") ||
-          msg.toLowerCase().includes("unauthorized") ||
-          msg.toLowerCase().includes("forbidden") ||
-          msg.includes("403")
-        ) {
+        if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("forbidden") || msg.includes("403")) {
           throw new Error(`Auth failure fetching roleset — API key may be invalid or expired: ${msg}`);
         }
         continue;
       }
       const { rank, members } = result.value;
-      console.log(
-        `[update-group] Rank "${rank.name}" (id: ${rank.id}, rank: ${rank.rank}): ${members.length} members`
-      );
       for (const member of members) {
         const userId = Number(member.user?.split("/")[1]);
         if (!userId) continue;
-
         const existing = internalMap.get(userId);
         if (!existing || rank.rank > existing._rank) {
-          internalMap.set(userId, {
-            robloxRoleId: rank.id,
-            username: "",
-            _rank: rank.rank,
-          });
+          internalMap.set(userId, { robloxRoleId: rank.id, username: "", _rank: rank.rank });
         }
       }
     }
-
-    console.log(
-      `[update-group] Cache progress: ${Math.min(
-        i + batchSize,
-        trackedRanks.length
-      )}/${trackedRanks.length} ranks processed`
-    );
   }
 
   const userIds = Array.from(internalMap.keys());
-  console.log(`[update-group] Fetching usernames for ${userIds.length} users...`);
-
   const usernameBatchSize = 50;
   for (let i = 0; i < userIds.length; i += usernameBatchSize) {
     const batch = userIds.slice(i, i + usernameBatchSize);
-
     await Promise.allSettled(
       batch.map(async (userId) => {
         const entry = internalMap.get(userId);
@@ -189,8 +138,6 @@ async function buildGroupCache(
         }
       })
     );
-
-    console.log(`[update-group] Usernames fetched: ${Math.min(i + usernameBatchSize, userIds.length)}/${userIds.length}`);
   }
 
   const userRoleMap = new Map<number, { robloxRoleId: number; username: string }>();
@@ -199,126 +146,80 @@ async function buildGroupCache(
   }
 
   groupCacheStore.set(groupID, { userRoleMap, builtAt: new Date() });
-  console.log(
-    `[update-group] Cache built: ${userRoleMap.size} unique users for group ${groupID}`
-  );
   return userRoleMap;
 }
 
 export function withPermissionCheck(
-  handler: NextApiHandler,
+  handler: AuthHandler,
   permission?: string | string[]
 ) {
-  return withSessionRoute(async (req: NextApiRequest, res: NextApiResponse) => {
+  return withAuth(async (req: AuthenticatedRequest, res: NextApiResponse) => {
     if (!validateCsrf(req, res)) {
-      return res.status(403).json({
-        success: false,
-        error: "CSRF validation failed. Invalid origin or referer.",
-      });
+      return res.status(403).json({ success: false, error: "CSRF validation failed. Invalid origin or referer." });
     }
 
-    const uid = req.session.userid;
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
-    if (
-      PLANETARY_CLOUD_URL !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY.length > 0
-    ) {
-      if (
-        req.headers["x-planetary-cloud-service-key"] ===
-        PLANETARY_CLOUD_SERVICE_KEY
-      ) {
+    if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
+      if (req.headers["x-planetary-cloud-service-key"] === PLANETARY_CLOUD_SERVICE_KEY) {
         return handler(req, res);
       }
     }
 
-    if (!uid)
-      return res.status(401).json({ success: false, error: "Unauthorized" });
-    if (!req.query.id)
-      return res
-        .status(400)
-        .json({ success: false, error: "Missing required fields" });
+    const uid = req.auth.userId  // BigInt, from withAuth
+    if (!uid) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!req.query.id) return res.status(400).json({ success: false, error: "Missing required fields" });
+
     const workspaceId = parseInt(req.query.id as string);
     const cacheKey = `permissions_${uid}_${workspaceId}`;
     const now = Date.now();
     const cached = permissionsCache.get(cacheKey);
+
     if (cached && now - cached.timestamp < PERMISSIONS_CACHE_DURATION) {
       const cachedData = cached.data;
       if (cachedData.isAdmin) return handler(req, res);
       if (!permission) return handler(req, res);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      const hasPermission = permissions.some((perm) =>
-        cachedData.permissions?.includes(perm)
-      );
-      if (hasPermission) return handler(req, res);
+      if (permissions.some(perm => cachedData.permissions?.includes(perm))) return handler(req, res);
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
     const user = await prisma.user.findFirst({
-      where: {
-        userid: BigInt(uid),
-      },
+      where: { userid: uid },
       include: {
-        roles: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
-        },
-        workspaceMemberships: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
-        },
+        roles: { where: { workspaceGroupId: workspaceId } },
+        workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
       },
     });
-    if (!user)
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!user) return res.status(401).json({ success: false, error: "Unauthorized" });
 
     let membership = user.workspaceMemberships[0];
     if (!membership && user.roles.length > 0) {
       try {
         membership = await prisma.workspaceMember.create({
-          data: {
-            workspaceGroupId: workspaceId,
-            userId: Number(uid),
-            joinDate: new Date(),
-            timezone: "UTC",
-          },
+          data: { workspaceGroupId: workspaceId, userId: Number(uid), joinDate: new Date(), timezone: "UTC" },
         });
-      } catch (e) {
-        const existingMembership = await prisma.workspaceMember.findUnique({
-          where: {
-            workspaceGroupId_userId: {
-              workspaceGroupId: workspaceId,
-              userId: Number(uid),
-            },
-          },
+      } catch {
+        const existing = await prisma.workspaceMember.findUnique({
+          where: { workspaceGroupId_userId: { workspaceGroupId: workspaceId, userId: Number(uid) } },
         });
-        if (existingMembership) membership = existingMembership;
+        if (existing) membership = existing;
       }
     }
 
-    if (!membership)
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!membership) return res.status(401).json({ success: false, error: "Unauthorized" });
 
-    const isAdmin = membership?.isAdmin || false;
+    const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, {
-      data: { permissions: userrole?.permissions || [], isAdmin },
-      timestamp: now,
-    });
+    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
 
     if (isAdmin) return handler(req, res);
     if (!permission) return handler(req, res);
-    if (!userrole && !isAdmin)
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!userrole) return res.status(401).json({ success: false, error: "Unauthorized" });
+
     const permissions = Array.isArray(permission) ? permission : [permission];
-    const hasPermission = permissions.some((perm) =>
-      userrole?.permissions?.includes(perm)
-    );
-    if (hasPermission) return handler(req, res);
+    if (permissions.some(perm => userrole?.permissions?.includes(perm))) return handler(req, res);
     return res.status(401).json({ success: false, error: "Unauthorized" });
   });
 }
@@ -327,154 +228,85 @@ export function withPermissionCheckSsr(
   handler: (context: GetServerSidePropsContext) => Promise<any>,
   permission?: string | string[]
 ) {
-  return withSessionSsr(async (context) => {
+  return async (context: GetServerSidePropsContext) => {
     const { req, res, query } = context;
-    const uid = req.session.userid;
+
+    // Read session token from cookie
+    const cookies = cookie.parse(req.headers.cookie || "")
+    const token = cookies.session_token
+    if (!token) return { redirect: { destination: "/login", permanent: false } }
+
+    const session = await getSessionByToken(token)
+    if (!session) return { redirect: { destination: "/login", permanent: false } }
+
+    const uid = session.userId
+
+    ;(req as any).auth = { userId: uid, token }
+
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
-    if (
-      PLANETARY_CLOUD_URL !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY !== undefined &&
-      PLANETARY_CLOUD_SERVICE_KEY.length > 0
-    ) {
-      if (
-        req.headers["x-planetary-cloud-service-key"] ===
-        PLANETARY_CLOUD_SERVICE_KEY
-      ) {
+    if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
+      if (req.headers["x-planetary-cloud-service-key"] === PLANETARY_CLOUD_SERVICE_KEY) {
         return handler(context);
       }
     }
 
-    if (!uid)
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    if (!query.id)
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
+    if (!query.id) return { redirect: { destination: "/", permanent: false } };
+
     const workspaceId = parseInt(query.id as string);
     const cacheKey = `permissions_${uid}_${workspaceId}`;
     const now = Date.now();
     const cached = permissionsCache.get(cacheKey);
+
     if (cached && now - cached.timestamp < PERMISSIONS_CACHE_DURATION) {
       const cachedData = cached.data;
       if (cachedData.isAdmin) return handler(context);
       if (!permission) return handler(context);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      const hasPermission = permissions.some((perm) =>
-        cachedData.permissions?.includes(perm)
-      );
-      if (hasPermission) return handler(context);
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
+      if (permissions.some(perm => cachedData.permissions?.includes(perm))) return handler(context);
+      return { redirect: { destination: "/", permanent: false } };
     }
 
     const user = await prisma.user.findFirst({
-      where: {
-        userid: BigInt(uid),
-      },
+      where: { userid: uid },
       include: {
-        roles: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
-        },
-        workspaceMemberships: {
-          where: {
-            workspaceGroupId: workspaceId,
-          },
-        },
+        roles: { where: { workspaceGroupId: workspaceId } },
+        workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
       },
     });
-
-    if (!user) {
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    }
+    if (!user) return { redirect: { destination: "/", permanent: false } };
 
     let membership = user.workspaceMemberships[0];
     if (!membership && user.roles.length > 0) {
       try {
         membership = await prisma.workspaceMember.create({
-          data: {
-            workspaceGroupId: workspaceId,
-            userId: Number(uid),
-            joinDate: new Date(),
-            timezone: "UTC",
-          },
+          data: { workspaceGroupId: workspaceId, userId: Number(uid), joinDate: new Date(), timezone: "UTC" },
         });
-      } catch (e) {
-        const existingMembership = await prisma.workspaceMember.findUnique({
-          where: {
-            workspaceGroupId_userId: {
-              workspaceGroupId: workspaceId,
-              userId: Number(uid),
-            },
-          },
+      } catch {
+        const existing = await prisma.workspaceMember.findUnique({
+          where: { workspaceGroupId_userId: { workspaceGroupId: workspaceId, userId: Number(uid) } },
         });
-        if (existingMembership) membership = existingMembership;
+        if (existing) membership = existing;
       }
     }
 
-    if (!membership) {
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    }
+    if (!membership) return { redirect: { destination: "/", permanent: false } };
 
     const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, {
-      data: { permissions: userrole?.permissions || [], isAdmin },
-      timestamp: now,
-    });
+    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
+
     if (isAdmin) return handler(context);
     if (!permission) return handler(context);
-
-    if (!userrole) {
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    }
+    if (!userrole) return { redirect: { destination: "/", permanent: false } };
 
     const permissions = Array.isArray(permission) ? permission : [permission];
-    const hasPermission = user.roles.some((role) =>
-      permissions.some((perm) => role.permissions.includes(perm))
-    );
-
-    if (!hasPermission) {
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    }
+    const hasPermission = user.roles.some(role => permissions.some(perm => role.permissions.includes(perm)));
+    if (!hasPermission) return { redirect: { destination: "/", permanent: false } };
 
     return handler(context);
-  });
+  };
 }
 
 export async function checkGroupRoles(groupID: number) {
@@ -484,7 +316,7 @@ export async function checkGroupRoles(groupID: number) {
 
     try {
       const [logo, group] = await Promise.all([
-        noblox.getLogo(groupID).catch(() => null),
+        noblox.getLogo(groupID, '420x420').catch(() => null),
         noblox.getGroup(groupID).catch(() => null),
       ]);
       if (logo || group) {
@@ -723,7 +555,7 @@ export async function checkGroupRoles(groupID: number) {
               create: {
                 userid: BigInt(userId),
                 username,
-                picture: getThumbnail(userId, groupID),
+                picture: getThumbnail(userId),
                 roles: { connect: { id: workspaceRole.id } },
               },
               update: {
@@ -933,13 +765,13 @@ export async function checkGroupRoles(groupID: number) {
   }
 }
 
-export async function checkSpecificUser(userID: number) {
+export async function checkSpecificUser(userID: number | bigint) {
   const ws = await prisma.workspace.findMany({});
   for (const w of ws) {
     await delay(500); // Delay between workspace checks
 
     const rankId = await retryNobloxRequest(() =>
-      noblox.getRankInGroup(w.groupId, userID)
+      noblox.getRankInGroup(w.groupId, Number(userID))
     ).catch(() => null);
     await prisma.rank.upsert({
       where: {
@@ -1028,6 +860,15 @@ export async function checkSpecificUser(userID: number) {
         },
       },
     });
-    return true;
   }
+  const workspaceData = await prisma.workspaceMember.findMany({
+    where: {
+      userId: userID
+    },
+    include: {
+      workspace: true
+    }
+  });
+
+  return workspaceData;
 }

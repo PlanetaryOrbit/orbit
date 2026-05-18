@@ -95,7 +95,7 @@ export default withPermissionCheck(
       const nodes: OrgNode[] = inChain.map((m) => ({
         userId: m.userId.toString(),
         username: m.user.username,
-        picture: getThumbnail(m.user.userid, workspaceGroupId),
+        picture: getThumbnail(m.user.userid),
         rankName: rankNameForUser(m.user),
       }));
 

@@ -2,8 +2,9 @@ import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
   const { id } = req.query;
   const { userId, minutes, reason, action } = req.body as { userId?: number; minutes?: number; reason?: string; action?: 'award' | 'remove' };
@@ -16,7 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (action && !['award','remove'].includes(action)) return res.status(400).json({ success: false, error: 'Invalid action' });
 
   const workspaceGroupId = parseInt(id as string);
-  const actorId = req.session.userid;
+  const actorId = req.auth.userId;
   if (!actorId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
   const signedMinutes = action === 'remove' ? -Math.trunc(minutes) : Math.trunc(minutes);

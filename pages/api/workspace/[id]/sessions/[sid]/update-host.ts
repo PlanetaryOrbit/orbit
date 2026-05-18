@@ -5,7 +5,7 @@ import { withPermissionCheck } from "@/utils/permissionsManager";
 const roleAssignmentLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
   const workspaceId = req.query?.id || 'unknown';
-  const userId = (req as any).session?.userid || 'anonymous';
+  const userId = (req as any).auth?.userId || 'anonymous';
   const key = `workspace:${workspaceId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;
@@ -44,7 +44,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const { sid } = req.query;
   const { ownerId } = req.body;
-  const currentUserId = (req as any).session?.userid;
+  const currentUserId = (req as any).auth?.userId;
 
   if (!sid) {
     return res

@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { setConfig, getConfig } from "@/utils/configEngine";
 import { logAudit } from '@/utils/logs';
 import { getUsername } from '@/utils/userinfoEngine';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
+import { withAuth } from '@/lib/withAuth'
 import prisma from "@/utils/database";
 
 type SessionColors = {
@@ -19,7 +20,7 @@ type Data = {
   colors?: SessionColors;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const workspaceId = parseInt(req.query.id as string);
@@ -31,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   if (req.method === "GET") {
-    const userId = (req as any).session?.userid;
+    const userId = (req as any).auth?.userId;
     if (!userId) {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
@@ -57,7 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   if (req.method === "PATCH") {
-    const userId = (req as any).session?.userid;
+    const userId = (req as any).auth?.userId;
     if (!userId) {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
@@ -107,7 +108,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       const before = await getConfig('sessionColors', workspaceId);
       await setConfig("sessionColors", colors, workspaceId);
       try {
-        const actorId = (req as any).session?.userid ? Number((req as any).session.userid) : null;
+        const actorId = (req as any).auth?.userId ? Number((req as any).session.userid) : null;
         const actorUsername = actorId ? await getUsername(actorId).catch(() => null) : null;
         await logAudit(workspaceId, actorId, 'settings.general.sessionColors.update', 'sessionColors', { before, after: colors, actorUsername });
       } catch (e) {}

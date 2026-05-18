@@ -4,12 +4,12 @@ import { getConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
 import * as rbx from '@/utils/roblox'
 import { logAudit } from "@/utils/logs";
-import { withSessionRoute } from "@/lib/withSession";
 import { RankGunAPI, getRankGun } from "@/utils/rankgun";
 import formidable, { File as FormidableFile } from "formidable";
 import fs from "fs";
 
 import * as noblox from "noblox.js";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 type RankingResultLike = {
   success: boolean;
@@ -255,7 +255,7 @@ async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
   };
 }
 
-async function checkPermissionForType(req: NextApiRequest, type: string, workspaceGroupId: number) {
+async function checkPermissionForType(req: AuthenticatedRequest, type: string, workspaceGroupId: number) {
   const permissionMap: Record<string, string> = {
     note: "logbook_note",
     warning: "logbook_warning",
@@ -269,7 +269,7 @@ async function checkPermissionForType(req: NextApiRequest, type: string, workspa
   if (!requiredPermission) return false;
 
   const user = await prisma.user.findFirst({
-    where: { userid: BigInt(req.session.userid) },
+    where: { userid: BigInt(req.auth.userId) },
     include: {
       roles: { where: { workspaceGroupId } },
       workspaceMemberships: { where: { workspaceGroupId } },
@@ -284,9 +284,9 @@ async function checkPermissionForType(req: NextApiRequest, type: string, workspa
   return user.roles[0].permissions.includes(requiredPermission);
 }
 
-async function hasRankUsersPermission(req: NextApiRequest, workspaceGroupId: number): Promise<boolean> {
+async function hasRankUsersPermission(req: AuthenticatedRequest, workspaceGroupId: number): Promise<boolean> {
   const user = await prisma.user.findFirst({
-    where: { userid: BigInt(req.session.userid) },
+    where: { userid: BigInt(req.auth.userId) },
     include: {
       roles: { where: { workspaceGroupId } },
       workspaceMemberships: { where: { workspaceGroupId } },
@@ -301,7 +301,7 @@ async function hasRankUsersPermission(req: NextApiRequest, workspaceGroupId: num
   return user.roles.some(role => role.permissions.includes("rank_users"));
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST")
     return res
       .status(405)
@@ -344,7 +344,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
   const userId = parseInt(uid as string);
 
-  if (BigInt(userId) === req.session.userid) {
+  if (BigInt(userId) === req.auth.userId) {
     return res.status(400).json({
       success: false,
       error: "You cannot perform actions on yourself.",
@@ -409,7 +409,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
       const adminUserRank = await prisma.rank.findFirst({
         where: {
-          userId: BigInt(req.session.userid),
+          userId: BigInt(req.auth.userId),
           workspaceGroupId: workspaceGroupId,
         },
       });
@@ -419,7 +419,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         if (rankBefore && rankBefore >= adminRank) {
           const adminUser = await prisma.user.findFirst({
             where: {
-              userid: BigInt(req.session.userid),
+              userid: BigInt(req.auth.userId),
             },
             include: {
               workspaceMemberships: {
@@ -515,7 +515,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           try {
             const adminUserRank = await prisma.rank.findFirst({
               where: {
-                userId: BigInt(req.session.userid),
+                userId: BigInt(req.auth.userId),
                 workspaceGroupId: workspaceGroupId,
               },
             });
@@ -526,7 +526,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
               if (parsedTargetRank >= adminRank) {
                 const adminUser = await prisma.user.findFirst({
                   where: {
-                    userid: BigInt(req.session.userid),
+                    userid: BigInt(req.auth.userId),
                   },
                   include: {
                     workspaceMemberships: {
@@ -670,7 +670,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         text: notes,
         attachments,
       }),
-      adminId: BigInt(req.session.userid),
+      adminId: BigInt(req.auth.userId),
       rankBefore,
       rankAfter,
       rankNameBefore,
@@ -684,13 +684,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   try {
     await logAudit(
       parseInt(id as string),
-      req.session.userid || null,
+      req.auth.userId || null,
       "userbook.create",
       `userbook:${userbook.id}`,
       {
         type,
         userId: uid,
-        adminId: req.session.userid,
+        adminId: req.auth.userId,
         rankBefore,
         rankAfter,
         rankNameBefore,
@@ -709,4 +709,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   });
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);

@@ -3,29 +3,23 @@ import { loginState } from "@/state";
 import Workspace from "@/layouts/workspace";
 import { useRecoilState } from "recoil";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import prisma, { document } from "@/utils/database";
-import { GetServerSideProps } from "next";
-import { withSessionSsr } from "@/lib/withSession";
 import {
 	IconFileText,
 	IconClock,
 	IconAlertTriangle,
 	IconExternalLink,
-	IconLink,
 	IconShield,
 	IconCheck,
 	IconArrowLeft
 } from "@tabler/icons-react";
-import { Toaster } from 'react-hot-toast';
-import { motion } from 'framer-motion';
 import PolicyAcknowledgmentModal from "@/components/PolicyAcknowledgmentModal";
-import axios from "axios";
-import toast from "react-hot-toast";
+import { withAuthSsr } from "@/lib/withAuth";
 
-export const getServerSideProps = withSessionSsr(async (context: any): Promise<any> => {
+export const getServerSideProps = withAuthSsr(async (context: any): Promise<any> => {
 	const { id, docId } = context.query;
-	const userid = context.req.session.userid;
+	const userid = context.req.auth.userId;
 
 	if (!userid) {
 		return {
@@ -232,7 +226,6 @@ const PolicySignPage: pageWithLayout<pageProps> = ({ document, alreadyAcknowledg
 
 	return (
 		<div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-			<Toaster position="bottom-center" />
 			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				<div className="flex items-center justify-between mb-6">
 					<div className="flex items-center space-x-4">

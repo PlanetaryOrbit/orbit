@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession';
+// import { withAuth } from '@/lib/withSession';
 import { getConfig } from '@/utils/configEngine';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -10,17 +11,17 @@ type Data = {
 	pendingPolicies?: any[]
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
 	const { id } = req.query;
 	if (!id) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Unauthorized' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
 	const policiesConfig = await getConfig('policies', parseInt(id as string));
 	if (!policiesConfig?.enabled) {
@@ -29,7 +30,7 @@ export async function handler(
 
 	const user = await prisma.user.findFirst({
 		where: {
-			userid: BigInt(req.session.userid)
+			userid: BigInt(req.auth.userId)
 		},
 		include: {
 			roles: {
@@ -92,7 +93,7 @@ export async function handler(
 		include: {
 			acknowledgments: {
 				where: {
-					userId: BigInt(req.session.userid)
+					userId: BigInt(req.auth.userId)
 				}
 			},
 			owner: {

@@ -3,11 +3,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import { logAudit } from '@/utils/logs'
 import prisma, {role} from '@/utils/database';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
 import { get } from 'react-hook-form';
+import { withAuth } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -15,13 +16,13 @@ type Data = {
 	value?: any
 }
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
 async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<Data>
 ) {
-	const userId = (req as any).session?.userid;
+	const userId = (req as any).auth?.userId;
 	if (!userId) {
 		return res.status(401).json({ success: false, error: 'Unauthorized' });
 	}
@@ -41,7 +42,7 @@ async function handler(
 			const before = await getConfig('allies', workspaceId);
 			const after = { enabled: req.body.enabled };
 			await setConfig('allies', after, workspaceId);
-			try { await logAudit(workspaceId, (req as any).session?.userid || null, 'settings.general.allies.update', 'allies', { before, after }); } catch (e) {}
+			try { await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.allies.update', 'allies', { before, after }); } catch (e) {}
 			return res.status(200).json({ success: true });
 		}, 'manage_features')(req, res);
 	}

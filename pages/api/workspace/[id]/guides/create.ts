@@ -4,11 +4,12 @@ import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { SessionType, document } from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { sanitizeJSON } from '@/utils/sanitise';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
 import * as noblox from 'noblox.js'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 type Data = {
 	success: boolean
 	error?: string
@@ -19,7 +20,7 @@ type Data = {
 export default withPermissionCheck(handler, 'create_docs');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -42,7 +43,7 @@ export async function handler(
 		data: {
 			workspaceGroupId: parseInt(id as string),
 			name,
-			ownerId: BigInt(req.session.userid),
+			ownerId: BigInt(req.auth.userId),
 			content: saveContent,
 			roles: {
 				connect: roles ? roles.map((role: string) => ({ id: role })) : []
@@ -53,7 +54,7 @@ export async function handler(
 		}
 	});
 	try {
-		await logAudit(parseInt(id as string), Number(req.session.userid), 'document.create', `document:${document.id}`, { id: document.id, name, roles, departments });
+		await logAudit(parseInt(id as string), Number(req.auth.userId), 'document.create', `document:${document.id}`, { id: document.id, name, roles, departments });
 	} catch (e) {
 		// ignore
 	}

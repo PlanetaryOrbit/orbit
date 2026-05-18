@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { logAudit } from '@/utils/logs';
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -13,14 +14,14 @@ type Data = {
 export default withPermissionCheck(handler, 'create_quotas');
 
 async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') {
 		return res.status(405).json({ success: false, error: 'Method not allowed' });
 	}
 
-	if (!req.session.userid) {
+	if (!req.auth.userId) {
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
 
@@ -89,7 +90,7 @@ async function handler(
 		});
 
 		try {
-			await logAudit(parseInt(req.query.id as string), (req as any).session?.userid || null, 'activity.quota.create', `quota:${fullQuota?.id}`, { id: fullQuota?.id, name: fullQuota?.name, type: fullQuota?.type, value: fullQuota?.value, roles: (fullQuota?.quotaRoles || []).map((r: any) => r.role ? r.role.name : r.roleId) });
+			await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'activity.quota.create', `quota:${fullQuota?.id}`, { id: fullQuota?.id, name: fullQuota?.name, type: fullQuota?.type, value: fullQuota?.value, roles: (fullQuota?.quotaRoles || []).map((r: any) => r.role ? r.role.name : r.roleId) });
 		} catch (e) {}
 
 		return res.status(200).json({

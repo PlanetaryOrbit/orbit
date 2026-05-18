@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -15,7 +16,7 @@ export default withPermissionCheck(handler, [
   "sessions_other_manage"
 ]);
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
@@ -63,7 +64,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       await prisma.sessionLog.create({
         data: {
           sessionId: sid as string,
-          actorId: BigInt(req.session.userid),
+          actorId: BigInt(req.auth.userId),
           action: "session_updated",
           metadata: {
             updateScope: "single",
@@ -126,7 +127,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       await prisma.sessionLog.create({
         data: {
           sessionId: sid as string,
-          actorId: BigInt(req.session.userid),
+          actorId: BigInt(req.auth.userId),
           action: "session_pattern_updated",
           metadata: {
             updateScope: "future",
@@ -182,7 +183,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       await prisma.sessionLog.create({
         data: {
           sessionId: sid as string,
-          actorId: BigInt(req.session.userid),
+          actorId: BigInt(req.auth.userId),
           action: "session_pattern_updated",
           metadata: {
             updateScope: "all",

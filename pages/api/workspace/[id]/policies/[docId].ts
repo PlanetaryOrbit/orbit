@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-import { withSessionRoute } from '@/lib/withSession'
+// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
+import { AuthenticatedRequest } from '@/lib/withAuth';
 
 type Data = {
 	success: boolean
@@ -12,7 +13,7 @@ type Data = {
 export default withPermissionCheck(handler, 'delete_policies');
 
 export async function handler(
-	req: NextApiRequest,
+	req: AuthenticatedRequest,
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'DELETE') return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -20,7 +21,7 @@ export async function handler(
 	const { id, docId } = req.query;
 
 	if (!id || !docId) return res.status(400).json({ success: false, error: 'Missing required fields' });
-	if (!req.session.userid) return res.status(401).json({ success: false, error: 'Unauthorized' });
+	if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
 	try {
 		// First, get the document to check if it exists and get its details for audit log
@@ -44,7 +45,7 @@ export async function handler(
 
 		// Log the deletion
 		try {
-			await logAudit(parseInt(id as string), Number(req.session.userid), 'policy.delete', `policy:${document.id}`, {
+			await logAudit(parseInt(id as string), Number(req.auth.userId), 'policy.delete', `policy:${document.id}`, {
 				documentId: document.id,
 				documentName: document.name,
 			});

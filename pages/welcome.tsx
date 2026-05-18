@@ -7,8 +7,8 @@ import Router from "next/router";
 import Slider from "@/components/slider";
 import Input from "@/components/input";
 import axios from "axios";
-import { toast, Toaster } from "react-hot-toast";
-import { IconCheck, IconCloud, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
+import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
 
 type FormData = {
   username: string;
@@ -32,22 +32,6 @@ const Login: NextPage = () => {
   const [ocLoading, setOcLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const testedKey = useRef<string | null>(null);
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        await axios.get("/api/@me")
-        setIsRegistered(true)
-      } catch (err: any) {
-        const status = err.response?.status
-        if (status != 200) {
-          setIsRegistered(false)
-        }
-      }
-    }
-
-    checkLogin()
-  }, [])
 
   async function createAccount() {
     setIsLoading(true);
@@ -187,7 +171,6 @@ const Login: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-infobg-light dark:bg-infobg-dark bg-no-repeat bg-cover bg-center flex flex-col">
-      <Toaster position="bottom-center" />
       <div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
         <p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
           👋 Welcome <br /> to <span className="text-pink-100">Orbit</span>
@@ -250,11 +233,7 @@ const Login: NextPage = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isRegistered) {
-                      Router.push('/');
-                    } else {
-                      handleSubmit(nextSlide)();
-                    }
+                    handleSubmit(nextSlide)();
                   }}
                   className="ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
                 >

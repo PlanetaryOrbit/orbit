@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { withSessionRoute } from "@/lib/withSession";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiResponse } from "next";
 import { fetchworkspace } from "@/utils/configEngine";
 import * as noblox from "noblox.js";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
 type Data = {
   success: boolean;
@@ -14,9 +13,9 @@ type Data = {
   error?: string;
 };
 
-export default withSessionRoute(handler);
+export default withAuth(handler);
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET") {
     return res
       .status(405)

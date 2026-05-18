@@ -23,9 +23,7 @@ import axios from "axios";
 import prisma from "@/utils/database";
 import { useForm, FormProvider } from "react-hook-form";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import toast, { Toaster } from "react-hot-toast";
-import ReactMarkdown from "react-markdown";
-import rehypeSanitize from "rehype-sanitize";
+import toast from "react-hot-toast";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -357,7 +355,6 @@ const EditSession: pageWithLayout<
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <Toaster position="bottom-center" />
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
           <button
