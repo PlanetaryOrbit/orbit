@@ -8,30 +8,44 @@ function isPublic(pathname: string) {
 }
 
 function internalUrl(path: string): string {
-  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || "http://localhost:3000"
+  const base = process.env.NEXTAUTH_URL || "http://localhost:3000"
   return `${base.replace(/\/$/, "")}${path}`
 }
 
-let setupChecked = false
-let isSetupComplete = true
+let setupCache: {
+  isSetup: boolean;
+  timestamp: number;
+} | null = null;
+const CACHE_DURATION = 30000; // 30 seconds
 
 async function checkSetup(): Promise<boolean> {
-  if (setupChecked) return isSetupComplete
-  try {
-    const res = await fetch(internalUrl("/api/admin/first-setup/config"))
-    if (res.ok) {
-      const data = await res.json()
-      isSetupComplete = data.workspaceCount > 0 || data.userCount > 0
-      setupChecked = true
-    }
-  } catch {
+  if (setupCache && Date.now() - setupCache.timestamp < CACHE_DURATION) {
+    return setupCache.isSetup;
   }
-  return isSetupComplete
+
+  try {
+    const res = await fetch(internalUrl("/api/admin/first-setup/config"));
+    
+    if (res.ok) {
+      const data = await res.json();
+      const isSetup = data.workspaceCount > 0 || data.userCount > 0;
+      
+      setupCache = {
+        isSetup,
+        timestamp: Date.now(),
+      };
+      
+      return isSetup;
+    }
+  } catch (error) {
+    console.error("[Middleware] Failed to check setup:", error);
+  }
+  
+  return false;
 }
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
@@ -42,51 +56,74 @@ export default async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/api")) return NextResponse.next();
 
+  const isActuallySetup = await checkSetup();
+  
   const appSetupCookie = request.cookies.get("app_setup")?.value;
-  const isSetup = appSetupCookie !== undefined
-    ? appSetupCookie === "true"
-    : await checkSetup()
+  const cookieIsSetup = appSetupCookie === "true";
+  
+  const needsCookieUpdate = cookieIsSetup !== isActuallySetup;
 
-  const stampCookie = appSetupCookie === undefined
-
-  if (!isSetup && pathname !== "/welcome") {
-    const res = NextResponse.redirect(new URL("/welcome", request.url))
-    if (stampCookie) res.cookies.set("app_setup", "false", { path: "/", httpOnly: true, sameSite: "strict" })
-    return res
+  if (!isActuallySetup && pathname !== "/welcome") {
+    const res = NextResponse.redirect(new URL("/welcome", request.url));
+    res.cookies.set("app_setup", "false", { 
+      path: "/", 
+      httpOnly: true, 
+      sameSite: "strict" 
+    });
+    return res;
   }
 
-  if (isSetup && pathname === "/welcome") {
-    const res = NextResponse.redirect(new URL("/", request.url))
-    if (stampCookie) res.cookies.set("app_setup", "true", { path: "/", httpOnly: true, sameSite: "strict" })
-    return res
+  if (isActuallySetup && pathname === "/welcome") {
+    const res = NextResponse.redirect(new URL("/", request.url));
+    res.cookies.set("app_setup", "true", { 
+      path: "/", 
+      httpOnly: true, 
+      sameSite: "strict" 
+    });
+    return res;
   }
 
-  if (isSetup && !isPublic(pathname)) {
+  if (isActuallySetup && !isPublic(pathname)) {
     const token = request.cookies.get("session_token")?.value;
     if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      res.cookies.set("app_setup", "true", { 
+        path: "/", 
+        httpOnly: true, 
+        sameSite: "strict" 
+      });
+      return res;
     }
 
-    const res = await fetch(internalUrl("/api/auth/session/validate"), {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    try {
+      const res = await fetch(internalUrl("/api/auth/session/validate"), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    if (!res.ok) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      if (!res.ok) {
+        const response = NextResponse.redirect(new URL("/login", request.url));
+        response.cookies.set("app_setup", "true", { path: "/", httpOnly: true, sameSite: "strict" });
+        return response;
+      }
+    } catch (error) {
+      console.error("[Middleware] Session validation failed:", error);
+      const response = NextResponse.redirect(new URL("/login", request.url));
+      response.cookies.set("app_setup", "true", { path: "/", httpOnly: true, sameSite: "strict" });
+      return response;
     }
   }
 
   const response = NextResponse.next();
 
-  if (stampCookie) {
-    response.cookies.set("app_setup", String(isSetup), { path: "/", httpOnly: true, sameSite: "strict" })
+  if (needsCookieUpdate) {
+    response.cookies.set("app_setup", String(isActuallySetup), { path: "/", httpOnly: true, sameSite: "strict" });
   }
 
   response.headers.set(
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://uranus.planetaryapp.cloud",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercombcdn.com https://uranus.planetaryapp.cloud",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com https://fonts.intercomcdn.com",
       "img-src 'self' data: https: blob:",
