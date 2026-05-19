@@ -23,7 +23,8 @@ const Home: pageWithLayout = () => {
   const router = useRouter()
   const text = useMemo(() => randomText(login.displayname), [login.displayname])
   const [ready, setReady] = useState(false)
-  const [banner, setBanner] = useState<string | null>(null)
+  const [banner, setBanner] = useState<string | null>(null);
+  const [showWarn, setShowWarn] = useState<boolean>(false);
   const [syncWarnDismissed, setSyncWarnDismissed] = useState(false)
   const [workspaceMembership, setWorkspaceMembership] = useState<{
     isAdmin: boolean | null
@@ -66,18 +67,25 @@ const Home: pageWithLayout = () => {
 
   useEffect(() => {
     if (!workspace?.groupId) return
+    fetch(`/api/workspace/${workspace.groupId}/`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setShowWarn(!data.workspace.lastSyncedSuccessful)
+      })
+      .catch(() => {})
+  }, [workspace.groupId])
+
+  useEffect(() => {
+    if (!workspace?.groupId || !workspaceMembership?.isAdmin || !login.isOwner) return
     fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
       .then((r) => r.json())
       .then((data) => {
         if (data.banner) setBanner(data.banner)
       })
       .catch(() => {})
-  }, [workspace?.groupId])
+  }, [workspace?.groupId, login, workspaceMembership])
 
-  const showSyncWarn =
-    (workspaceMembership?.isAdmin || login.isOwner) &&
-    workspace.lastSyncedSuccessful === false &&
-    !syncWarnDismissed
+  console.log(workspace)
 
   const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -88,7 +96,7 @@ const Home: pageWithLayout = () => {
   return (
     <div className="pagePadding">
       <div className="mx-auto max-w-6xl">
-        {showSyncWarn && (
+        {(showWarn && !syncWarnDismissed) && (
           <div className="mb-5 flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               <span className="font-medium text-zinc-900 dark:text-zinc-200">Sync failed.</span>{" "}
