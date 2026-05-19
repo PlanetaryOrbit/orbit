@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import type { Session, user } from "@/utils/database";
+import type { Session } from "@/utils/database";
 import { useRouter } from "next/router";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
@@ -13,7 +13,7 @@ type SessionWithRelations = Session & {
   } | null;
   sessionType: {
     name: string | null;
-    statues: any;
+    statues: { timeAfter: number; name: string }[];
   } | null;
   isLive?: boolean;
 };
@@ -38,9 +38,12 @@ const Sessions: React.FC = () => {
       )
       .then((res) => {
         if (res.status === 200) {
-          const sessionsWithOwner = (res.data.sessions || []).filter((s: SessionWithRelations) => s.owner);
+          const sessionsWithOwner = (res.data.sessions || []).filter(
+            (s: SessionWithRelations) => s.owner
+          );
           setActiveSessions(sessionsWithOwner);
-          setNextSession(res.data.nextSession?.owner ? res.data.nextSession : null);
+          const next = res.data.nextSession as SessionWithRelations | null | undefined;
+          setNextSession(next?.owner ? next : null);
         }
       })
       .catch(() => {});

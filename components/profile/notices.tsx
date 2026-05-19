@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { FC } from "@/types/settingsComponent";
 import moment from "moment";
+import {
+  formatNoticeDay,
+  parseDateInputEnd,
+  parseDateInputStart,
+} from "@/utils/noticeDates";
 import { IconCheck, IconX, IconClock, IconPlus, IconCalendarTime, IconBug, IconHome, IconBook } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 import axios from "axios";
@@ -65,15 +70,20 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
       return;
     }
 
-    if (new Date(startTime) >= new Date(endTime)) {
-      toast.error("End time must be after start time");
+    if (startTime > endTime) {
+      toast.error("End date must be on or after start date");
+      return;
+    }
+
+    const start = parseDateInputStart(startTime);
+    const end = parseDateInputEnd(endTime);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      toast.error("Invalid date");
       return;
     }
 
     setIsCreating(true);
     try {
-      const start = new Date(startTime);
-      const end = new Date(endTime);
 
       const workspaceId = router.query.id ?? workspace.groupId;
       const res = await axios.post(
@@ -295,7 +305,7 @@ const Notices: FC<Props> = ({ notices, canManageNotices = false, canApproveNotic
                           {getStatusText(notice)}
                         </span>
                         <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
-                          {moment(notice.startTime).format("D MMM YYYY")} – {moment(notice.endTime).format("D MMM YYYY")}
+                          {formatNoticeDay(notice.startTime, "D MMM YYYY")} – {formatNoticeDay(notice.endTime, "D MMM YYYY")}
                         </span>
                       </div>
                       <p className="text-sm text-zinc-600 dark:text-zinc-300 break-words leading-relaxed">
