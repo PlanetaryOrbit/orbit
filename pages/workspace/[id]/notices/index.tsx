@@ -13,6 +13,11 @@ import prisma, { inactivityNotice, user } from "@/utils/database";
 import type { staffResignation } from "@prisma/client";
 import moment from "moment";
 import {
+  formatNoticeDay,
+  parseDateInputEnd,
+  parseDateInputStart,
+} from "@/utils/noticeDates";
+import {
   IconCalendarTime,
   IconCheck,
   IconX,
@@ -409,15 +414,20 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
       return;
     }
 
-    if (new Date(startTime) >= new Date(endTime)) {
-      toast.error("End time must be after start time");
+    if (startTime > endTime) {
+      toast.error("End date must be on or after start date");
+      return;
+    }
+
+    const start = parseDateInputStart(startTime);
+    const end = parseDateInputEnd(endTime);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      toast.error("Invalid date");
       return;
     }
 
     setIsCreating(true);
     try {
-      const start = new Date(startTime);
-      const end = new Date(endTime);
 
       const res = await axios.post(
         `/api/workspace/${id}/activity/notices/create`,
@@ -483,7 +493,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
       toast.error("Choose your last working day and add a reason.");
       return;
     }
-    const d = new Date(resignLastDay);
+    const d = parseDateInputStart(resignLastDay);
     if (Number.isNaN(d.getTime())) {
       toast.error("Invalid date.");
       return;
@@ -852,7 +862,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
                             <IconCalendarTime className="w-4 h-4 shrink-0" />
                             <span>
-                              {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")}
+                              {formatNoticeDay(notice.startTime!)} – {formatNoticeDay(notice.endTime!, "MMM D, YYYY")}
                             </span>
                           </div>
                           <span
@@ -1071,7 +1081,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-1">
                             <IconCalendarTime className="w-4 h-4 shrink-0" />
                             <span>
-                              {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")}
+                              {formatNoticeDay(notice.startTime!)} – {formatNoticeDay(notice.endTime!, "MMM D, YYYY")}
                             </span>
                           </div>
                           <p className="text-sm font-medium text-zinc-900 dark:text-white">
@@ -1157,7 +1167,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                                   ))}
                                 </div>
                                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                  {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")} · {notice.reason}
+                                  {formatNoticeDay(notice.startTime!)} – {formatNoticeDay(notice.endTime!, "MMM D, YYYY")} · {notice.reason}
                                 </p>
                               </div>
                               {hasManageAccess && (
@@ -1227,7 +1237,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                                 ))}
                               </div>
                               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                {moment(notice.startTime!).format("MMM D")} – {moment(notice.endTime!).format("MMM D, YYYY")} · {notice.reason}
+                                {formatNoticeDay(notice.startTime!)} – {formatNoticeDay(notice.endTime!, "MMM D, YYYY")} · {notice.reason}
                               </p>
                             </div>
                             {hasManageAccess && (

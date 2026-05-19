@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import axios from 'axios';
-import { IconUserPlus, IconMusic, IconPencil, IconX, IconCheck, IconPlayerPlay, IconPlayerPause, IconSearch, IconLoader2, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconPencil, IconX, IconCheck, IconPlayerPlay, IconPlayerPause, IconSearch, IconLoader2 } from '@tabler/icons-react';
 import { useRecoilState } from 'recoil';
 import { loginState } from '@/state';
 import clsx from 'clsx';
@@ -46,13 +46,32 @@ function proxyUrl(previewUrl: string): string {
   return `/api/music/preview?url=${encodeURIComponent(previewUrl)}`;
 }
 
-function slotWidthPx(): number {
-  return 72 + 16;
-}
+const AVATAR_BG_COLORS = [
+  "bg-rose-300",
+  "bg-lime-300",
+  "bg-teal-200",
+  "bg-amber-300",
+  "bg-rose-200",
+  "bg-lime-200",
+  "bg-green-100",
+  "bg-red-100",
+  "bg-yellow-200",
+  "bg-amber-200",
+  "bg-emerald-300",
+  "bg-green-300",
+  "bg-red-300",
+  "bg-emerald-200",
+  "bg-green-200",
+  "bg-red-200",
+];
 
-function truncateUsername(username: string, maxLen = 13): string {
-  if (username.length <= maxLen) return username;
-  return `${username.slice(0, maxLen)}…`;
+function getAvatarBg(userid: string, username?: string) {
+  const key = `${userid ?? ""}:${username ?? ""}`;
+  let hash = 5381;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
+  }
+  return AVATAR_BG_COLORS[(hash >>> 0) % AVATAR_BG_COLORS.length];
 }
 
 export default function NewToTeam({ embedded = false }: { embedded?: boolean }) {
@@ -61,9 +80,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
   const [login] = useRecoilState(loginState);
   const [members, setMembers] = useState<NewMember[]>([]);
   const [loading, setLoading] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [page, setPage] = useState(0);
-  const [perPage, setPerPage] = useState(6);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -86,36 +103,6 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
     axios.get(`/api/workspace/${workspaceId}/home/new-members?days=7`).then(r => {
       if (r.status === 200 && r.data.success) setMembers(r.data.members || []);
     }).finally(() => setLoading(false));
-  }, [workspaceId]);
-
-  useEffect(() => {
-    const calc = () => {
-      if (!cardRef.current) return;
-      const w = cardRef.current.offsetWidth;
-      const reservePadding = 28;
-      const slot = slotWidthPx();
-      const baseInner = Math.max(0, w - reservePadding);
-      let n = Math.max(3, Math.floor(baseInner / slot));
-      const pagesOneRow = Math.ceil(members.length / n);
-      if (pagesOneRow > 1) {
-        const reserveArrows = 96;
-        const inner = Math.max(0, w - reservePadding - reserveArrows);
-        n = Math.max(3, Math.floor(inner / slot));
-      }
-      setPerPage(n);
-    };
-    calc();
-    window.addEventListener("resize", calc);
-    return () => window.removeEventListener("resize", calc);
-  }, [members.length]);
-
-  useEffect(() => {
-    const pages = Math.max(1, Math.ceil(members.length / Math.max(perPage, 1)));
-    setPage((p) => Math.min(p, pages - 1));
-  }, [perPage, members.length]);
-
-  useEffect(() => {
-    setPage(0);
   }, [workspaceId]);
 
   const stopMainAudio = () => {
@@ -243,145 +230,90 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
   if (loading) return null;
   if (!members.length) return null;
 
-  const totalPages = Math.max(1, Math.ceil(members.length / perPage));
-  const safePage = Math.min(page, totalPages - 1);
-  const rowMembers = members.slice(safePage * perPage, safePage * perPage + perPage);
-  const showArrows = totalPages > 1;
+  const memberStrip = (
+    <div ref={stripRef}>
+      <div className="flex items-start gap-5 overflow-x-auto overscroll-x-contain py-1 pr-1 scrollbar-hide sm:gap-6">
+        {members.map((m) => {
+          const isMe = m.userid === String(login?.userId);
+          const song = parseSong(m.introSong);
+          const isPlaying = playingId === m.userid;
+          const note = m.introNote?.trim() ?? "";
+          const hasNote = Boolean(note);
 
-  const goPrev = () => setPage((p) => Math.max(0, p - 1));
-  const goNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
-
-  const carousel = (
-    <div ref={cardRef}>
-      <div
-        className={
-          showArrows
-            ? "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 sm:gap-x-3"
-            : "w-full"
-        }
-      >
-        {showArrows ? (
-          <button
-            type="button"
-            aria-label="Show previous people"
-            disabled={safePage <= 0}
-            onClick={goPrev}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-30 dark:border-zinc-600 dark:bg-zinc-700/80 dark:text-zinc-200 dark:hover:bg-zinc-600 sm:h-10 sm:w-10"
-          >
-            <IconChevronLeft className="h-5 w-5" stroke={2} />
-          </button>
-        ) : null}
-
-        <div className="min-w-0 overflow-x-auto overscroll-x-contain py-2 scrollbar-hide">
-          <div className="flex min-w-0 gap-x-4 px-4 sm:gap-x-5 sm:px-2">
-            {rowMembers.map((m) => {
-              const isMe = m.userid === String(login?.userId);
-              const song = parseSong(m.introSong);
-              const isPlaying = playingId === m.userid;
-              const hasNote = Boolean(m.introNote?.trim());
-              return (
-                <div key={m.userid} className="flex w-auto shrink-0 flex-col items-center">
-                  <div className="relative h-16 w-16 shrink-0">
-                    <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
-                      <div className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-primary/10 ring-2 ring-transparent transition hover:ring-primary">
-                        <img
-                          src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
-                          alt={m.username}
-                          className="h-16 w-16 rounded-full border-2 border-white object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    </Link>
-                    {isMe && (
-                      <button
-                        onClick={openEdit}
-                        className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 dark:bg-white shadow-md transition-colors hover:bg-zinc-700 dark:hover:bg-zinc-100"
-                        title="Edit your intro"
-                      >
-                        <IconPencil size={11} stroke={2.5} className="text-white dark:text-zinc-900" />
-                      </button>
-                    )}
-                  </div>
-
+          return (
+            <div
+              key={m.userid}
+              className="flex w-[4.75rem] shrink-0 flex-col items-center sm:w-20"
+            >
+              <div className="relative">
+                <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
                   <div
-                    className="mt-2 w-full truncate text-center text-xs font-medium text-zinc-700 dark:text-zinc-300"
-                    title={m.username}
+                    className={clsx(
+                      "flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-sm ring-2 ring-white dark:ring-zinc-800",
+                      getAvatarBg(m.userid, m.username)
+                    )}
                   >
-                    {truncateUsername(m.username)}
+                    <img
+                      src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
+                      alt={m.username}
+                      className="h-16 w-16 rounded-full border-2 border-white object-cover dark:border-zinc-800"
+                      style={{ background: "transparent" }}
+                      loading="lazy"
+                    />
                   </div>
+                </Link>
+                {isMe && (
+                  <button
+                    type="button"
+                    onClick={openEdit}
+                    className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 shadow-sm transition-colors hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-100"
+                    title="Edit your intro"
+                  >
+                    <IconPencil size={10} stroke={2.5} className="text-white dark:text-zinc-900" />
+                  </button>
+                )}
+              </div>
 
-                  <div className="mt-1.5 flex h-9 w-full min-w-0 items-center justify-center gap-1.5 px-0.5">
-                    {song ? (
-                      <button
-                        type="button"
-                        onClick={() => togglePlay(m)}
-                        className={clsx(
-                          "group/play relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-800",
-                          isPlaying && "ring-1 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-zinc-800"
-                        )}
-                        aria-label={isPlaying ? "Pause preview" : `Play preview: ${song.title}`}
-                      >
-                        <span className="relative block h-6 w-6">
-                          <img
-                            src={song.artwork}
-                            alt=""
-                            className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-600"
-                          />
-                          <span className="absolute -bottom-px -right-px flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary shadow-sm">
-                            {isPlaying ? (
-                              <IconPlayerPause className="h-2 w-2 text-white" stroke={2} />
-                            ) : (
-                              <IconPlayerPlay className="h-2 w-2 translate-x-px text-white" stroke={2} />
-                            )}
-                          </span>
-                        </span>
-                        <span className="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-1 w-max max-w-[11rem] -translate-x-1/2 rounded-md bg-zinc-900 px-2 py-1 text-left text-[10px] text-white opacity-0 shadow-lg transition-all group-hover/play:visible group-hover/play:opacity-100 dark:bg-zinc-950">
-                          <span className="block truncate font-medium">{song.title}</span>
-                          <span className="block truncate text-zinc-400">{song.artist}</span>
-                        </span>
-                      </button>
-                    ) : null}
-                    {!song && hasNote ? (
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
-                        <IconMusic className="h-3 w-3 text-primary" />
-                      </span>
-                    ) : null}
-                    {hasNote ? (
-                      <p
-                        className="min-w-0 max-w-[min(100%,7rem)] truncate text-left text-[10px] leading-tight text-zinc-500 dark:text-zinc-400"
-                        title={m.introNote ?? ""}
-                      >
-                        {m.introNote}
-                      </p>
-                    ) : null}
-                    {song && !hasNote ? (
-                      <span className="sr-only">{song.title} – {song.artist}</span>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+              <p
+                className="mt-2 max-w-full truncate text-center text-xs font-medium text-zinc-800 dark:text-zinc-200"
+                title={m.username}
+              >
+                {m.username}
+              </p>
 
-        {showArrows ? (
-          <button
-            type="button"
-            aria-label="Show next people"
-            disabled={safePage >= totalPages - 1}
-            onClick={goNext}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:pointer-events-none disabled:opacity-30 dark:border-zinc-600 dark:bg-zinc-700/80 dark:text-zinc-200 dark:hover:bg-zinc-600 sm:h-10 sm:w-10"
-          >
-            <IconChevronRight className="h-5 w-5" stroke={2} />
-          </button>
-        ) : null}
+              {song && (
+                <button
+                  type="button"
+                  onClick={() => togglePlay(m)}
+                  className={clsx(
+                    "group/song relative mt-2 h-9 w-9 overflow-hidden rounded-full ring-1 ring-zinc-200/80 transition-shadow dark:ring-zinc-600",
+                    isPlaying && "ring-2 ring-primary/50"
+                  )}
+                  aria-label={isPlaying ? "Pause preview" : `Play ${song.title} by ${song.artist}`}
+                >
+                  <img src={song.artwork} alt="" className="h-full w-full object-cover" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover/song:bg-black/40">
+                    {isPlaying ? (
+                      <IconPlayerPause className="h-3.5 w-3.5 text-white" stroke={2} />
+                    ) : (
+                      <IconPlayerPlay className="h-3.5 w-3.5 translate-x-px text-white" stroke={2} />
+                    )}
+                  </span>
+                </button>
+              )}
+
+              {hasNote && (
+                <p
+                  className="mt-1.5 max-w-[5.25rem] text-center text-[10px] leading-snug text-zinc-400 line-clamp-2 dark:text-zinc-500"
+                  title={note}
+                >
+                  {note}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
-
-      {showArrows ? (
-        <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500 -mt-1 pb-0.5">
-          {safePage + 1} / {totalPages}
-        </p>
-      ) : null}
     </div>
   );
 
@@ -519,7 +451,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
   if (embedded) {
     return (
       <>
-        {carousel}
+        {memberStrip}
         {editModal}
       </>
     );
@@ -542,7 +474,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
         }
         className="relative"
       >
-        {carousel}
+        {memberStrip}
       </HomeSection>
       {editModal}
     </>
