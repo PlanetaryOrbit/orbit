@@ -1,17 +1,10 @@
 import axios from "axios";
 import React, { useState } from "react";
-import type { Session, user } from "@/utils/database";
+import type { Session } from "@/utils/database";
 import { useRouter } from "next/router";
 import { useSessionColors } from "@/hooks/useSessionColors";
 import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
 
-<<<<<<< HEAD
-type SessionWithOwner = Session & { owner: user; isLive?: boolean };
-
-const Sessions: React.FC = () => {
-  const [activeSessions, setActiveSessions] = useState<SessionWithOwner[]>([]);
-  const [nextSession, setNextSession] = useState<SessionWithOwner | null>(null);
-=======
 type SessionWithRelations = Session & {
   owner: {
     username: string | null;
@@ -20,7 +13,7 @@ type SessionWithRelations = Session & {
   } | null;
   sessionType: {
     name: string | null;
-    statues: any;
+    statues: { timeAfter: number; name: string }[];
   } | null;
   isLive?: boolean;
 };
@@ -28,7 +21,6 @@ type SessionWithRelations = Session & {
 const Sessions: React.FC = () => {
   const [activeSessions, setActiveSessions] = useState<SessionWithRelations[]>([]);
   const [nextSession, setNextSession] = useState<SessionWithRelations | null>(null);
->>>>>>> bb94d8f3bb10dd5e4d650b194e0733d9b79389a8
   const router = useRouter();
   const workspaceId = router.query.id as string;
   const { getSessionTypeColor, getTextColorForBackground } = useSessionColors(workspaceId);
@@ -46,15 +38,11 @@ const Sessions: React.FC = () => {
       )
       .then((res) => {
         if (res.status === 200) {
-<<<<<<< HEAD
           const sessionsWithOwner = (res.data.sessions || []).filter(
-            (s: SessionWithOwner) => s.owner
+            (s: SessionWithRelations) => s.owner
           );
-=======
-          const sessionsWithOwner = (res.data.sessions || []).filter((s: SessionWithRelations) => s.owner);
->>>>>>> bb94d8f3bb10dd5e4d650b194e0733d9b79389a8
           setActiveSessions(sessionsWithOwner);
-          const next = res.data.nextSession as SessionWithOwner | null | undefined;
+          const next = res.data.nextSession as SessionWithRelations | null | undefined;
           setNextSession(next?.owner ? next : null);
         }
       })
