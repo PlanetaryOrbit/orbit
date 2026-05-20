@@ -7,7 +7,7 @@ const REQUIRED_ENV_VARS = [
   "SESSION_SECRET"
 ];
 
-const PUBLIC_ROUTES = ["/welcome", "/login", "/api", "/env-error"];
+const PUBLIC_ROUTES = ["/welcome", "/login", "/api", "/env-error", "/forgot-password", "/400", "/500"];
 
 function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));

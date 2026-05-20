@@ -494,13 +494,6 @@ const Login: NextPage = () => {
                   )}
                 </>
               )}
-
-              {mode === "link" && (
-                <>
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Link your Discord Account</h2>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Link your account for faster access</p>
-                </>
-              )}
             </div>
           </div>
         </div>
