@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
@@ -25,14 +24,15 @@ async function handler(
 		return res.status(401).json({ success: false, error: 'Not logged in' });
 	}
 
-	const { name, type, value, roles, departments, description, sessionType } = req.body;
+	const { name, type, value, roles, departments, users, description, sessionType } = req.body;
 	const isCustom = type === "custom";
 	const hasRoles = Array.isArray(roles) && roles.length > 0;
 	const hasDepartments = Array.isArray(departments) && departments.length > 0;
+	const hasUsers = Array.isArray(users) && users.length > 0;
 
 
 	const parsedValue = value != undefined ? Number(value): null;
-	if (!name || !type || (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) || (!hasRoles && !hasDepartments)) {
+	if (!name || !type || (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) || (!hasRoles && !hasDepartments && !hasUsers)) {
 		return res.status(400).json({ success: false, error: "Missing or invalid data" });
 	}
 
@@ -72,6 +72,15 @@ async function handler(
 			}))
 		  });
 		}
+
+		if (Array.isArray(users) && users.length > 0) {
+		  await prisma.quotaUser.createMany({
+			data: users.map((memberUserId: string) => ({
+			  quotaId: quota.id,
+			  userId: BigInt(memberUserId),
+			})),
+		  });
+		}
 	  
 		const fullQuota = await prisma.quota.findUnique({
 		  where: { id: quota.id },
@@ -85,7 +94,18 @@ async function handler(
 			  include: {
 				department: true
 			  }
-			}
+			},
+			quotaUsers: {
+			  include: {
+				user: {
+				  select: {
+					userid: true,
+					username: true,
+					picture: true,
+				  },
+				},
+			  },
+			},
 		  }
 		});
 

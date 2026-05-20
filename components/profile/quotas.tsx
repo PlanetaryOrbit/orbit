@@ -1,12 +1,12 @@
 import React from "react";
 import type { Quota } from "@prisma/client";
-import { IconChartBar, IconUsers, IconBriefcase } from "@tabler/icons-react";
+import { IconChartBar, IconUsers, IconBriefcase, IconUser } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 
 type QuotaWithLinkage = Quota & {
   currentValue?: number;
   percentage?: number;
-  linkedVia?: 'role' | 'department';
+  linkedVia?: "role" | "department" | "user";
   linkedName?: string;
   linkedColor?: string | null;
 };
@@ -152,8 +152,10 @@ export function QuotasProgress({
                       >
                         {quota.linkedVia === "role" ? (
                           <IconUsers className="w-3 h-3 opacity-90" />
-                        ) : (
+                        ) : quota.linkedVia === "department" ? (
                           <IconBriefcase className="w-3 h-3 opacity-90" />
+                        ) : (
+                          <IconUser className="w-3 h-3 opacity-90" />
                         )}
                         {quota.linkedName}
                       </span>

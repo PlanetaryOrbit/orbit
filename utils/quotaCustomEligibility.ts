@@ -7,7 +7,7 @@ export async function getQuotaForMemberOrThrow(
 ) {
   const quota = await prisma.quota.findFirst({
     where: { id: quotaId, workspaceGroupId: workspaceId },
-    include: { quotaRoles: true, quotaDepartments: true },
+    include: { quotaRoles: true, quotaDepartments: true, quotaUsers: true },
   });
   if (!quota) return { error: "Quota not found" as const };
   if (options?.mustBeCustom && quota.type !== "custom") {
@@ -19,8 +19,17 @@ export async function getQuotaForMemberOrThrow(
 export async function memberHasQuotaAssignment(
   workspaceId: number,
   userId: bigint,
-  quota: { quotaRoles: { roleId: string }[]; quotaDepartments: { departmentId: string }[] }
+  quota: {
+    quotaRoles: { roleId: string }[];
+    quotaDepartments: { departmentId: string }[];
+    quotaUsers?: { userId: bigint }[];
+  }
 ) {
+  const hasDirectUser = (quota.quotaUsers ?? []).some(
+    (qu) => qu.userId === userId
+  );
+  if (hasDirectUser) return true;
+
   const user = await prisma.user.findFirst({
     where: { userid: userId },
     include: {

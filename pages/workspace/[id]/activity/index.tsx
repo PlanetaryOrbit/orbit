@@ -18,6 +18,9 @@ import {
   IconPlayerPlay,
   IconMoon,
   IconTrophy,
+  IconMedal,
+  IconCrown,
+  IconAward,
 } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 import randomText from "@/utils/randomText";
@@ -224,10 +227,7 @@ const Activity: pageWithLayout = () => {
             `/api/workspace/${id}/activity/users`,
           );
           setLeaderboardEnabled(true);
-          // Filter out 0-minute users
-          setTopStaff(
-            (usersRes.data.message.topStaff || []).filter((u: any) => u.ms > 0),
-          );
+          setTopStaff(usersRes.data.message.topStaff || []);
           setActiveUsers(usersRes.data.message.activeUsers || []);
           setInactiveUsers(usersRes.data.message.inactiveUsers || []);
         } else {
@@ -301,7 +301,6 @@ const Activity: pageWithLayout = () => {
   return (
     <div className="pagePadding">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           {myData?.picture && (
             <img
@@ -322,8 +321,7 @@ const Activity: pageWithLayout = () => {
           </div>
         </div>
 
-        {/* Leaderboard */}
-        {leaderboardEnabled && topStaff.length > 0 && (
+        {leaderboardEnabled && (
           <div className="mb-6 sm:mb-8">
             <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 sm:p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -356,49 +354,59 @@ const Activity: pageWithLayout = () => {
                   2: "bg-gradient-to-b from-zinc-400 to-zinc-500",
                   3: "bg-gradient-to-b from-amber-600 to-amber-700",
                 };
-                const ringColors: Record<number, string> = {
-                  1: "ring-amber-400",
-                  2: "ring-zinc-400",
-                  3: "ring-amber-600",
-                };
                 const labelColors: Record<number, string> = {
                   1: "text-amber-500",
                   2: "text-zinc-400",
                   3: "text-amber-600",
                 };
-                const medals: Record<number, string> = {
-                  1: "🥇",
-                  2: "🥈",
-                  3: "🥉",
+                const avatarBorders: Record<number, string> = {
+                  1: "border-amber-400",
+                  2: "border-zinc-300 dark:border-zinc-500",
+                  3: "border-amber-600",
                 };
 
+                if (topStaff.length === 0) {
+                  return (
+                    <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 py-6">
+                      No staff members to display yet.
+                    </p>
+                  );
+                }
+
                 return (
+                  <>
                   <div className="flex items-end justify-center gap-2 sm:gap-6">
                     {podiumOrder.map((user: any, i: number) => {
                       const pos = topStaff[1] ? [2, 1, 3][i] : [1, 3][i];
                       const minutes = Math.floor(user.ms / 1000 / 60);
                       const isFirst = pos === 1;
+                      const avatarSize = isFirst
+                        ? "w-16 h-16 sm:w-20 sm:h-20"
+                        : "w-12 h-12 sm:w-16 sm:h-16";
                       return (
                         <div
                           key={user.userId}
                           className="flex flex-col items-center flex-1 min-w-0 max-w-[110px] sm:max-w-[140px]"
                         >
                           <div className="flex flex-col items-center mb-2">
-                            <span className="text-lg sm:text-xl mb-1">
-                              {medals[pos]}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => goToProfile(user.userId)}
-                              aria-label={`Open ${user.username}'s profile`}
-                              className={`relative ring-4 ${ringColors[pos]} ring-offset-2 ring-offset-white dark:ring-offset-zinc-800 rounded-full cursor-pointer`}
-                            >
-                              <img
-                                src={user.picture}
-                                alt={user.username}
-                                className={`rounded-full object-cover ${isFirst ? "w-16 h-16 sm:w-20 sm:h-20" : "w-12 h-12 sm:w-16 sm:h-16"}`}
-                              />
-                            </button>
+                            <div className="relative mb-1">
+                              <button
+                                type="button"
+                                onClick={() => goToProfile(user.userId)}
+                                aria-label={`Open ${user.username}'s profile`}
+                                className={`${avatarSize} rounded-full flex items-center justify-center cursor-pointer ${getRandomBg(String(user.userId), user.username)}`}
+                              >
+                                <img
+                                  src={user.picture}
+                                  alt={user.username}
+                                  className={`${avatarSize} rounded-full object-cover border-[3px] ${avatarBorders[pos]} shadow-md`}
+                                  style={{ background: "transparent" }}
+                                />
+                              </button>
+                              <div className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-white dark:bg-zinc-800 p-0.5 shadow-sm ring-1 ring-zinc-200/80 dark:ring-zinc-600">
+                                {getPodiumMedalIcon(pos)}
+                              </div>
+                            </div>
                             <p
                               className={`mt-2 font-bold text-zinc-900 dark:text-white text-center truncate w-full px-1 text-xs sm:text-sm ${isFirst ? "sm:text-base" : ""}`}
                             >
@@ -421,8 +429,6 @@ const Activity: pageWithLayout = () => {
                       );
                     })}
                   </div>
-                );
-              })()}
 
               {topStaff.length > 3 && (
                 <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-700 space-y-1.5">
@@ -440,12 +446,13 @@ const Activity: pageWithLayout = () => {
                           type="button"
                           onClick={() => goToProfile(user.userId)}
                           aria-label={`Open ${user.username}'s profile`}
-                          className="w-7 h-7 rounded-full shrink-0 cursor-pointer overflow-hidden"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 cursor-pointer ${getRandomBg(String(user.userId), user.username)}`}
                         >
                           <img
                             src={user.picture}
                             alt={user.username}
-                            className="w-7 h-7 rounded-full object-cover"
+                            className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-zinc-800"
+                            style={{ background: "transparent" }}
                           />
                         </button>
                         <span className="text-sm font-medium text-zinc-900 dark:text-white flex-1 truncate">
@@ -459,11 +466,13 @@ const Activity: pageWithLayout = () => {
                   })}
                 </div>
               )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
 
-        {/* Stats grid — 2 cols on mobile, 4 on xl */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
@@ -536,7 +545,6 @@ const Activity: pageWithLayout = () => {
           </div>
         </div>
 
-        {/* Sessions hosted / attended */}
         {myData && (
           <div className="mb-6 sm:mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -581,7 +589,6 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
 
-        {/* Quotas */}
         {myQuotas.length > 0 && (
           <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-5 shadow-sm mb-6">
             <div className="flex items-center gap-3 mb-4">
@@ -638,7 +645,6 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
 
-        {/* Assignments */}
         {myAssignments.length > 0 && (
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden mb-6 sm:mb-8">
             <div className="flex items-center gap-3 p-4 border-b dark:border-zinc-600">
@@ -688,8 +694,7 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
 
-        {/* In-game / Inactive staff */}
-        {leaderboardEnabled && topStaff.length > 0 && (
+        {leaderboardEnabled && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {[
               {
@@ -761,7 +766,6 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
 
-        {/* Timeline */}
         <div className="mt-6 sm:mt-8">
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 p-4 border-b border-zinc-200 dark:border-zinc-600">
@@ -978,6 +982,40 @@ const BG_COLORS = [
   "bg-green-200",
   "bg-red-200",
 ];
+
+function getPodiumMedalIcon(position: number) {
+  switch (position) {
+    case 1:
+      return (
+        <IconCrown
+          className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500"
+          stroke={1.75}
+          fill="currentColor"
+          fillOpacity={0.2}
+        />
+      );
+    case 2:
+      return (
+        <IconMedal
+          className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400"
+          stroke={1.75}
+          fill="currentColor"
+          fillOpacity={0.15}
+        />
+      );
+    case 3:
+      return (
+        <IconAward
+          className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700"
+          stroke={1.75}
+          fill="currentColor"
+          fillOpacity={0.2}
+        />
+      );
+    default:
+      return null;
+  }
+}
 
 function formatMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;

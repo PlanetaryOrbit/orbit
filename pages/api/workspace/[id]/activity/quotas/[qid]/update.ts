@@ -25,17 +25,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return res.status(400).json({ success: false, error: "Missing or invalid quota id" });
   }
 
-  const { name, type, value, roles, departments, description, sessionType } = req.body;
+  const { name, type, value, roles, departments, users, description, sessionType } = req.body;
   const isCustom = type === "custom";
   const hasRoles = Array.isArray(roles) && roles.length > 0;
   const hasDepartments = Array.isArray(departments) && departments.length > 0;
+  const hasUsers = Array.isArray(users) && users.length > 0;
 
   const parsedValue = value != null ? Number(value) : null;
   if (
     !name ||
     !type ||
     (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) ||
-    (!hasRoles && !hasDepartments)
+    (!hasRoles && !hasDepartments && !hasUsers)
   ) {
     return res.status(400).json({ success: false, error: "Missing or invalid data" });
   }
@@ -76,6 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     await prisma.quotaRole.deleteMany({ where: { quotaId: qid } });
     await prisma.quotaDepartment.deleteMany({ where: { quotaId: qid } });
+    await prisma.quotaUser.deleteMany({ where: { quotaId: qid } });
 
     if (Array.isArray(roles) && roles.length > 0) {
       await prisma.quotaRole.createMany({
@@ -93,12 +95,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         })),
       });
     }
+    if (Array.isArray(users) && users.length > 0) {
+      await prisma.quotaUser.createMany({
+        data: users.map((memberUserId: string) => ({
+          quotaId: qid,
+          userId: BigInt(memberUserId),
+        })),
+      });
+    }
 
     const fullQuota = await prisma.quota.findUnique({
       where: { id: qid },
       include: {
         quotaRoles: { include: { role: true } },
         quotaDepartments: { include: { department: true } },
+        quotaUsers: {
+          include: {
+            user: {
+              select: {
+                userid: true,
+                username: true,
+                picture: true,
+              },
+            },
+          },
+        },
       },
     });
 

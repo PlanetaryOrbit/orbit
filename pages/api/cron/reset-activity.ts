@@ -63,7 +63,6 @@ export default async function handler(
         const endOfToday = new Date(now);
         endOfToday.setHours(23, 59, 59, 999);
 
-        // Check if there's already an auto-reset today (resetById not set)
         const allTodayResets = await prisma.activityReset.findMany({
           where: { 
             workspaceGroupId: workspace.groupId,
@@ -80,7 +79,6 @@ export default async function handler(
           continue;
 		}
 		
-        // Find last auto-reset (resetById not set)
         const allResets = await prisma.activityReset.findMany({
           where: { 
             workspaceGroupId: workspace.groupId,
@@ -173,6 +171,7 @@ async function performReset(workspaceGroupId: number) {
             where: { workspaceGroupId },
             include: { quotaRoles: { include: { quota: true } } },
           },
+          quotaUsers: { include: { quota: true } },
         },
       },
       departmentMembers: {
@@ -308,6 +307,19 @@ async function performReset(workspaceGroupId: number) {
             completed: false,
           };
         }
+      }
+    }
+
+    for (const quotaUser of member.user.quotaUsers) {
+      const quota = quotaUser.quota;
+      if (!quotaProgress[quota.id]) {
+        quotaProgress[quota.id] = {
+          quotaId: quota.id,
+          quotaName: quota.name,
+          targetMinutes: quota.value,
+          currentMinutes: 0,
+          completed: false,
+        };
       }
     }
 

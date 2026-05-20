@@ -98,6 +98,7 @@ model user {
   resignationsReviewed staffResignation[]      @relation("ResignationReviewer")
   quotaCustomCompletions QuotaCustomCompletion[] @relation("QuotaCompletionUser")
   quotaCompletionsReviewed QuotaCustomCompletion[] @relation("QuotaCompletionReviewer")
+  quotaUsers             QuotaUser[]
 }
 
 model AuthSession {
@@ -239,6 +240,15 @@ model QuotaDepartment {
   department   department @relation(fields: [departmentId], references: [id])
 
   @@unique([quotaId, departmentId])
+}
+
+model QuotaUser {
+  quotaId String @db.Uuid
+  userId  BigInt
+  quota   Quota  @relation(fields: [quotaId], references: [id], onDelete: Cascade)
+  user    user   @relation(fields: [userId], references: [userid], onDelete: Cascade)
+
+  @@unique([quotaId, userId])
 }
 
 model wallPost {
@@ -501,6 +511,7 @@ model Quota {
   workspace        workspace         @relation(fields: [workspaceGroupId], references: [groupId])
   quotaRoles       QuotaRole[]
   quotaDepartments QuotaDepartment[]
+  quotaUsers       QuotaUser[]
   customCompletions QuotaCustomCompletion[]
 }
 

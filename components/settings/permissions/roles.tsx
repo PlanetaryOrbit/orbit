@@ -364,7 +364,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   return (
     <div className="mt-6 space-y-5">
       <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
               Roles
@@ -373,11 +373,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
               Create roles, pick a color, and control what each role can access.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 shrink-0">
             <button
               type="button"
               onClick={newRole}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap w-full sm:w-auto"
             >
               <IconPlus size={16} className="mr-1.5 shrink-0" />
               Add Role
@@ -385,7 +385,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
             <button
               type="button"
               onClick={checkRoles}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 transition-colors whitespace-nowrap w-full sm:w-auto"
             >
               <IconRefresh size={16} className="mr-1.5 shrink-0" />
               Sync Groups

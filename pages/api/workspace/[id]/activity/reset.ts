@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
@@ -62,6 +61,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
               where: { workspaceGroupId },
               include: { quotaRoles: { include: { quota: true } } },
             },
+            quotaUsers: { include: { quota: true } },
           },
         },
         departmentMembers: {
@@ -262,8 +262,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         .flatMap((dm) => dm.department.quotaDepartments)
         .map((qd) => qd.quota);
 
+      const directUserQuotas = member.user.quotaUsers.map((qu) => qu.quota);
+
       const quotaMap = new Map();
-      [...roleQuotas, ...departmentQuotas].forEach((quota) => {
+      [...roleQuotas, ...departmentQuotas, ...directUserQuotas].forEach((quota) => {
         if (!quotaMap.has(quota.id)) {
           quotaMap.set(quota.id, quota);
         }

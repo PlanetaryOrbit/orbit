@@ -1,8 +1,6 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import { getThumbnail } from "@/utils/userinfoEngine";
 import moment from "moment";
 import axios from "axios";
 import { AuthenticatedRequest } from "@/lib/withAuth";
@@ -13,7 +11,7 @@ type Data = {
   users?: any;
 };
 
-export default withPermissionCheck(handler, "view_members");
+export default withPermissionCheck(handler, ["view_members", "create_quotas"]);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== "GET")
@@ -33,24 +31,35 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       });
     }
 
+    const workspaceGroupId = parseInt(req.query.id as string, 10);
+
     const users = await prisma.user.findMany({
       where: {
         username: {
           contains: searchQuery,
           mode: "insensitive",
         },
+        roles: {
+          some: {
+            workspaceGroupId,
+          },
+        },
       },
       take: 10,
       select: {
         userid: true,
         username: true,
+        picture: true,
       },
     });
 
     const infoUsers = users.map((user: any) => {
+      const uid = user.userid.toString();
       return {
+        userid: uid,
         username: user.username,
-        thumbnail: getThumbnail(user.userid),
+        picture:
+          user.picture || `/api/workspace/${workspaceGroupId}/avatar/${uid}`,
       };
     });
 

@@ -3,7 +3,16 @@ import { pageWithLayout } from "@/layoutTypes";
 import { loginState, workspacestate } from "@/state";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState, useMemo, Fragment, useCallback } from "react";
+import {
+  useState,
+  useMemo,
+  Fragment,
+  useCallback,
+  useRef,
+  useEffect,
+  forwardRef,
+  type ReactNode,
+} from "react";
 import randomText from "@/utils/randomText";
 import { useRecoilState } from "recoil";
 import toast from "react-hot-toast";
@@ -12,7 +21,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import prisma from "@/utils/database";
 import { Dialog, Transition } from "@headlessui/react";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import Input from "@/components/input";
+import clsx from "clsx";
 import {
   IconTarget,
   IconPlus,
@@ -25,6 +34,9 @@ import {
   IconBriefcase,
   IconPencil,
   IconClock,
+  IconUser,
+  IconSearch,
+  IconChevronDown,
 } from "@tabler/icons-react";
 
 const BG_COLORS = [
@@ -53,6 +65,282 @@ function getRandomBg(userid: string) {
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
+}
+
+function quotaAvatarSrc(
+  userid: string,
+  picture: string | null | undefined,
+  workspaceId?: string | string[] | undefined
+) {
+  if (picture) return picture;
+  const wsId = Array.isArray(workspaceId) ? workspaceId[0] : workspaceId;
+  if (wsId) return `/api/workspace/${wsId}/avatar/${userid}`;
+  return null;
+}
+
+function QuotaMemberAvatar({
+  userid,
+  username,
+  picture,
+  workspaceId,
+  className = "h-7 w-7",
+  textClassName = "text-[10px]",
+}: {
+  userid: string;
+  username?: string | null;
+  picture?: string | null;
+  workspaceId?: string | string[];
+  className?: string;
+  textClassName?: string;
+}) {
+  const src = quotaAvatarSrc(userid, picture, workspaceId);
+  const boxClass = clsx(
+    "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full leading-none",
+    className,
+    getRandomBg(userid)
+  );
+
+  if (src) {
+    return (
+      <span className={boxClass}>
+        <img
+          src={src}
+          alt=""
+          className="block h-full w-full object-cover"
+          style={{ background: "transparent" }}
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={clsx(
+        boxClass,
+        "font-semibold text-zinc-700",
+        textClassName
+      )}
+    >
+      {(username || "?")[0]?.toUpperCase()}
+    </span>
+  );
+}
+
+const homePanelShadow =
+  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
+
+function QuotaFormLabel({ children }: { children: ReactNode }) {
+  return (
+    <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+      {children}
+    </label>
+  );
+}
+
+const QuotaFormInput = forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(function QuotaFormInput({ className, ...props }, ref) {
+  return (
+    <input
+      ref={ref}
+      {...props}
+      className={clsx(
+        "w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500",
+        className
+      )}
+    />
+  );
+});
+
+const QuotaFormSelect = forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement>
+>(function QuotaFormSelect({ className, children, ...props }, ref) {
+  return (
+    <select
+      ref={ref}
+      {...props}
+      className={clsx(
+        "w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white",
+        className
+      )}
+    >
+      {children}
+    </select>
+  );
+});
+
+const QuotaFormTextarea = forwardRef<
+  HTMLTextAreaElement,
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>
+>(function QuotaFormTextarea({ className, ...props }, ref) {
+  return (
+    <textarea
+      ref={ref}
+      {...props}
+      className={clsx(
+        "w-full resize-none rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500",
+        className
+      )}
+    />
+  );
+});
+
+function QuotaModalCard({
+  title,
+  hint,
+  children,
+  className,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={clsx(
+        "rounded-2xl bg-white p-4 sm:p-5 dark:bg-zinc-900/70",
+        homePanelShadow,
+        className
+      )}
+    >
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
+        {hint ? (
+          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{hint}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function QuotaPagePanel({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={clsx(
+        "rounded-2xl bg-white dark:bg-zinc-900/70",
+        homePanelShadow,
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function QuotaInset({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={clsx(
+        "rounded-xl bg-zinc-50 px-3.5 py-3 dark:bg-zinc-800/40",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function QuotaEmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: typeof IconTarget;
+  title: string;
+  description: string;
+  action?: { label: string; onClick: () => void; icon?: typeof IconPlus };
+}) {
+  const ActionIcon = action?.icon ?? IconPlus;
+  return (
+    <QuotaPagePanel className="mx-auto max-w-md px-8 py-12 text-center">
+      <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+        <Icon className="h-5 w-5 text-primary" stroke={1.75} />
+      </div>
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-white">{title}</h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-zinc-400 dark:text-zinc-500">
+        {description}
+      </p>
+      {action ? (
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+        >
+          <ActionIcon className="h-4 w-4" />
+          {action.label}
+        </button>
+      ) : null}
+    </QuotaPagePanel>
+  );
+}
+
+function QuotaAssignmentBadges({
+  quota,
+  workspaceId,
+}: {
+  quota: any;
+  workspaceId?: string | string[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {quota.quotaRoles?.map((qr: any) => (
+        <span
+          key={qr.role.id}
+          className="inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95"
+          style={{ backgroundColor: qr.role.color || "#71717a" }}
+        >
+          <IconUsers className="h-3 w-3 opacity-90" />
+          {qr.role.name}
+        </span>
+      ))}
+      {quota.quotaDepartments?.map((qd: any) => (
+        <span
+          key={qd.department.id}
+          className="inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95"
+          style={{ backgroundColor: qd.department.color || "#71717a" }}
+        >
+          <IconBriefcase className="h-3 w-3 opacity-90" />
+          {qd.department.name}
+        </span>
+      ))}
+      {quota.quotaUsers?.map((qu: any) => {
+        const uid = String(qu.user?.userid ?? qu.userId);
+        return (
+          <span
+            key={uid}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white py-0.5 pl-0.5 pr-2 text-xs font-medium text-zinc-800 shadow-sm dark:bg-zinc-700/80 dark:text-zinc-100"
+          >
+            <QuotaMemberAvatar
+              userid={uid}
+              username={qu.user?.username}
+              picture={qu.user?.picture}
+              workspaceId={workspaceId}
+              className="h-5 w-5"
+              textClassName="text-[9px]"
+            />
+            {qu.user?.username ?? "User"}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 const getRandomColor = () => {
@@ -86,6 +374,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           allQuotas: [],
           roles: [],
           departments: [],
+          members: [],
           canManageQuotas: false,
           canDeleteQuotas: false,
         },
@@ -370,6 +659,13 @@ export const getServerSideProps = withPermissionCheckSsr(
               },
             },
           },
+          {
+            quotaUsers: {
+              some: {
+                userId: BigInt(userId),
+              },
+            },
+          },
         ],
       },
       include: {
@@ -381,6 +677,17 @@ export const getServerSideProps = withPermissionCheckSsr(
         quotaDepartments: {
           include: {
             department: true,
+          },
+        },
+        quotaUsers: {
+          include: {
+            user: {
+              select: {
+                userid: true,
+                username: true,
+                picture: true,
+              },
+            },
           },
         },
       },
@@ -481,6 +788,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     let allQuotas: any[] = [];
     let roles: any[] = [];
     let departments: any[] = [];
+    let members: any[] = [];
 
     if (hasManagePermission || hasDeletePermission) {
       const rawAll = await prisma.quota.findMany({
@@ -496,6 +804,17 @@ export const getServerSideProps = withPermissionCheckSsr(
           quotaDepartments: {
             include: {
               department: true,
+            },
+          },
+          quotaUsers: {
+            include: {
+              user: {
+                select: {
+                  userid: true,
+                  username: true,
+                  picture: true,
+                },
+              },
             },
           },
         },
@@ -540,12 +859,25 @@ export const getServerSideProps = withPermissionCheckSsr(
       }
 
       allQuotas = rawAll.map((q) => {
+        const enriched = {
+          ...q,
+          quotaUsers: (q.quotaUsers || []).map((qu: any) => ({
+            ...qu,
+            user: qu.user
+              ? {
+                  ...qu.user,
+                  userid: String(qu.user.userid),
+                  picture: qu.user.picture,
+                }
+              : null,
+          })),
+        };
         if (q.type !== "custom") {
-          return { ...q, pendingCustomSubmissions: [] as unknown[] };
+          return { ...enriched, pendingCustomSubmissions: [] as unknown[] };
         }
         const list = pendingByQuotaId.get(q.id) ?? [];
         return {
-          ...q,
+          ...enriched,
           pendingCustomSubmissions: list.map((p: PendingCustomRow) => ({
             id: p.id,
             submittedAt: p.submittedAt?.toISOString?.() ?? p.submittedAt,
@@ -574,6 +906,25 @@ export const getServerSideProps = withPermissionCheckSsr(
           workspaceGroupId: workspaceId,
         },
       });
+
+      const rawMembers = await prisma.user.findMany({
+        where: {
+          roles: {
+            some: { workspaceGroupId: workspaceId },
+          },
+        },
+        select: {
+          userid: true,
+          username: true,
+          picture: true,
+        },
+        orderBy: { username: "asc" },
+      });
+      members = rawMembers.map((m) => ({
+        userid: m.userid.toString(),
+        username: m.username,
+        picture: m.picture,
+      }));
     }
 
     return {
@@ -598,6 +949,11 @@ export const getServerSideProps = withPermissionCheckSsr(
             typeof value === "bigint" ? value.toString() : value
           )
         ),
+        members: JSON.parse(
+          JSON.stringify(members, (_key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        ),
         canManageQuotas: hasManagePermission,
         canDeleteQuotas: hasDeletePermission,
       },
@@ -612,6 +968,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   allQuotas: initialAllQuotas,
   roles: initialRoles,
   departments: initialDepartments,
+  members: initialMembers,
   canManageQuotas: canManageQuotasProp,
   canDeleteQuotas,
 }) => {
@@ -629,6 +986,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   const canManageQuotas: boolean = !!canManageQuotasProp;
   const roles: any = initialRoles;
   const departments: any = initialDepartments;
+  const members: any = initialMembers;
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingQuota, setEditingQuota] = useState<any>(null);
@@ -636,9 +994,101 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [quotaToDelete, setQuotaToDelete] = useState<any>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedUserProfiles, setSelectedUserProfiles] = useState<
+    Record<string, { username: string; picture: string | null }>
+  >({});
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [userSearchOpen, setUserSearchOpen] = useState(false);
+  const [userSearchResults, setUserSearchResults] = useState<
+    { userid: string; username: string; picture: string | null }[]
+  >([]);
+  const [userSearchLoading, setUserSearchLoading] = useState(false);
+  const userSearchInputRef = useRef<HTMLDivElement>(null);
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>("all");
   const [submittingCustomQuotaId, setSubmittingCustomQuotaId] = useState<string | null>(null);
   const [reviewingCustomKey, setReviewingCustomKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        userSearchInputRef.current &&
+        !userSearchInputRef.current.contains(e.target as Node)
+      ) {
+        setUserSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const q = userSearchQuery.trim();
+    if (!q || !id || typeof id !== "string") {
+      setUserSearchResults([]);
+      setUserSearchLoading(false);
+      return;
+    }
+
+    setUserSearchLoading(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `/api/workspace/${id}/staff/search/${encodeURIComponent(q)}`
+        );
+        const users = (res.data.users || [])
+          .filter((u: any) => u.userid && !selectedUsers.includes(String(u.userid)))
+          .map((u: any) => ({
+            userid: String(u.userid),
+            username: u.username || "Unknown",
+            picture:
+              u.picture ||
+              (typeof id === "string"
+                ? `/api/workspace/${id}/avatar/${u.userid}`
+                : null),
+          }));
+        setUserSearchResults(users);
+      } catch {
+        setUserSearchResults([]);
+      } finally {
+        setUserSearchLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [userSearchQuery, id, selectedUsers]);
+
+  const selectedUserEntries = useMemo(() => {
+    return selectedUsers.map((userId) => {
+      const cached = selectedUserProfiles[userId];
+      if (cached) {
+        return { userid: userId, ...cached };
+      }
+      const fromMembers = members.find((m: any) => String(m.userid) === userId);
+      if (fromMembers) {
+        return {
+          userid: userId,
+          username: fromMembers.username || "Unknown",
+          picture: fromMembers.picture,
+        };
+      }
+      const fromQuota = editingQuota?.quotaUsers?.find(
+        (qu: any) => String(qu.user?.userid ?? qu.userId) === userId
+      );
+      if (fromQuota?.user) {
+        return {
+          userid: userId,
+          username: fromQuota.user.username || "Unknown",
+          picture: fromQuota.user.picture,
+        };
+      }
+      return {
+        userid: userId,
+        username: "Unknown",
+        picture: null,
+      };
+    });
+  }, [selectedUsers, selectedUserProfiles, members, editingQuota]);
 
   const patchMyQuotaCustom = useCallback((quotaId: string, customCompletion: any) => {
     setMyQuotas((prev) =>
@@ -728,6 +1178,11 @@ const Quotas: pageWithLayout<pageProps> = ({
     reset({ type: "mins", requirement: 0, name: "", description: "", sessionType: "all" });
     setSelectedRoles([]);
     setSelectedDepartments([]);
+    setSelectedUsers([]);
+    setSelectedUserProfiles({});
+    setUserSearchQuery("");
+    setUserSearchOpen(false);
+    setUserSearchResults([]);
     setSessionTypeFilter("all");
     setIsOpen(true);
   };
@@ -743,6 +1198,23 @@ const Quotas: pageWithLayout<pageProps> = ({
     });
     setSelectedRoles((quota.quotaRoles ?? []).map((qr: any) => qr.role?.id ?? qr.roleId).filter(Boolean));
     setSelectedDepartments((quota.quotaDepartments ?? []).map((qd: any) => qd.department?.id ?? qd.departmentId).filter(Boolean));
+    const userIds = (quota.quotaUsers ?? [])
+      .map((qu: any) => String(qu.user?.userid ?? qu.userId))
+      .filter(Boolean);
+    setSelectedUsers(userIds);
+    const profiles: Record<string, { username: string; picture: string | null }> = {};
+    for (const qu of quota.quotaUsers ?? []) {
+      const uid = String(qu.user?.userid ?? qu.userId);
+      if (!uid) continue;
+      profiles[uid] = {
+        username: qu.user?.username || "Unknown",
+        picture: qu.user?.picture ?? null,
+      };
+    }
+    setSelectedUserProfiles(profiles);
+    setUserSearchQuery("");
+    setUserSearchOpen(false);
+    setUserSearchResults([]);
     setSessionTypeFilter(quota.sessionType ?? "all");
     setIsOpen(true);
   };
@@ -793,6 +1265,30 @@ const Quotas: pageWithLayout<pageProps> = ({
     }
   };
 
+  const addUser = (member: { userid: string; username: string; picture: string | null }) => {
+    const userId = String(member.userid);
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
+    setSelectedUserProfiles((prev) => ({
+      ...prev,
+      [userId]: {
+        username: member.username,
+        picture: member.picture,
+      },
+    }));
+    setUserSearchQuery("");
+    setUserSearchOpen(false);
+    setUserSearchResults([]);
+  };
+
+  const removeUser = (userId: string) => {
+    setSelectedUsers((prev) => prev.filter((u) => u !== userId));
+    setSelectedUserProfiles((prev) => {
+      const next = { ...prev };
+      delete next[userId];
+      return next;
+    });
+  };
+
   const onSubmit: SubmitHandler<Form> = async ({
     type,
     requirement,
@@ -803,6 +1299,7 @@ const Quotas: pageWithLayout<pageProps> = ({
       type,
       roles: selectedRoles,
       departments: selectedDepartments,
+      users: selectedUsers,
       name,
       description: description || null,
     };
@@ -837,6 +1334,8 @@ const Quotas: pageWithLayout<pageProps> = ({
         setAllQuotas([...allQuotas, req.data.quota]);
         setSelectedRoles([]);
         setSelectedDepartments([]);
+        setSelectedUsers([]);
+        setSelectedUserProfiles({});
         setSessionTypeFilter("all");
       });
     toast.promise(axiosPromise, {
@@ -875,64 +1374,85 @@ const Quotas: pageWithLayout<pageProps> = ({
     return `${quota.value} ${unit}`;
   };
 
+  const dateLabel = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+  const workspaceLabel = workspace.customName || workspace.groupName;
+  const pageSubtitle =
+    activeTab === "my-quotas"
+      ? "Track your progress and see how you're doing"
+      : "Create and manage quotas for your workspace";
+
   return (
     <>
       <div className="pagePadding">
-        <div className="max-w-5xl mx-auto">
-          <header className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-              Quotas
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {activeTab === "my-quotas"
-                ? "Track your progress and see how you're doing"
-                : "Create and manage quotas for your workspace"}
-            </p>
+        <div className="mx-auto max-w-6xl">
+          <header className="mb-5 sm:mb-6">
+            <div className="flex flex-col gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{dateLabel}</p>
+                <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl">
+                  Quotas
+                </h1>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{pageSubtitle}</p>
+                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{workspaceLabel}</p>
+              </div>
+              {activeTab === "manage-quotas" && canManageQuotas && (
+                <button
+                  type="button"
+                  onClick={openCreateModal}
+                  className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 sm:self-auto"
+                >
+                  <IconPlus className="h-4 w-4" />
+                  Create quota
+                </button>
+              )}
+            </div>
           </header>
 
           {(canManageQuotas || (canDeleteQuotas as boolean)) && (
-            <nav className="flex p-1 gap-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 w-fit mb-8">
+            <nav className="mb-5 flex w-fit gap-0.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80 sm:mb-6">
               <button
+                type="button"
                 onClick={() => setActiveTab("my-quotas")}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={clsx(
+                  "flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200",
                   activeTab === "my-quotas"
                     ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                }`}
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                )}
               >
-                <IconTarget className="w-4 h-4 shrink-0" />
+                <IconTarget className="h-4 w-4 shrink-0" stroke={1.75} />
                 <span>My Quotas</span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab("manage-quotas")}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={clsx(
+                  "flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200",
                   activeTab === "manage-quotas"
                     ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                }`}
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                )}
               >
-                <IconClipboardList className="w-4 h-4 shrink-0" />
+                <IconClipboardList className="h-4 w-4 shrink-0" stroke={1.75} />
                 <span>Manage Quotas</span>
               </button>
             </nav>
           )}
 
           {(!(canManageQuotas || (canDeleteQuotas as boolean)) || activeTab === "my-quotas") && (
-            <div>
+            <div className="flex flex-col gap-4 sm:gap-5">
               {myQuotas.length === 0 ? (
-                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
-                  <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-                    <IconTarget className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
-                  </div>
-                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-                    No quotas assigned
-                  </h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    You don't have any activity quotas yet. When your roles or departments are assigned quotas, they'll show up here.
-                  </p>
-                </div>
+                <QuotaEmptyState
+                  icon={IconTarget}
+                  title="No quotas assigned"
+                  description="You don't have any activity quotas yet. When a quota is assigned to you, your roles, or your departments, it'll show up here."
+                />
               ) : (
-                <div className="space-y-5">
+                <div className="flex flex-col gap-4 sm:gap-5">
                   {myQuotas.map((quota: any) => {
                     const customStatus = quota.customCompletion?.status;
                     const isCustomApproved = quota.type === "custom" && customStatus === "approved";
@@ -947,40 +1467,48 @@ const Quotas: pageWithLayout<pageProps> = ({
                           : 0
                         : Math.min(quota.percentage, 100);
                     return (
-                      <div
-                        key={quota.id}
-                        className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 overflow-hidden transition-shadow hover:shadow-md dark:hover:shadow-none"
-                      >
-                        <div className="p-6">
-                          <div className="flex items-start gap-4">
-                            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${
-                              isComplete
-                                ? "bg-primary/10 dark:bg-primary/20"
-                                : "bg-zinc-100 dark:bg-zinc-700"
-                            }`}>
-                              <IconTrophy className={`w-5 h-5 ${
-                                isComplete ? "text-primary" : "text-zinc-500 dark:text-zinc-400"
-                              }`} />
+                      <QuotaPagePanel key={quota.id} className="overflow-hidden">
+                        <div className="p-4 sm:p-5">
+                          <div className="flex items-start gap-3.5">
+                            <div
+                              className={clsx(
+                                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                                isComplete
+                                  ? "bg-primary/10 dark:bg-primary/20"
+                                  : "bg-zinc-100 dark:bg-zinc-800"
+                              )}
+                            >
+                              <IconTrophy
+                                className={clsx(
+                                  "h-5 w-5",
+                                  isComplete
+                                    ? "text-primary"
+                                    : "text-zinc-500 dark:text-zinc-400"
+                                )}
+                                stroke={1.75}
+                              />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-[15px]">
                                 {quota.name}
                               </h3>
                               {quota.type !== "custom" && formatGoal(quota) && (
-                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                                  Goal: {formatGoal(quota)}
+                                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                                  Goal · {formatGoal(quota)}
                                 </p>
                               )}
                               {quota.type === "custom" && (
-                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 italic">Tracked manually</p>
+                                <p className="mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500">
+                                  Tracked manually
+                                </p>
                               )}
                               {quota.description && (
-                                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                                   {quota.description}
                                 </p>
                               )}
                               {quota.sessionType && quota.sessionType !== "all" && (
-                                <p className="mt-1.5 text-xs text-primary font-medium">
+                                <p className="mt-1.5 text-xs font-medium text-primary">
                                   {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
                                 </p>
                               )}
@@ -988,22 +1516,25 @@ const Quotas: pageWithLayout<pageProps> = ({
                           </div>
 
                           {quota.type !== "custom" && (
-                            <div className="mt-5">
-                              <div className="flex items-baseline justify-between gap-2 mb-2">
-                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            <div className="mt-4">
+                              <div className="mb-2 flex items-baseline justify-between gap-2">
+                                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
                                   Progress
                                 </span>
-                                <span className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-white">
-                                  {quota.currentValue} <span className="font-normal text-zinc-400 dark:text-zinc-500">/ {quota.value}</span>
+                                <span className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                                  {quota.currentValue}{" "}
+                                  <span className="font-normal text-zinc-400 dark:text-zinc-500">
+                                    / {quota.value}
+                                  </span>
                                 </span>
                               </div>
-                              <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+                              <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                                 <div
-                                  className="h-full rounded-full transition-all bg-primary"
+                                  className="h-full rounded-full bg-primary transition-all"
                                   style={{ width: `${barWidth}%` }}
                                 />
                               </div>
-                              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
                                 {isComplete ? (
                                   quota.percentage > 100 ? (
                                     <>Goal exceeded · {quota.percentage.toFixed(0)}%</>
@@ -1016,18 +1547,19 @@ const Quotas: pageWithLayout<pageProps> = ({
                               </p>
                             </div>
                           )}
+
                           {quota.type === "custom" && (
                             <div className="mt-4 space-y-3">
                               {isCustomPending && (
-                                <div className="flex items-start gap-2.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 dark:border-zinc-600 dark:bg-zinc-900/50">
-                                  <IconClock className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400 mt-px" />
-                                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-snug">
+                                <QuotaInset className="flex items-start gap-2.5">
+                                  <IconClock className="mt-px h-4 w-4 shrink-0 text-zinc-400" stroke={1.75} />
+                                  <p className="text-sm leading-snug text-zinc-600 dark:text-zinc-400">
                                     Submitted — pending review by someone who can manage quotas.
                                   </p>
-                                </div>
+                                </QuotaInset>
                               )}
                               {isCustomApproved && (
-                                <p className="text-sm text-primary">
+                                <p className="text-sm font-medium text-primary">
                                   Your completion was approved.
                                 </p>
                               )}
@@ -1037,7 +1569,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                 </p>
                               )}
                               {!isCustomPending && !isCustomApproved && !isCustomDenied && (
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+                                <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
                                   Tracked manually by your team. Mark complete when you have finished; a manager will approve it.
                                 </p>
                               )}
@@ -1046,7 +1578,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                   type="button"
                                   disabled={submittingCustomQuotaId === quota.id}
                                   onClick={() => submitCustomComplete(quota)}
-                                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none"
+                                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60"
                                 >
                                   {submittingCustomQuotaId === quota.id ? "Submitting…" : "Mark as complete"}
                                 </button>
@@ -1055,16 +1587,16 @@ const Quotas: pageWithLayout<pageProps> = ({
                           )}
 
                           {quota.type === "custom" && isCustomApproved && (
-                            <div className="mt-5">
-                              <div className="flex items-baseline justify-between gap-2 mb-2">
-                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                            <div className="mt-4">
+                              <div className="mb-2 flex items-baseline justify-between gap-2">
+                                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
                                   Status
                                 </span>
                                 <span className="text-sm font-semibold tabular-nums text-primary">
                                   Complete
                                 </span>
                               </div>
-                              <div className="w-full h-2.5 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+                              <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                                 <div
                                   className="h-full rounded-full bg-primary transition-all"
                                   style={{ width: `${barWidth}%` }}
@@ -1073,35 +1605,14 @@ const Quotas: pageWithLayout<pageProps> = ({
                             </div>
                           )}
 
-                          <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-700">
-                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+                          <QuotaInset className="mt-4">
+                            <p className="mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
                               Assigned to
                             </p>
-                            <div className="flex flex-wrap gap-2">
-                              {quota.quotaRoles?.map((qr: any) => (
-                                <span
-                                  key={qr.role.id}
-                                  className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium text-white/95"
-                                  style={{ backgroundColor: qr.role.color || "#71717a" }}
-                                >
-                                  <IconUsers className="w-3.5 h-3.5 opacity-90" />
-                                  {qr.role.name}
-                                </span>
-                              ))}
-                              {quota.quotaDepartments?.map((qd: any) => (
-                                <span
-                                  key={qd.department.id}
-                                  className="inline-flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-medium text-white/95"
-                                  style={{ backgroundColor: qd.department.color || "#71717a" }}
-                                >
-                                  <IconBriefcase className="w-3.5 h-3.5 opacity-90" />
-                                  {qd.department.name}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
+                            <QuotaAssignmentBadges quota={quota} workspaceId={id} />
+                          </QuotaInset>
                         </div>
-                      </div>
+                      </QuotaPagePanel>
                     );
                   })}
                 </div>
@@ -1110,187 +1621,164 @@ const Quotas: pageWithLayout<pageProps> = ({
           )}
 
           {activeTab === "manage-quotas" && (canManageQuotas || (canDeleteQuotas as boolean)) && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+            <div className="flex flex-col gap-4 sm:gap-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   All quotas
                 </h2>
-                {canManageQuotas && (
-                  <button
-                    onClick={openCreateModal}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
-                  >
-                    <IconPlus className="w-4 h-4" />
-                    Create quota
-                  </button>
+                {allQuotas.length > 0 && (
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
+                    {allQuotas.length} total
+                  </span>
                 )}
               </div>
 
               {allQuotas.length === 0 ? (
-                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
-                  <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-                    <IconClipboardList className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
-                  </div>
-                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-                    No quotas yet
-                  </h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-                    {canManageQuotas ? "Create your first quota to assign to roles or departments." : "No activity quotas have been set up yet."}
-                  </p>
-                  {canManageQuotas && (
-                    <button
-                      onClick={openCreateModal}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors"
-                    >
-                      <IconPlus className="w-4 h-4" />
-                      Create quota
-                    </button>
-                  )}
-                </div>
+                <QuotaEmptyState
+                  icon={IconClipboardList}
+                  title="No quotas yet"
+                  description={
+                    canManageQuotas
+                      ? "Create your first quota and assign it to roles, departments, or specific users."
+                      : "No activity quotas have been set up yet."
+                  }
+                  action={
+                    canManageQuotas
+                      ? { label: "Create quota", onClick: openCreateModal }
+                      : undefined
+                  }
+                />
               ) : (
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4 sm:gap-5">
                   {allQuotas.map((quota: any) => (
-                    <div
-                      key={quota.id}
-                      className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5 flex items-start justify-between gap-4"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
-                          {quota.name}
-                        </h3>
-                        {quota.type !== "custom" ? (
-                          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                            {quota.value} {types[quota.type]}
-                          </p>
-                        ) : (
-                          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 italic">Manually tracked</p>
-                        )}
-                        {quota.description && (
-                          <p className="mt-1.5 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                            {quota.description}
-                          </p>
-                        )}
-                        {quota.sessionType && quota.sessionType !== "all" && (
-                          <p className="mt-1 text-xs font-medium text-primary">
-                            {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
-                          </p>
-                        )}
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {quota.quotaRoles?.map((qr: any) => (
-                            <span
-                              key={qr.role.id}
-                              className="inline-flex items-center gap-1.5 py-1 px-2 rounded-lg text-xs font-medium text-white/95"
-                              style={{ backgroundColor: qr.role.color || "#71717a" }}
-                            >
-                              <IconUsers className="w-3 h-3 opacity-90" />
-                              {qr.role.name}
-                            </span>
-                          ))}
-                          {quota.quotaDepartments?.map((qd: any) => (
-                            <span
-                              key={qd.department.id}
-                              className="inline-flex items-center gap-1.5 py-1 px-2 rounded-lg text-xs font-medium text-white/95"
-                              style={{ backgroundColor: qd.department.color || "#71717a" }}
-                            >
-                              <IconBriefcase className="w-3 h-3 opacity-90" />
-                              {qd.department.name}
-                            </span>
-                          ))}
-                        </div>
-                        {quota.type === "custom" &&
-                          (quota.pendingCustomSubmissions?.length ?? 0) > 0 && (
-                            <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
-                                Awaiting review
-                              </p>
-                              <ul className="divide-y divide-zinc-200 dark:divide-zinc-700 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-                                {quota.pendingCustomSubmissions.map((sub: any) => {
-                                  const rk = `${quota.id}-${sub.userId}`;
-                                  const busy = reviewingCustomKey === rk;
-                                  return (
-                                    <li
-                                      key={sub.id}
-                                      className="flex flex-col gap-3 bg-white px-3 py-3 dark:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                                    >
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <img
-                                          src={sub.user?.picture || "/default-avatar.jpg"}
-                                          alt=""
-                                          className="w-8 h-8 rounded-md object-cover bg-zinc-200 dark:bg-zinc-600 shrink-0"
-                                        />
-                                        <div className="min-w-0">
-                                          <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
-                                            {sub.user?.username ?? `User ${sub.userId}`}
-                                          </p>
-                                          <p className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">
-                                            {new Date(sub.submittedAt).toLocaleString(undefined, {
-                                              dateStyle: "medium",
-                                              timeStyle: "short",
-                                            })}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      {canManageQuotas ? (
-                                        <div className="flex flex-wrap items-center gap-2 shrink-0 sm:justify-end">
-                                          <button
-                                            type="button"
-                                            disabled={busy}
-                                            onClick={() =>
-                                              reviewCustomCompletion(quota.id, sub.userId, "approve")
-                                            }
-                                            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-                                          >
-                                            <IconCheck className="w-4 h-4" stroke={2} />
-                                            Approve
-                                          </button>
-                                          <button
-                                            type="button"
-                                            disabled={busy}
-                                            onClick={() =>
-                                              reviewCustomCompletion(quota.id, sub.userId, "deny")
-                                            }
-                                            className="inline-flex items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-transparent dark:text-zinc-200 dark:hover:bg-zinc-700/80"
-                                          >
-                                            <IconX className="w-4 h-4" stroke={2} />
-                                            Deny
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                          Needs quota edit permission to resolve.
-                                        </p>
-                                      )}
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
+                    <QuotaPagePanel key={quota.id} className="overflow-hidden">
+                      <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            {quota.name}
+                          </h3>
+                          {quota.type !== "custom" ? (
+                            <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                              {quota.value} {types[quota.type]}
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500">
+                              Manually tracked
+                            </p>
                           )}
+                          {quota.description && (
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                              {quota.description}
+                            </p>
+                          )}
+                          {quota.sessionType && quota.sessionType !== "all" && (
+                            <p className="mt-1.5 text-xs font-medium text-primary">
+                              {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
+                            </p>
+                          )}
+                          <div className="mt-3">
+                            <QuotaAssignmentBadges quota={quota} workspaceId={id} />
+                          </div>
+                          {quota.type === "custom" &&
+                            (quota.pendingCustomSubmissions?.length ?? 0) > 0 && (
+                              <div className="mt-4">
+                                <p className="mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                                  Awaiting review
+                                </p>
+                                <ul className="divide-y divide-zinc-100 overflow-hidden rounded-xl bg-zinc-50 dark:divide-zinc-800 dark:bg-zinc-800/40">
+                                  {quota.pendingCustomSubmissions.map((sub: any) => {
+                                    const rk = `${quota.id}-${sub.userId}`;
+                                    const busy = reviewingCustomKey === rk;
+                                    return (
+                                      <li
+                                        key={sub.id}
+                                        className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                                      >
+                                        <div className="flex min-w-0 items-center gap-3">
+                                          <QuotaMemberAvatar
+                                            userid={String(sub.userId)}
+                                            username={sub.user?.username}
+                                            picture={sub.user?.picture}
+                                            workspaceId={id}
+                                            className="h-8 w-8"
+                                            textClassName="text-xs"
+                                          />
+                                          <div className="min-w-0">
+                                            <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                              {sub.user?.username ?? `User ${sub.userId}`}
+                                            </p>
+                                            <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                                              {new Date(sub.submittedAt).toLocaleString(undefined, {
+                                                dateStyle: "medium",
+                                                timeStyle: "short",
+                                              })}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        {canManageQuotas ? (
+                                          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                                            <button
+                                              type="button"
+                                              disabled={busy}
+                                              onClick={() =>
+                                                reviewCustomCompletion(quota.id, sub.userId, "approve")
+                                              }
+                                              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                                            >
+                                              <IconCheck className="h-4 w-4" stroke={2} />
+                                              Approve
+                                            </button>
+                                            <button
+                                              type="button"
+                                              disabled={busy}
+                                              onClick={() =>
+                                                reviewCustomCompletion(quota.id, sub.userId, "deny")
+                                              }
+                                              className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200/80 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                            >
+                                              <IconX className="h-4 w-4" stroke={2} />
+                                              Deny
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                                            Needs quota edit permission to resolve.
+                                          </p>
+                                        )}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-0.5">
+                          {canManageQuotas && (
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(quota)}
+                              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                              aria-label="Edit quota"
+                            >
+                              <IconPencil className="h-4 w-4" stroke={1.75} />
+                            </button>
+                          )}
+                          {(canDeleteQuotas as boolean) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setQuotaToDelete(quota);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                              aria-label="Delete quota"
+                            >
+                              <IconTrash className="h-4 w-4" stroke={1.75} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="shrink-0 flex items-center gap-1">
-                        {canManageQuotas && (
-                          <button
-                            onClick={() => openEditModal(quota)}
-                            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                            aria-label="Edit quota"
-                          >
-                            <IconPencil className="w-4 h-4" />
-                          </button>
-                        )}
-                        {(canDeleteQuotas as boolean) && (
-                          <button
-                            onClick={() => {
-                              setQuotaToDelete(quota);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                            aria-label="Delete quota"
-                          >
-                            <IconTrash className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    </QuotaPagePanel>
                   ))}
                 </div>
               )}
@@ -1306,6 +1794,10 @@ const Quotas: pageWithLayout<pageProps> = ({
           onClose={() => {
             setIsOpen(false);
             setEditingQuota(null);
+            setUserSearchQuery("");
+            setUserSearchOpen(false);
+            setUserSearchResults([]);
+            setSelectedUserProfiles({});
           }}
         >
           <Transition.Child
@@ -1331,180 +1823,296 @@ const Quotas: pageWithLayout<pageProps> = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-semibold text-zinc-900 dark:text-white"
-                  >
-                    {editingQuota ? "Edit quota" : "Create quota"}
-                  </Dialog.Title>
+                <Dialog.Panel
+                  className={clsx(
+                    "w-full max-w-lg transform overflow-hidden rounded-2xl bg-zinc-50/90 text-left align-middle transition-all dark:bg-zinc-950/90",
+                    homePanelShadow
+                  )}
+                >
+                  <div className="border-b border-zinc-100/80 px-5 py-4 dark:border-zinc-800/80 sm:px-6">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg"
+                    >
+                      {editingQuota ? "Edit quota" : "Create quota"}
+                    </Dialog.Title>
+                    <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500 sm:text-sm">
+                      Assign to roles, departments, or specific members.
+                    </p>
+                  </div>
 
-                  <div className="mt-2">
-                    <FormProvider {...form}>
-                      <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium dark:text-white text-zinc-700 mb-2">
-                              Assigned Roles
-                            </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {roles
-                                .filter((role: any) => !role.isOwnerRole)
-                                .map((role: any) => (
-                                  <label
-                                    key={role.id}
-                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedRoles.includes(role.id)}
-                                      onChange={() => toggleRole(role.id)}
-                                      className="rounded border-gray-300 text-primary focus:ring-primary"
-                                    />
-                                    <span className="text-sm text-zinc-900 dark:text-white">
-                                      {role.name}
-                                    </span>
-                                  </label>
-                                ))}
+                  <FormProvider {...form}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                      <div className="max-h-[min(72vh,680px)] overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 space-y-4">
+                        <QuotaModalCard
+                          title="Assignment"
+                          hint="Choose at least one role, department, or user."
+                        >
+                          <div className="space-y-3">
+                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
+                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                                <IconUsers className="h-3.5 w-3.5" />
+                                Roles
+                              </p>
+                              <div className="max-h-28 space-y-0.5 overflow-y-auto">
+                                {roles
+                                  .filter((role: any) => !role.isOwnerRole)
+                                  .map((role: any) => (
+                                    <label
+                                      key={role.id}
+                                      className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedRoles.includes(role.id)}
+                                        onChange={() => toggleRole(role.id)}
+                                        className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                                      />
+                                      <span className="text-sm text-zinc-800 dark:text-zinc-200">
+                                        {role.name}
+                                      </span>
+                                    </label>
+                                  ))}
+                              </div>
                             </div>
-                          </div>
 
-                          <div>
-                            <label className="block text-sm font-medium dark:text-white text-zinc-700 mb-2">
-                              Assigned Departments
-                            </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {departments.length > 0 ? (
-                                departments.map((department: any) => (
-                                  <label
-                                    key={department.id}
-                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedDepartments.includes(department.id)}
-                                      onChange={() => toggleDepartment(department.id)}
-                                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
+                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                                <IconBriefcase className="h-3.5 w-3.5" />
+                                Departments
+                              </p>
+                              <div className="max-h-28 space-y-0.5 overflow-y-auto">
+                                {departments.length > 0 ? (
+                                  departments.map((department: any) => (
+                                    <label
+                                      key={department.id}
+                                      className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedDepartments.includes(department.id)}
+                                        onChange={() => toggleDepartment(department.id)}
+                                        className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                                      />
+                                      <span className="text-sm text-zinc-800 dark:text-zinc-200">
+                                        {department.name}
+                                      </span>
+                                    </label>
+                                  ))
+                                ) : (
+                                  <p className="py-1 text-sm italic text-zinc-400 dark:text-zinc-500">
+                                    No departments available.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
+                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                                <IconUser className="h-3.5 w-3.5" />
+                                Users
+                              </p>
+                              {members.length > 0 ? (
+                                <div className="space-y-2.5">
+                                  {selectedUserEntries.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {selectedUserEntries.map((member) => (
+                                        <span
+                                          key={member.userid}
+                                          className="inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-2 text-sm shadow-sm dark:bg-zinc-700/80"
+                                        >
+                                          <QuotaMemberAvatar
+                                            userid={member.userid}
+                                            username={member.username}
+                                            picture={member.picture}
+                                            workspaceId={id}
+                                            className="h-6 w-6"
+                                            textClassName="text-[9px]"
+                                          />
+                                          <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                                            {member.username}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => removeUser(member.userid)}
+                                            className="rounded-full p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-600"
+                                            aria-label={`Remove ${member.username}`}
+                                          >
+                                            <IconX className="h-3 w-3" />
+                                          </button>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <div ref={userSearchInputRef} className="relative">
+                                    <IconSearch className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                    <QuotaFormInput
+                                      type="text"
+                                      value={userSearchQuery}
+                                      onChange={(e) => {
+                                        setUserSearchQuery(e.target.value);
+                                        setUserSearchOpen(true);
+                                      }}
+                                      onFocus={() => setUserSearchOpen(true)}
+                                      placeholder="Search by username..."
+                                      className="!pl-9"
                                     />
-                                    <span className="text-sm text-zinc-900 dark:text-white">
-                                      {department.name}
-                                    </span>
-                                  </label>
-                                ))
+                                    {userSearchOpen && userSearchQuery.trim() && (
+                                      <div
+                                        className={clsx(
+                                          "absolute z-20 mt-1.5 w-full overflow-hidden rounded-xl bg-white dark:bg-zinc-800",
+                                          homePanelShadow
+                                        )}
+                                      >
+                                        <div className="max-h-40 overflow-y-auto py-1">
+                                          {userSearchLoading ? (
+                                            <p className="px-3 py-2.5 text-center text-xs text-zinc-400">
+                                              Searching…
+                                            </p>
+                                          ) : userSearchResults.length === 0 ? (
+                                            <p className="px-3 py-2.5 text-center text-xs text-zinc-400">
+                                              No members found
+                                            </p>
+                                          ) : (
+                                            userSearchResults.map((member) => (
+                                              <button
+                                                key={member.userid}
+                                                type="button"
+                                                onClick={() => addUser(member)}
+                                                className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
+                                              >
+                                                <QuotaMemberAvatar
+                                                  userid={member.userid}
+                                                  username={member.username}
+                                                  picture={member.picture}
+                                                  workspaceId={id}
+                                                  className="h-8 w-8"
+                                                />
+                                                <span className="text-sm font-medium leading-none text-zinc-900 dark:text-white">
+                                                  {member.username}
+                                                </span>
+                                              </button>
+                                            ))
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               ) : (
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                                  No departments available.
+                                <p className="text-sm italic text-zinc-400 dark:text-zinc-500">
+                                  No members available.
                                 </p>
                               )}
                             </div>
                           </div>
+                        </QuotaModalCard>
 
-                          <div>
-                            <label className="block text-sm font-medium text-zinc-700 mb-2 dark:text-white">
-                              Quota Type
-                            </label>
-                            <select
-                              {...register("type")}
-                              className="w-full rounded-lg border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white focus:border-primary focus:ring-primary"
-                            >
-                              <option value="mins">Minutes in Game</option>
-                              <option value="sessions_hosted">
-                                Sessions Hosted
-                              </option>
-                              <option value="sessions_attended">
-                                Sessions Attended
-                              </option>
-                              <option value="sessions_logged">
-                                Sessions Logged
-                              </option>
-                              <option value="alliance_visits">
-                                Alliance Visits
-                              </option>
-                              <option value="custom">Custom</option>
-                            </select>
-                            {watchedType && typeDescriptions[watchedType] && (
-                              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                {typeDescriptions[watchedType]}
-                              </p>
-                            )}
-                          </div>
-
-                          {watchedType !== "custom" && ["sessions_hosted","sessions_attended","sessions_logged"].includes(watchedType) && (
+                        <QuotaModalCard title="Quota details">
+                          <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-zinc-700 mb-2 dark:text-white">
-                                Session Type Filter
-                              </label>
-                              <select
-                                value={sessionTypeFilter}
-                                onChange={(e) =>
-                                  setSessionTypeFilter(e.target.value)
-                                }
-                                className="w-full rounded-lg border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white focus:border-primary focus:ring-primary"
-                              >
-                                {sessionTypeOptions.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                  </option>
-                                ))}
-                              </select>
-                              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                                Filter to count only specific session types
-                              </p>
+                              <QuotaFormLabel>Quota type</QuotaFormLabel>
+                              <div className="relative">
+                                <QuotaFormSelect {...register("type")}>
+                                  <option value="mins">Minutes in Game</option>
+                                  <option value="sessions_hosted">Sessions Hosted</option>
+                                  <option value="sessions_attended">Sessions Attended</option>
+                                  <option value="sessions_logged">Sessions Logged</option>
+                                  <option value="alliance_visits">Alliance Visits</option>
+                                  <option value="custom">Custom</option>
+                                </QuotaFormSelect>
+                                <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                              </div>
+                              {watchedType && typeDescriptions[watchedType] && (
+                                <p className="mt-1.5 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+                                  {typeDescriptions[watchedType]}
+                                </p>
+                              )}
                             </div>
-                          )}
 
-                         {watchedType!== "custom" && ( <Input
-                            label="Requirement"
-                            type="number"
-                            append={
-                              watchedType === "mins"
-                                ? "Minutes"
-                                : watchedType === "alliance_visits"
-                                ? "Visits"
-                                : "Sessions"
-                            }
-                            classoverride="dark:text-white"
-                            {...register("requirement", { required: true })}
-                          />)}
-                          <Input
-                            label="Name"
-                            placeholder="Enter a name for this quota..."
-                            classoverride="dark:text-white"
-                            {...register("name", { required: true })}
-                          />
-                          <div>
-                            <label className="block text-sm font-medium text-zinc-700 mb-2 dark:text-white">
-                              Description (Optional)
-                            </label>
-                            <textarea
-                              {...register("description")}
-                              placeholder="Add a description for this quota..."
-                              className="w-full rounded-lg border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-600 text-zinc-900 dark:text-white focus:border-primary focus:ring-primary p-2 resize-none"
-                              rows={3}
-                            />
+                            {watchedType !== "custom" &&
+                              ["sessions_hosted", "sessions_attended", "sessions_logged"].includes(
+                                watchedType
+                              ) && (
+                                <div>
+                                  <QuotaFormLabel>Session type</QuotaFormLabel>
+                                  <div className="relative">
+                                    <QuotaFormSelect
+                                      value={sessionTypeFilter}
+                                      onChange={(e) => setSessionTypeFilter(e.target.value)}
+                                    >
+                                      {sessionTypeOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                          {opt.label}
+                                        </option>
+                                      ))}
+                                    </QuotaFormSelect>
+                                    <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                  </div>
+                                </div>
+                              )}
+
+                            {watchedType !== "custom" && (
+                              <div>
+                                <QuotaFormLabel>Requirement</QuotaFormLabel>
+                                <div className="flex overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                  <QuotaFormInput
+                                    type="number"
+                                    className="!rounded-none !bg-transparent focus:!ring-0"
+                                    {...register("requirement", { required: true })}
+                                  />
+                                  <span className="flex shrink-0 items-center border-l border-zinc-200/80 px-3 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                                    {watchedType === "mins"
+                                      ? "Minutes"
+                                      : watchedType === "alliance_visits"
+                                        ? "Visits"
+                                        : "Sessions"}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            <div>
+                              <QuotaFormLabel>Name</QuotaFormLabel>
+                              <QuotaFormInput
+                                placeholder="Enter a name for this quota..."
+                                {...register("name", { required: true })}
+                              />
+                            </div>
+
+                            <div>
+                              <QuotaFormLabel>Description (optional)</QuotaFormLabel>
+                              <QuotaFormTextarea
+                                rows={3}
+                                placeholder="Add a description for this quota..."
+                                {...register("description")}
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <input type="submit" className="hidden" />
-                      </form>
-                    </FormProvider>
-                  </div>
+                        </QuotaModalCard>
+                      </div>
 
-                  <div className="mt-6 flex gap-3">
-                    <button
-                      type="button"
-                      className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-                      onClick={handleSubmit(onSubmit)}
-                    >
-                      {editingQuota ? "Save" : "Create"}
-                    </button>
-                  </div>
+                      <input type="submit" className="hidden" />
+
+                      <div className="flex items-center gap-2 border-t border-zinc-100/80 bg-white px-5 py-3.5 dark:border-zinc-800/80 dark:bg-zinc-900/70 sm:px-6">
+                        <button
+                          type="button"
+                          className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                          onClick={handleSubmit(onSubmit)}
+                        >
+                          <IconCheck className="h-3.5 w-3.5" />
+                          {editingQuota ? "Save" : "Create quota"}
+                        </button>
+                      </div>
+                    </form>
+                  </FormProvider>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

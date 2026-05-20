@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.18.2",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next build --webpack",
     "dev:https": "next dev --experimental-https --webpack",
     "start": "next start",

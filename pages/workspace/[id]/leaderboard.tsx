@@ -107,7 +107,7 @@ const Leaderboard: pageWithLayout = () => {
         setLoading(true);
         const usersRes = await axios.get(`/api/workspace/${id}/activity/users`);
         const { topStaff: ts, activeUsers: au, inactiveUsers: iu } = usersRes.data.message;
-        setTopStaff((ts ?? []).filter((u: StaffMember) => u.ms > 0));
+        setTopStaff(ts ?? []);
         setActiveUsers(au ?? []);
         setInactiveUsers(iu ?? []);
       } catch (error) {
@@ -162,7 +162,7 @@ const Leaderboard: pageWithLayout = () => {
   }
 
   const podiumOrder = [topStaff[1], topStaff[0], topStaff[2]].filter(Boolean);
-  const podiumPositions = [1, 0, 2]; // maps podiumOrder index → actual rank
+  const podiumPositions = [1, 0, 2];
 
   return (
     <div className="pagePadding">

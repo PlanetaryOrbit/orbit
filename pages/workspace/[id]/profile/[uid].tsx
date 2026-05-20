@@ -65,7 +65,6 @@ export const getServerSideProps = withPermissionCheckSsr(
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
 
-    // Define all permissions
     const hasManagePermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_member_profiles")) ?? false);
     const hasManageMembersPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("edit_member_details")) ?? false);
     const hasManageNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("manage_notices")) ?? false);
@@ -87,10 +86,8 @@ export const getServerSideProps = withPermissionCheckSsr(
     
     const hasAnyLogbookPermission = Object.values(logbookPermissions).some(p => p);
 
-    // Check if user is viewing their own profile
     const isSelfProfile = currentUserId.toString() === query.uid;
-    
-    // Allow viewing own profile even without manage permission
+
     if (!hasManagePermission && !isSelfProfile) {
       return { notFound: true };
     }
@@ -130,6 +127,11 @@ export const getServerSideProps = withPermissionCheckSsr(
                 },
               },
             },
+          },
+        },
+        quotaUsers: {
+          include: {
+            quota: true,
           },
         },
       },
@@ -174,8 +176,15 @@ export const getServerSideProps = withPermissionCheckSsr(
         }))
       );
 
+    const directUserQuotasWithInfo = userTakingAction.quotaUsers.map((qu) => ({
+      ...qu.quota,
+      linkedVia: "user" as const,
+      linkedName: "Direct assignment",
+      linkedColor: null,
+    }));
+
     const quotaMap = new Map();
-    [...roleQuotasWithInfo, ...departmentQuotasWithInfo].forEach((quota) => {
+    [...roleQuotasWithInfo, ...departmentQuotasWithInfo, ...directUserQuotasWithInfo].forEach((quota) => {
       if (!quotaMap.has(quota.id)) {
         quotaMap.set(quota.id, quota);
       }
@@ -576,11 +585,9 @@ export const getServerSideProps = withPermissionCheckSsr(
       return { notFound: true };
     }
 
-    // For self-profile viewing, grant view permission for logbook but not edit permissions
     const finalLogbookPermissions = isSelfProfile ? {
       ...logbookPermissions,
-      view: true,  // Users can view their own logbook
-      // Keep all edit permissions as false for self (can't edit own logbook)
+      view: true,
       rank: false,
       note: false,
       warning: false,
