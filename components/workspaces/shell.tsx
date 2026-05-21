@@ -176,13 +176,13 @@ export function WorkspaceCard({
       onClick={onOpen}
     >
       {featured ? (
-        <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-100 via-zinc-50 to-primary/5 sm:h-28 dark:from-zinc-800 dark:via-zinc-900 dark:to-primary/10">
+        <div className="relative aspect-[21/9] overflow-hidden sm:aspect-[3/1]">
           <img
             src={logo}
             alt=""
-            className="max-h-14 max-w-[min(40%,10rem)] object-contain transition-transform duration-500 group-hover:scale-105 sm:max-h-16"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent dark:from-zinc-900/80" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent dark:from-zinc-900 dark:via-zinc-900/20" />
         </div>
       ) : null}
 

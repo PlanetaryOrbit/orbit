@@ -1,5 +1,7 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
+
+type SessionIcon = ElementType<{ className?: string; stroke?: string | number }>;
 
 export const sessionsPanelShadow =
   "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
@@ -89,7 +91,7 @@ export function SessionsEmptyState({
   description,
   action,
 }: {
-  icon: React.ComponentType<{ className?: string; stroke?: number }>;
+  icon: SessionIcon;
   title: string;
   description: string;
   action?: ReactNode;
@@ -134,7 +136,7 @@ export function SessionFormSectionHeader({
   title,
   subtitle,
 }: {
-  icon: React.ComponentType<{ className?: string; stroke?: number }>;
+  icon: SessionIcon;
   title: string;
   subtitle: string;
 }) {

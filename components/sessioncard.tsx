@@ -76,7 +76,7 @@ function SessionSection({
   children,
 }: {
   title: string;
-  icon?: React.ComponentType<{ className?: string; stroke?: number }>;
+  icon?: React.ElementType<{ className?: string; stroke?: string | number }>;
   children: React.ReactNode;
 }) {
   return (

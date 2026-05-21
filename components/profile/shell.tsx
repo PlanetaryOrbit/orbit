@@ -1,5 +1,7 @@
 import clsx from "clsx";
-import type { ComponentType, ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
+
+type ProfileIcon = ElementType<{ className?: string; stroke?: string | number }>;
 
 export const profilePanelShadow =
   "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
@@ -65,7 +67,7 @@ export function ProfileStatCard({
   value,
   description,
 }: {
-  icon: ComponentType<{ className?: string; stroke?: number }>;
+  icon: ProfileIcon;
   label: string;
   value: ReactNode;
   description: string;
@@ -95,7 +97,7 @@ export function ProfileSection({
   children,
   className,
 }: {
-  icon: ComponentType<{ className?: string; stroke?: number }>;
+  icon: ProfileIcon;
   title: string;
   subtitle: string;
   children: ReactNode;
@@ -122,7 +124,7 @@ export function ProfileEmptyState({
   title,
   description,
 }: {
-  icon: ComponentType<{ className?: string; stroke?: number }>;
+  icon: ProfileIcon;
   title: string;
   description: string;
 }) {
