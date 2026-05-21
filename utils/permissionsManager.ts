@@ -198,12 +198,10 @@ export function withPermissionCheck(
 ) {
   return withAuth(async (req: AuthenticatedRequest, res: NextApiResponse) => {
     if (!validateCsrf(req, res)) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: "CSRF validation failed. Invalid origin or referer.",
-        });
+      return res.status(403).json({
+        success: false,
+        error: "CSRF validation failed. Invalid origin or referer.",
+      });
     }
 
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
@@ -665,24 +663,34 @@ export async function checkGroupRoles(groupID: number) {
               successful = false;
             });
 
-          await prisma.roleMember
+          await prisma.workspaceMember
             .upsert({
               where: {
-                roleId_userId: {
-                  roleId: workspaceRole.id,
+                workspaceGroupId_userId: {
+                  workspaceGroupId: groupID,
                   userId: BigInt(userId),
                 },
               },
               update: {},
               create: {
-                roleId: workspaceRole.id,
+                workspaceGroupId: groupID,
                 userId: BigInt(userId),
-                manuallyAdded: false,
+                joinDate: new Date(),
               },
+            })
+            .then((result) => {
+              if (
+                !result.joinDate ||
+                result.joinDate.getTime() === new Date().setSeconds(0, 0)
+              ) {} else {
+                console.log(
+                  `[update-group] Added user ${userId} to workspace ${groupID}`,
+                );
+              }
             })
             .catch((err) => {
               console.error(
-                `[update-group] RoleMember upsert failed for ${userId}:`,
+                `[update-group] WorkspaceMember upsert failed for ${userId}:`,
                 err,
               );
               successful = false;
