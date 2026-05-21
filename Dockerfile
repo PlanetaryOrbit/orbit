@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-ARG NODE_OPTIONS="--max-old-space-size=1536"
+ARG NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_OPTIONS="${NODE_OPTIONS}"
 ENV NEXT_TELEMETRY_DISABLED=1
 
