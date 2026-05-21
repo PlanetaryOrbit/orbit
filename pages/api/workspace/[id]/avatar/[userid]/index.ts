@@ -28,7 +28,6 @@ function touch(key: string, entry: CacheEntry) {
 const CACHE_CONTROL = 'public, max-age=300, stale-while-revalidate=600';
 const STALE_AFTER_MS = 6 * 60 * 60 * 1000;
 
-// Valid sizes accepted by the Roblox thumbnails v1 API for avatar-headshot
 const ROBLOX_RESOLUTIONS = [48, 50, 60, 75, 100, 110, 150, 180, 352, 420, 720];
 
 const BG_COLORS: Record<string, string> = {
@@ -45,7 +44,7 @@ const BG_COLORS: Record<string, string> = {
   orbit: '#ff0099'
 };
 
-const FALLBACK_HEADSHOT_USER_IDS = [156, 1, 8146];
+const FALLBACK_HEADSHOT_USER_IDS = [1];
 
 function isPngBuffer(buf: Buffer | null): boolean {
   if (!buf || buf.length < 24) return false;
@@ -107,19 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  let sourceResolution: number;
-  let fetchFromRoblox: boolean;
-
-  if (ROBLOX_RESOLUTIONS.includes(resolution)) {
-    sourceResolution = resolution;
-    fetchFromRoblox = true;
-  } else if (resolution <= 720) {
-    sourceResolution = 720;
-    fetchFromRoblox = false;
-  } else {
-    sourceResolution = 720;
-    fetchFromRoblox = false;
-  }
+  const sourceResolution = 180;
 
   let bgColor: string | undefined;
   if (color && !Array.isArray(color)) {
@@ -134,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const avatarDir = path.join(process.cwd(), 'public', 'avatars');
-  const baseFileName = `${userIdNum}_${sourceResolution}.png`;
+  const baseFileName = `${userIdNum}_180.png`;
   const avatarPath = path.join(avatarDir, baseFileName);
   const resolved = path.resolve(avatarPath);
 
@@ -154,30 +141,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       setCommonHeaders(res, mem);
       res.setHeader('Content-Length', mem.buffer.length.toString());
       res.end(mem.buffer);
-
-      if (Date.now() - mem.lastRefresh > STALE_AFTER_MS) {
-        triggerBackgroundRefresh(userIdNum, avatarPath, cacheKey, bgColor, resolution).catch(() => { });
-      }
       return;
     }
 
-    await fs.mkdir(avatarDir, { recursive: true }).catch(() => { });
-
-    let baseBuffer: Buffer | null = null;
-    let diskStat: any = null;
+    let baseBuffer: Buffer;
+    let diskStat: Awaited<ReturnType<typeof fs.stat>>;
 
     try {
       baseBuffer = await fs.readFile(avatarPath);
       diskStat = await fs.stat(avatarPath);
-      if (baseBuffer && !isPngBuffer(baseBuffer)) {
-        baseBuffer = null;
-        diskStat = null;
-      }
-    } catch { }
+    } catch {
+      return res.status(404).end('Avatar not found');
+    }
 
-    if (fetchFromRoblox || !baseBuffer || (diskStat && Date.now() - diskStat.mtimeMs > STALE_AFTER_MS)) {
-      baseBuffer = await fetchAndPersist(userIdNum, avatarPath, sourceResolution);
-      diskStat = { mtimeMs: Date.now() };
+    if (!isPngBuffer(baseBuffer)) {
+      return res.status(404).end('Avatar not found');
     }
 
     const needsProcessing = resolution !== sourceResolution || bgColor;
@@ -190,7 +168,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const entry: CacheEntry = {
       buffer: processedBuffer,
       etag,
-      mtime: diskStat?.mtimeMs || now,
+      mtime: diskStat.mtimeMs,
       lastRefresh: now,
       metadata: { color: bgColor, resolution }
     };
@@ -208,20 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (e) {
     console.error('Avatar error serving', userIdNum, e);
-    try {
-      const raw = await fetchFallbackRobloxAvatarBuffer(sourceResolution);
-      const processedBuffer =
-        resolution !== sourceResolution || bgColor
-          ? await processImage(raw, bgColor, resolution, sourceResolution)
-          : raw;
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
-      res.setHeader('Content-Length', processedBuffer.length.toString());
-      res.end(processedBuffer);
-    } catch (e2) {
-      console.error('Avatar fallback failed', userIdNum, e2);
-      res.status(404).end('Not found');
-    }
+    res.status(500).end('Internal server error');
   }
 }
 
@@ -287,69 +252,6 @@ function isNotModified(req: NextApiRequest, entry: CacheEntry): boolean {
   }
 
   return false;
-}
-
-async function fetchAndPersist(userId: number, filePath: string, resolution: number = 180): Promise<Buffer> {
-  try {
-    const remoteUrl = await getRemoteAvatarUrl(userId, resolution);
-    const response = await axios.get(remoteUrl, {
-      responseType: 'arraybuffer',
-      timeout: 12000,
-      validateStatus: (status) => status === 200
-    });
-    const buf = Buffer.from(response.data);
-
-    if (!isPngBuffer(buf) || buf.length < 100) {
-      throw new Error('Invalid or empty avatar PNG');
-    }
-
-    if (ROBLOX_RESOLUTIONS.includes(resolution)) {
-      fs.writeFile(filePath, buf).catch(() => { });
-    }
-
-    return buf;
-  } catch (e) {
-    console.warn('Avatar remote fetch failed', userId, resolution, e);
-    return fetchFallbackRobloxAvatarBuffer(resolution);
-  }
-}
-
-async function triggerBackgroundRefresh(
-  userId: number,
-  filePath: string,
-  cacheKey: string,
-  bgColor?: string,
-  targetResolution: number = 180
-) {
-  try {
-    let sourceResolution: number;
-    if (ROBLOX_RESOLUTIONS.includes(targetResolution)) {
-      sourceResolution = targetResolution;
-    } else {
-      sourceResolution = 720;
-    }
-
-    const baseBuffer = await fetchAndPersist(userId, filePath, sourceResolution);
-
-    const needsProcessing = targetResolution !== sourceResolution || bgColor;
-    const processedBuffer = needsProcessing
-      ? await processImage(baseBuffer, bgColor, targetResolution, sourceResolution)
-      : baseBuffer;
-
-    const now = Date.now();
-    const entry: CacheEntry = {
-      buffer: processedBuffer,
-      etag: computeETag(processedBuffer),
-      mtime: now,
-      lastRefresh: now,
-      metadata: { color: bgColor, resolution: targetResolution }
-    };
-
-    touch(cacheKey, entry);
-    console.log('Avatar refreshed', userId, `(${targetResolution}x${targetResolution}${bgColor ? `, ${bgColor}` : ''})`);
-  } catch (e) {
-    console.warn('Avatar background refresh failed', userId, e);
-  }
 }
 
 async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Promise<string> {

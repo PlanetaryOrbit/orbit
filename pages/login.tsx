@@ -414,9 +414,15 @@ const Login: NextPage = () => {
                           </label>
                         </div>
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
-                          <Link href="/forgot-password" className="text-sm text-primary transition-colors hover:text-primary/80">
-                            Forgot password?
-                          </Link>
+                          <div>
+                            <Link href="/forgot-password" className="text-sm text-primary transition-colors hover:text-primary/80">
+                              Forgot password?
+                            </Link>
+                            <p onClick={() => setMode("signup")} className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors hover:text-primary/80 mt-1 cursor-pointer">
+                              Are you new?
+                            </p>
+                          </div>
+                          
                           <AuthSubmitButton loading={loading} disabled={loading}>
                             Sign in
                           </AuthSubmitButton>

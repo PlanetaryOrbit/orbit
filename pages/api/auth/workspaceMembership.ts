@@ -1,29 +1,27 @@
-
 import { NextApiResponse } from "next";
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth'
-import prisma from "@/utils/database"
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import prisma from "@/utils/database";
 
 export default withAuth(handler);
 
 export async function handler(
-  req: AuthenticatedRequest,
+  req: AuthenticatedRequest, 
   res: NextApiResponse
 ) {
-  if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (req.method !== "GET")
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });
 
-  const workspaceInfo = await prisma.workspaceMember.findMany({
+  const workspaces = await prisma.workspace.findMany({
     where: {
-      userId: req.auth.userId
+      members: {
+        some: {
+          userId: req.auth.userId,
+        },
+      },
     },
-    include: {
-      workspace: true
-    }
   });
 
-  let data = new Set()
-  for (const wInfo of workspaceInfo) {
-    data.add(wInfo.workspace)
-  }
-
-  res.status(200).json({ success: true, data: Array.from(data) });
+  res.status(200).json({ success: true, data: workspaces });
 }

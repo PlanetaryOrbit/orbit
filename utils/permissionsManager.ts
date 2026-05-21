@@ -861,14 +861,15 @@ export async function checkSpecificUser(userID: number | bigint) {
       },
     });
   }
-  const workspaceData = await prisma.workspaceMember.findMany({
-    where: {
-      userId: userID
-    },
-    include: {
-      workspace: true
-    }
-  });
+  const workspaces = await prisma.workspace.findMany({
+      where: {
+        members: {
+          some: {
+            userId: userID,
+          },
+        },
+      },
+    });
 
-  return workspaceData;
+  return workspaces;
 }

@@ -13,12 +13,5 @@ export async function handler(
   
   const data = await checkSpecificUser(req.auth.userId);
   
-  const workspaceDataSet = new Set();
-  for (const memberInfo of data) {
-    workspaceDataSet.add(memberInfo.workspace);
-  }
-  
-  const uniqueWorkspaces = Array.from(workspaceDataSet);
-  
-  res.status(200).json({ success: true, data: uniqueWorkspaces })
+  res.status(200).json({ success: true, data })
 }
