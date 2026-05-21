@@ -10,6 +10,8 @@ jobs:
   typecheck:
     name: TypeScript Check
     runs-on: ubuntu-latest
+    env:
+        DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
