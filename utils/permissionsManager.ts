@@ -6,11 +6,11 @@ import type {
   GetServerSidePropsContext,
 } from "next";
 import * as noblox from "noblox.js";
-import * as cookie from 'cookie';
+import * as cookie from "cookie";
 import { getConfig } from "./configEngine";
 import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
-import { getRobloxUserInfo, getUsersWithinAGroupRoleset } from './roblox'
+import { getRobloxUserInfo, getUsersWithinAGroupRoleset } from "./roblox";
 import { AuthenticatedRequest, AuthHandler, withAuth } from "@/lib/withAuth";
 import { getSessionByToken } from "./session";
 
@@ -34,17 +34,30 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function removeRoleFromUser(userid: bigint, roleId: string) {
   await prisma.user
-    .update({ where: { userid }, data: { roles: { disconnect: { id: roleId } } } })
-    .catch((err: any) => console.error(`[update-group] Disconnect role ${roleId} from ${userid} failed:`, err));
+    .update({
+      where: { userid },
+      data: { roles: { disconnect: { id: roleId } } },
+    })
+    .catch((err: any) =>
+      console.error(
+        `[update-group] Disconnect role ${roleId} from ${userid} failed:`,
+        err,
+      ),
+    );
   await prisma.roleMember
     .deleteMany({ where: { roleId, userId: userid } })
-    .catch((err: any) => console.error(`[update-group] Delete RoleMember ${roleId}/${userid} failed:`, err));
+    .catch((err: any) =>
+      console.error(
+        `[update-group] Delete RoleMember ${roleId}/${userid} failed:`,
+        err,
+      ),
+    );
 }
 
 async function retryNobloxRequest<T>(
   fn: () => Promise<T>,
   maxRetries = 5,
-  initialDelay = 1000
+  initialDelay = 1000,
 ): Promise<T> {
   let lastError: any;
 
@@ -53,8 +66,9 @@ async function retryNobloxRequest<T>(
       if (attempt > 0) {
         const delayMs = initialDelay * Math.pow(2, attempt - 1);
         console.log(
-          `[retryNobloxRequest] Retrying after ${delayMs}ms (attempt ${attempt + 1
-          }/${maxRetries})`
+          `[retryNobloxRequest] Retrying after ${delayMs}ms (attempt ${
+            attempt + 1
+          }/${maxRetries})`,
         );
         await delay(delayMs);
       }
@@ -71,8 +85,9 @@ async function retryNobloxRequest<T>(
 
       if (isRateLimitError && attempt < maxRetries - 1) {
         console.log(
-          `[retryNobloxRequest] Rate limit hit, will retry (attempt ${attempt + 1
-          }/${maxRetries})`
+          `[retryNobloxRequest] Rate limit hit, will retry (attempt ${
+            attempt + 1
+          }/${maxRetries})`,
         );
         continue;
       }
@@ -86,8 +101,15 @@ async function retryNobloxRequest<T>(
   throw lastError;
 }
 
-async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize = 5): Promise<Map<number, { robloxRoleId: number; username: string }>> {
-  const internalMap = new Map<number, { robloxRoleId: number; username: string; _rank: number }>();
+async function buildGroupCache(
+  groupID: number,
+  ranks: noblox.Role[],
+  batchSize = 5,
+): Promise<Map<number, { robloxRoleId: number; username: string }>> {
+  const internalMap = new Map<
+    number,
+    { robloxRoleId: number; username: string; _rank: number }
+  >();
   const trackedRanks = ranks.filter((r) => r.rank !== 0);
   const apiKey = await getConfig("roblox_opencloud", groupID);
 
@@ -96,17 +118,31 @@ async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize 
     const results = await Promise.allSettled(
       batch.map(async (rank) => {
         await delay(200);
-        const result = await getUsersWithinAGroupRoleset(groupID, rank.id, apiKey.key) as any;
-        if (!result.success) throw new Error(`Failed to fetch roleset ${rank.id}: ${result.message}`);
+        const result = (await getUsersWithinAGroupRoleset(
+          groupID,
+          rank.id,
+          apiKey.key,
+        )) as any;
+        if (!result.success)
+          throw new Error(
+            `Failed to fetch roleset ${rank.id}: ${result.message}`,
+          );
         return { rank, members: result.data };
-      })
+      }),
     );
 
     for (const result of results) {
       if (result.status === "rejected") {
         const msg: string = result.reason?.message ?? "";
-        if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("forbidden") || msg.includes("403")) {
-          throw new Error(`Auth failure fetching roleset — API key may be invalid or expired: ${msg}`);
+        if (
+          msg.includes("401") ||
+          msg.toLowerCase().includes("unauthorized") ||
+          msg.toLowerCase().includes("forbidden") ||
+          msg.includes("403")
+        ) {
+          throw new Error(
+            `Auth failure fetching roleset — API key may be invalid or expired: ${msg}`,
+          );
         }
         continue;
       }
@@ -116,7 +152,11 @@ async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize 
         if (!userId) continue;
         const existing = internalMap.get(userId);
         if (!existing || rank.rank > existing._rank) {
-          internalMap.set(userId, { robloxRoleId: rank.id, username: "", _rank: rank.rank });
+          internalMap.set(userId, {
+            robloxRoleId: rank.id,
+            username: "",
+            _rank: rank.rank,
+          });
         }
       }
     }
@@ -136,11 +176,14 @@ async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize 
         } catch {
           internalMap.set(userId, { ...entry, username: "" });
         }
-      })
+      }),
     );
   }
 
-  const userRoleMap = new Map<number, { robloxRoleId: number; username: string }>();
+  const userRoleMap = new Map<
+    number,
+    { robloxRoleId: number; username: string }
+  >();
   for (const [userId, { robloxRoleId, username }] of internalMap) {
     userRoleMap.set(userId, { robloxRoleId, username });
   }
@@ -151,24 +194,36 @@ async function buildGroupCache(groupID: number, ranks: noblox.Role[], batchSize 
 
 export function withPermissionCheck(
   handler: AuthHandler,
-  permission?: string | string[]
+  permission?: string | string[],
 ) {
   return withAuth(async (req: AuthenticatedRequest, res: NextApiResponse) => {
     if (!validateCsrf(req, res)) {
-      return res.status(403).json({ success: false, error: "CSRF validation failed. Invalid origin or referer." });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          error: "CSRF validation failed. Invalid origin or referer.",
+        });
     }
 
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
-      if (req.headers["x-planetary-cloud-service-key"] === PLANETARY_CLOUD_SERVICE_KEY) {
+      if (
+        req.headers["x-planetary-cloud-service-key"] ===
+        PLANETARY_CLOUD_SERVICE_KEY
+      ) {
         return handler(req, res);
       }
     }
 
-    const uid = req.auth.userId  // BigInt, from withAuth
-    if (!uid) return res.status(401).json({ success: false, error: "Unauthorized" });
-    if (!req.query.id) return res.status(400).json({ success: false, error: "Missing required fields" });
+    const uid = req.auth.userId; // BigInt, from withAuth
+    if (!uid)
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!req.query.id)
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing required fields" });
 
     const workspaceId = parseInt(req.query.id as string);
     const cacheKey = `permissions_${uid}_${workspaceId}`;
@@ -180,7 +235,8 @@ export function withPermissionCheck(
       if (cachedData.isAdmin) return handler(req, res);
       if (!permission) return handler(req, res);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      if (permissions.some(perm => cachedData.permissions?.includes(perm))) return handler(req, res);
+      if (permissions.some((perm) => cachedData.permissions?.includes(perm)))
+        return handler(req, res);
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
@@ -191,62 +247,84 @@ export function withPermissionCheck(
         workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
       },
     });
-    if (!user) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!user)
+      return res.status(401).json({ success: false, error: "Unauthorized" });
 
     let membership = user.workspaceMemberships[0];
     if (!membership && user.roles.length > 0) {
       try {
         membership = await prisma.workspaceMember.create({
-          data: { workspaceGroupId: workspaceId, userId: Number(uid), joinDate: new Date(), timezone: "UTC" },
+          data: {
+            workspaceGroupId: workspaceId,
+            userId: Number(uid),
+            joinDate: new Date(),
+            timezone: "UTC",
+          },
         });
       } catch {
         const existing = await prisma.workspaceMember.findUnique({
-          where: { workspaceGroupId_userId: { workspaceGroupId: workspaceId, userId: Number(uid) } },
+          where: {
+            workspaceGroupId_userId: {
+              workspaceGroupId: workspaceId,
+              userId: Number(uid),
+            },
+          },
         });
         if (existing) membership = existing;
       }
     }
 
-    if (!membership) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!membership)
+      return res.status(401).json({ success: false, error: "Unauthorized" });
 
     const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
+    permissionsCache.set(cacheKey, {
+      data: { permissions: userrole?.permissions || [], isAdmin },
+      timestamp: now,
+    });
 
     if (isAdmin) return handler(req, res);
     if (!permission) return handler(req, res);
-    if (!userrole) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!userrole)
+      return res.status(401).json({ success: false, error: "Unauthorized" });
 
     const permissions = Array.isArray(permission) ? permission : [permission];
-    if (permissions.some(perm => userrole?.permissions?.includes(perm))) return handler(req, res);
+    if (permissions.some((perm) => userrole?.permissions?.includes(perm)))
+      return handler(req, res);
     return res.status(401).json({ success: false, error: "Unauthorized" });
   });
 }
 
 export function withPermissionCheckSsr(
   handler: (context: GetServerSidePropsContext) => Promise<any>,
-  permission?: string | string[]
+  permission?: string | string[],
 ) {
   return async (context: GetServerSidePropsContext) => {
     const { req, res, query } = context;
 
     // Read session token from cookie
-    const cookies = cookie.parse(req.headers.cookie || "")
-    const token = cookies.session_token
-    if (!token) return { redirect: { destination: "/login", permanent: false } }
+    const cookies = cookie.parse(req.headers.cookie || "");
+    const token = cookies.session_token;
+    if (!token)
+      return { redirect: { destination: "/login", permanent: false } };
 
-    const session = await getSessionByToken(token)
-    if (!session) return { redirect: { destination: "/login", permanent: false } }
+    const session = await getSessionByToken(token);
+    if (!session)
+      return { redirect: { destination: "/login", permanent: false } };
 
-    const uid = session.userId
+    const uid = session.userId;
 
-    ;(req as any).auth = { userId: uid, token }
+    (req as any).auth = { userId: uid, token };
 
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
     if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
-      if (req.headers["x-planetary-cloud-service-key"] === PLANETARY_CLOUD_SERVICE_KEY) {
+      if (
+        req.headers["x-planetary-cloud-service-key"] ===
+        PLANETARY_CLOUD_SERVICE_KEY
+      ) {
         return handler(context);
       }
     }
@@ -263,7 +341,8 @@ export function withPermissionCheckSsr(
       if (cachedData.isAdmin) return handler(context);
       if (!permission) return handler(context);
       const permissions = Array.isArray(permission) ? permission : [permission];
-      if (permissions.some(perm => cachedData.permissions?.includes(perm))) return handler(context);
+      if (permissions.some((perm) => cachedData.permissions?.includes(perm)))
+        return handler(context);
       return { redirect: { destination: "/", permanent: false } };
     }
 
@@ -280,30 +359,47 @@ export function withPermissionCheckSsr(
     if (!membership && user.roles.length > 0) {
       try {
         membership = await prisma.workspaceMember.create({
-          data: { workspaceGroupId: workspaceId, userId: Number(uid), joinDate: new Date(), timezone: "UTC" },
+          data: {
+            workspaceGroupId: workspaceId,
+            userId: Number(uid),
+            joinDate: new Date(),
+            timezone: "UTC",
+          },
         });
       } catch {
         const existing = await prisma.workspaceMember.findUnique({
-          where: { workspaceGroupId_userId: { workspaceGroupId: workspaceId, userId: Number(uid) } },
+          where: {
+            workspaceGroupId_userId: {
+              workspaceGroupId: workspaceId,
+              userId: Number(uid),
+            },
+          },
         });
         if (existing) membership = existing;
       }
     }
 
-    if (!membership) return { redirect: { destination: "/", permanent: false } };
+    if (!membership)
+      return { redirect: { destination: "/", permanent: false } };
 
     const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, { data: { permissions: userrole?.permissions || [], isAdmin }, timestamp: now });
+    permissionsCache.set(cacheKey, {
+      data: { permissions: userrole?.permissions || [], isAdmin },
+      timestamp: now,
+    });
 
     if (isAdmin) return handler(context);
     if (!permission) return handler(context);
     if (!userrole) return { redirect: { destination: "/", permanent: false } };
 
     const permissions = Array.isArray(permission) ? permission : [permission];
-    const hasPermission = user.roles.some(role => permissions.some(perm => role.permissions.includes(perm)));
-    if (!hasPermission) return { redirect: { destination: "/", permanent: false } };
+    const hasPermission = user.roles.some((role) =>
+      permissions.some((perm) => role.permissions.includes(perm)),
+    );
+    if (!hasPermission)
+      return { redirect: { destination: "/", permanent: false } };
 
     return handler(context);
   };
@@ -316,10 +412,12 @@ export async function checkGroupRoles(groupID: number) {
 
     try {
       const [logo, group] = await Promise.all([
-        noblox.getLogo(groupID, '420x420').catch(() => null),
+        noblox.getLogo(groupID, "420x420").catch(() => null),
         noblox.getGroup(groupID).catch(() => null),
       ]);
-      console.log(`[update-group] Fetched group info for ${groupID} - logo: ${!!logo}, group: ${!!group}`);
+      console.log(
+        `[update-group] Fetched group info for ${groupID} - logo: ${!!logo}, group: ${!!group}`,
+      );
       if (logo || group) {
         await prisma.workspace.update({
           where: { groupId: groupID },
@@ -335,11 +433,11 @@ export async function checkGroupRoles(groupID: number) {
       console.error(`[update-group] Failed to update group info cache:`, err);
       await prisma.workspace.update({
         where: {
-          groupId: groupID
+          groupId: groupID,
         },
         data: {
-          lastSyncedSuccessful: false
-        }
+          lastSyncedSuccessful: false,
+        },
       });
     }
 
@@ -351,7 +449,7 @@ export async function checkGroupRoles(groupID: number) {
 
       for (const ownerRole of ownerRoles) {
         console.log(
-          `[update-group] Migrating ${ownerRole.members.length} users from owner role ${ownerRole.id}`
+          `[update-group] Migrating ${ownerRole.members.length} users from owner role ${ownerRole.id}`,
         );
 
         let availableRoles = await prisma.role.findMany({
@@ -370,7 +468,7 @@ export async function checkGroupRoles(groupID: number) {
           });
           availableRoles = [fallback];
           console.log(
-            `[update-group] Created default fallback role for group ${groupID}`
+            `[update-group] Created default fallback role for group ${groupID}`,
           );
         }
 
@@ -390,8 +488,8 @@ export async function checkGroupRoles(groupID: number) {
                 joinDate: new Date(),
                 isAdmin: true,
               },
-            })
-          )
+            }),
+          ),
         );
 
         for (const member of ownerRole.members) {
@@ -406,12 +504,12 @@ export async function checkGroupRoles(groupID: number) {
           if (userRank) {
             const rankId = Number(userRank.rankId);
             const matched = await retryNobloxRequest(() =>
-              noblox.getRole(groupID, rankId)
+              noblox.getRole(groupID, rankId),
             )
               .then((info) =>
                 availableRoles.find((r) =>
-                  (r.groupRoles ?? []).map(Number).includes(info.id)
-                )
+                  (r.groupRoles ?? []).map(Number).includes(info.id),
+                ),
               )
               .catch(() => null);
             if (matched) targetRole = matched;
@@ -430,8 +528,8 @@ export async function checkGroupRoles(groupID: number) {
             .catch((err) =>
               console.error(
                 `[update-group] Role swap failed for ${member.userid}:`,
-                err
-              )
+                err,
+              ),
             );
         }
 
@@ -440,14 +538,14 @@ export async function checkGroupRoles(groupID: number) {
           .catch((err) =>
             console.error(
               `[update-group] Failed to delete owner role ${ownerRole.id}:`,
-              err
-            )
+              err,
+            ),
           );
       }
 
       if (ownerRoles.length > 0) {
         console.log(
-          `[update-group] Migrated ${ownerRoles.length} owner roles to isAdmin for group ${groupID}`
+          `[update-group] Migrated ${ownerRoles.length} owner roles to isAdmin for group ${groupID}`,
         );
       }
     } catch (err) {
@@ -460,11 +558,11 @@ export async function checkGroupRoles(groupID: number) {
         console.error(`[update-group] Failed to get Roblox roles:`, err);
         successful = false;
         return null;
-      }
+      },
     );
     if (!rss) {
       console.log(
-        `[update-group] No roles found for group ${groupID}, aborting.`
+        `[update-group] No roles found for group ${groupID}, aborting.`,
       );
       return;
     }
@@ -483,14 +581,16 @@ export async function checkGroupRoles(groupID: number) {
     const trackedRanks = rss.filter((r) => r.rank >= minTrackedRole);
 
     console.log(
-      `[update-group] Processing ${trackedRanks.length} tracked ranks for group ${groupID}`
+      `[update-group] Processing ${trackedRanks.length} tracked ranks for group ${groupID}`,
     );
 
     groupCacheStore.delete(groupID);
-    const userRoleMap = await buildGroupCache(groupID, trackedRanks).catch(() => {
-      successful = false;
-      return new Map<number, { robloxRoleId: number; username: string }>();
-    });
+    const userRoleMap = await buildGroupCache(groupID, trackedRanks).catch(
+      () => {
+        successful = false;
+        return new Map<number, { robloxRoleId: number; username: string }>();
+      },
+    );
     const [usersWithRoles, allRoleMembers] = await Promise.all([
       prisma.user.findMany({
         where: { roles: { some: { workspaceGroupId: groupID } } },
@@ -505,27 +605,25 @@ export async function checkGroupRoles(groupID: number) {
       }),
     ]);
 
-    const roleMemberIndex = new Map<
-      string,
-      (typeof allRoleMembers)[number]
-    >();
+    const roleMemberIndex = new Map<string, (typeof allRoleMembers)[number]>();
     for (const rm of allRoleMembers) {
       roleMemberIndex.set(`${rm.roleId}:${rm.userId}`, rm);
     }
 
     const usersInDbIndex = new Map(
-      usersWithRoles.map((u) => [Number(u.userid), u])
+      usersWithRoles.map((u) => [Number(u.userid), u]),
     );
 
     console.log(
-      `[update-group] Loaded ${usersWithRoles.length} users and ${allRoleMembers.length} role memberships from DB`
+      `[update-group] Loaded ${usersWithRoles.length} users and ${allRoleMembers.length} role memberships from DB`,
     );
 
     for (const [userId, { robloxRoleId, username }] of userRoleMap.entries()) {
       try {
         const workspaceRole = rs.find((r) =>
-          (r.groupRoles ?? []).map(Number).includes(robloxRoleId)
-        ); if (!workspaceRole || workspaceRole.isOwnerRole) continue;
+          (r.groupRoles ?? []).map(Number).includes(robloxRoleId),
+        );
+        if (!workspaceRole || workspaceRole.isOwnerRole) continue;
 
         const userInDb = usersInDbIndex.get(userId);
         const hasRole = userInDb?.roles.some((r) => r.id === workspaceRole.id);
@@ -539,15 +637,13 @@ export async function checkGroupRoles(groupID: number) {
             .catch((err) => {
               console.error(
                 `[update-group] Username update failed for ${userId}:`,
-                err
+                err,
               );
               successful = false;
-            }
-
-            );
+            });
         } else {
           console.log(
-            `[update-group] Adding role "${workspaceRole.name}" to user ${userId} (RID: ${robloxRoleId})`
+            `[update-group] Adding role "${workspaceRole.name}" to user ${userId} (RID: ${robloxRoleId})`,
           );
 
           await prisma.user
@@ -565,13 +661,9 @@ export async function checkGroupRoles(groupID: number) {
               },
             })
             .catch((err) => {
-              console.error(
-                `[update-group] Upsert failed for ${userId}:`,
-                err
-              );
-              successful = false
-            }
-            );
+              console.error(`[update-group] Upsert failed for ${userId}:`, err);
+              successful = false;
+            });
 
           await prisma.roleMember
             .upsert({
@@ -591,13 +683,33 @@ export async function checkGroupRoles(groupID: number) {
             .catch((err) => {
               console.error(
                 `[update-group] RoleMember upsert failed for ${userId}:`,
-                err
+                err,
               );
               successful = false;
-            }
-
-            );
+            });
         }
+        await prisma.workspaceMember
+          .upsert({
+            where: {
+              workspaceGroupId_userId: {
+                workspaceGroupId: groupID,
+                userId: BigInt(userId),
+              },
+            },
+            update: {},
+            create: {
+              workspaceGroupId: groupID,
+              userId: BigInt(userId),
+              joinDate: new Date(),
+            },
+          })
+          .catch((err) => {
+            console.error(
+              `[update-group] WorkspaceMember upsert failed for ${userId}:`,
+              err,
+            );
+            successful = false;
+          });
 
         await prisma.rank
           .upsert({
@@ -617,14 +729,13 @@ export async function checkGroupRoles(groupID: number) {
           .catch((err) => {
             console.error(
               `[update-group] Rank upsert failed for ${userId}:`,
-              err
+              err,
             );
-            successful = false
-          }
-          );
+            successful = false;
+          });
       } catch (err) {
         console.error(`[update-group] Error processing user ${userId}:`, err);
-        successful = false
+        successful = false;
       }
     }
 
@@ -659,11 +770,10 @@ export async function checkGroupRoles(groupID: number) {
           .catch((err) => {
             console.error(
               `[update-group] Rank update failed for ${user.userid}:`,
-              err
+              err,
             );
             successful = false;
-          }
-          );
+          });
       }
 
       for (const userRole of user.roles) {
@@ -677,12 +787,12 @@ export async function checkGroupRoles(groupID: number) {
         if (!userRankData) {
           if (isManual) {
             console.log(
-              `[update-group] Keeping manual role "${userRole.name}" for absent user ${user.userid}`
+              `[update-group] Keeping manual role "${userRole.name}" for absent user ${user.userid}`,
             );
             continue;
           }
           console.log(
-            `[update-group] Removing auto role "${userRole.name}" from absent user ${user.userid}`
+            `[update-group] Removing auto role "${userRole.name}" from absent user ${user.userid}`,
           );
           await removeRoleFromUser(user.userid, userRole.id);
           continue;
@@ -691,7 +801,7 @@ export async function checkGroupRoles(groupID: number) {
         if (userRole.groupRoles.length === 0) {
           if (isManual) continue;
           console.log(
-            `[update-group] Removing unconfigured role "${userRole.name}" from ${user.userid}`
+            `[update-group] Removing unconfigured role "${userRole.name}" from ${user.userid}`,
           );
           await removeRoleFromUser(user.userid, userRole.id);
           continue;
@@ -703,12 +813,12 @@ export async function checkGroupRoles(groupID: number) {
         if (!qualifies) {
           if (isManual) {
             console.log(
-              `[update-group] Keeping manual role "${userRole.name}" for ${user.userid} despite rank change`
+              `[update-group] Keeping manual role "${userRole.name}" for ${user.userid} despite rank change`,
             );
             continue;
           }
           console.log(
-            `[update-group] Removing role "${userRole.name}" from ${user.userid} — rank ${userRankData.robloxRoleId} not in [${groupRoleIds.join(", ")}]`
+            `[update-group] Removing role "${userRole.name}" from ${user.userid} — rank ${userRankData.robloxRoleId} not in [${groupRoleIds.join(", ")}]`,
           );
           await removeRoleFromUser(user.userid, userRole.id);
 
@@ -717,11 +827,11 @@ export async function checkGroupRoles(groupID: number) {
               !r.isOwnerRole &&
               r.groupRoles &&
               r.groupRoles.length > 0 &&
-              r.id !== userRole.id
+              r.id !== userRole.id,
           );
           if (remainingValid.length === 0) {
             console.log(
-              `[update-group] No valid roles left for ${user.userid} — clearing department memberships`
+              `[update-group] No valid roles left for ${user.userid} — clearing department memberships`,
             );
             await prisma.departmentMember
               .deleteMany({
@@ -730,37 +840,35 @@ export async function checkGroupRoles(groupID: number) {
               .catch((err) => {
                 console.error(
                   `[update-group] Dept cleanup failed for ${user.userid}:`,
-                  err
+                  err,
                 );
-                successful = false
-              }
-              );
+                successful = false;
+              });
           }
         }
       }
     }
 
-    console.log(`[update-group] ${successful ? 'Completed' : 'Failed'} sync for group ${groupID}`);
-    await prisma.workspace.update({
-      where: {
-        groupId: groupID
-      },
-      data: {
-        lastSyncedSuccessful: successful
-      }
-    });
-  } catch (err) {
-    console.error(
-      `[update-group] Fatal error syncing group ${groupID}:`,
-      err
+    console.log(
+      `[update-group] ${successful ? "Completed" : "Failed"} sync for group ${groupID}`,
     );
     await prisma.workspace.update({
       where: {
-        groupId: groupID
+        groupId: groupID,
       },
       data: {
-        lastSyncedSuccessful: false
-      }
+        lastSyncedSuccessful: successful,
+      },
+    });
+  } catch (err) {
+    console.error(`[update-group] Fatal error syncing group ${groupID}:`, err);
+    await prisma.workspace.update({
+      where: {
+        groupId: groupID,
+      },
+      data: {
+        lastSyncedSuccessful: false,
+      },
     });
     throw err;
   }
@@ -772,7 +880,7 @@ export async function checkSpecificUser(userID: number | bigint) {
     await delay(500); // Delay between workspace checks
 
     const rankId = await retryNobloxRequest(() =>
-      noblox.getRankInGroup(w.groupId, Number(userID))
+      noblox.getRankInGroup(w.groupId, Number(userID)),
     ).catch(() => null);
     await prisma.rank.upsert({
       where: {
@@ -795,7 +903,7 @@ export async function checkSpecificUser(userID: number | bigint) {
 
     await delay(300);
     const rankInfo = await retryNobloxRequest(() =>
-      noblox.getRole(w.groupId, rankId)
+      noblox.getRole(w.groupId, rankId),
     ).catch(() => null);
     if (!rankInfo) continue;
     const rank = rankInfo.id;
@@ -826,7 +934,7 @@ export async function checkSpecificUser(userID: number | bigint) {
     if (user.roles.length) {
       if (user.roles[0].isOwnerRole) {
         console.log(
-          `[update-group] Skipping role update for user ${userID} - they have an owner role`
+          `[update-group] Skipping role update for user ${userID} - they have an owner role`,
         );
         continue;
       }
@@ -845,7 +953,7 @@ export async function checkSpecificUser(userID: number | bigint) {
     }
     if (role.isOwnerRole) {
       console.log(
-        `[update-group] Skipping assignment of owner role ${role.id} to user ${userID}`
+        `[update-group] Skipping assignment of owner role ${role.id} to user ${userID}`,
       );
       continue;
     }
@@ -863,14 +971,14 @@ export async function checkSpecificUser(userID: number | bigint) {
     });
   }
   const workspaces = await prisma.workspace.findMany({
-      where: {
-        members: {
-          some: {
-            userId: userID,
-          },
+    where: {
+      members: {
+        some: {
+          userId: userID,
         },
       },
-    });
+    },
+  });
 
   return workspaces;
 }
