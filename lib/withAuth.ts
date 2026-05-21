@@ -38,12 +38,13 @@ export interface AuthenticatedRequest
   extends NextApiRequest {
   auth: {
     userId: bigint
-
     token: string
-
     session: Awaited<
       ReturnType<typeof getSessionByToken>
     >
+  },
+  session: {
+    userid: bigint
   }
 }
 
@@ -101,7 +102,7 @@ export function withAuth(
       }
 
       authReq.session = {
-        userid: Number(session.userId),
+        userid: BigInt(session.userId),
       } as AuthenticatedRequest["session"]
 
       return handler(authReq, res)

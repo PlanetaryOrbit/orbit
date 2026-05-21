@@ -319,6 +319,7 @@ export async function checkGroupRoles(groupID: number) {
         noblox.getLogo(groupID, '420x420').catch(() => null),
         noblox.getGroup(groupID).catch(() => null),
       ]);
+      console.log(`[update-group] Fetched group info for ${groupID} - logo: ${!!logo}, group: ${!!group}`);
       if (logo || group) {
         await prisma.workspace.update({
           where: { groupId: groupID },
