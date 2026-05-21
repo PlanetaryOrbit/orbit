@@ -29,9 +29,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 			where: { discordUserId: discordEntry.discordUserId },
 		});
 
-		delete req.session.discordid;
-		await req.session.save();
-
 		return res.status(200).json({ success: true });
 	} catch (err) {
 		console.error('Discord unlink error:', err);

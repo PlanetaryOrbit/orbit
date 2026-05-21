@@ -81,7 +81,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     }
 
     const before = resignation;
-    const sessionUserId = (req as NextApiRequest & { session?: { userid?: number } }).session?.userid ?? null;
+    const sessionUserId = (req as any ).auth?.userId ?? null;
 
     if (status === "cancel") {
       await prisma.staffResignation.delete({
