@@ -589,6 +589,7 @@ const Login: NextPage = () => {
                   )}
                 </>
               )}
+<<<<<<< HEAD
 
               {mode === "link" && (
                 <>
@@ -597,6 +598,8 @@ const Login: NextPage = () => {
                 </>
               )}
               </div>
+=======
+>>>>>>> 0c85ce04cde4256231a6b7e457a6fa450ac1efe2
             </div>
           </div>
         </div>

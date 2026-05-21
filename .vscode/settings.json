@@ -1,10 +1,9 @@
 {
-    "editor.detectIndentation": false,
-	"editor.tabSize": 2,
-    "editor.insertSpaces": true,
-	"editor.renderWhitespace": "boundary",
-	"editor.formatOnPaste": false,
-	"editor.formatOnSave": false,
-	"editor.formatOnType": false,
-	"WillLuke.nextjs.hasPrompted": true
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.renderWhitespace": "boundary",
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": false,
+  "editor.formatOnType": false,
 }

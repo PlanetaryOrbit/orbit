@@ -10,7 +10,7 @@ export const OAuthAvailable = () => {
         const response = await fetch("/api/auth/oauth/check");
         const data = await response.json();
         setOauthOnly(data.oauthOnly || false);
-        setIsAvailable(data.isAvailable)
+        setIsAvailable(data.available || false);
       } catch (error) {
         console.error("Failed to check OAuth config:", error);
         setOauthOnly(false);

@@ -35,6 +35,7 @@ import {
   IconTarget,
   IconDots,
   IconGridDots,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import axios from "axios";
 import clsx from "clsx";
@@ -299,6 +300,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
       ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
       { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
+      { name: "My Profile", href: `/workspace/${workspace.groupId}/profile/${login.userId}`, icon: IconUser, accessible: true },
     ];
 
   const visiblePages = pages.filter((p) => p.accessible === undefined || p.accessible);
