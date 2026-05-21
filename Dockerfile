@@ -2,6 +2,7 @@ FROM node:22-alpine
 
 ARG NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_OPTIONS="${NODE_OPTIONS}"
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install pnpm (version pinned by packageManager in package.json)
 RUN corepack enable
