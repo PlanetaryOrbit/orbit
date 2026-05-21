@@ -3,7 +3,6 @@ import { NextRequest } from "next/server";
 
 const REQUIRED_ENV_VARS = [
   "DATABASE_URL",
-  "NEXTAUTH_URL",
   "SESSION_SECRET"
 ];
 
