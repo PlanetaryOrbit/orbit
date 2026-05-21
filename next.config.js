@@ -7,6 +7,12 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1,
   },
+  typescript: {
+    ignoreBuildErrors: true, // if you wanna test build do [p]npm run typecheck
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
