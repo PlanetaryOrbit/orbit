@@ -9,6 +9,7 @@
     "dev:https": "next dev --experimental-https --webpack",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
