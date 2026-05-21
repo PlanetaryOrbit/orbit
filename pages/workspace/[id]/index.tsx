@@ -76,16 +76,14 @@ const Home: pageWithLayout = () => {
   }, [workspace.groupId])
 
   useEffect(() => {
-    if (!workspace?.groupId || !workspaceMembership?.isAdmin || !login.isOwner) return
+    if (!workspace?.groupId) return
     fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
       .then((r) => r.json())
       .then((data) => {
         if (data.banner) setBanner(data.banner)
       })
       .catch(() => {})
-  }, [workspace?.groupId, login, workspaceMembership])
-
-  console.log(workspace)
+  }, [workspace?.groupId])
 
   const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: "long",

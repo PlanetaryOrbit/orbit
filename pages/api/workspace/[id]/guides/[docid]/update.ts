@@ -22,7 +22,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     return res
       .status(400)
       .json({ success: false, error: "Document ID not provided" });
-  const { name, content, roles, departments } = req.body;
+  const { name, content, roles, departments, folderId } = req.body;
   if (!name || !roles)
     return res
       .status(400)
@@ -65,11 +65,21 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         saveContent = sanitizeJSON(content);
       }
 
+      if (folderId) {
+        const folder = await prisma.documentFolder.findFirst({
+          where: { id: folderId, workspaceGroupId: workspaceId },
+        });
+        if (!folder) {
+          return res.status(400).json({ success: false, error: "Folder not found" });
+        }
+      }
+
       const updated = await prisma.document.update({
         where: { id: req.query.docid as string },
         data: {
           name,
           content: saveContent,
+          folderId: folderId === undefined ? undefined : folderId || null,
           roles: {
             set: [],
             connect: roles.map((role: string) => ({ id: role })),

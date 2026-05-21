@@ -33,6 +33,14 @@ import { useRouter } from "next/router";
 import { ActivityOverview } from "@/components/profile/activityoverview";
 import { SessionsHistory } from "@/components/profile/sessions";
 import { QuotasProgress } from "@/components/profile/quotas";
+import {
+  profileTabClass,
+  profileTabListClass,
+  profileInputClass,
+  profilePanelShadow,
+  profilePrimaryButtonClass,
+  profileSecondaryButtonClass,
+} from "@/components/profile/shell";
 
 type Props = {
   timeSpent: number;
@@ -195,48 +203,24 @@ const Activity: FC<Props> = ({
   return (
     <>
       <Tab.Group>
-        <Tab.List className="flex p-1 gap-1 mx-1 mt-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-x-auto scrollbar-hide">
-          <Tab
-            className={({ selected }) =>
-              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                selected
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-              }`
-            }
-          >
-            <IconChartBar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <Tab.List className={profileTabListClass}>
+          <Tab className={({ selected }) => profileTabClass(selected)}>
+            <IconChartBar className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
             Activity
           </Tab>
-          <Tab
-            className={({ selected }) =>
-              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                selected
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-              }`
-            }
-          >
-            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <Tab className={({ selected }) => profileTabClass(selected)}>
+            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
             Sessions
           </Tab>
-          <Tab
-            className={({ selected }) =>
-              `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                selected
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-              }`
-            }
-          >
-            <IconTarget className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <Tab className={({ selected }) => profileTabClass(selected)}>
+            <IconTarget className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
             Quotas
           </Tab>
         </Tab.List>
 
         {getCurrentWeekLabel && (
           <div className="flex justify-center mt-4 mb-6 px-2">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 px-2 sm:px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 shadow-sm max-w-full">
+            <div className="inline-flex max-w-full items-center gap-1.5 rounded-xl bg-zinc-100 px-2 sm:px-3 py-1.5 dark:bg-zinc-800/80">
               <button
                 onClick={goToPreviousWeek}
                 disabled={!canGoBack || loadingHistory}
@@ -274,11 +258,11 @@ const Activity: FC<Props> = ({
 
         {loadingHistory ? (
           <div className="flex items-center justify-center py-12">
-            <div className="bg-white dark:bg-zinc-700 rounded-xl p-8 max-w-md mx-auto text-center">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                <IconChartBar className="w-8 h-8 text-primary" />
+            <div className="mx-auto max-w-md rounded-xl bg-zinc-50/80 p-8 text-center dark:bg-zinc-800/40">
+              <div className="mx-auto mb-4 flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-primary/10">
+                <IconChartBar className="h-7 w-7 text-primary" stroke={1.75} />
               </div>
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
+              <h3 className="mb-1 text-base font-medium text-zinc-900 dark:text-white">
                 Loading Historical Data
               </h3>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -289,10 +273,10 @@ const Activity: FC<Props> = ({
         ) : (
           <div>
             {isHistorical && historicalPeriod && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
+            <div className="mb-6 rounded-xl bg-amber-500/10 p-4">
               <div className="flex items-center gap-3">
-                <div className="bg-amber-100 dark:bg-amber-900 p-2 rounded-lg">
-                  <IconCalendarTime className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div className="rounded-lg bg-amber-500/15 p-2">
+                  <IconCalendarTime className="h-5 w-5 text-amber-600 dark:text-amber-400" stroke={1.75} />
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-amber-900 dark:text-amber-200">
@@ -311,12 +295,12 @@ const Activity: FC<Props> = ({
             <Tab.Panels className="min-h-[400px]">
               <Tab.Panel>
                 {!isHistorical && canAdjustActivity && (
-                    <div className="flex justify-end mb-4">
+                    <div className="mb-4 flex justify-end">
                       <button
                         onClick={() => setAdjustModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition"
+                        className={profilePrimaryButtonClass}
                       >
-                        <IconAdjustments className="w-4 h-4" />
+                        <IconAdjustments className="h-4 w-4" stroke={1.75} />
                         Manual Adjustment
                       </button>
                     </div>
@@ -390,38 +374,34 @@ const Activity: FC<Props> = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className={`w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle transition-all dark:bg-zinc-900 ${profilePanelShadow}`}>
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium text-zinc-900 dark:text-white mb-4"
+                    className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white"
                   >
                     Manual Adjustment
                   </Dialog.Title>
                   <div className="space-y-4">
-                    <div className="flex p-0.5 gap-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-lg border border-zinc-200 dark:border-zinc-600">
+                    <div className={profileTabListClass}>
                       <button
+                        type="button"
                         onClick={() => setAdjustType("award")}
-                        className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          adjustType === "award"
-                            ? "bg-primary text-white shadow-sm"
-                            : "text-zinc-700 dark:text-zinc-200 hover:bg-white/70 dark:hover:bg-zinc-700"
-                        }`}
+                        className={`flex-1 ${profileTabClass(adjustType === "award")}`}
                       >
                         Award
                       </button>
                       <button
+                        type="button"
                         onClick={() => setAdjustType("remove")}
-                        className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          adjustType === "remove"
-                            ? "bg-red-600 text-white shadow-sm"
-                            : "text-zinc-700 dark:text-zinc-200 hover:bg-white/70 dark:hover:bg-zinc-700"
+                        className={`flex-1 ${profileTabClass(adjustType === "remove")} ${
+                          adjustType === "remove" ? "!bg-red-600 !text-white dark:!bg-red-600" : ""
                         }`}
                       >
                         Remove
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium mb-1 text-zinc-600 dark:text-zinc-300">
+                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
                         Minutes
                       </label>
                       <input
@@ -437,19 +417,19 @@ const Activity: FC<Props> = ({
                             )
                           )
                         }
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-white text-sm border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className={profileInputClass}
                         placeholder="e.g. 10"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium mb-1 text-zinc-600 dark:text-zinc-300">
+                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
                         Reason (optional)
                       </label>
                       <textarea
                         value={adjustReason}
                         onChange={(e) => setAdjustReason(e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-white text-sm border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        className={`${profileInputClass} resize-none`}
                         placeholder="Recognition for outstanding support"
                       />
                     </div>
@@ -457,14 +437,18 @@ const Activity: FC<Props> = ({
                   <div className="mt-6 flex gap-2">
                     <button
                       onClick={() => setAdjustModal(false)}
-                      className="flex-1 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                      className={`flex-1 justify-center px-4 py-2 text-sm ${profileSecondaryButtonClass}`}
                     >
                       Cancel
                     </button>
                     <button
                       disabled={submittingAdjust}
                       onClick={submitAdjustment}
-                      className="flex-1 px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed hover:bg-primary/90 transition"
+                      className={`flex-1 justify-center px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60 ${
+                        adjustType === "remove"
+                          ? "inline-flex items-center gap-1.5 rounded-xl bg-red-600 text-sm font-medium text-white transition hover:bg-red-700"
+                          : profilePrimaryButtonClass
+                      }`}
                     >
                       {submittingAdjust
                         ? "Saving..."

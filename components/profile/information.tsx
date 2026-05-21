@@ -1,5 +1,10 @@
 import React, { useEffect, useState, Fragment } from "react";
 import {
+  profileFieldPanelClass,
+  profileInputClass,
+  profileSecondaryButtonClass,
+} from "@/components/profile/shell";
+import {
   IconUser,
   IconId,
   IconBriefcase,
@@ -286,8 +291,8 @@ export function InformationTab({
     : null;
 
   const getEditLevelBadge = () => {
-    if (editLevel === 2) return <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Full Access</span>;
-    if (editLevel === 1) return <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Limited Access</span>;
+    if (editLevel === 2) return <span className="ml-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Full Access</span>;
+    if (editLevel === 1) return <span className="ml-2 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-600 dark:text-sky-400">Limited Access</span>;
     return null;
   };
 
@@ -303,7 +308,7 @@ export function InformationTab({
         {canEdit && !editing && (
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+            className={profileSecondaryButtonClass}
           >
             <IconPencil className="w-3.5 h-3.5" />
             Edit {editLevel === 1 ? "Basic Info" : "All Info"}
@@ -313,7 +318,7 @@ export function InformationTab({
           <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={handleCancel}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition flex-1 sm:flex-initial"
+              className={`${profileSecondaryButtonClass} flex-1 sm:flex-initial`}
             >
               <IconX className="w-3.5 h-3.5" />
               Cancel
@@ -321,7 +326,7 @@ export function InformationTab({
             <button
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition flex-1 sm:flex-initial disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl text-white bg-primary hover:bg-primary/90 transition flex-1 sm:flex-initial disabled:opacity-60"
             >
               <IconCheck className="w-3.5 h-3.5" />
               Save
@@ -331,7 +336,7 @@ export function InformationTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50">
+        <div className={profileFieldPanelClass}>
           <Field icon={IconUser} label="Username" requiresLevel2={false} currentEditLevel={editLevel}>
             <p className="text-sm font-semibold text-zinc-900 dark:text-white">
               @{user.username}
@@ -351,7 +356,7 @@ export function InformationTab({
                 value={discordId}
                 onChange={(e) => setDiscordId(e.target.value)}
                 placeholder="Enter Discord ID"
-                className="w-full px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className={profileInputClass}
               />
             ) : user.DiscordUser ? (
               <div className="inline-flex items-center gap-2 bg-black/10 dark:bg-white/10 hover:bg-[#5865F2]/10 border border-black/20 dark:border-white/20 hover:border-[#5865F2]/30 rounded-full pl-1 pr-3 py-1 transition-colors cursor-default group">
@@ -387,7 +392,7 @@ export function InformationTab({
                 <select
                   value={birthdayMonth}
                   onChange={(e) => setBirthdayMonth(e.target.value)}
-                  className="flex-1 px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={`flex-1 ${profileInputClass}`}
                 >
                   <option value="">Month</option>
                   {monthNames.slice(1).map((month, idx) => (
@@ -397,7 +402,7 @@ export function InformationTab({
                 <select
                   value={birthdayDay}
                   onChange={(e) => setBirthdayDay(e.target.value)}
-                  className="flex-1 px-2 py-1 text-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className={`flex-1 ${profileInputClass}`}
                 >
                   <option value="">Day</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
@@ -415,12 +420,12 @@ export function InformationTab({
           </Field>
         </div>
 
-        <div className="bg-white dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-700/60 rounded-xl px-5 divide-y divide-zinc-100 dark:divide-zinc-700/50 overflow-visible">
+        <div className={`${profileFieldPanelClass} overflow-visible`}>
           <Field icon={IconClock} label="Timezone" requiresLevel2={false} currentEditLevel={editLevel}>
             {editing && editLevel >= 1 ? (
               <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
                 <div className="relative">
-                  <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-left text-sm border border-zinc-200 dark:border-zinc-600">
+                  <Listbox.Button className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}>
                     <span className={`block truncate ${selectedTimezone ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
                       {selectedTimezone || "Select timezone..."}
                     </span>
@@ -462,7 +467,7 @@ export function InformationTab({
                       e.preventDefault();
                       setDeptOpen((o) => !o);
                     }}
-                    className="relative w-full cursor-pointer rounded-lg bg-zinc-50 dark:bg-zinc-900 py-2 pl-3 pr-10 text-left border border-zinc-200 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm text-zinc-900 dark:text-white"
+                    className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}
                   >
                     {selectedDepartments.length === 0
                       ? "Select departments..."
@@ -532,7 +537,7 @@ export function InformationTab({
               <Combobox value={selectedManager} onChange={setSelectedManager}>
                 <div className="relative">
                   <Combobox.Input
-                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 py-1 pl-2 pr-8 text-sm border border-zinc-200 dark:border-zinc-600 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className={profileInputClass}
                     displayValue={(manager: any) => manager?.username || ""}
                     onChange={(e) => setManagerQuery(e.target.value)}
                     placeholder="Search manager..."
@@ -579,7 +584,7 @@ export function InformationTab({
                   {new Date(user.joinDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
                 </p>
                 {joinTenure && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     {joinTenure}
                   </span>
                 )}

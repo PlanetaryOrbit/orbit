@@ -35,6 +35,13 @@ import { getConfig } from "@/utils/configEngine";
 import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
 import StaffOrgChart from "@/components/views/StaffOrgChart";
 import type { OrgChartEdge, OrgChartNode } from "@/components/views/StaffOrgChart";
+import clsx from "clsx";
+import {
+  ViewsPageShell,
+  ViewsPageHeader,
+  ViewsPanel,
+  viewsPanelShadow,
+} from "@/components/views/shell";
 import {
   IconArrowLeft,
   IconFilter,
@@ -313,19 +320,21 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
             }}
           >
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(
-                row.getValue().userId.toString()
-              )}`}
+              className={clsx(
+                "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full",
+                getRandomBg(row.getValue().userId.toString(), row.getValue().username ?? undefined)
+              )}
             >
               <img
-                src={row.getValue().picture!}
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                src={`/api/workspace/${router.query.id}/avatar/${row.getValue().userId}`}
+                className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
                 style={{ background: "transparent" }}
+                alt=""
               />
             </div>
             <p
               title={row.getValue().username || undefined}
-              className="leading-5 my-auto px-2 font-semibold dark:text-white truncate"
+              className="my-auto truncate px-2 text-sm font-semibold text-zinc-900 dark:text-white"
             >
               {row.getValue().username}
             </p>
@@ -877,44 +886,36 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     }
   };
 
+  const workspaceLabel = workspace.customName || workspace.groupName;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-start gap-4">
-            <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-lg flex-shrink-0">
-              <IconUsers className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-                Staff Management
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                View and manage your staff members
-              </p>
-            </div>
-          </div>
-        </div>
+    <ViewsPageShell>
+      <ViewsPageHeader
+        title="Staff Management"
+        subtitle="View and manage your staff members"
+        workspaceLabel={workspaceLabel}
+      />
 
-        <div className="flex md:flex-row flex-col md:gap-6">
-          <div className="md:w-56 w-full shrink-0">
-            <div className="bg-white dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-6 sm:mb-0">
-              <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-700/60">
-                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                  Views
-                </span>
-                {hasUseSavedViews() && hasCreateViews() && (
-                  <button
-                    onClick={openSaveDialog}
-                    title="Create View"
-                    className="p-1 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                  >
-                    <IconPlus className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+      <div className="flex flex-col gap-5 md:flex-row md:gap-6">
+        <div className="w-full shrink-0 md:w-56">
+          <ViewsPanel className="overflow-hidden">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-3 dark:border-zinc-800">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Views
+              </span>
+              {hasUseSavedViews() && hasCreateViews() && (
+                <button
+                  type="button"
+                  onClick={openSaveDialog}
+                  title="Create View"
+                  className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                >
+                  <IconPlus className="h-3.5 w-3.5" stroke={2} />
+                </button>
+              )}
+            </div>
 
-              <div className="p-1.5 space-y-0.5">
+            <div className="space-y-0.5 p-1.5">
                 <div
                   className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
                     mainPanelMode === "table" && selectedViewId === null
@@ -929,8 +930,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                     }}
                     className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
                   >
-                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
-                      <IconUsers className="h-3.5 w-3.5" />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      <IconUsers className="h-3.5 w-3.5" stroke={1.75} />
                     </span>
                     <span
                       className={`truncate text-sm font-medium ${
@@ -960,8 +961,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                     }}
                     className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
                   >
-                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
-                      <IconSitemap className="h-3.5 w-3.5" />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                      <IconSitemap className="h-3.5 w-3.5" stroke={1.75} />
                     </span>
                     <span
                       className={`truncate text-sm font-medium ${
@@ -1040,13 +1041,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </>
                 )}
               </div>
-            </div>
-          </div>
+          </ViewsPanel>
+        </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-4 mb-6 relative z-10 overflow-visible">
-              {mainPanelMode === "table" && (
-              <>
+        <div className="min-w-0 flex-1">
+          {mainPanelMode === "table" && (
+            <ViewsPanel className="relative z-10 mb-4 overflow-visible p-4">
               <div className="flex flex-col md:flex-row gap-3 relative z-20">
                 <div className="flex gap-2">
                   <Popover className="relative z-20">
@@ -1054,15 +1054,16 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       <>
                         <Popover.Button
                           disabled={selectedViewId !== null && !isEditMode}
-                          className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
+                          className={clsx(
+                            "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                             selectedViewId !== null && !isEditMode
-                              ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                              ? "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
                               : open
-                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-primary/50"
-                              : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
-                          }`}
+                              ? "bg-primary/10 text-primary"
+                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                          )}
                         >
-                          <IconFilter className="w-4 h-4" />
+                          <IconFilter className="h-4 w-4" stroke={1.75} />
                           <span>Filters</span>
                         </Popover.Button>
 
@@ -1075,35 +1076,32 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                           leaveFrom="opacity-100 translate-y-0"
                           leaveTo="opacity-0 translate-y-1"
                         >
-                          <Popover.Panel className="absolute left-0 z-50 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xl p-4 top-full">
+                          <Popover.Panel className="absolute left-0 top-full z-50 mt-2 w-72 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
                             <div className="space-y-3">
                               <button
+                                type="button"
                                 onClick={newfilter}
-                                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-all"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                               >
-                                <IconPlus className="w-4 h-4" />
-                                Add Filter
+                                <IconPlus className="h-4 w-4" stroke={2} />
+                                Add filter
                               </button>
 
                               {colFilters.map((filter) => (
-                                <div
+                                <Filter
                                   key={filter.id}
-                                  className="p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-900/50"
-                                >
-                                  <Filter
-                                    ranks={ranks}
-                                    departments={departments}
-                                    updateFilter={(col, op, value) =>
-                                      updateFilter(filter.id, col, op, value)
-                                    }
-                                    deleteFilter={() => removeFilter(filter.id)}
-                                    data={filter}
-                                  />
-                                </div>
+                                  ranks={ranks}
+                                  departments={departments}
+                                  updateFilter={(col, op, value) =>
+                                    updateFilter(filter.id, col, op, value)
+                                  }
+                                  deleteFilter={() => removeFilter(filter.id)}
+                                  data={filter}
+                                />
                               ))}
                               {colFilters.length === 0 && (
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-2">
-                                  No filters added yet
+                                <p className="py-3 text-center text-xs text-zinc-400">
+                                  No filters yet
                                 </p>
                               )}
                             </div>
@@ -1118,15 +1116,16 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       <>
                         <Popover.Button
                           disabled={selectedViewId !== null && !isEditMode}
-                          className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
+                          className={clsx(
+                            "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                             selectedViewId !== null && !isEditMode
-                              ? "bg-zinc-100 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                              ? "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
                               : open
-                              ? "bg-zinc-100 dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-white ring-2 ring-primary/50"
-                              : "bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
-                          }`}
+                              ? "bg-primary/10 text-primary"
+                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                          )}
                         >
-                          <IconUsers className="w-4 h-4" />
+                          <IconUsers className="h-4 w-4" stroke={1.75} />
                           <span>Columns</span>
                         </Popover.Button>
 
@@ -1139,7 +1138,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                           leaveFrom="opacity-100 translate-y-0"
                           leaveTo="opacity-0 translate-y-1"
                         >
-                          <Popover.Panel className="absolute left-0 z-50 mt-2 w-56 origin-top-left rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xl p-4 top-full">
+                          <Popover.Panel className="absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
                             <div className="space-y-2">
                               {table.getAllLeafColumns().map((column: any) => {
                                 if (
@@ -1179,13 +1178,13 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       type="text"
                       value={searchQuery}
                       onChange={(e) => updateSearchQuery(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-[6px] border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                      className="block w-full rounded-xl border-0 bg-zinc-100 py-2 pl-10 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder-zinc-500"
                       placeholder="Search staff..."
                     />
                   </div>
 
                   {searchOpen && (
-                    <div className="absolute z-10 mt-1 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl">
+                    <div className="absolute z-10 mt-1 w-full rounded-xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
                       <div className="py-1 max-h-48 overflow-y-auto">
                         {searchResults.length === 0 && (
                           <div className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 text-center">
@@ -1234,7 +1233,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
               </div>
 
               {table.getSelectedRowModel().flatRows.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 py-2">
                     {table.getSelectedRowModel().flatRows.length} selected
                   </span>
@@ -1270,23 +1269,22 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </button>
                 </div>
               )}
-              </>
-              )}
-            </div>
+            </ViewsPanel>
+          )}
 
             {mainPanelMode === "table" ? (
               isLoading ? (
-              <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-12">
+              <ViewsPanel className="p-12">
                 <div className="flex flex-col items-center justify-center text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading staff data...</p>
+                  <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading staff data…</p>
                 </div>
-              </div>
+              </ViewsPanel>
             ) : (
-            <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg overflow-hidden">
+            <ViewsPanel className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full table-auto md:table-fixed divide-y divide-zinc-200 dark:divide-zinc-700">
-                  <thead className="bg-zinc-50 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-700">
+                <table className="w-full table-auto md:table-fixed">
+                  <thead className="border-b border-zinc-100 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-800/40">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <tr key={headerGroup.id}>
                         {headerGroup.headers.map((header) => (
@@ -1300,25 +1298,22 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                                 ? "descending"
                                 : "none"
                             }
-                            className={
-                              `px-4 py-3 text-left text-xs font-semibold text-zinc-900 dark:text-zinc-300 uppercase tracking-widest cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors` +
-                              (header.column.id === "info"
-                                ? " md:w-1/4 min-w-[90px]"
-                                : header.column.id === "select"
-                                ? " w-12 text-center px-2"
-                                : "")
-                            }
+                            className={clsx(
+                              "cursor-pointer px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300",
+                              header.column.id === "info" && "md:w-1/4 min-w-[90px]",
+                              header.column.id === "select" && "w-12 px-2 text-center"
+                            )}
                             onClick={header.column.getToggleSortingHandler()}
                           >
                             {header.isPlaceholder ? null : (
-                              <div className="flex items-center space-x-2 text-zinc-900 dark:text-zinc-300">
+                              <div className="flex items-center space-x-1.5">
                                 <span>
                                   {flexRender(
                                     header.column.columnDef.header,
                                     header.getContext()
                                   )}
                                 </span>
-                                <span className="text-zinc-500 dark:text-zinc-400">
+                                <span className="text-zinc-400">
                                   {header.column.getIsSorted?.() === "asc" ? (
                                     <IconArrowUp className="w-3 h-3" />
                                   ) : header.column.getIsSorted?.() ===
@@ -1333,11 +1328,11 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       </tr>
                     ))}
                   </thead>
-                  <tbody className="bg-white dark:bg-zinc-900/20 divide-y divide-zinc-200 dark:divide-zinc-700">
+                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                     {table.getRowModel().rows.map((row) => (
                       <tr
                         key={row.id}
-                        className="hover:bg-zinc-100 dark:hover:bg-zinc-700/30 transition-colors border-b border-zinc-200 dark:border-zinc-700 last:border-b-0"
+                        className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
@@ -1373,50 +1368,52 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                 </table>
               </div>
 
-              <div className="bg-white dark:bg-zinc-800/50 px-4 py-3 flex items-center justify-center border-t border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center justify-center border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700/30 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-400 dark:disabled:text-zinc-500 transition-all"
+                    className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                   >
                     Previous
                   </button>
-                  <span className="inline-flex items-center px-4 py-2 bg-zinc-100 dark:bg-zinc-700/50 border border-zinc-300 dark:border-zinc-600 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-zinc-500">
                     Page {table.getState().pagination.pageIndex + 1} of{" "}
                     {table.getPageCount()}
                   </span>
                   <button
+                    type="button"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-700/30 hover:bg-zinc-100 dark:hover:bg-zinc-700/50 disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-400 dark:disabled:text-zinc-500 transition-all"
+                    className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                   >
                     Next
                   </button>
                 </div>
               </div>
-            </div>
+            </ViewsPanel>
             )
             )
             : orgChartLoading ? (
-              <div className="bg-white dark:bg-zinc-800/50 backdrop-blur-sm border border-zinc-200 dark:border-zinc-700/50 rounded-lg p-12">
+              <ViewsPanel className="p-12">
                 <div className="flex flex-col items-center justify-center text-center">
-                  <div className="animate-spin mb-4 h-12 w-12 rounded-full border-b-2 border-primary"></div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading org chart...</p>
+                  <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading org chart…</p>
                 </div>
-              </div>
+              </ViewsPanel>
             ) : (
-              <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700/50 dark:bg-zinc-800/50 sm:p-6">
+              <ViewsPanel className="p-4 sm:p-6">
                 <StaffOrgChart
                   workspaceId={String(router.query.id)}
                   nodes={orgChartData?.nodes ?? []}
                   edges={orgChartData?.edges ?? []}
                   hasViewMemberProfiles={hasViewMemberProfiles}
                 />
-              </div>
+              </ViewsPanel>
             )}
-          </div>
         </div>
+      </div>
 
         <Transition appear show={isOpen} as={Fragment}>
           <Dialog
@@ -1521,136 +1518,159 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           >
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
+              enter="ease-out duration-200"
               enterFrom="opacity-0"
               enterTo="opacity-100"
-              leave="ease-in duration-200"
+              leave="ease-in duration-150"
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <div className="fixed inset-0 bg-black bg-opacity-25" />
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
             </Transition.Child>
             <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <div className="flex min-h-full items-center justify-center p-4">
                 <Transition.Child
                   as={Fragment}
-                  enter="ease-out duration-300"
+                  enter="ease-out duration-200"
                   enterFrom="opacity-0 scale-95"
                   enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200"
+                  leave="ease-in duration-150"
                   leaveFrom="opacity-100 scale-100"
                   leaveTo="opacity-0 scale-95"
                 >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all">
-                    <Dialog.Title
-                      as="div"
-                      className="flex items-center justify-between mb-3"
-                    >
-                      <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                        Save View
-                      </h3>
+                  <Dialog.Panel
+                    className={clsx(
+                      "w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-5 text-left align-middle transition-all dark:bg-zinc-900/95 sm:p-6",
+                      viewsPanelShadow
+                    )}
+                  >
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div>
+                        <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                          Save view
+                        </Dialog.Title>
+                        <p className="mt-0.5 text-xs text-zinc-400">
+                          Name this view and pick a color and icon
+                        </p>
+                      </div>
                       <button
+                        type="button"
                         onClick={() => setIsSaveOpen(false)}
-                        className="text-zinc-400 hover:text-zinc-500"
+                        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                       >
-                        <IconX className="w-5 h-5" />
+                        <IconX className="h-5 w-5" stroke={1.75} />
                       </button>
-                    </Dialog.Title>
-                    <div className="mt-3 space-y-3">
-                      <Input
-                        name="save-name"
-                        label={`Name (${saveName.length}/${SAVED_VIEW_NAME_MAX_LENGTH})`}
-                        maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
-                        value={saveName}
-                        onChange={(e) => {
-                          setSaveName(e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH));
-                          return Promise.resolve();
-                        }}
-                        onBlur={() => Promise.resolve()}
-                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="mb-1 block text-[11px] font-medium text-zinc-400">
+                          Name ({saveName.length}/{SAVED_VIEW_NAME_MAX_LENGTH})
+                        </label>
+                        <input
+                          type="text"
+                          name="save-name"
+                          maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
+                          value={saveName}
+                          onChange={(e) =>
+                            setSaveName(
+                              e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH)
+                            )
+                          }
+                          placeholder="e.g. Active moderators"
+                          className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+                        />
+                      </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
+                        <label className="mb-2 block text-[11px] font-medium text-zinc-400">
                           Color
                         </label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                           {[
                             "#fef2f2",
                             "#fef3c7",
                             "#ecfeff",
                             "#fff7ed",
                             "#f5f3ff",
-                            "#fff2c0ff",
+                            "#fff2c0",
                             "#d1fae5",
                             "#fee2e2",
                             "#fee7f6",
-                            "#fcd7d7ff",
-                            "#f8e494ff",
-                            "#c1fcffff",
-                            "#fdd6a6ff",
-                            "#b7a9ffff",
+                            "#fcd7d7",
+                            "#f8e494",
+                            "#c1fcff",
+                            "#fdd6a6",
+                            "#b7a9ff",
                             "#fde68a",
-                            "#aaffd3ff",
+                            "#aaffd3",
                             "#e0f2fe",
-                            "#ffbcbcff",
-                            "#ffbce8ff",
+                            "#ffbcbc",
+                            "#ffbce8",
                           ].map((c) => (
                             <button
                               key={c}
                               type="button"
                               onClick={() => setSaveColor(c)}
                               title={c}
-                              className={`w-8 h-8 rounded-md border dark:border-zinc-600 ${
+                              className={clsx(
+                                "h-8 w-8 rounded-lg transition-all",
                                 saveColor === c
-                                  ? "ring-2 ring-offset-1 ring-primary dark:ring-white/30"
-                                  : ""
-                              }`}
+                                  ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900"
+                                  : "hover:scale-105"
+                              )}
                               style={{ background: c }}
                             />
                           ))}
                         </div>
+                      </div>
 
-                        <div className="mt-3">
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2">
-                            Icon
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {ICON_OPTIONS.map((opt) => {
-                              const IconComp = opt.Icon;
-                              return (
-                                <button
-                                  key={opt.key}
-                                  type="button"
-                                  onClick={() => setSaveIcon(opt.key)}
-                                  title={opt.title || opt.key}
-                                  className={`w-9 h-9 rounded-md flex items-center justify-center text-lg border dark:border-zinc-600 ${
-                                    saveIcon === opt.key
-                                      ? "ring-2 ring-offset-1 ring-primary dark:ring-white/30"
-                                      : ""
-                                  }`}
-                                >
-                                  <IconComp className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-                                </button>
-                              );
-                            })}
-                          </div>
+                      <div>
+                        <label className="mb-2 block text-[11px] font-medium text-zinc-400">
+                          Icon
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ICON_OPTIONS.map((opt) => {
+                            const IconComp = opt.Icon;
+                            return (
+                              <button
+                                key={opt.key}
+                                type="button"
+                                onClick={() => setSaveIcon(opt.key)}
+                                title={opt.title || opt.key}
+                                className={clsx(
+                                  "flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 transition-all dark:bg-zinc-800",
+                                  saveIcon === opt.key
+                                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900"
+                                    : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                                )}
+                              >
+                                <IconComp
+                                  className="h-4 w-4 text-zinc-700 dark:text-zinc-200"
+                                  stroke={1.75}
+                                />
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
+
                     <div className="mt-5 flex justify-end gap-2">
                       <button
                         type="button"
-                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-50"
+                        className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                         onClick={() => setIsSaveOpen(false)}
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
-                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90"
+                        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={saveCurrentView}
+                        disabled={!saveName.trim()}
                       >
-                        Save
+                        Save view
                       </button>
                     </div>
                   </Dialog.Panel>
@@ -1693,8 +1713,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </ViewsPageShell>
   );
 };
 
@@ -1727,6 +1746,11 @@ function getRandomBg(userid: string, username?: string) {
   return BG_COLORS[index];
 }
 
+const filterInputClass =
+  "w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white";
+
+const filterLabelClass = "mb-1 block text-[11px] font-medium text-zinc-400";
+
 const Filter: React.FC<{
   data: {
     column: string;
@@ -1754,7 +1778,8 @@ const Filter: React.FC<{
     },
   });
 
-  const { register, handleSubmit, getValues } = methods;
+  const { register } = methods;
+  const selectedCol = methods.watch("col");
 
   useEffect(() => {
     const subscription = methods.watch(() => {
@@ -1769,120 +1794,100 @@ const Filter: React.FC<{
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-4">
-        <button
-          onClick={deleteFilter}
-          className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-zinc-700 dark:text-white bg-white dark:bg-zinc-800 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        >
-          Delete Filter
-        </button>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-            Column
-          </label>
-          <select
-            {...register("col")}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
+      <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Filter rule
+          </span>
+          <button
+            type="button"
+            onClick={deleteFilter}
+            className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-200/70 hover:text-red-500 dark:hover:bg-zinc-700 dark:hover:text-red-400"
+            title="Remove filter"
           >
-            {Object.keys(filters).map((filter) => (
-              <option value={filter} key={filter}>
-                {filter}
-              </option>
-            ))}
-          </select>
+            <IconTrash className="h-3.5 w-3.5" stroke={1.75} />
+          </button>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-            Operation
-          </label>
-          <select
-            {...register("op")}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-          >
-            {filters[methods.getValues().col].map((filter) => (
-              <option value={filter} key={filter}>
-                {filterNames[filter]}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {getValues("col") !== "rank" && getValues("col") !== "registered" && getValues("col") !== "quota" && getValues("col") !== "department" && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-              Value
-            </label>
-            <Input {...register("value")} />
-          </div>
-        )}
-
-        {getValues("col") === "rank" && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-              Value
-            </label>
-            <select
-              {...register("value")}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-            >
-              {ranks.map((rank) => (
-                <option value={rank.rank} key={rank.id}>
-                  {rank.name}
+        <div className="space-y-3">
+          <div>
+            <label className={filterLabelClass}>Column</label>
+            <select {...register("col")} className={filterInputClass}>
+              {Object.keys(filters).map((filter) => (
+                <option value={filter} key={filter}>
+                  {filter}
                 </option>
               ))}
             </select>
           </div>
-        )}
 
-        {getValues("col") === "registered" && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-              Value
-            </label>
-            <select
-              {...register("value")}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-            >
-              <option value="true">✅</option>
-              <option value="false">❌</option>
-            </select>
-          </div>
-        )}
-
-        {getValues("col") === "quota" && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-              Value
-            </label>
-            <select
-              {...register("value")}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-            >
-              <option value="true">✅</option>
-              <option value="false">❌</option>
-            </select>
-          </div>
-        )}
-
-        {getValues("col") === "department" && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-white">
-              Value
-            </label>
-            <select
-              {...register("value")}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-            >
-              {departments.map((dept) => (
-                <option value={dept.id} key={dept.id}>
-                  {dept.name}
+          <div>
+            <label className={filterLabelClass}>Operation</label>
+            <select {...register("op")} className={filterInputClass}>
+              {(filters[selectedCol] || filters.username).map((filter) => (
+                <option value={filter} key={filter}>
+                  {filterNames[filter]}
                 </option>
               ))}
             </select>
           </div>
-        )}
+
+          {selectedCol !== "rank" &&
+            selectedCol !== "registered" &&
+            selectedCol !== "quota" &&
+            selectedCol !== "department" && (
+              <div>
+                <label className={filterLabelClass}>Value</label>
+                <input {...register("value")} className={filterInputClass} />
+              </div>
+            )}
+
+          {selectedCol === "rank" && (
+            <div>
+              <label className={filterLabelClass}>Value</label>
+              <select {...register("value")} className={filterInputClass}>
+                {ranks.map((rank) => (
+                  <option value={rank.rank} key={rank.id}>
+                    {rank.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {selectedCol === "registered" && (
+            <div>
+              <label className={filterLabelClass}>Value</label>
+              <select {...register("value")} className={filterInputClass}>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+          )}
+
+          {selectedCol === "quota" && (
+            <div>
+              <label className={filterLabelClass}>Value</label>
+              <select {...register("value")} className={filterInputClass}>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+          )}
+
+          {selectedCol === "department" && (
+            <div>
+              <label className={filterLabelClass}>Value</label>
+              <select {...register("value")} className={filterInputClass}>
+                {departments.map((dept) => (
+                  <option value={dept.id} key={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
     </FormProvider>
   );

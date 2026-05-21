@@ -26,6 +26,14 @@ import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
 import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
 import { AuthenticatedRequest } from "@/lib/withAuth";
+import clsx from "clsx";
+import {
+  SessionsPageShell,
+  SessionsPageHeader,
+  SessionsPanel,
+  SessionsEmptyState,
+  sessionsPanelShadow,
+} from "@/components/sessions/shell";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -54,6 +62,38 @@ function getRandomBg(userid: string, username?: string) {
   }
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
+}
+
+function SessionMemberAvatar({
+  userid,
+  username,
+  workspaceId,
+  className = "h-9 w-9",
+  overlap,
+}: {
+  userid: string;
+  username?: string;
+  workspaceId: string | number;
+  className?: string;
+  overlap?: boolean;
+}) {
+  return (
+    <div
+      className={clsx(
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full",
+        getRandomBg(userid, username),
+        className,
+        overlap && "-ml-2.5"
+      )}
+    >
+      <img
+        src={`/api/workspace/${workspaceId}/avatar/${userid}`}
+        alt={username || "Member"}
+        className="h-full w-full rounded-full border-2 border-white object-cover dark:border-zinc-900"
+        style={{ background: "transparent" }}
+      />
+    </div>
+  );
 }
 
 export const getServerSideProps = withPermissionCheckSsr(
@@ -828,130 +868,149 @@ const Home: pageWithLayout<pageProps> = (props) => {
   }, [allSessions]);
 
   return (
-    <div className="pagePadding">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-            Sessions
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Plan, schedule, and manage sessions for your staff members
-          </p>
-        </header>
+    <SessionsPageShell>
+      <SessionsPageHeader
+        title="Sessions"
+        subtitle="Plan, schedule, and manage sessions for your staff members"
+        workspaceLabel={workspace.customName || workspace.groupName}
+        action={
+          canCreateAnySession(workspace.yourPermission) ? (
+            <button
+              type="button"
+              onClick={() =>
+                router.push(`/workspace/${router.query.id}/sessions/new`)
+              }
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+            >
+              <IconPlus className="h-4 w-4" />
+              New session
+            </button>
+          ) : undefined
+        }
+      />
 
-        <div className="mb-6">
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1 flex flex-col items-center">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-full max-w-4xl mx-auto flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      const previousWeek = new Date(currentWeek);
-                      previousWeek.setDate(currentWeek.getDate() - 7);
-                      setCurrentWeek(previousWeek);
-                    }}
-                    className="p-1.5 sm:p-2 rounded-md bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800/40 text-zinc-700 dark:text-zinc-200 transition-colors"
-                    title="Previous week"
-                  >
-                    <IconChevronLeft className="w-4 h-4" />
-                  </button>
-
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center justify-center gap-2 py-1 px-2">
-                      {weekDates.map((date, index) => {
-                        const isToday =
-                          date.toDateString() === new Date().toDateString();
-                        const isSelected =
-                          date.toDateString() === selectedDate.toDateString();
-
-                        return (
-                          <button
-                            key={date.toDateString()}
-                            onClick={() => setSelectedDate(date)}
-                            className={`flex flex-col items-center justify-center min-w-[44px] sm:min-w-[56px] py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl transition-all transform hover:scale-105 focus:outline-none border ${
-                              isSelected
-                                ? "bg-primary text-white border-primary shadow-lg"
-                                : isToday
-                                ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-white border-zinc-300 dark:border-zinc-700"
-                                : "bg-white dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800/40"
-                            }`}
-                          >
-                            <span className={`text-[10px] uppercase tracking-wide opacity-80 ${isSelected ? "text-white" : isToday ? "text-zinc-900 dark:text-white" : "text-zinc-900 dark:text-zinc-200"}`}>
-                              {dayNamesShort[index]}
-                            </span>
-                            <span
-                              className={`mt-1 text-xs sm:text-sm font-semibold ${
-                              isSelected
-                                ? "text-white"
-                                : isToday
-                                ? "text-zinc-900 dark:text-white"
-                                : "text-zinc-900 dark:text-zinc-200"
-                            }`}
-                              >
-                              {date.getDate()}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      const nextWeek = new Date(currentWeek);
-                      nextWeek.setDate(currentWeek.getDate() + 7);
-                      setCurrentWeek(nextWeek);
-                    }}
-                    className="p-1.5 sm:p-2 rounded-md bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800/40 text-zinc-700 dark:text-zinc-200 transition-colors"
-                    title="Next week"
-                  >
-                    <IconChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="flex-shrink-0" />
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
-                {isTodaySelected
-                  ? "Today"
-                  : selectedDate.toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                    })}
-              </h2>
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-xl transition-colors ${
-                  showHistory
-                    ? "bg-primary text-white"
-                    : "bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-600"
-                }`}
-                title={showHistory ? "Showing all sessions" : "Showing recent and upcoming sessions"}
-              >
-                {showHistory ? "Hide history" : "Show history"}
-              </button>
-            </div>
-            {canCreateAnySession(workspace.yourPermission) && (
-              <button
-                onClick={() =>
-                  router.push(`/workspace/${router.query.id}/sessions/new`)
-                }
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm w-fit"
-              >
-                <IconPlus className="w-4 h-4" />
-                New session
-              </button>
+      <div className="mb-6">
+        <div className="flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              const previousWeek = new Date(currentWeek);
+              previousWeek.setDate(currentWeek.getDate() - 7);
+              setCurrentWeek(previousWeek);
+            }}
+            className={clsx(
+              "rounded-xl bg-white p-2 text-zinc-500 transition-colors hover:text-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:text-zinc-200",
+              sessionsPanelShadow
             )}
+            title="Previous week"
+          >
+            <IconChevronLeft className="h-4 w-4" stroke={2} />
+          </button>
+
+          <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {weekDates.map((date, index) => {
+              const isToday =
+                date.toDateString() === new Date().toDateString();
+              const isSelected =
+                date.toDateString() === selectedDate.toDateString();
+
+              return (
+                <button
+                  key={date.toDateString()}
+                  type="button"
+                  onClick={() => setSelectedDate(date)}
+                  className={clsx(
+                    "flex min-w-[44px] flex-col items-center justify-center rounded-xl px-2.5 py-2 transition-all focus:outline-none sm:min-w-[52px] sm:px-3",
+                    isSelected
+                      ? "bg-primary text-white shadow-md shadow-primary/25"
+                      : isToday
+                      ? clsx(
+                          "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white",
+                          sessionsPanelShadow
+                        )
+                      : clsx(
+                          "bg-white text-zinc-700 hover:bg-zinc-50 dark:bg-zinc-900/70 dark:text-zinc-200 dark:hover:bg-zinc-800/80",
+                          sessionsPanelShadow
+                        )
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      "text-[10px] font-medium uppercase tracking-wide",
+                      isSelected ? "text-white/90" : "text-zinc-400"
+                    )}
+                  >
+                    {dayNamesShort[index]}
+                  </span>
+                  <span
+                    className={clsx(
+                      "mt-0.5 text-sm font-semibold",
+                      isSelected ? "text-white" : "text-zinc-900 dark:text-white"
+                    )}
+                  >
+                    {date.getDate()}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="space-y-4">
+          <button
+            type="button"
+            onClick={() => {
+              const nextWeek = new Date(currentWeek);
+              nextWeek.setDate(currentWeek.getDate() + 7);
+              setCurrentWeek(nextWeek);
+            }}
+            className={clsx(
+              "rounded-xl bg-white p-2 text-zinc-500 transition-colors hover:text-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:text-zinc-200",
+              sessionsPanelShadow
+            )}
+            title="Next week"
+          >
+            <IconChevronRight className="h-4 w-4" stroke={2} />
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            {isTodaySelected
+              ? "Today"
+              : selectedDate.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+          </h2>
+          <button
+            type="button"
+            onClick={() => setShowHistory(!showHistory)}
+            className={clsx(
+              "rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
+              showHistory
+                ? "bg-primary/10 text-primary"
+                : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            )}
+          >
+            {showHistory ? "Hide history" : "Show history"}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const today = new Date();
+            setSelectedDate(today);
+            setCurrentWeek(today);
+          }}
+          className="self-start text-xs font-medium text-zinc-400 transition-colors hover:text-primary sm:self-auto"
+        >
+          Jump to today
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:gap-4">
             {selectedDateSessions.length > 0 ? (
               selectedDateSessions.map((session: any) => {
                 const now = new Date();
@@ -973,150 +1032,139 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 });
 
                 return (
-                  <div
+                  <SessionsPanel
                     key={session.id}
-                    className={`rounded-2xl border p-5 cursor-pointer transition-all group ${
-                      isActive
-                        ? "border-emerald-200 dark:border-emerald-600/50 bg-emerald-50/30 dark:bg-emerald-500/5"
-                        : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600"
-                    }`}
+                    className={clsx(
+                      "group cursor-pointer p-4 transition-all hover:ring-1 hover:ring-zinc-200 dark:hover:ring-zinc-700 sm:p-5",
+                      isActive && "ring-2 ring-primary/20"
+                    )}
                     onClick={() => handleSessionClick(session)}
                   >
                     <div className="flex items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <h4 className="text-base font-semibold text-zinc-900 dark:text-white truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <h4 className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
                             {session.name || session.sessionType.name}
                           </h4>
                           {isActive && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
+                            <span className="inline-flex shrink-0 items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                               Live
                             </span>
                           )}
                           {session.type && (
                             <span
-                              className={`${getSessionTypeColor(
-                                session.type
-                              )} ${getTextColorForBackground(
-                                getSessionTypeColor(session.type)
-                              )} px-2 py-0.5 rounded-lg text-xs font-medium shrink-0`}
+                              className={clsx(
+                                "shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium",
+                                getSessionTypeColor(session.type),
+                                getTextColorForBackground(
+                                  getSessionTypeColor(session.type)
+                                )
+                              )}
                             >
                               {session.type.charAt(0).toUpperCase() +
                                 session.type.slice(1)}
                             </span>
                           )}
                           {session.cancelled && (
-                            <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
-                              <IconBan className="w-3 h-3" />
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:text-red-400">
+                              <IconBan className="h-3 w-3" />
                               Cancelled
                             </span>
                           )}
                           {isConcluded && !session.cancelled && (
-                            <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
+                            <span className="shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                               Concluded
                             </span>
                           )}
-                          {!isConcluded && !session.cancelled && statues?.has(session.id) && statues.get(session.id) !== "Open" && (
-                            <span className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 px-2 py-0.5 rounded-lg text-xs font-medium shrink-0">
-                              {statues.get(session.id)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                          <span className="inline-flex items-center gap-1.5">
-                            <IconClock className="w-4 h-4 shrink-0" />
-                            {new Date(session.date).toLocaleTimeString(
-                              undefined,
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              }
+                          {!isConcluded &&
+                            !session.cancelled &&
+                            statues?.has(session.id) &&
+                            statues.get(session.id) !== "Open" && (
+                              <span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
+                                {statues.get(session.id)}
+                              </span>
                             )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-zinc-400">
+                          <span className="inline-flex items-center gap-1.5">
+                            <IconClock className="h-3.5 w-3.5 shrink-0" stroke={1.75} />
+                            {new Date(session.date).toLocaleTimeString(undefined, {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
                           </span>
-                          <span className="inline-flex items-center gap-1.5 min-w-0">
-                            <IconUserCircle className="w-4 h-4 shrink-0" />
+                          <span className="inline-flex min-w-0 items-center gap-1.5">
+                            <IconUserCircle className="h-3.5 w-3.5 shrink-0" stroke={1.75} />
                             <span className="truncate">
                               {session.owner?.username || "Unclaimed"}
                             </span>
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex shrink-0 items-center gap-1">
                         {session.owner && (
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                              session.owner.userid.toString()
-                            )}`}
-                          >
-                            <img
-                              src={
-                                session.owner.picture ||
-                                "/default-avatar.jpg"
-                              }
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = "/default-avatar.jpg";
-                              }}
-                            />
-                          </div>
+                          <SessionMemberAvatar
+                            userid={session.owner.userid.toString()}
+                            username={session.owner.username ?? undefined}
+                            workspaceId={router.query.id as string}
+                          />
                         )}
                         {coHost && (
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-zinc-800 ${getRandomBg(
-                              coHost.user.userid.toString()
-                            )} ${session.owner ? "-ml-2" : ""}`}
-                          >
-                            <img
-                              src={
-                                coHost.user.picture ||
-                                "/default-avatar.jpg"
-                              }
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = "/default-avatar.jpg";
-                              }}
-                            />
-                          </div>
+                          <SessionMemberAvatar
+                            userid={coHost.user.userid.toString()}
+                            username={coHost.user.username ?? undefined}
+                            workspaceId={router.query.id as string}
+                            overlap={!!session.owner}
+                          />
                         )}
                         {workspace.yourPermission &&
-                          canManageSession(workspace.yourPermission, session.type) && (
+                          canManageSession(
+                            workspace.yourPermission,
+                            session.type
+                          ) && (
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleEditSession(session.id);
                               }}
-                              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors opacity-0 group-hover:opacity-100"
+                              className="rounded-lg p-1.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                               title="Edit session"
                               aria-label="Edit session"
                             >
-                              <IconEdit className="w-4 h-4" />
+                              <IconEdit className="h-4 w-4" stroke={1.75} />
                             </button>
                           )}
                       </div>
                     </div>
-                  </div>
+                  </SessionsPanel>
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center">
-                <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-                  <IconCalendarEvent className="w-7 h-7 text-zinc-500 dark:text-zinc-400" />
-                </div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-                  No sessions this day
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  There are no sessions scheduled for this date.
-                </p>
-              </div>
+              <SessionsEmptyState
+                icon={IconCalendarEvent}
+                title="No sessions this day"
+                description="There are no sessions scheduled for this date."
+                action={
+                  canCreateAnySession(workspace.yourPermission) ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/workspace/${router.query.id}/sessions/new`)
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                    >
+                      <IconPlus className="h-4 w-4" />
+                      New session
+                    </button>
+                  ) : undefined
+                }
+              />
             )}
-          </div>
-        </div>
+      </div>
 
-        {selectedSession && (
+      {selectedSession && (
           <SessionTemplate
             session={selectedSession}
             isOpen={isModalOpen}
@@ -1158,8 +1206,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
             session={sessionToEdit}
           />
         )}
-      </div>
-    </div>
+    </SessionsPageShell>
   );
 };
 

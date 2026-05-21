@@ -18,14 +18,12 @@ import {
   IconPlayerPlay,
   IconMoon,
   IconTrophy,
-  IconMedal,
-  IconCrown,
-  IconAward,
 } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 import randomText from "@/utils/randomText";
 import toast from "react-hot-toast";
 import { ActivitySessionDetailsDialog } from "@/components/activity/ActivitySessionDetailsDialog";
+import { PodiumBadge, type PodiumPlace } from "@/components/activity/PodiumBadge";
 
 const Activity: pageWithLayout = () => {
   const router = useRouter();
@@ -403,8 +401,8 @@ const Activity: pageWithLayout = () => {
                                   style={{ background: "transparent" }}
                                 />
                               </button>
-                              <div className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-white dark:bg-zinc-800 p-0.5 shadow-sm ring-1 ring-zinc-200/80 dark:ring-zinc-600">
-                                {getPodiumMedalIcon(pos)}
+                              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2">
+                                <PodiumBadge place={pos as PodiumPlace} />
                               </div>
                             </div>
                             <p
@@ -982,40 +980,6 @@ const BG_COLORS = [
   "bg-green-200",
   "bg-red-200",
 ];
-
-function getPodiumMedalIcon(position: number) {
-  switch (position) {
-    case 1:
-      return (
-        <IconCrown
-          className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500"
-          stroke={1.75}
-          fill="currentColor"
-          fillOpacity={0.2}
-        />
-      );
-    case 2:
-      return (
-        <IconMedal
-          className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400"
-          stroke={1.75}
-          fill="currentColor"
-          fillOpacity={0.15}
-        />
-      );
-    case 3:
-      return (
-        <IconAward
-          className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700"
-          stroke={1.75}
-          fill="currentColor"
-          fillOpacity={0.2}
-        />
-      );
-    default:
-      return null;
-  }
-}
 
 function formatMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;

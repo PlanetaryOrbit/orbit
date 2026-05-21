@@ -98,7 +98,12 @@ export function withAuth(
         userId: session.userId,
         token: cookies.session_token,
         session,
-      };
+      }
+
+      authReq.session = {
+        userid: Number(session.userId),
+      } as AuthenticatedRequest["session"]
+
       return handler(authReq, res)
     } catch (error) {
       console.error(

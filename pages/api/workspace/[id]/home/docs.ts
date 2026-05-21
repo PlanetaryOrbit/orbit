@@ -1,85 +1,82 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma, { document } from '@/utils/database';
-import { withPermissionCheck } from '@/utils/permissionsManager'
-import { AuthenticatedRequest } from '@/lib/withAuth';
+import type { NextApiRequest, NextApiResponse } from "next";
+import prisma, { document } from "@/utils/database";
+import { withPermissionCheck } from "@/utils/permissionsManager";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {
-  success: boolean
-  error?: string
-  docs?: document[]
-}
+  success: boolean;
+  error?: string;
+  docs?: document[];
+};
 
 export default withPermissionCheck(handler);
 
-export async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse<Data>
-) {
-  if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
-  const id = parseInt(req.query.id as string);
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ success: false, error: "Method not allowed" });
+  }
+
+  const workspaceGroupId = parseInt(req.query.id as string);
   const user = await prisma.user.findFirst({
-    where: {
-      userid: req.auth.userId
-    },
+    where: { userid: req.auth.userId },
     include: {
-      roles: {
-        where: {
-          workspaceGroupId: id
-        }
-      },
+      roles: { where: { workspaceGroupId } },
       workspaceMemberships: {
-        where: {
-          workspaceGroupId: id
-        }
-      }
-    }
+        where: { workspaceGroupId },
+        include: { departmentMembers: true },
+      },
+    },
   });
-  if (!user?.roles?.length) return res.status(403).json({ success: false, error: 'You do not have permission to view this workspace.' });
+
+  if (!user?.roles?.length) {
+    return res.status(403).json({ success: false, error: "You do not have permission to view this workspace." });
+  }
 
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
+  const userRoleIds = user.roles.map((r) => r.id);
+  const userDepartmentIds =
+    membership?.departmentMembers.map((d) => d.departmentId) ?? [];
 
-  if (user.roles[0].permissions.includes('create_docs') ||
-    user.roles[0].permissions.includes('edit_docs') ||
-    user.roles[0].permissions.includes('delete_docs') ||
-    isAdmin) {
-    const docs = await prisma.document.findMany({
-      where: {
-        workspaceGroupId: id,
-        isTrainingDocument: true
-      },
-      include: {
-        owner: {
-          select: {
-            username: true,
-            picture: true
-          }
-        }
-      }
-    });
-    res.status(200).json({ success: true, docs: JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
-    return
-  }
+  const canManage =
+    isAdmin ||
+    user.roles.some((r) =>
+      ["create_docs", "edit_docs", "delete_docs"].some((p) =>
+        r.permissions.includes(p)
+      )
+    );
+
+  const baseWhere = {
+    workspaceGroupId,
+    requiresAcknowledgment: false,
+  };
+
   const docs = await prisma.document.findMany({
-    where: {
-      workspaceGroupId: id,
-      isTrainingDocument: true,
-      roles: {
-        some: {
-          id: user.roles[0].id
-        }
-      }
-    },
+    where: canManage
+      ? baseWhere
+      : {
+          ...baseWhere,
+          OR: [
+            ...(userRoleIds.length > 0
+              ? [{ roles: { some: { id: { in: userRoleIds } } } }]
+              : []),
+            ...(userDepartmentIds.length > 0
+              ? [{ departments: { some: { id: { in: userDepartmentIds } } } }]
+              : []),
+            { roles: { none: {} }, departments: { none: {} } },
+          ],
+        },
     include: {
-      owner: {
-        select: {
-          username: true,
-          picture: true,
-        }
-      }
-    }
-  })
+      owner: { select: { username: true, picture: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 5,
+  });
 
-  res.status(200).json({ success: true, docs: JSON.parse(JSON.stringify(docs, (key, value) => (typeof value === 'bigint' ? value.toString() : value))) })
+  res.status(200).json({
+    success: true,
+    docs: JSON.parse(
+      JSON.stringify(docs, (_k, v) => (typeof v === "bigint" ? v.toString() : v))
+    ),
+  });
 }

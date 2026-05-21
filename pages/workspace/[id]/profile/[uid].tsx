@@ -2,6 +2,12 @@ import Activity from "@/components/profile/activity";
 import Book from "@/components/profile/book";
 import Notices from "@/components/profile/notices";
 import { InformationTab } from "@/components/profile/information";
+import {
+  ProfilePageShell,
+  ProfilePanel,
+  profileTabClass,
+  profileTabListClass,
+} from "@/components/profile/shell";
 import workspace from "@/layouts/workspace";
 import { pageWithLayout } from "@/layoutTypes";
 import { withPermissionCheckSsr } from "@/utils/permissionsManager";
@@ -17,7 +23,6 @@ import prisma from "@/utils/database";
 import moment from "moment";
 import { useRecoilState } from "recoil";
 import {
-  IconUserCircle,
   IconHistory,
   IconBook,
   IconClipboard,
@@ -991,27 +996,25 @@ const Profile: pageWithLayout<pageProps> = ({
     return BG_COLORS[index];
   }
 
+  const workspaceId = router.query.id as string;
+
   return (
-    <div className="pagePadding">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-br from-white via-white to-zinc-50/90 shadow-sm ring-1 ring-zinc-950/5 dark:border-zinc-700/60 dark:from-zinc-800 dark:via-zinc-800 dark:to-zinc-900/95 dark:shadow-none dark:ring-white/5">
-          <div className="flex flex-col gap-5 p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+    <ProfilePageShell>
+        <ProfilePanel className="mb-5 sm:mb-6">
+          <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-6">
             <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
-              <div className="relative flex-shrink-0">
+              <div className="relative shrink-0">
                 <div
-                  className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl shadow-md ring-2 ring-white/90 dark:ring-zinc-700/90 sm:h-24 sm:w-24 ${getRandomBg(
-                    user.userid
+                  className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl border-2 border-white shadow-sm sm:h-24 sm:w-24 ${getRandomBg(
+                    String(user.userid),
+                    info.username
                   )}`}
                 >
                   <img
-                    src={info.avatar}
+                    src={`/api/workspace/${workspaceId}/avatar/${user.userid}`}
                     className="h-full w-full object-cover"
                     alt={`${info.displayName}'s avatar`}
-                    style={{ background: "transparent" }}
                   />
-                </div>
-                <div className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-lg bg-zinc-900/90 shadow-md ring-2 ring-white dark:bg-zinc-950 dark:ring-zinc-800 sm:h-7 sm:w-7">
-                  <IconUserCircle className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
                 </div>
               </div>
               <div className="min-w-0 flex-1 space-y-1.5">
@@ -1048,7 +1051,7 @@ const Profile: pageWithLayout<pageProps> = ({
                 </p>
                 {memberRoleName && (
                   <p>
-                    <span className="inline-flex max-w-full items-center rounded-full border border-zinc-200/80 bg-zinc-100/80 px-2.5 py-0.5 text-xs font-medium text-zinc-700 dark:border-zinc-600/70 dark:bg-zinc-700/45 dark:text-zinc-200">
+                    <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                       <span className="truncate">{memberRoleName}</span>
                     </span>
                   </p>
@@ -1068,7 +1071,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   const isDay = hour >= 6 && hour < 18;
 
                   return (
-                    <div className="inline-flex h-9 items-center gap-2 rounded-full border border-zinc-200/80 bg-white/80 px-3 text-zinc-800 shadow-sm backdrop-blur-sm dark:border-zinc-600/60 dark:bg-zinc-900/50 dark:text-zinc-100">
+                    <div className="inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-100 px-3 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100">
                       {isDay ? (
                         <IconSun className="h-4 w-4 shrink-0 text-amber-500" />
                       ) : (
@@ -1090,7 +1093,7 @@ const Profile: pageWithLayout<pageProps> = ({
                 target="_blank"
                 rel="noreferrer"
                 title="Open profile on Roblox"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:rgb(var(--group-theme))] text-white shadow-sm shadow-black/10 ring-1 ring-black/10 transition hover:opacity-90 active:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.45)] focus-visible:ring-offset-2 dark:ring-white/10 dark:shadow-black/30 dark:focus-visible:ring-offset-zinc-900"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme))] text-white shadow-sm transition hover:opacity-90 active:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.45)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
               >
                 <img
                   src="/roblox.svg"
@@ -1102,65 +1105,33 @@ const Profile: pageWithLayout<pageProps> = ({
               </a>
             </div>
           </div>
-        </div>
+        </ProfilePanel>
 
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+        <ProfilePanel className="overflow-hidden">
           <Tab.Group>
-            <Tab.List className="flex p-1 gap-1 mx-2 sm:mx-4 mt-3 mb-2 bg-zinc-50 dark:bg-zinc-700/60 border border-zinc-200 dark:border-zinc-600 rounded-lg overflow-x-auto scrollbar-hide">
-              <Tab
-                className={({ selected }) =>
-                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                    selected
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                  }`
-                }
-              >
-                <IconClipboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
+              <Tab className={({ selected }) => profileTabClass(selected)}>
+                <IconClipboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
                 Details
               </Tab>
-              <Tab
-                className={({ selected }) =>
-                  `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                    selected
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                  }`
-                }
-              >
-                <IconHistory className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Tab className={({ selected }) => profileTabClass(selected)}>
+                <IconHistory className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
                 Activity
               </Tab>
               {logbookEnabled && (
-                <Tab
-                  className={({ selected }) =>
-                    `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                      selected
-                        ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                    }`
-                  }
-                >
-                  <IconBook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Tab className={({ selected }) => profileTabClass(selected)}>
+                  <IconBook className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
                   Logbook
                 </Tab>
               )}
               {noticesEnabled && (
-                <Tab
-                  className={({ selected }) =>
-                    `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                      selected
-                        ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                    }`
-                  }
-                >
-                  <IconCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Tab className={({ selected }) => profileTabClass(selected)}>
+                  <IconCalendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
                   Time off
                 </Tab>
               )}
             </Tab.List>
-            <Tab.Panels className="p-3 sm:p-4 bg-white dark:bg-zinc-800 rounded-b-xl">
+            <Tab.Panels className="p-4 sm:p-5">
               <Tab.Panel>
                 <InformationTab
                   user={{
@@ -1240,9 +1211,8 @@ const Profile: pageWithLayout<pageProps> = ({
               )}
             </Tab.Panels>
           </Tab.Group>
-        </div>
-      </div>
-    </div>
+        </ProfilePanel>
+    </ProfilePageShell>
   );
 };
 

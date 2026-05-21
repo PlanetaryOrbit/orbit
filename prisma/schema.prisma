@@ -25,6 +25,7 @@ model workspace {
   config               config[]
   savedViews           SavedView[]
   documents            document[]
+  documentFolders      documentFolder[]
   inactivityNotices    inactivityNotice[]
   ranks                rank[]
   roles                role[]
@@ -455,6 +456,7 @@ model document {
   updatedAt              DateTime               @updatedAt
   ownerId                BigInt
   workspaceGroupId       Int
+  folderId               String?                @db.Uuid
   requiresAcknowledgment Boolean                @default(false)
   acknowledgmentDeadline DateTime?
   acknowledgmentMethod   String?                @default("signature")
@@ -463,10 +465,30 @@ model document {
   isTrainingDocument     Boolean                @default(false)
   owner                  user                   @relation(fields: [ownerId], references: [userid])
   workspace              workspace              @relation(fields: [workspaceGroupId], references: [groupId])
+  folder                 documentFolder?        @relation(fields: [folderId], references: [id], onDelete: SetNull)
   roles                  role[]                 @relation("documentTorole")
   departments            department[]           @relation("documentTodepartment")
   acknowledgments        PolicyAcknowledgment[]
   shareableLinks         PolicyShareableLink[]
+
+  @@index([folderId])
+}
+
+model documentFolder {
+  id               String           @id @unique @default(uuid()) @db.Uuid
+  name             String
+  icon             String           @default("folder")
+  workspaceGroupId Int
+  parentId         String?          @db.Uuid
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  workspace        workspace        @relation(fields: [workspaceGroupId], references: [groupId], onDelete: Cascade)
+  parent           documentFolder?  @relation("DocumentFolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children         documentFolder[] @relation("DocumentFolderTree")
+  documents        document[]
+
+  @@index([workspaceGroupId])
+  @@index([parentId])
 }
 
 model userBook {

@@ -1,9 +1,9 @@
 import { NextPage } from "next";
+import Head from "next/head";
 import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
 import React, { useEffect, useState, useRef } from "react";
 import { useRecoilState } from "recoil";
 import { loginState } from "@/state";
-import Button from "@/components/button";
 import Router from "next/router";
 import axios from "axios";
 import Input from "@/components/input";
@@ -16,6 +16,62 @@ import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import toast from "react-hot-toast";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 import { OAuthAvailable } from "@/hooks/useOAuth";
+import clsx from "clsx";
+import {
+  sessionFormInputOverride,
+  sessionPrimaryButtonClass,
+  sessionSecondaryButtonClass,
+} from "@/components/sessions/shell";
+
+const authPanelShadow =
+  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
+
+const oauthButtonClass =
+  "w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700";
+
+function AuthSubmitButton({
+  loading,
+  disabled,
+  children,
+  className,
+  type = "submit",
+  onClick,
+}: {
+  loading?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  type?: "submit" | "button";
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={clsx(sessionPrimaryButtonClass, className)}
+    >
+      {loading ? (
+        <svg
+          className="h-5 w-5 animate-spin"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          aria-hidden
+        >
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
 
 type LoginForm = { username: string; password: string };
 type SignupForm = {
@@ -243,102 +299,138 @@ const Login: NextPage = () => {
   }, [Router.isReady, Router.query]);
 
   const OAuthButtons = ({ className }: { className?: string }) => (
-    <div className={`flex flex-col gap-3 ${className ?? ""}`}>
+    <div className={`flex flex-col gap-2.5 ${className ?? ""}`}>
       {isRobloxOAuth && (
         <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
-          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
-          <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          className={oauthButtonClass}>
+          <img src="/roblox.svg" alt="Roblox" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Roblox
         </button>
       )}
       {isDiscordOAuth && (
         <button type="button" onClick={() => (window.location.href = "/api/auth/discord/start")} disabled={loading}
-          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
-          <img src="/discord.svg" alt="Discord" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          className={oauthButtonClass}>
+          <img src="/discord.svg" alt="Discord" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Discord
         </button>
       )}
       {isGoogleOAuth && (
         <button type="button" onClick={() => (window.location.href = "/api/auth/google/start")} disabled={loading}
-          className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
-          <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+          className={oauthButtonClass}>
+          <img src="/google.svg" alt="Google" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Google
         </button>
       )}
     </div>
   );
 
+  const divider = (
+    <div className="relative my-6">
+      <div className="absolute inset-0 flex items-center">
+        <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+      </div>
+      <div className="relative flex justify-center text-xs">
+        <span className="bg-white px-2 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-500">or</span>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <div className="min-h-screen flex flex-col md:flex-row bg-zinc-950">
+      <Head>
+        <title>Sign in · Orbit</title>
+      </Head>
+
+      <div className="relative min-h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
         {loginBg ? (
           <>
             <div className="fixed inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${loginBg})` }} aria-hidden />
-            <div className="fixed inset-0 bg-zinc-950/60" aria-hidden />
+            <div className="fixed inset-0 bg-zinc-50/90 dark:bg-zinc-950/88" aria-hidden />
           </>
-        ) : (
-          <>
-            <div className="fixed inset-0 bg-infobg-light dark:bg-infobg-dark bg-cover bg-center bg-no-repeat opacity-40" aria-hidden />
-            <div className="fixed inset-0 bg-gradient-to-br from-primary/30 via-zinc-950/80 to-zinc-950" aria-hidden />
-          </>
-        )}
+        ) : null}
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)]"
+          aria-hidden
+        />
 
-        <div className="relative z-10 flex flex-col justify-center px-8 md:px-12 lg:px-16 py-12 md:py-0 md:w-[42%] lg:w-[38%]">
-          <div className="max-w-md">
-            <span className="inline-flex items-center gap-2 text-zinc-400 text-sm font-medium tracking-wide uppercase mb-6">
-              <span className="w-8 h-px bg-primary rounded-full" />
-              Account
-            </span>
-            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white">
-              Welcome to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Orbit</span>
-            </h1>
-            <p className="mt-4 text-lg text-zinc-400 leading-relaxed">
-              Sign in or create an account to access your workspaces.
-            </p>
-          </div>
+        <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+          <ThemeToggle />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-center items-center w-full md:w-[58%] lg:w-[62%] px-4 sm:px-6 py-12 md:py-16">
-          <div className="w-full max-w-md">
-            <div className="relative rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 p-8">
-              <div className="absolute top-6 right-6">
-                <ThemeToggle />
-              </div>
+        <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
+          <div className="flex flex-col justify-center px-6 pb-4 pt-16 sm:px-10 lg:w-[42%] lg:px-16 lg:py-16 xl:w-[38%]">
+            <div className="max-w-md">
+              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-primary/70">
+                Account
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
+                Welcome to{" "}
+                <span className="text-primary">Orbit</span>
+              </h1>
+              <p className="mt-3 max-w-sm text-base leading-relaxed text-zinc-500 dark:text-zinc-400">
+                Sign in or create an account to access your workspaces.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16">
+            <div className="w-full max-w-md">
+              <div className={clsx("rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8", authPanelShadow)}>
 
               {mode === "login" && (
                 <>
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Sign in</h2>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Sign in</h2>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                     {effectiveOAuthOnly ? "Use one of the options below to sign in." : "Use your username and password to continue."}
                   </p>
                   {!effectiveOAuthOnly && (
                     <FormProvider {...loginMethods}>
-                      <form onSubmit={submitLogin(onSubmitLogin)} className="space-y-4 mb-6" noValidate>
-                        <Input label="Username" placeholder="Username" id="username" {...regLogin("username", { required: "This field is required" })} />
-                        <Input label="Password" placeholder="Password" type={showPassword ? "text" : "password"} id="password" {...regLogin("password", { required: "This field is required" })} />
-                        <div className="flex items-center gap-2">
-                          <input id="show-password" type="checkbox" checked={showPassword} onChange={() => setShowPassword((v) => !v)}
-                            className="rounded border-zinc-300 dark:border-zinc-600 text-primary focus:ring-primary/30" />
-                          <label htmlFor="show-password" className="text-sm text-zinc-600 dark:text-zinc-400 select-none">Show password</label>
+                      <form onSubmit={submitLogin(onSubmitLogin)} className="mt-6 space-y-1" noValidate>
+                        <Input
+                          label="Username"
+                          placeholder="Username"
+                          id="username"
+                          classoverride={sessionFormInputOverride}
+                          {...regLogin("username", { required: "This field is required" })}
+                        />
+                        <Input
+                          label="Password"
+                          placeholder="Password"
+                          type={showPassword ? "text" : "password"}
+                          id="password"
+                          classoverride={sessionFormInputOverride}
+                          {...regLogin("password", { required: "This field is required" })}
+                        />
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            id="show-password"
+                            type="checkbox"
+                            checked={showPassword}
+                            onChange={() => setShowPassword((v) => !v)}
+                            className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                          />
+                          <label htmlFor="show-password" className="select-none text-sm text-zinc-500 dark:text-zinc-400">
+                            Show password
+                          </label>
                         </div>
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                          <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">Forgot password?</Link>
-                          <Button type="submit" classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading}>Login</Button>
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
+                          <Link href="/forgot-password" className="text-sm text-primary transition-colors hover:text-primary/80">
+                            Forgot password?
+                          </Link>
+                          <AuthSubmitButton loading={loading} disabled={loading}>
+                            Sign in
+                          </AuthSubmitButton>
                         </div>
                         {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
                           <>
-                            <div className="relative my-6">
-                              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
-                              <div className="relative flex justify-center text-xs"><span className="bg-zinc-100 dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
-                            </div>
+                            {divider}
                             <OAuthButtons />
                           </>
                         )}
                       </form>
                     </FormProvider>
                   )}
-                  {effectiveOAuthOnly && <OAuthButtons />}
+                  {effectiveOAuthOnly && <div className="mt-6"><OAuthButtons /></div>}
                 </>
               )}
 
@@ -346,8 +438,8 @@ const Login: NextPage = () => {
                 <>
                   {signupStep === 0 && (
                     <>
-                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Create an account</h2>
-                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Choose a username to get started.</p>
+                      <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Create an account</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose a username to get started.</p>
                       {!effectiveOAuthOnly && (
                         <FormProvider {...signupMethods}>
                           <form onSubmit={async (e) => {
@@ -365,32 +457,29 @@ const Login: NextPage = () => {
                             } finally {
                               setLoading(false);
                             }
-                          }} className="space-y-4 mb-6" noValidate>
-                            <Input label="Username" placeholder="Username" id="signup-username" {...signupUsernameProps} />
-                            {usernameCheckLoading && <p className="text-sm text-primary mt-1">Checking username...</p>}
+                          }} className="mt-6 space-y-1" noValidate>
+                            <Input label="Username" placeholder="Username" id="signup-username" classoverride={sessionFormInputOverride} {...signupUsernameProps} />
+                            {usernameCheckLoading && <p className="mt-1 text-sm text-primary">Checking username...</p>}
                             {!usernameCheckLoading && usernameAvailable === true && (
-                              <p className="text-sm text-emerald-500 dark:text-emerald-400 mt-1">✓ Username is available</p>
+                              <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">Username is available</p>
                             )}
-                            <div className="flex justify-end pt-1">
-                              <Button type="submit" classoverride="px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading}
-                                disabled={loading || usernameCheckLoading || usernameAvailable !== true || !!signupMethods.formState.errors.username}>
+                            <div className="flex justify-end pt-4">
+                              <AuthSubmitButton
+                                loading={loading}
+                                disabled={loading || usernameCheckLoading || usernameAvailable !== true || !!signupMethods.formState.errors.username}
+                              >
                                 Continue
-                              </Button>
+                              </AuthSubmitButton>
                             </div>
                           </form>
                         </FormProvider>
                       )}
                       {isRobloxOAuth && (
                         <>
-                          {!effectiveOAuthOnly && (
-                            <div className="relative my-6">
-                              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
-                              <div className="relative flex justify-center text-xs"><span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
-                            </div>
-                          )}
+                          {!effectiveOAuthOnly && divider}
                           <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
-                            className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
-                            <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2 dark:invert-0 invert" />
+                            className={oauthButtonClass}>
+                            <img src="/roblox.svg" alt="Roblox" className="h-5 w-5 dark:invert-0 invert" />
                             Sign up with Roblox
                           </button>
                         </>
@@ -400,69 +489,72 @@ const Login: NextPage = () => {
 
                   {signupStep === 1 && (
                     <>
-                      <div className="flex items-start gap-5 mb-6">
-                        <div className="flex shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-600/60 w-[5.5rem] h-[5.5rem]"
+                      <div className="mb-6 flex items-start gap-4">
+                        <div className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-700/60"
                           style={{ backgroundColor: getAvatarBgColor(signupDisplayName || "") }}>
                           {signupThumbnail ? (
-                            <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center bg-transparent shrink-0">
-                              <img src={signupThumbnail} alt="" className="max-w-full max-h-full w-full h-full rounded-xl object-contain object-bottom block" />
+                            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent">
+                              <img src={signupThumbnail} alt="" className="block h-full max-h-full w-full max-w-full rounded-xl object-contain object-bottom" />
                             </div>
                           ) : (
-                            <div className="w-20 h-20 rounded-xl bg-zinc-200/80 dark:bg-zinc-600/80 flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-2xl font-medium shrink-0">?</div>
+                            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-zinc-200/80 text-2xl font-medium text-zinc-500 dark:bg-zinc-700/80 dark:text-zinc-400">?</div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1 pt-0.5">
-                          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
+                          <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
                             Is <span className="text-primary">{signupDisplayName || getSignupValues("username") || "this user"}</span> correct?
                           </h2>
-                          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">Confirm this is your Roblox account, then choose a password.</p>
+                          <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">Confirm this is your Roblox account, then choose a password.</p>
                         </div>
                       </div>
                       <div className="flex gap-3">
-                        <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                          onPress={() => setSignupStep(0)} disabled={loading}>Back</Button>
-                        <Button type="button" classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" onPress={() => setSignupStep(2)} disabled={loading}>Yes, continue</Button>
+                        <button type="button" className={clsx(sessionSecondaryButtonClass, "flex-1 justify-center")} onClick={() => setSignupStep(0)} disabled={loading}>
+                          Back
+                        </button>
+                        <AuthSubmitButton type="button" className="flex-1 justify-center" onClick={() => setSignupStep(2)} disabled={loading}>
+                          Yes, continue
+                        </AuthSubmitButton>
                       </div>
                     </>
                   )}
 
                   {signupStep === 2 && (
                     <>
-                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Set a password</h2>
-                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Choose a secure password for your account.</p>
+                      <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Set a password</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Choose a secure password for your account.</p>
                       <FormProvider {...signupMethods}>
-                        <form onSubmit={submitSignup(onSubmitSignup)} className="space-y-4 mb-6" noValidate>
-                          <Input label="Password" placeholder="Password" type="password" id="signup-password"
+                        <form onSubmit={submitSignup(onSubmitSignup)} className="mt-6 space-y-1" noValidate>
+                          <Input label="Password" placeholder="Password" type="password" id="signup-password" classoverride={sessionFormInputOverride}
                             {...regSignup("password", {
                               required: "Password is required",
                               minLength: { value: 7, message: "Password must be at least 7 characters" },
                               pattern: { value: /^(?=.*[0-9!@#$%^&*])/, message: "Password must contain at least one number or special character" },
                             })} />
-                          <Input label="Verify password" placeholder="Verify password" type="password" id="signup-verify-password"
+                          <Input label="Verify password" placeholder="Verify password" type="password" id="signup-verify-password" classoverride={sessionFormInputOverride}
                             {...regSignup("verifypassword", {
                               required: "Please verify your password",
                               validate: (value) => value === getSignupValues("password") || "Passwords must match",
                             })} />
-                          <div className="flex gap-3 pt-1">
-                            <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                              onPress={() => setSignupStep(1)} disabled={loading}>Back</Button>
-                            <Button type="submit" classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading}>Continue</Button>
+                          <div className="flex gap-3 pt-4">
+                            <button type="button" className={clsx(sessionSecondaryButtonClass, "flex-1 justify-center")} onClick={() => setSignupStep(1)} disabled={loading}>
+                              Back
+                            </button>
+                            <AuthSubmitButton className="flex-1 justify-center" loading={loading} disabled={loading}>
+                              Continue
+                            </AuthSubmitButton>
                           </div>
                           {isRobloxOAuth && (
                             <>
-                              <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-200 dark:border-zinc-600" /></div>
-                                <div className="relative flex justify-center text-xs"><span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500 dark:text-zinc-400">or</span></div>
-                              </div>
+                              {divider}
                               <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
-                                className="w-full flex items-center justify-center px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 disabled:opacity-50 transition-colors">
-                                <img src="/roblox.svg" alt="Roblox" className="w-5 h-5 mr-2" />
+                                className={oauthButtonClass}>
+                                <img src="/roblox.svg" alt="Roblox" className="h-5 w-5" />
                                 Sign up with Roblox
                               </button>
                             </>
                           )}
-                          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                            Don't share your password. Don't use the same password as your Roblox account.
+                          <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
+                            Don&apos;t share your password. Don&apos;t use the same password as your Roblox account.
                           </p>
                         </form>
                       </FormProvider>
@@ -471,24 +563,27 @@ const Login: NextPage = () => {
 
                   {signupStep === 3 && (
                     <>
-                      <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Verify your account</h2>
-                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                      <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Verify your account</h2>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         Paste this code into your Roblox profile bio, then click Verify.
                       </p>
-                      <p className="text-center font-mono text-sm bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white py-3 px-4 rounded-xl mb-4 select-all border border-zinc-200 dark:border-zinc-600">
+                      <p className="mb-4 mt-5 select-all rounded-xl bg-zinc-100 px-4 py-3 text-center font-mono text-sm text-zinc-900 dark:bg-zinc-800 dark:text-white">
                         {verificationCode}
                       </p>
-                      <ul className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 space-y-1 list-disc list-inside">
+                      <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-zinc-500 dark:text-zinc-400">
                         <li>Go to your Roblox profile</li>
-                        <li>Click "Edit Profile"</li>
+                        <li>Click &quot;Edit Profile&quot;</li>
                         <li>Paste the code into your Bio / About section</li>
                         <li>Save and click Verify below</li>
                       </ul>
-                      {verificationError && <p className="text-center text-red-500 text-sm mb-4">{verificationError}</p>}
+                      {verificationError && <p className="mb-4 text-center text-sm text-red-500">{verificationError}</p>}
                       <div className="flex gap-3">
-                        <Button type="button" classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                          onPress={() => setSignupStep(2)} disabled={loading}>Back</Button>
-                        <Button classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm" loading={loading} disabled={loading} onPress={onVerifyAgain}>Verify</Button>
+                        <button type="button" className={clsx(sessionSecondaryButtonClass, "flex-1 justify-center")} onClick={() => setSignupStep(2)} disabled={loading}>
+                          Back
+                        </button>
+                        <AuthSubmitButton type="button" className="flex-1 justify-center" loading={loading} disabled={loading} onClick={onVerifyAgain}>
+                          Verify
+                        </AuthSubmitButton>
                       </div>
                     </>
                   )}
@@ -497,38 +592,39 @@ const Login: NextPage = () => {
 
               {mode === "link" && (
                 <>
-                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">Link your Discord Account</h2>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">Link your account for faster access</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Link your Discord Account</h2>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Link your account for faster access</p>
                 </>
               )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="fixed bottom-4 left-4 z-40">
-          <button onClick={() => setShowCopyright(true)} className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors" type="button">
+        <div className="fixed bottom-4 left-4 z-40 sm:bottom-6 sm:left-6">
+          <button onClick={() => setShowCopyright(true)} className="text-xs text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300" type="button">
             © Copyright Notices
           </button>
         </div>
       </div>
 
       <Dialog open={showCopyright} onClose={() => setShowCopyright(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <Dialog.Title className="text-lg font-medium text-zinc-900 dark:text-white">Copyright Notices</Dialog.Title>
-              <button onClick={() => setShowCopyright(false)} className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                <IconX className="w-5 h-5 text-zinc-500" />
+          <Dialog.Panel className={clsx("mx-auto max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-900", authPanelShadow)}>
+            <div className="mb-4 flex items-center justify-between">
+              <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">Copyright Notices</Dialog.Title>
+              <button onClick={() => setShowCopyright(false)} className="rounded-xl p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                <IconX className="h-5 w-5 text-zinc-500" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Orbit features, enhancements, and modifications:</h3>
+                <h3 className="mb-1 text-sm font-medium text-zinc-900 dark:text-white">Orbit features, enhancements, and modifications:</h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">Copyright © 2026 Planetary. All rights reserved.</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Original Tovy features and code:</h3>
+                <h3 className="mb-1 text-sm font-medium text-zinc-900 dark:text-white">Original Tovy features and code:</h3>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">Copyright © 2022 Tovy. All rights reserved.</p>
               </div>
             </div>

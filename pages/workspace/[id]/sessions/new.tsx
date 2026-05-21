@@ -34,6 +34,22 @@ import Switchcomponenet from "@/components/switch";
 import { useForm, FormProvider } from "react-hook-form";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { canCreateScheduled, canCreateUnscheduled } from "@/utils/sessionPermissions";
+import {
+  SessionsPageShell,
+  SessionsPageHeader,
+  SessionsPanel,
+  SessionFormSectionHeader,
+  SessionFormInset,
+  SessionFormFooter,
+  sessionFormInputClass,
+  sessionFormInputOverride,
+  sessionFormLabelClass,
+  sessionTabListClass,
+  sessionTabClass,
+  sessionPrimaryButtonClass,
+  sessionSecondaryButtonClass,
+  sessionsPanelShadow,
+} from "@/components/sessions/shell";
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -532,86 +548,60 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-            aria-label="Go back"
-          >
-            <IconArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
-              Create New Session
-            </h1>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-              Set up a new session for your group's activities
-            </p>
-          </div>
-        </div>
+    <SessionsPageShell>
+      <div className="mb-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+          aria-label="Go back"
+        >
+          <IconArrowLeft className="h-5 w-5" stroke={1.75} />
+        </button>
       </div>
 
-      {/* Error message */}
+      <SessionsPageHeader
+        title="Create New Session"
+        subtitle="Set up a new session for your group's activities"
+        workspaceLabel={workspace.customName || workspace.groupName}
+      />
+
       {formError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
-          <IconAlertCircle
-            className="text-red-500 mt-0.5 flex-shrink-0"
-            size={18}
-          />
+        <div className="mb-5 flex items-start gap-3 rounded-2xl bg-red-50 px-4 py-3 dark:bg-red-950/30">
+          <IconAlertCircle className="mt-0.5 shrink-0 text-red-500" size={18} />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-400">
-              Error
-            </h3>
-            <p className="text-red-600 dark:text-red-300 text-sm">
-              {formError}
-            </p>
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-400">Error</h3>
+            <p className="text-sm text-red-600 dark:text-red-300">{formError}</p>
           </div>
         </div>
       )}
 
-      {/* Navigation Tabs */}
-      <div className="mb-6 overflow-x-auto">
-        <div className="flex space-x-1 min-w-max border-b border-gray-200 dark:border-zinc-700">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all border-b-2 -mb-px ${
-                activeTab === tab.id
-                  ? "border-primary text-primary dark:border-primary dark:text-primary"
-                  : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <nav className={sessionTabListClass} aria-label="Session setup steps">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={sessionTabClass(activeTab === tab.id)}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       <FormProvider {...form}>
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
+        <SessionsPanel className="overflow-hidden">
           {/* Basic Info */}
           {activeTab === "basic" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconInfoCircle className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Basic Information
-                  </h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Enter the essential details about your session type
-                  </p>
-                </div>
-              </div>
+            <div className="p-5 sm:p-6">
+              <SessionFormSectionHeader
+                icon={IconInfoCircle}
+                title="Basic Information"
+                subtitle="Enter the essential details about your session type"
+              />
 
-              <div className="space-y-6 max-w-2xl">
+              <div className="max-w-2xl space-y-5">
                 <div>
                   <Input
                     {...form.register("name", {
@@ -622,6 +612,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     })}
                     label="Session Name"
                     placeholder="Weekly Training Session"
+                    classoverride={sessionFormInputOverride}
                   />
                   {form.formState.errors.name && (
                     <p className="mt-1 text-sm text-red-500">
@@ -636,13 +627,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     label="Description"
                     textarea
                     placeholder="Describe what this session is about, what will happen, and any special instructions..."
+                    classoverride={sessionFormInputOverride}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                    Session Type
-                  </label>
+                  <label className={sessionFormLabelClass}>Session Type</label>
                   {availableSessionTypes.length > 0 ? (
                     <>
                       <select
@@ -652,7 +642,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             message: "Session type is required",
                           },
                         })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                        className={sessionFormInputClass}
                       >
                         <option value="">Select type...</option>
                         {availableSessionTypes.map(type => (
@@ -666,19 +656,17 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       )}
                     </>
                   ) : (
-                    <div className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-zinc-50 dark:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400">
+                    <div className={`${sessionFormInputClass} text-zinc-500 dark:text-zinc-400`}>
                       No session types available - you don't have permission to create any session types
                     </div>
                   )}
                 </div>
 
                 {games.length > 0 ? (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Game
-                    </label>
+                  <div className="space-y-1">
+                    <label className={sessionFormLabelClass}>Game</label>
                     <Listbox as="div" className="relative">
-                      <Listbox.Button className="flex items-center justify-between w-full px-4 py-2.5 text-left bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm">
+                      <Listbox.Button className={`${sessionFormInputClass} flex items-center justify-between text-left`}>
                         <span className="block truncate text-zinc-700 dark:text-white">
                           {games?.find(
                             (game: { name: string; id: number }) =>
@@ -690,7 +678,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           className="text-zinc-500 dark:text-zinc-400"
                         />
                       </Listbox.Button>
-                      <Listbox.Options className="absolute z-10 w-full mt-1 overflow-auto bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800">
                         {games.map((game: { name: string; id: number }) => (
                           <Listbox.Option
                             key={game.id}
@@ -773,6 +761,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       })}
                       label="Universe ID"
                       placeholder="Enter your universe ID"
+                      classoverride={sessionFormInputOverride}
                     />
                     {form.formState.errors.gameId && (
                       <p className="mt-1 text-sm text-red-500">
@@ -783,36 +772,29 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 )}
               </div>
 
-              <div className="mt-8 flex justify-end">
-                <Button
-                  onPress={() => setActiveTab("scheduling")}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+              <SessionFormFooter className="justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("scheduling")}
+                  className={sessionPrimaryButtonClass}
                 >
                   Continue to Scheduling
-                </Button>
-              </div>
+                </button>
+              </SessionFormFooter>
             </div>
           )}
 
           {/* Scheduling */}
           {activeTab === "scheduling" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconCalendarEvent className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Scheduling Options
-                  </h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Configure when and how often sessions will occur
-                  </p>
-                </div>
-              </div>
+            <div className="p-5 sm:p-6">
+              <SessionFormSectionHeader
+                icon={IconCalendarEvent}
+                title="Scheduling Options"
+                subtitle="Configure when and how often sessions will occur"
+              />
 
-              <div className="space-y-6 max-w-2xl">
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-gray-200 dark:border-zinc-700">
+              <div className="max-w-2xl space-y-5">
+                <SessionFormInset>
                   <div className="flex flex-col space-y-3">
                     <div className={!canCreateAnyUnscheduled ? "opacity-50 cursor-not-allowed" : ""}>
                       <Switchcomponenet
@@ -852,52 +834,48 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       </p>
                     </div>
                   </div>
-                </div>
+                </SessionFormInset>
 
                 {allowUnscheduled && (
-                  <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-4">
-                    <h3 className="text-lg font-medium dark:text-white">
-                      Unscheduled Session
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Set the date and time for your single session
-                    </p>
+                  <SessionFormInset className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                        Unscheduled Session
+                      </h3>
+                      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                        Set the date and time for your single session
+                      </p>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                          Session Date
-                        </label>
+                        <label className={sessionFormLabelClass}>Session Date</label>
                         <input
                           type="date"
                           value={unscheduledDate}
                           onChange={(e) => setUnscheduledDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                          className={sessionFormInputClass}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                          Session Time
-                        </label>
+                        <label className={sessionFormLabelClass}>Session Time</label>
                         <input
                           type="time"
                           value={unscheduledTime}
                           onChange={(e) => setUnscheduledTime(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                          className={sessionFormInputClass}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                          Session Length
-                        </label>
+                        <label className={sessionFormLabelClass}>Session Length</label>
                         <select
                           value={sessionLength}
                           onChange={(e) =>
                             setSessionLength(Number(e.target.value))
                           }
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                          className={sessionFormInputClass}
                         >
                           <option value={5}>5 minutes</option>
                           <option value={10}>10 minutes</option>
@@ -917,20 +895,20 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       Enter date and time in your local timezone. This will
                       create a single session at the specified date and time.
                     </p>
-                  </div>
+                  </SessionFormInset>
                 )}
 
                 {enabled && (
-                  <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 space-y-6">
+                  <SessionFormInset className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">
+                      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                         Frequency
                       </h3>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+                      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
                         Choose how often this session repeats
                       </p>
 
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="mt-3 grid grid-cols-3 gap-2">
                         {[
                           { value: "weekly", label: "Weekly" },
                           { value: "biweekly", label: "Bi-weekly" },
@@ -940,10 +918,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             key={freq.value}
                             type="button"
                             onClick={() => setFrequency(freq.value)}
-                            className={`py-3 px-4 rounded-lg transition-all text-center ${
+                            className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                               frequency === freq.value
                                 ? "bg-primary text-white"
-                                : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                             }`}
                           >
                             {freq.label}
@@ -953,24 +931,24 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium dark:text-white mb-3">
+                      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                         Repeating Days
                       </h3>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">
+                      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
                         Select which days of the week this session will repeat
                       </p>
 
-                      <div className="grid grid-cols-7 gap-2">
+                      <div className="mt-3 grid grid-cols-7 gap-2">
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
                           (day) => (
                             <button
                               key={day}
                               type="button"
                               onClick={() => toggleDay(day)}
-                              className={`py-3 rounded-lg transition-all ${
+                              className={`rounded-xl py-2.5 text-sm font-medium transition-all ${
                                 days.includes(day)
                                   ? "bg-primary text-white"
-                                  : "bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600"
+                                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                               }`}
                             >
                               {day}
@@ -986,10 +964,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
                           <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                            <label className={sessionFormLabelClass}>
                               Session Times
                             </label>
                             <div className="flex items-center gap-2">
@@ -997,17 +975,17 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                                 type="time"
                                 value={timeInput}
                                 onChange={(e) => setTimeInput(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                className={sessionFormInputClass}
                               />
                               <button
                                 type="button"
                                 onClick={addTime}
-                                className="px-3 py-2 bg-primary text-white rounded-md"
+                                className={sessionPrimaryButtonClass}
                               >
                                 Add time
                               </button>
                             </div>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                               Add one or more times
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2">
@@ -1015,20 +993,20 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                                 times.map((t) => (
                                   <span
                                     key={t}
-                                    className="flex items-center gap-2 px-3 py-1 rounded-full dark:text-white bg-zinc-100 dark:bg-zinc-700 text-sm"
+                                    className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-sm dark:bg-zinc-800 dark:text-white"
                                   >
                                     {t}
                                     <button
                                       type="button"
                                       onClick={() => removeTime(t)}
-                                      className="text-red-500 ml-1"
+                                      className="ml-1 text-red-500"
                                     >
                                       ✕
                                     </button>
                                   </span>
                                 ))
                               ) : form.getValues().time ? (
-                                <div className="px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700">
+                                <div className="rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
                                   {form.getValues().time}
                                 </div>
                               ) : null}
@@ -1037,15 +1015,13 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                          Session Length
-                        </label>
+                        <label className={sessionFormLabelClass}>Session Length</label>
                         <select
                           value={sessionLength}
                           onChange={(e) =>
                             setSessionLength(Number(e.target.value))
                           }
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                          className={sessionFormInputClass}
                         >
                           <option value={5}>5 minutes</option>
                           <option value={10}>10 minutes</option>
@@ -1063,61 +1039,55 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </SessionFormInset>
                 )}
               </div>
 
-              <div className="mt-8 flex justify-between w-full">
-                <Button
-                  onPress={() => setActiveTab("basic")}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+              <SessionFormFooter className="justify-between">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("basic")}
+                  className={sessionSecondaryButtonClass}
                 >
                   Back
-                </Button>
-                <Button
-                  onPress={() => setActiveTab("statuses")}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("statuses")}
+                  className={sessionPrimaryButtonClass}
                 >
                   Continue to Statuses
-                </Button>
-              </div>
+                </button>
+              </SessionFormFooter>
             </div>
           )}
 
           {/* Statuses */}
           {activeTab === "statuses" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconClipboardList className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Session Statuses
-                  </h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Define status updates that occur during a session
-                  </p>
-                </div>
-              </div>
+            <div className="p-5 sm:p-6">
+              <SessionFormSectionHeader
+                icon={IconClipboardList}
+                title="Session Statuses"
+                subtitle="Define status updates that occur during a session"
+              />
 
               <div className="max-w-2xl">
-                <div className="flex justify-between items-center mb-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     Statuses automatically update after the specified time has
                     passed
                   </p>
-                  <Button
-                    onPress={newStatus}
-                    compact
-                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                  <button
+                    type="button"
+                    onClick={newStatus}
+                    className={`${sessionPrimaryButtonClass} shrink-0`}
                   >
                     <IconPlus size={16} /> Add Status
-                  </Button>
+                  </button>
                 </div>
 
                 {statues.length === 0 ? (
-                  <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 py-10 text-center dark:border-zinc-700 dark:bg-zinc-800/40">
                     <IconClipboardList
                       className="mx-auto text-zinc-400 dark:text-zinc-500"
                       size={32}
@@ -1129,20 +1099,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       Add statuses to track session progress (e.g., "Starting
                       Soon", "In Progress", "Completed")
                     </p>
-                    <Button
-                      onPress={newStatus}
-                      classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"
+                    <button
+                      type="button"
+                      onClick={newStatus}
+                      className={`${sessionPrimaryButtonClass} mx-auto mt-4`}
                     >
                       <IconPlus size={16} /> Add Your First Status
-                    </Button>
+                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {statues.map((status, index) => (
-                      <div
-                        key={status.id}
-                        className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
-                      >
+                      <SessionFormInset key={status.id}>
                         <Status
                           updateStatus={(value, mins, color) =>
                             updateStatus(status.id, value, color, mins)
@@ -1151,63 +1119,57 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                           data={status}
                           index={index + 1}
                         />
-                      </div>
+                      </SessionFormInset>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="mt-8 flex justify-between w-full">
-                <Button
-                  onPress={() => setActiveTab("scheduling")}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+              <SessionFormFooter className="justify-between">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("scheduling")}
+                  className={sessionSecondaryButtonClass}
                 >
                   Back
-                </Button>
-                <Button
-                  onPress={() => setActiveTab("slots")}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("slots")}
+                  className={sessionPrimaryButtonClass}
                 >
                   Continue to Slots
-                </Button>
-              </div>
+                </button>
+              </SessionFormFooter>
             </div>
           )}
 
           {/* Slots */}
           {activeTab === "slots" && (
-            <div className="p-6">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconUserPlus className="text-primary" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Session Slots
-                  </h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    Define roles and how many people can claim each role
-                  </p>
-                </div>
-              </div>
+            <div className="p-5 sm:p-6">
+              <SessionFormSectionHeader
+                icon={IconUserPlus}
+                title="Session Slots"
+                subtitle="Define roles and how many people can claim each role"
+              />
 
               <div className="max-w-2xl">
-                <div className="flex justify-between items-center mb-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
                     Each session has one Host by default. Add additional roles
                     below.
                   </p>
-                  <Button
-                    onPress={newSlot}
-                    compact
-                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                  <button
+                    type="button"
+                    onClick={newSlot}
+                    className={`${sessionPrimaryButtonClass} shrink-0`}
                   >
                     <IconPlus size={16} /> Add Slot
-                  </Button>
+                  </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5 dark:bg-primary/10">
+                <div className="space-y-3">
+                  <SessionFormInset className="border border-primary/20 bg-primary/5 dark:bg-primary/10">
                     <Slot
                       updateStatus={() => {}}
                       isPrimary
@@ -1217,13 +1179,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         slots: 1,
                       }}
                     />
-                  </div>
+                  </SessionFormInset>
 
                   {slots.map((slot, index) => (
-                    <div
-                      key={slot.id}
-                      className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
-                    >
+                    <SessionFormInset key={slot.id}>
                       <Slot
                         updateStatus={(name, openSlots) =>
                           updateSlot(slot.id, name, openSlots)
@@ -1232,34 +1191,34 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         data={slot}
                         index={index + 1}
                       />
-                    </div>
+                    </SessionFormInset>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between w-full">
-                <Button
-                  onPress={() => setActiveTab("statuses")}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+              <SessionFormFooter className="justify-between">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("statuses")}
+                  className={sessionSecondaryButtonClass}
                 >
                   Back
-                </Button>
-                <Button
-                  onPress={form.handleSubmit(createSession)}
+                </button>
+                <button
+                  type="button"
+                  onClick={form.handleSubmit(createSession)}
                   disabled={isSubmitting || !isFormValid()}
-                  classoverride={`flex items-center gap-1 ${
-                    isFormValid()
-                      ? "bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
-                      : "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400"
+                  className={`${sessionPrimaryButtonClass} ${
+                    !isFormValid() ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
-                  <IconDeviceFloppy size={16} />{" "}
+                  <IconDeviceFloppy size={16} />
                   {isSubmitting ? "Creating..." : "Create Session"}
-                </Button>
-              </div>
+                </button>
+              </SessionFormFooter>
             </div>
           )}
-        </div>
+        </SessionsPanel>
       </FormProvider>
 
       <Transition appear show={showOverlapModal} as={Fragment}>
@@ -1277,7 +1236,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -1290,28 +1249,30 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="mx-auto max-w-md rounded-lg bg-white dark:bg-zinc-800 p-6 shadow-xl">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
+              <Dialog.Panel
+                className={`mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 dark:bg-zinc-900 sm:p-6 ${sessionsPanelShadow}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/15">
                     <IconAlertCircle
-                      className="h-6 w-6 text-orange-400"
+                      className="h-5 w-5 text-amber-600 dark:text-amber-400"
                       aria-hidden="true"
                     />
                   </div>
-                  <div className="ml-3 w-0 flex-1">
+                  <div className="min-w-0 flex-1">
                     <Dialog.Title
                       as="h3"
-                      className="text-lg font-medium text-zinc-900 dark:text-white"
+                      className="text-base font-semibold text-zinc-900 dark:text-white"
                     >
                       Session Overlap Detected
                     </Dialog.Title>
                     <div className="mt-2">
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 whitespace-pre-line">
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
                         {overlapMessage}
                       </p>
                     </div>
                     {overlapError && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+                      <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 dark:bg-red-950/30">
                         <p className="text-sm text-red-600 dark:text-red-300">
                           {overlapError}
                         </p>
@@ -1322,7 +1283,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 <div className="mt-6 flex gap-3">
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`${sessionSecondaryButtonClass} flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-50`}
                     onClick={handleOverlapCancel}
                     disabled={isSubmitting}
                   >
@@ -1330,7 +1291,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   </button>
                   <button
                     type="button"
-                    className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex flex-1 items-center justify-center rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={handleOverlapConfirm}
                     disabled={isSubmitting}
                   >
@@ -1342,7 +1303,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           </div>
         </Dialog>
       </Transition>
-    </div>
+    </SessionsPageShell>
   );
 };
 
@@ -1402,12 +1363,14 @@ const Status: React.FC<{
           {...register("value")}
           label="Status Name"
           placeholder="In Progress"
+          classoverride={sessionFormInputOverride}
         />
         <Input
           {...register("minutes")}
           label="Time After (minutes)"
           type="number"
           placeholder="15"
+          classoverride={sessionFormInputOverride}
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
           Status will activate {watch("minutes") || 0} minutes after session
@@ -1475,6 +1438,7 @@ const Slot: React.FC<{
           disabled={isPrimary}
           label="Role Name"
           placeholder="Co-Host"
+          classoverride={sessionFormInputOverride}
         />
         <Input
           {...register("slots")}
@@ -1482,6 +1446,7 @@ const Slot: React.FC<{
           label="Available Slots"
           type="number"
           placeholder="2"
+          classoverride={sessionFormInputOverride}
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
           {isPrimary

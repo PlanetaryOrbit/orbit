@@ -1,5 +1,9 @@
 import React from "react";
 import type { Quota } from "@prisma/client";
+import {
+  ProfileEmptyState,
+  ProfileSection,
+} from "@/components/profile/shell";
 import { IconChartBar, IconUsers, IconBriefcase, IconUser } from "@tabler/icons-react";
 import Tooltip from "@/components/tooltip";
 
@@ -82,41 +86,27 @@ export function QuotasProgress({
 
   if (quotas.length === 0) {
     return (
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
-          <div className="p-1.5 bg-primary/10 rounded-md">
-            <IconChartBar className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Activity Quotas</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Progress against assigned targets</p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
-            <IconChartBar className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No quotas assigned</p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Activity quotas will appear here when assigned</p>
-          </div>
-        </div>
-      </div>
+      <ProfileSection
+        icon={IconChartBar}
+        title="Activity Quotas"
+        subtitle="Progress against assigned targets"
+      >
+        <ProfileEmptyState
+          icon={IconChartBar}
+          title="No quotas assigned"
+          description="Activity quotas will appear here when assigned"
+        />
+      </ProfileSection>
     );
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
-        <div className="p-1.5 bg-primary/10 rounded-md">
-          <IconChartBar className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Activity Quotas</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Progress against assigned targets</p>
-        </div>
-      </div>
-      <div className="p-5 space-y-3">
+    <ProfileSection
+      icon={IconChartBar}
+      title="Activity Quotas"
+      subtitle="Progress against assigned targets"
+    >
+      <div className="space-y-3">
         {quotas.map((quota: QuotaWithLinkage) => {
           const pct = getQuotaPercentage(quota) || 0;
           const isComplete = pct >= 100;
@@ -125,7 +115,7 @@ export function QuotasProgress({
           return (
             <div
               key={quota.id}
-              className="rounded-xl border border-zinc-100 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 p-4"
+              className="rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/60"
             >
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="min-w-0">
@@ -134,7 +124,7 @@ export function QuotasProgress({
                       {quota.name}
                     </h3>
                     {isComplete && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         Complete
                       </span>
                     )}
@@ -186,6 +176,6 @@ export function QuotasProgress({
           );
         })}
       </div>
-    </div>
+    </ProfileSection>
   );
 }

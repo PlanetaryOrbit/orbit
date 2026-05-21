@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import type { ActivitySession, inactivityNotice } from "@prisma/client";
 import {
+  ProfileEmptyState,
+  ProfileSection,
+  ProfileStatCard,
+} from "@/components/profile/shell";
+import {
   IconUsers,
   IconUserCheck,
   IconCalendarEvent,
@@ -110,75 +115,38 @@ export function SessionsHistory({
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3">
-        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 p-5">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/70 rounded-t-xl" />
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="p-1.5 bg-primary/10 rounded-md">
-              <IconUsers className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-              Hosting
-            </p>
-          </div>
-          <div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
-            {sessionsHosted}
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            sessions hosted this period
-          </p>
-        </div>
-
-        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 p-5">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/70 rounded-t-xl" />
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="p-1.5 bg-primary/10 rounded-md">
-              <IconUserCheck className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-              Attendance
-            </p>
-          </div>
-          <div className="text-3xl font-bold text-zinc-900 dark:text-white tabular-nums">
-            {sessionsAttended}
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            sessions attended this period
-          </p>
-        </div>
+        <ProfileStatCard
+          icon={IconUsers}
+          label="Hosting"
+          value={sessionsHosted}
+          description="sessions hosted this period"
+        />
+        <ProfileStatCard
+          icon={IconUserCheck}
+          label="Attendance"
+          value={sessionsAttended}
+          description="sessions attended this period"
+        />
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
-          <div className="p-1.5 bg-primary/10 rounded-md">
-            <IconHistory className="w-4 h-4 text-primary" />
+      <ProfileSection
+        icon={IconHistory}
+        title="Session History"
+        subtitle="Sessions hosted and attended this period"
+      >
+        {loading ? (
+          <div className="flex items-center justify-center gap-3 py-12">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+            <span className="text-sm text-zinc-400 dark:text-zinc-500">Loading sessions...</span>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
-              Session History
-            </h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Sessions hosted and attended this period
-            </p>
-          </div>
-        </div>
-        <div className="p-5">
-          {loading ? (
-            <div className="flex items-center justify-center py-12 gap-3">
-              <div className="animate-spin w-5 h-5 border-2 border-zinc-200 dark:border-zinc-700 border-t-primary rounded-full" />
-              <span className="text-sm text-zinc-400 dark:text-zinc-500">Loading sessions...</span>
-            </div>
-          ) : sessionHistory.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
-                <IconHistory className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No sessions yet</p>
-                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Session history will appear here</p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
+        ) : sessionHistory.length === 0 ? (
+          <ProfileEmptyState
+            icon={IconHistory}
+            title="No sessions yet"
+            description="Session history will appear here"
+          />
+        ) : (
+          <div className="space-y-2">
               {sessionHistory.map((session) => {
                 const isExpanded = expandedSessions.has(session.id);
                 const userParticipation = session.users?.find(
@@ -194,7 +162,7 @@ export function SessionsHistory({
                 return (
                   <div
                     key={session.id}
-                    className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 overflow-hidden transition-all duration-150"
+                    className="overflow-hidden rounded-xl bg-zinc-100 transition-all duration-150 dark:bg-zinc-800/60"
                   >
                     <div
                       className="px-4 py-3 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700/60 transition-colors"
@@ -296,8 +264,7 @@ export function SessionsHistory({
               })}
             </div>
           )}
-        </div>
-      </div>
+      </ProfileSection>
     </div>
   );
 }

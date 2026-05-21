@@ -10,15 +10,13 @@ import prisma from "@/utils/database";
 import {
   IconTrophy,
   IconUsers,
-  IconMedal,
-  IconCrown,
-  IconAward,
   IconUserCircle,
   IconLaurelWreath1,
 } from "@tabler/icons-react";
 import randomText from "@/utils/randomText";
 import Tooltip from "@/components/tooltip";
 import moment from "moment";
+import { PodiumBadge, podiumPlaceFromIndex } from "@/components/activity/PodiumBadge";
 
 interface StaffMember {
   userId: string;
@@ -125,12 +123,13 @@ const Leaderboard: pageWithLayout = () => {
   }, [id]);
 
   const getPodiumIcon = (position: number) => {
-    switch (position) {
-      case 0: return <IconCrown className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />;
-      case 1: return <IconMedal className="w-5 h-5 sm:w-7 sm:h-7 text-gray-400" />;
-      case 2: return <IconAward className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />;
-      default: return null;
-    }
+    if (position < 0 || position > 2) return null;
+    return (
+      <PodiumBadge
+        place={podiumPlaceFromIndex(position)}
+        size="lg"
+      />
+    );
   };
 
   const getPodiumHeight = (position: number) => {
@@ -219,7 +218,7 @@ const Leaderboard: pageWithLayout = () => {
                           style={{ background: "transparent" }}
                         />
                       </button>
-                      <div className="absolute -top-2 -right-1 sm:-top-2 sm:-right-2 bg-white dark:bg-zinc-800 rounded-full p-0.5 sm:p-1">
+                      <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 sm:-top-2">
                         {getPodiumIcon(position)}
                       </div>
                     </div>

@@ -7,7 +7,6 @@ import Router, { useRouter } from "next/router";
 import { loginState, workspaceinfo } from "@/state";
 import { Transition, Dialog } from "@headlessui/react";
 import { useState, useEffect, Fragment, useRef, useCallback } from "react";
-import Button from "@/components/button";
 import axios from "axios";
 import Input from "@/components/input";
 import { motion } from "framer-motion";
@@ -17,12 +16,9 @@ import { toast } from "react-hot-toast";
 import {
   IconPlus,
   IconRefresh,
-  IconChevronRight,
   IconBuildingSkyscraper,
   IconSettings,
   IconX,
-  IconPin,
-  IconPinFilled,
   IconUsersGroup,
   IconCalendarEvent,
   IconChartBar,
@@ -35,6 +31,17 @@ import {
 } from "@tabler/icons-react";
 import clsx from "clsx";
 import { workspace } from "@prisma/client";
+import {
+  WorkspaceCard,
+  WorkspacesEmptyState,
+  WorkspacesPageHeader,
+  WorkspacesPageShell,
+  WorkspacesSectionLabel,
+  workspacesFormInputOverride,
+  workspacesModalPanelClass,
+  workspacesPrimaryButtonClass,
+  workspacesSecondaryButtonClass,
+} from "@/components/workspaces/shell";
 
 interface RolesRes {
   success: true;
@@ -477,62 +484,43 @@ const Home: NextPage = () => {
           aria-hidden
         />
         <Topbar />
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14 sm:pb-20">
-          <header className="mb-10 sm:mb-12">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-white/60 mb-2">
-                  Workspaces
-                </p>
-                <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight">
-                  Pick your space
-                </h1>
-                <p className="text-zinc-500 dark:text-zinc-400 mt-2 max-w-md">
-                  Choose a workspace to continue, or create one to get started.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-                {isOwner && (
+        <WorkspacesPageShell>
+          <WorkspacesPageHeader
+            title="Workspaces"
+            subtitle="Choose a workspace to continue, or create one to get started."
+            action={
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {isOwner ? (
                   <button
                     type="button"
                     onClick={() => setIsOpen(true)}
-                    className={clsx(
-                      "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg shadow-primary/25",
-                      "bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 active:scale-[0.98] transition-all",
-                    )}
+                    className={clsx(workspacesPrimaryButtonClass, "gap-2 px-5 py-2.5 font-semibold")}
                   >
-                    <IconPlus className="w-5 h-5" stroke={2} />
+                    <IconPlus className="h-5 w-5" stroke={2} />
                     <span>New Workspace</span>
                   </button>
-                )}
+                ) : null}
                 <button
                   type="button"
                   onClick={checkRoles}
-                  className={clsx(
-                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
-                    "bg-white dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700",
-                    "hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-sm",
-                  )}
+                  className={clsx(workspacesSecondaryButtonClass, "gap-2 px-4 py-2.5")}
                 >
-                  <IconRefresh className="w-4 h-4" stroke={1.5} />
+                  <IconRefresh className="h-4 w-4" stroke={1.5} />
                   <span className="hidden sm:inline">Check Roles</span>
                 </button>
-                {isOwner && (
+                {isOwner ? (
                   <button
                     type="button"
                     onClick={() => setShowInstanceSettings(true)}
-                    className={clsx(
-                      "flex items-center justify-center w-10 h-10 rounded-xl border border-zinc-200 dark:border-zinc-700",
-                      "bg-white dark:bg-zinc-800/90 text-zinc-600 dark:text-zinc-400 hover:text-primary hover:border-primary/30 shadow-sm",
-                    )}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-primary dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
                     title="Instance settings"
                   >
-                    <IconSettings className="w-5 h-5" stroke={1.5} />
+                    <IconSettings className="h-5 w-5" stroke={1.5} />
                   </button>
-                )}
+                ) : null}
               </div>
-            </div>
-          </header>
+            }
+          />
 
           {workspaces.length > 0 ? (
             <>
@@ -545,164 +533,74 @@ const Home: NextPage = () => {
                   ? workspaces.filter((w) => w.groupId !== pinnedWorkspaceId)
                   : workspaces;
                 const showPinnedFeatured = !!pinned;
-                const showAsSingleBig =
-                  !showPinnedFeatured && others.length === 1;
-
-                const renderCard = (
-                  workspace: {
-                    groupId: number;
-                    groupName: string;
-                    groupLogo?: string;
-                    customName?: string;
-                  },
-                  options: { featured: boolean; isPinnedHero?: boolean },
-                ) => {
-                  const isPinned = pinnedWorkspaceId === workspace.groupId;
-                  const isPinnedHero = !!options.isPinnedHero;
-                  return (
-                    <button
-                      type="button"
-                      key={workspace.groupId}
-                      onClick={() => gotoWorkspace(workspace.groupId)}
-                      className={clsx(
-                        "group text-left overflow-hidden transition-[box-shadow,transform] duration-300 relative w-full",
-                        "bg-white dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/60",
-                        "shadow-sm hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-none hover:-translate-y-0.5",
-                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 dark:focus-visible:ring-offset-zinc-950",
-                        isPinnedHero
-                          ? "rounded-3xl hover:rounded-3xl"
-                          : "rounded-2xl hover:rounded-2xl",
-                        !isPinnedHero &&
-                          options.featured &&
-                          "sm:rounded-3xl sm:hover:rounded-3xl",
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => togglePin(e, workspace.groupId)}
-                        className={clsx(
-                          "absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
-                          "bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white",
-                          isPinned && "bg-primary/90 hover:bg-primary",
-                        )}
-                        title={
-                          isPinned
-                            ? "Unpin workspace"
-                            : "Pin as featured workspace"
-                        }
-                      >
-                        {isPinned ? (
-                          <IconPinFilled className="w-4 h-4" stroke={1.5} />
-                        ) : (
-                          <IconPin className="w-4 h-4" stroke={1.5} />
-                        )}
-                      </button>
-                      <div
-                        className={clsx(
-                          "relative overflow-hidden rounded-[inherit]",
-                          options.featured || isPinnedHero
-                            ? "aspect-[2/1] sm:aspect-[12/5]"
-                            : "aspect-[4/3]",
-                        )}
-                      >
-                        <img
-                          src={workspace.groupLogo || "/favicon-32x32.png"}
-                          alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-zinc-900/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 flex items-end justify-between gap-3">
-                          <h3 className="text-lg sm:text-xl font-bold text-white truncate drop-shadow-sm">
-                            {workspace.customName
-                              ? workspace.customName.length > 0
-                                ? workspace.customName
-                                : workspace.groupName
-                              : workspace.groupName}
-                          </h3>
-                          <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm text-white group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shrink-0">
-                            <IconChevronRight className="w-5 h-5" stroke={2} />
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                };
+                const showAsSingleBig = !showPinnedFeatured && others.length === 1;
 
                 return (
                   <>
-                    {showPinnedFeatured && pinned && (
-                      <div className="mb-8 max-w-2xl">
-                        <p className="text-xs font-medium uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
-                          Pinned workspace
-                        </p>
-                        {renderCard(pinned, {
-                          featured: true,
-                          isPinnedHero: true,
-                        })}
+                    {showPinnedFeatured && pinned ? (
+                      <div className="mb-6">
+                        <WorkspacesSectionLabel>Pinned workspace</WorkspacesSectionLabel>
+                        <WorkspaceCard
+                          workspace={pinned}
+                          featured
+                          isPinned
+                          onOpen={() => gotoWorkspace(pinned.groupId)}
+                          onTogglePin={(e) => togglePin(e, pinned.groupId)}
+                        />
                       </div>
-                    )}
-                    {others.length > 0 && (
+                    ) : null}
+                    {others.length > 0 ? (
                       <div>
-                        {showPinnedFeatured && (
-                          <p className="text-xs font-medium uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3">
-                            Other workspaces
-                          </p>
-                        )}
+                        {showPinnedFeatured ? (
+                          <WorkspacesSectionLabel>Other workspaces</WorkspacesSectionLabel>
+                        ) : null}
                         <div
                           className={clsx(
-                            "grid gap-5 sm:gap-6",
+                            "grid gap-3 sm:gap-4",
                             !showPinnedFeatured && showAsSingleBig
                               ? "grid-cols-1 max-w-xl"
-                              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+                              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                           )}
                         >
-                          {others.map((w) =>
-                            renderCard(w, {
-                              featured:
-                                !showPinnedFeatured && others.length === 1,
-                            }),
-                          )}
+                          {others.map((w) => (
+                            <WorkspaceCard
+                              key={w.groupId}
+                              workspace={w}
+                              featured={!showPinnedFeatured && others.length === 1}
+                              isPinned={pinnedWorkspaceId === w.groupId}
+                              onOpen={() => gotoWorkspace(w.groupId)}
+                              onTogglePin={(e) => togglePin(e, w.groupId)}
+                            />
+                          ))}
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </>
                 );
               })()}
             </>
           ) : (
-            <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm p-12 sm:p-16 flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-              <div className="w-20 h-20 rounded-2xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary mb-6">
-                <IconBuildingSkyscraper
-                  className="w-10 h-10 dark:text-white"
-                  stroke={1.5}
-                />
-              </div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
-                No workspaces yet
-              </h3>
-              <p className="text-zinc-500 dark:text-zinc-400 mb-8 max-w-sm">
-                {isOwner
+            <WorkspacesEmptyState
+              icon={IconBuildingSkyscraper}
+              title="No workspaces yet"
+              description={
+                isOwner
                   ? "Create your first workspace to get started."
-                  : "You don't have permission to create workspaces."}
-              </p>
-              {isOwner ? (
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(true)}
-                  className={clsx(
-                    "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white",
-                    "bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 shadow-lg shadow-primary/25",
-                  )}
-                >
-                  <IconPlus className="w-5 h-5" stroke={2} />
-                  Create Workspace
-                </button>
-              ) : (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Contact an administrator if you need access.
-                </p>
-              )}
-            </div>
+                  : "You don't have permission to create workspaces. Contact an administrator if you need access."
+              }
+              action={
+                isOwner ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(true)}
+                    className={clsx(workspacesPrimaryButtonClass, "gap-2 px-5 py-2.5 font-semibold")}
+                  >
+                    <IconPlus className="h-5 w-5" stroke={2} />
+                    Create Workspace
+                  </button>
+                ) : null
+              }
+            />
           )}
 
           <Transition appear show={isOpen} as={Fragment}>
@@ -734,14 +632,14 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "max-w-md p-6")}>
                       <Dialog.Title
                         as="h3"
-                        className="text-xl font-semibold text-zinc-900 dark:text-white"
+                        className="text-lg font-semibold text-zinc-900 dark:text-white"
                       >
                         Create New Workspace
                       </Dialog.Title>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         Enter your Roblox group ID to set up a workspace
                       </p>
 
@@ -753,6 +651,7 @@ const Home: NextPage = () => {
                             <Input
                               label="Group ID"
                               placeholder="e.g. 35724790"
+                              classoverride={workspacesFormInputOverride}
                               {...methods.register("groupID", {
                                 required: "This field is required",
                                 pattern: {
@@ -773,17 +672,18 @@ const Home: NextPage = () => {
                         <button
                           type="button"
                           onClick={() => setIsOpen(false)}
-                          className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                          className={workspacesSecondaryButtonClass}
                         >
                           Cancel
                         </button>
-                        <Button
+                        <button
+                          type="button"
                           onClick={methods.handleSubmit(createWorkspace)}
-                          loading={loading}
-                          workspace
+                          disabled={loading}
+                          className={workspacesPrimaryButtonClass}
                         >
-                          Create
-                        </Button>
+                          {loading ? "Creating…" : "Create"}
+                        </button>
                       </div>
                     </Dialog.Panel>
                   </Transition.Child>
@@ -821,7 +721,7 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className="w-full max-w-lg transform rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 text-left align-middle shadow-xl transition-all flex flex-col max-h-[90vh]">
+                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "flex max-h-[90vh] max-w-lg flex-col")}>
                       <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
                         <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
                           Instance Settings
@@ -1186,22 +1086,25 @@ const Home: NextPage = () => {
                             type="button"
                             onClick={() => setShowInstanceSettings(false)}
                             disabled={configLoading}
-                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={workspacesSecondaryButtonClass}
                           >
                             Cancel
                           </button>
-                          <Button
+                          <button
+                            type="button"
                             onClick={saveRobloxConfig}
-                            loading={configLoading}
                             disabled={configLoading || usingEnvVars}
-                            classoverride={
-                              usingEnvVars
-                                ? "opacity-60 cursor-not-allowed"
-                                : undefined
-                            }
+                            className={clsx(
+                              workspacesPrimaryButtonClass,
+                              usingEnvVars && "cursor-not-allowed opacity-60"
+                            )}
                           >
-                            {usingEnvVars ? "Using Env Vars" : "Save Settings"}
-                          </Button>
+                            {configLoading
+                              ? "Saving…"
+                              : usingEnvVars
+                                ? "Using Env Vars"
+                                : "Save Settings"}
+                          </button>
                         </div>
                       </div>
                     </Dialog.Panel>
@@ -1239,7 +1142,7 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 shadow-xl overflow-hidden">
+                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "max-w-md overflow-hidden")}>
                       <div className="relative overflow-hidden">
                         <motion.div
                           className="flex"
@@ -1356,14 +1259,14 @@ const Home: NextPage = () => {
                                   setShowOnboarding(false);
                                   Onboarded();
                                 }}
-                                className="flex-1 py-2.5 rounded-xl text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                                className={clsx(workspacesSecondaryButtonClass, "flex-1 justify-center py-2.5")}
                               >
                                 Skip
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setOnboardingSlide((s) => s + 1)}
-                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 transition-opacity"
+                                className={clsx(workspacesPrimaryButtonClass, "flex-1 justify-center py-2.5 font-semibold")}
                               >
                                 Next
                               </button>
@@ -1375,7 +1278,7 @@ const Home: NextPage = () => {
                                 setShowOnboarding(false);
                                 Onboarded();
                               }}
-                              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-[color:rgb(var(--group-theme,236,72,153))] hover:opacity-95 transition-opacity"
+                              className={clsx(workspacesPrimaryButtonClass, "w-full justify-center py-2.5 font-semibold")}
                             >
                               Get started
                             </button>
@@ -1388,7 +1291,7 @@ const Home: NextPage = () => {
               </div>
             </Dialog>
           </Transition>
-        </div>
+        </WorkspacesPageShell>
       </div>
     </div>
   );

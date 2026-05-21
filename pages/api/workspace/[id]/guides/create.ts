@@ -24,7 +24,7 @@ export async function handler(
 	res: NextApiResponse<Data>
 ) {
 	if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
-	const { name, content, roles, departments } = req.body;
+	const { name, content, roles, departments, folderId } = req.body;
 	if (!name || (!roles && !departments)) return res.status(400).json({ success: false, error: 'Missing required fields' });
 	if (content && typeof content === 'object' && (content as any).external) {
 		const url = (content as any).url;
@@ -39,12 +39,20 @@ export async function handler(
 		saveContent = sanitizeJSON(content);
  	}
 
+	if (folderId) {
+		const folder = await prisma.documentFolder.findFirst({
+			where: { id: folderId, workspaceGroupId: parseInt(id as string) },
+		});
+		if (!folder) return res.status(400).json({ success: false, error: 'Folder not found' });
+	}
+
 	const document = await prisma.document.create({
 		data: {
 			workspaceGroupId: parseInt(id as string),
 			name,
 			ownerId: BigInt(req.auth.userId),
 			content: saveContent,
+			folderId: folderId || null,
 			roles: {
 				connect: roles ? roles.map((role: string) => ({ id: role })) : []
 			},
