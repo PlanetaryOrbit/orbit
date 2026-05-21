@@ -33,9 +33,10 @@ interface Props {
     redact: boolean;
     delete: boolean;
   };
+  isSelf: boolean;
 }
 
-const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
+const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) => {
   const router = useRouter();
   const { id } = router.query;
   const [text, setText] = useState("");
@@ -391,9 +392,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
             <select
               id="type"
               value={type}
+              disabled={isSelf}
               onChange={(e) => setType(e.target.value)}
-              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 disabled:bg-zinc-100 disabled:text-zinc-500 dark:disabled:bg-zinc-700/50 dark:disabled:text-zinc-400 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
             >
+              {isSelf && <option value="" selected>You can&apos;t add entries to yourself.</option>}
               {logbookPermissions?.note && <option value="note">Note</option>}
               {logbookPermissions?.warning && <option value="warning">Warning</option>}
               {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
@@ -491,6 +494,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
                   type="file"
                   accept=".pdf,image/*"
                   multiple
+                  disabled={isSelf}
                   className="hidden"
                   onChange={onAttachmentChange}
                 />
@@ -535,7 +539,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions }) => {
 
           <button
             onClick={addNote}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSelf}
             className="w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

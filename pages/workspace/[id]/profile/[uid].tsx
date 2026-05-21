@@ -1195,6 +1195,7 @@ const Profile: pageWithLayout<pageProps> = ({
                     userBook={userBook}
                     onRefetch={refetchUserBook}
                     logbookPermissions={logbookPermissions}
+                    isSelf={isUser}
                   />
                 </Tab.Panel>
               )}
