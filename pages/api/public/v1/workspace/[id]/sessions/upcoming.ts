@@ -6,13 +6,18 @@ export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET")
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });
 
   const workspaceId = Number.parseInt(req.query.id as string);
   if (!workspaceId)
-    return res.status(400).json({ success: false, error: "Missing workspace ID" });
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing workspace ID" });
 
-  const { endDate, category, startDate, status, limit, page } = req.query;
+  const { endDate, category, startDate, status, limit, page, hideClaimed } =
+    req.query;
 
   const start = startDate ? new Date(startDate as string) : new Date();
   const end = endDate
@@ -20,10 +25,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     : new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   if (isNaN(start.getTime()) || isNaN(end.getTime()))
-    return res.status(400).json({ success: false, error: "Invalid date format" });
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid date format" });
 
   if (start >= end)
-    return res.status(400).json({ success: false, error: "startDate must be before endDate" });
+    return res
+      .status(400)
+      .json({ success: false, error: "startDate must be before endDate" });
 
   const take = Math.min(Number(limit) || 50, 100);
   const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
@@ -35,6 +44,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     };
 
     if (category) where.type = category as string;
+
+    if (hideClaimed === "true") {
+      where.users = { none: {} };
+    }
 
     if (status) {
       switch (status) {
@@ -56,7 +69,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           where.date = { ...where.date, lte: new Date() };
           break;
         default:
-          return res.status(400).json({ success: false, error: `Invalid status filter: ${status}` });
+          return res
+            .status(400)
+            .json({
+              success: false,
+              error: `Invalid status filter: ${status}`,
+            });
       }
     }
 
@@ -66,7 +84,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         include: {
           owner: { select: { userid: true, username: true, picture: true } },
           sessionType: {
-            select: { id: true, name: true, description: true, gameId: true, slots: true },
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              gameId: true,
+              slots: true,
+            },
           },
           users: {
             include: {
@@ -95,7 +119,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         name: session.sessionType.name,
         description: session.sessionType.description,
         category: session.type,
-        gameId: session.sessionType.gameId ? Number(session.sessionType.gameId) : null,
+        gameId: session.sessionType.gameId
+          ? Number(session.sessionType.gameId)
+          : null,
         slots: session.sessionType.slots,
       },
       host: session.owner
@@ -115,10 +141,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       status: session.ended
         ? "ended"
         : session.startedAt
-        ? "in-progress"
-        : session.date < new Date()
-        ? "missed"
-        : "scheduled",
+          ? "in-progress"
+          : session.date < new Date()
+            ? "missed"
+            : "scheduled",
       notes: session.notes.map((note) => ({
         id: note.id,
         authorId: note.authorId,
@@ -128,14 +154,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       })),
     }));
 
-    const sessionsByDate = formattedSessions.reduce<Record<string, typeof formattedSessions>>(
-      (acc, session) => {
-        const key = session.date.toISOString().split("T")[0];
-        (acc[key] ??= []).push(session);
-        return acc;
-      },
-      {}
-    );
+    const sessionsByDate = formattedSessions.reduce<
+      Record<string, typeof formattedSessions>
+    >((acc, session) => {
+      const key = session.date.toISOString().split("T")[0];
+      (acc[key] ??= []).push(session);
+      return acc;
+    }, {});
 
     return res.status(200).json({
       success: true,
@@ -151,6 +176,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   } catch (error) {
     console.error("Error fetching sessions:", error);
-    return res.status(500).json({ success: false, error: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal server error" });
   }
 }

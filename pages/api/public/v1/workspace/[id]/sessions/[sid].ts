@@ -51,6 +51,7 @@ async function handler(
               picture: true,
             },
           },
+          notes: true,
           sessionType: {
             select: {
               id: true,
@@ -78,6 +79,8 @@ async function handler(
         date: sessionWithDetails!.date,
         startedAt: sessionWithDetails!.startedAt,
         ended: sessionWithDetails!.ended,
+        cancelled: sessionWithDetails!.cancelled,
+        cancellationReason: sessionWithDetails!.cancellationReason,
         type: {
           id: sessionWithDetails!.sessionType.id,
           name: sessionWithDetails!.sessionType.name,
@@ -107,6 +110,13 @@ async function handler(
           : sessionWithDetails!.date < new Date()
           ? "missed"
           : "scheduled",
+        notes: sessionWithDetails!.notes.map((note) => ({
+          id: note.id,
+          authorId: note.authorId,
+          content: note.content,
+          createdAt: note.createdAt,
+          updatedAt: note.updatedAt,
+        })),
       };
 
       return res.status(200).json({
