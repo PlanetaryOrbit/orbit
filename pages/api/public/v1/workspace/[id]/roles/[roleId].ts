@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withKey } from "@/lib/withAuth";
 
-// Define all valid permissions as a const array
 const VALID_PERMISSIONS = [
   "view_wall",
   "post_on_wall",
@@ -114,24 +113,34 @@ function validatePermissions(permissions: string[]): { valid: boolean; invalidPe
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET" && req.method !== "POST") {
+  if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE") {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
   }
 
-  const workspaceId = Number.parseInt(req.query.id as string);
+  const { id, roleId } = req.query;
+
+  const workspaceId = Number.parseInt(id as string);
   if (!workspaceId) {
     return res
       .status(400)
       .json({ success: false, error: "Missing workspace ID" });
   }
 
+  const roleIdString = Array.isArray(roleId) ? roleId[0] : roleId;
+  if (!roleIdString) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing role ID" });
+  }
+
   if (req.method === "GET") {
     try {
-      const roles = await prisma.role.findMany({
+      const role = await prisma.role.findFirst({
         where: {
           workspaceGroupId: workspaceId,
+          id: roleIdString
         },
         select: {
           id: true,
@@ -149,7 +158,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      const formattedResponse = roles.map((role) => ({
+      if (!role) {
+        return res.status(404).json({ success: false, error: "Role not found" });
+      }
+
+      const formattedResponse = {
         name: role.name,
         id: role.id,
         color: role.color,
@@ -160,73 +173,117 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           quota: qr.quota,
           role: qr.role,
         })),
-      }));
+      };
 
       return res.status(200).json({ success: true, data: formattedResponse });
     } catch (error) {
-      console.error("Error fetching roles:", error);
+      console.error("Error fetching role:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === "PATCH") {
     const { name, permissions, color } = req.body;
 
-    if (!name || typeof name !== "string") {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Role name is required and must be a string" 
-      });
-    }
-
-    if (!permissions || !Array.isArray(permissions)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Permissions must be an array" 
-      });
-    }
-
-    const { valid, invalidPermissions } = validatePermissions(permissions);
-    
-    if (!valid) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid permissions provided",
-        invalidPermissions: invalidPermissions,
-        validPermissions: VALID_PERMISSIONS
-      });
-    }
-
-    const existingRole = await prisma.role.findFirst({
-      where: {
-        workspaceGroupId: workspaceId,
-        name: name
-      }
-    });
-
-    if (existingRole) {
-      return res.status(409).json({
-        success: false,
-        error: "A role with this name already exists in this workspace"
-      });
-    }
-
     try {
-      const newRole = await prisma.role.create({
-        data: {
-          name,
-          permissions: permissions,
-          color: color || null,
+      const existingRole = await prisma.role.findFirst({
+        where: {
           workspaceGroupId: workspaceId,
-          groupRoles: [],
+          id: roleIdString
+        }
+      });
+
+      if (!existingRole) {
+        return res.status(404).json({ success: false, error: "Role not found" });
+      }
+
+      if (permissions && Array.isArray(permissions)) {
+        const { valid, invalidPermissions } = validatePermissions(permissions);
+        
+        if (!valid) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid permissions provided",
+            invalidPermissions: invalidPermissions,
+            validPermissions: VALID_PERMISSIONS
+          });
+        }
+      }
+
+      if (name && name !== existingRole.name) {
+        const nameConflict = await prisma.role.findFirst({
+          where: {
+            workspaceGroupId: workspaceId,
+            name: name,
+            NOT: {
+              id: roleIdString
+            }
+          }
+        });
+
+        if (nameConflict) {
+          return res.status(409).json({
+            success: false,
+            error: "A role with this name already exists in this workspace"
+          });
+        }
+      }
+
+      const updatedRole = await prisma.role.update({
+        where: {
+          id: roleIdString
+        },
+        data: {
+          ...(name && { name }),
+          ...(permissions && { permissions: permissions as ValidPermission[] }),
+          ...(color !== undefined && { color: color || null }),
         }
       });
       
-      return res.status(201).json({ success: true, data: newRole });
+      return res.status(200).json({ success: true, data: updatedRole });
     } catch (error) {
-      console.error("Error creating role:", error);
+      console.error("Error updating role:", error);
+      return res
+        .status(500)
+        .json({ success: false, error: "Internal server error" });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    try {
+      const existingRole = await prisma.role.findFirst({
+        where: {
+          workspaceGroupId: workspaceId,
+          id: roleIdString
+        },
+        include: {
+          roleMembers: true,
+          quotaRoles: true
+        }
+      });
+
+      if (!existingRole) {
+        return res.status(404).json({ success: false, error: "Role not found" });
+      }
+
+      if (existingRole.isOwnerRole) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "Cannot delete the owner role" 
+        });
+      }
+
+      await prisma.role.delete({
+        where: {
+          id: roleIdString
+        }
+      });
+      
+      return res.status(200).json({ success: true, message: "Role deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting role:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
