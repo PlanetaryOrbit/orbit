@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import prisma from "@/utils/database"
+import { withKey } from "@/lib/withAuth"
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withKey(handler); 
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
-
-  const apiKey = req.headers.authorization?.replace("Bearer ", "")
-  if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
 
   const { userid } = req.query
 
@@ -17,25 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Validate API key
-    const key = await prisma.apiKey.findUnique({
-      where: { key: apiKey },
-    })
-
-    if (!key) {
-      return res.status(401).json({ success: false, error: "Invalid API key" })
-    }
-
-    // Check if key is expired
-    if (key.expiresAt && new Date() > key.expiresAt) {
-      return res.status(401).json({ success: false, error: "API key expired" })
-    }
-
-    // Update last used timestamp
-    await prisma.apiKey.update({
-      where: { id: key.id },
-      data: { lastUsed: new Date() },
-    })
 
     const user = await prisma.user.findFirst({
       where: {
@@ -49,7 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         activitySessions: true,
         activityHistory: true,
         googleUser: true,
-        info: true
       }
     });
 

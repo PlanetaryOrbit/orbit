@@ -7,24 +7,10 @@ import { getConfig } from "@/utils/configEngine"
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
 
-  const apiKey = req.headers.authorization?.replace("Bearer ", "")
-  if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
-
   const workspaceId = Number.parseInt(req.query.id as string)
   if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" })
 
   try {
-    const key = await validateApiKey(apiKey, workspaceId.toString());
-    if (!key) {
-      const secretKey = await getConfig("board_key", workspaceId);
-      console.log(key)
-      if (!secretKey || !secretKey.key) {
-        return res.status(401).json({ success: false, error: "Invalid API key" });
-      }
-      if (secretKey.key != apiKey) { return res.status(401).json({ success: false, error: "Invalid API key" }); }
-    }
-
-
     // Fetch workspace info
     const workspace = await prisma.workspace.findUnique({
       where: { groupId: workspaceId },
@@ -35,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             name: true,
             groupRoles: true,
           },
-        },
+        }
       },
     })
 

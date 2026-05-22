@@ -2,8 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { validateApiKey } from "@/utils/api-auth";
 import { getConfig } from "@/utils/configEngine";
+import { withKey } from "@/lib/withAuth";
 
-export default async function handler(
+export default withKey(handler);
+
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

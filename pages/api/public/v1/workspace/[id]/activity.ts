@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import prisma from "@/utils/database"
+import { withKey } from "@/lib/withAuth"
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withKey(handler);
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
 
   const apiKey = req.headers.authorization?.replace("Bearer ", "")
@@ -13,26 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { startDate, endDate, userId } = req.query
 
   try {
-    // Validate API key
-    const key = await prisma.apiKey.findUnique({
-      where: { key: apiKey },
-    })
-
-    if (!key || key.workspaceGroupId !== workspaceId) {
-      return res.status(401).json({ success: false, error: "Invalid API key" })
-    }
-
-    // Check if key is expired
-    if (key.expiresAt && new Date() > key.expiresAt) {
-      return res.status(401).json({ success: false, error: "API key expired" })
-    }
-
-    // Update last used timestamp
-    await prisma.apiKey.update({
-      where: { id: key.id },
-      data: { lastUsed: new Date() },
-    })
-
     // Build query filters
     const where: any = {
       workspaceGroupId: workspaceId,
@@ -48,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (endDate) where.startTime.lte = new Date(endDate as string)
     }
 
-    // Fetch activity sessions
     const sessions = await prisma.activitySession.findMany({
       where: { ...where, archived: { not: true } },
       include: {

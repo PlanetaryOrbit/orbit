@@ -1,23 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import prisma from "@/utils/database"
 import { validateApiKey } from "@/utils/api-auth"
+import { withKey } from "@/lib/withAuth"
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withKey(handler)
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
-
-  const apiKey = req.headers.authorization?.replace("Bearer ", "")
-  if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
 
   const workspaceId = Number.parseInt(req.query.id as string)
   if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" })
 
   try {
-    // Validate API key
-    const key = await validateApiKey(apiKey, workspaceId.toString())
-    if (!key) {
-      return res.status(401).json({ success: false, error: "Invalid API key" })
-    }
-
     // Fetch documents
     const docs = await prisma.document.findMany({
       where: {

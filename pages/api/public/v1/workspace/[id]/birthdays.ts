@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
+import { withKey } from "@/lib/withAuth";
 
-export default async function handler(
+export default withKey(handler);
+
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -9,11 +12,6 @@ export default async function handler(
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
-  }
-
-  const apiKey = req.headers.authorization?.replace("Bearer ", "");
-  if (!apiKey) {
-    return res.status(401).json({ success: false, error: "Missing API key" });
   }
 
   const workspaceId = Number.parseInt(req.query.id as string);
@@ -24,22 +22,6 @@ export default async function handler(
   }
 
   try {
-    const key = await prisma.apiKey.findUnique({
-      where: { key: apiKey },
-    });
-
-    if (!key || key.workspaceGroupId !== workspaceId) {
-      return res.status(401).json({ success: false, error: "Invalid API key" });
-    }
-
-    if (key.expiresAt && new Date() > key.expiresAt) {
-      return res.status(401).json({ success: false, error: "API key expired" });
-    }
-
-    await prisma.apiKey.update({
-      where: { id: key.id },
-      data: { lastUsed: new Date() },
-    });
 
     const daysParam = req.query.days
       ? Number.parseInt(req.query.days as string)
