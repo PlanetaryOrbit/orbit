@@ -5,6 +5,9 @@ import { withPermissionCheck } from "@/utils/permissionsManager";
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
+import axios from "axios";
+import packageInfo from "@/package.json";
+
 type Data = {
   success: boolean;
   error?: string;
@@ -14,62 +17,104 @@ type Data = {
 export default withPermissionCheck(handler, "admin");
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "GET")
+  if (req.method !== "GET") {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
+  }
+
   if (!req.query.event || !req.query.gFormat || !req.query.lightMode || !req.query.sClaimed) {
     return res
       .status(400)
       .json({ success: false, error: "Missing params" });
   }
+
+  const workspaceId = parseInt(req.query.id as string);
+  if (isNaN(workspaceId)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid workspace ID" });
+  }
   
-  let boardConfig = await getConfig(
-    "board_key",
-    parseInt(req.query.id as string)
-  );
+  let boardConfig = await getConfig("board_key", workspaceId);
   if (!boardConfig?.key) {
     boardConfig = {
       key: crypto.randomBytes(16).toString("hex"),
     };
-    await setConfig("board_key", boardConfig, parseInt(req.query.id as string));
+    await setConfig("board_key", boardConfig, workspaceId);
   }
 
-  let xml_string = fs.readFileSync(path.join("planetaryboard.rbxmx"), "utf8");
+  let xml_string: string;
+
+  const isVercel = !!process.env.VERCEL_URL;
+  
+  if (isVercel) {
+    try {
+      const response = await axios.get('https://raw.githubusercontent.com/PlanetaryOrbit/orbit/refs/heads/main/planetaryboard.rbxmx', {
+        headers: {
+          'User-Agent': `Orbit/${packageInfo.version}`
+        }
+      });
+      xml_string = response.data;
+    } catch (error) {
+      console.error("Failed to fetch XML file from GitHub:", error);
+      return res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch planetary board template. Please try again later." 
+      });
+    }
+  } else {
+    try {
+      const filePath = path.join(process.cwd(), "planetaryboard.rbxmx");
+      xml_string = fs.readFileSync(filePath, "utf8");
+    } catch (error) {
+      console.error("Failed to read local XML file:", error);
+      return res.status(500).json({ 
+        success: false, 
+        error: "Planetary board template file not found. Please ensure planetaryboard.rbxmx exists." 
+      });
+    }
+  }
+
   res.setHeader(
     "Content-Disposition",
     "attachment; filename=planetaryboard.rbxmx"
   );
 
-  // Fix the protocol handling to ensure it's a valid protocol string
   let protocol =
     req.headers["x-forwarded-proto"] ||
     req.headers.referer?.split("://")[0] ||
     "http";
 
-  // Clean up protocol if it contains commas (Cloud hosting)
   if (typeof protocol === "string") {
     protocol = protocol.split(",")[0];
   } else if (Array.isArray(protocol)) {
     protocol = protocol[0].split(",")[0];
   }
 
-  // use PLANETARY_CLOUD_URL if available, else use VERCEL_URL if available, else use the host
   const planetaryCloudUrl = process.env.PLANETARY_CLOUD_URL;
   const vercelUrl = process.env.VERCEL_URL;
   const host = planetaryCloudUrl || vercelUrl || req.headers.host;
 
-  let currentUrl = new URL(`${protocol}://${host}`);
-  let xx = xml_string
-    .replace("<apikey>", boardConfig.key)
-    .replace("<url>", `${currentUrl.origin}/`)
-    .replace("<wid>", req.query.id ? req.query.id.toString() : "0")
-    .replace("<type>", req.query.event ? req.query.event.toString() : "0")
-    .replace("<oclaimed>", req.query.sClaimed ?req.query.sClaimed.toString() : "true")
-    .replace("<mode>", req.query.lightMode ? req.query.lightMode.toString() == "true" ? "light" : "dark" : "dark")
-    .replace("<cformat>", req.query.gFormat ? req.query.gFormat.toString() == "true" ? "24h" : "12h" : "12h")
+  if (!host) {
+    console.error("No host available to construct URL");
+    return res.status(500).json({ 
+      success: false, 
+      error: "Unable to determine server URL" 
+    });
+  }
 
-  //send file and set content type
+  let currentUrl = new URL(`${protocol}://${host}`);
+  
+  let result = xml_string
+    .replace(/<apikey>/g, boardConfig.key)
+    .replace(/<url>/g, `${currentUrl.origin}/`)
+    .replace(/<wid>/g, req.query.id ? req.query.id.toString() : "0")
+    .replace(/<type>/g, req.query.event.toString())
+    .replace(/<oclaimed>/g, req.query.sClaimed.toString())
+    .replace(/<mode>/g, req.query.lightMode.toString() === "true" ? "light" : "dark")
+    .replace(/<cformat>/g, req.query.gFormat.toString() === "true" ? "24h" : "12h");
+
   res.setHeader("Content-Type", "application/rbxmx");
-  res.status(200).send(xx as any);
+  res.status(200).send(result as any);
 }
