@@ -37,7 +37,7 @@ async function checkSetup(): Promise<boolean> {
 
     if (res.ok) {
       const data = await res.json();
-      const isSetup = data.workspaceCount > 0 || data.userCount > 0;
+      const isSetup = data.userCount > 0;
 
       setupCache = {
         isSetup,
