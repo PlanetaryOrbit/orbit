@@ -12,9 +12,10 @@ function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 }
 
-function internalUrl(path: string): string {
-  const base = process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}${path}`;
+function internalUrl(request: NextRequest, path: string): string {
+  // Use the request's URL to construct the internal URL
+  const { protocol, host } = request.nextUrl;
+  return `${protocol}//${host}${path}`;
 }
 
 function getMissingEnvVars(): string[] {
@@ -27,13 +28,13 @@ let setupCache: {
 } | null = null;
 const CACHE_DURATION = 30000; // 30 seconds
 
-async function checkSetup(): Promise<boolean> {
+async function checkSetup(request: NextRequest): Promise<boolean> {
   if (setupCache && Date.now() - setupCache.timestamp < CACHE_DURATION) {
     return setupCache.isSetup;
   }
 
   try {
-    const res = await fetch(internalUrl("/api/admin/first-setup/config"));
+    const res = await fetch(internalUrl(request, "/api/admin/first-setup/config"));
 
     if (res.ok) {
       const data = await res.json();
@@ -75,7 +76,7 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isActuallySetup = await checkSetup();
+  const isActuallySetup = await checkSetup(request);
   const appSetupCookie = request.cookies.get("app_setup")?.value;
   const cookieIsSetup = request.cookies.get("app_setup") ? appSetupCookie === "true" : false;
 
@@ -114,7 +115,7 @@ export default async function middleware(request: NextRequest) {
     }
 
     try {
-      const res = await fetch(internalUrl("/api/auth/session/validate"), {
+      const res = await fetch(internalUrl(request, "/api/auth/session/validate"), {
         headers: { Authorization: `Bearer ${token}` },
       });
 
