@@ -90,6 +90,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       active: session.active,
       startTime: session.startTime,
       endTime: session.endTime,
+      idleTime: session.idleTime,
       duration: session.endTime ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000) : null,
       messages: session.messages,
       universeId: session.universeId ? Number(session.universeId) : null,
