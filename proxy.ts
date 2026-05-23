@@ -14,7 +14,6 @@ function isPublic(pathname: string) {
 
 function internalUrl(path: string): string {
   const base = process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-  console.log("Internal URL base:", base);
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
