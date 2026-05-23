@@ -30,7 +30,6 @@ import { Toaster } from "react-hot-toast";
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
   process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com";
-const INTERCOM_APP_ID = process.env.NEXT_PUBLIC_INTERCOM_APP_ID;
 
 type AppPropsWithLayout = AppProps & {
   Component: pageWithLayout;
@@ -200,54 +199,6 @@ function Initializer() {
     } catch (e) {
       console.error("PostHog identify error", e);
     }
-  }, [login]);
-
-  useEffect(() => {
-    (async () => {
-      if (INTERCOM_APP_ID === undefined) return;
-
-      try {
-        const cfgResp = await fetch("/api/intercom/config");
-        const cfg = cfgResp.ok ? await cfgResp.json() : { configured: false };
-        if (!cfg.configured) {
-          console.warn(
-            "Intercom server-side JWT not configured; skipping Intercom load.",
-          );
-          return;
-        }
-
-        const Intercom = (await import("@intercom/messenger-js-sdk")).default;
-
-        const avatar = `${window.location.origin}/avatars/${login.userId}.png`;
-        const userId = String(login.userId);
-        const payload: any = {
-          app_id: INTERCOM_APP_ID,
-          name: login.username,
-          user_id: userId,
-          avatar: { type: "image", image_url: avatar },
-        };
-
-        try {
-          const r = await fetch("/api/intercom/token", {
-            credentials: "same-origin",
-          });
-          if (r.ok) {
-            const j = await r.json();
-            if (j.intercom_user_hash) {
-              payload.user_hash = j.intercom_user_hash;
-            }
-          }
-        } catch (e) {}
-
-        try {
-          Intercom(payload);
-        } catch (e) {
-          console.error("Failed to initialize Intercom:", e);
-        }
-      } catch (e) {
-        console.error("Intercom init error", e);
-      }
-    })();
   }, [login]);
 
   return null;

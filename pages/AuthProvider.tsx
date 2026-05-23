@@ -6,7 +6,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 
-const INTERCOM_APP_ID = process.env.NEXT_PUBLIC_INTERCOM_APP_ID;
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com';
 
@@ -67,49 +66,6 @@ export default function AuthProvider({
 			} catch (e) {}
 		};
 	}, []);
-
-	useEffect(() => {
-		const isWelcomeOrLogin = Router.pathname === '/welcome' || Router.pathname === '/login';
-
-		if (INTERCOM_APP_ID) {
-			const injectIntercom = () => {
-				if (document.getElementById('intercom-script')) return;
-				const s = document.createElement('script');
-				s.id = 'intercom-script';
-				s.src = `https://widget.intercom.io/widget/${INTERCOM_APP_ID}`;
-				s.async = true;
-				document.head.appendChild(s);
-			};
-
-			(async () => {
-				try {
-					const cfgResp = await fetch('/api/intercom/config');
-					const cfg = cfgResp.ok ? await cfgResp.json() : { configured: false };
-					if (!cfg.configured) {
-						console.warn('Intercom server-side JWT not configured; skipping Intercom load.');
-						return;
-					}
-
-					if (isWelcomeOrLogin || !login) {
-						const bootGuest = () => {
-							try {
-								(window as any).Intercom('boot', { app_id: INTERCOM_APP_ID });
-							} catch (e) {}
-						};
-
-						injectIntercom();
-						if ((window as any).Intercom) bootGuest();
-						else if (document.getElementById('intercom-script')) {
-							document.getElementById('intercom-script')!.addEventListener('load', bootGuest);
-						}
-					}
-				} catch (e) {
-					console.error('Intercom init error', e);
-				}
-			})();
-		}
-
-	}, [Router.pathname, login, workspace]);
 
 	return <></>;
 }

@@ -17,15 +17,14 @@ export default function Document() {
           httpEquiv="Content-Security-Policy"
           content={
             "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://uranus.planetaryapp.cloud; " +
-            "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com/ https://*.posthog.com https://widget.intercom.io https://js.intercomcdn.com https://cdn.posthog.com https://js.posthog.com https://cdn.intercom.com https://uploads.intercomcdn.com https://uranus.planetaryapp.cloud; " +
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud; " +
+            "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com/ https://*.posthog.com https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud; " +
             "script-src-attr 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-            "font-src 'self' https://fonts.gstatic.com https://fonts.intercomcdn.com; " +
+            "font-src 'self' https://fonts.gstatic.com; " +
             "img-src 'self' data: https: blob: https://lh3.googleusercontent.com; " + 
             "media-src 'self' https://audio-ssl.itunes.apple.com; " +
-            "connect-src 'self' https: https://api.intercom.io https://events.posthog.com https://app.posthog.com https://uranus.planetaryapp.cloud wss://*.intercom.io wss:; " +
-            "frame-src 'self' https://widget.intercom.io; " +
+            "connect-src 'self' https: https://events.posthog.com https://app.posthog.com https://uranus.planetaryapp.cloud;" +
             "base-uri 'self'; form-action 'self';"
           }
         />
