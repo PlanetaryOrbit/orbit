@@ -56,7 +56,6 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
 
   try {
     const url = internalUrl(request, "/api/admin/first-setup/config");
-    console.log("[Middleware] Checking setup at:", url);
     
     const res = await fetch(url);
 
