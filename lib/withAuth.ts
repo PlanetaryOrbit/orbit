@@ -11,6 +11,7 @@ import zxcvbn from "zxcvbn";
 import * as cookie from "cookie";
 import * as crypto from "crypto";
 import { getConfig } from "@/utils/configEngine";
+import prisma from "@/utils/database";
 
 if (process.env.NODE_ENV === "production") {
   const secret =
