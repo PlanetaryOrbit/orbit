@@ -5,7 +5,7 @@ import { withKey } from "@/lib/withAuth";
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH" && req.method !== "DELETE") {
+  if ( req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH" && req.method !== "DELETE") {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
@@ -20,47 +20,56 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === "GET") {
     try {
-      const notices = await prisma.inactivityNotice.findMany({
+      const resignations = await prisma.staffResignation.findMany({
         where: {
           workspaceGroupId: workspaceId,
         },
         select: {
-          approved: true,
           id: true,
-          endTime: true,
+          userId: true,
+          lastWorkingDay: true,
           reason: true,
+          approved: true,
           reviewed: true,
-          revoked: true,
+          reviewComment: true,
+          createdAt: true,
+          updatedAt: true,
+          reviewerId: true,
           user: {
+            select: {
+              username: true,
+              picture: true,
+            },
+          },
+          reviewer: {
             select: {
               username: true,
             },
           },
-          userId: true,
-          startTime: true,
-          reviewComment: true,
         },
         orderBy: {
-          startTime: "desc",
+          createdAt: "desc",
         },
       });
 
-      const formattedResponse = notices.map((notice) => ({
-        approved: notice.approved,
-        id: notice.id,
-        endTime: notice.endTime,
-        reason: notice.reason,
-        reviewed: notice.reviewed,
-        revoked: notice.revoked,
-        username: notice.user.username,
-        userId: notice.userId,
-        startTime: notice.startTime,
-        reviewComment: notice.reviewComment,
+      const formattedResponse = resignations.map((resignation) => ({
+        id: resignation.id,
+        userId: resignation.userId,
+        username: resignation.user.username,
+        lastWorkingDay: resignation.lastWorkingDay,
+        reason: resignation.reason,
+        approved: resignation.approved,
+        reviewed: resignation.reviewed,
+        reviewComment: resignation.reviewComment,
+        createdAt: resignation.createdAt,
+        updatedAt: resignation.updatedAt,
+        reviewerName: resignation.reviewer?.username || null,
+        reviewerId: resignation.reviewerId,
       }));
 
       return res.status(200).json({ success: true, data: formattedResponse });
     } catch (error) {
-      console.error("Error fetching notices:", error);
+      console.error("Error fetching resignations:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
@@ -68,19 +77,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.method === "POST") {
-    const { reason, startTime, endTime, userId } = req.body;
+    const { reason, lastWorkingDay, userId } = req.body;
 
-    if (!reason || !endTime || !userId) {
+    if (!reason || !lastWorkingDay || !userId) {
       return res.status(400).json({
         success: false,
-        error: "Reason, endTime, and userId are required",
+        error: "Reason, lastWorkingDay, and userId are required",
       });
     }
 
-    if (!reason || typeof reason !== "string") {
+    if (typeof reason !== "string") {
       return res.status(400).json({
         success: false,
-        error: "Reason is required and must be a string",
+        error: "Reason must be a string",
       });
     }
 
@@ -92,27 +101,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    const startDateTime = startTime ? new Date(startTime) : new Date();
-    const endDateTime = new Date(endTime);
-
-    if (startDateTime.getTime() < new Date().getTime()) {
+    const lastWorkingDayDate = new Date(lastWorkingDay);
+    if (isNaN(lastWorkingDayDate.getTime())) {
       return res.status(400).json({
         success: false,
-        error: "Start time must be in the future",
+        error: "Invalid lastWorkingDay format",
       });
     }
 
-    if (isNaN(endDateTime.getTime())) {
+    if (lastWorkingDayDate < new Date()) {
       return res.status(400).json({
         success: false,
-        error: "Invalid endTime format",
-      });
-    }
-
-    if (endDateTime <= startDateTime) {
-      return res.status(400).json({
-        success: false,
-        error: "End time must be after start time",
+        error: "Last working day must be in the future",
       });
     }
 
@@ -133,35 +133,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
 
-      const existingActiveNotice = await prisma.inactivityNotice.findFirst({
-        where: {
-          userId: userIdBigInt,
-          workspaceGroupId: workspaceId,
-          approved: true,
-          revoked: false,
-          endTime: {
-            gt: new Date(), // verify if theres an active notice on said user
+      const existingPendingResignation =
+        await prisma.staffResignation.findFirst({
+          where: {
+            userId: userIdBigInt,
+            workspaceGroupId: workspaceId,
+            approved: false,
+            reviewed: false,
           },
-        },
-      });
+        });
 
-      if (existingActiveNotice) {
+      if (existingPendingResignation) {
         return res.status(409).json({
           success: false,
-          error: "User already has an active inactivity notice",
+          error: "User already has a pending resignation",
         });
       }
 
-      const newNotice = await prisma.inactivityNotice.create({
+      const newResignation = await prisma.staffResignation.create({
         data: {
           userId: userIdBigInt,
           workspaceGroupId: workspaceId,
           reason: reason,
-          startTime: startDateTime,
-          endTime: endDateTime,
+          lastWorkingDay: lastWorkingDayDate,
           approved: false,
           reviewed: false,
-          revoked: false,
           reviewComment: null,
         },
         include: {
@@ -177,19 +173,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(201).json({
         success: true,
         data: {
-          id: newNotice.id,
-          userId: newNotice.userId,
-          username: newNotice.user.username,
-          reason: newNotice.reason,
-          startTime: newNotice.startTime,
-          endTime: newNotice.endTime,
-          approved: newNotice.approved,
-          reviewed: newNotice.reviewed,
-          revoked: newNotice.revoked,
+          id: newResignation.id,
+          userId: newResignation.userId,
+          username: newResignation.user.username,
+          reason: newResignation.reason,
+          lastWorkingDay: newResignation.lastWorkingDay,
+          approved: newResignation.approved,
+          reviewed: newResignation.reviewed,
+          createdAt: newResignation.createdAt,
         },
       });
     } catch (error) {
-      console.error("Error creating inactivity notice:", error);
+      console.error("Error creating resignation:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
@@ -217,7 +212,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!notice) {
         return res.status(404).json({
           success: false,
-          error: "Notice not found",
+          error: "Inactivity notice not found",
+        });
+      }
+
+      if (notice.revoked) {
+        return res.status(409).json({
+          success: false,
+          error: "Cannot update a revoked notice",
         });
       }
 
@@ -250,10 +252,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reviewComment: updatedNotice.reviewComment,
           startTime: updatedNotice.startTime,
           endTime: updatedNotice.endTime,
+          revoked: updatedNotice.revoked,
         },
       });
     } catch (error) {
-      console.error("Error updating notice:", error);
+      console.error("Error updating inactivity notice:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
@@ -261,50 +264,49 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.method === "DELETE") {
-    const { noticeId } = req.body;
+    const { resignationId } = req.body;
 
-    if (!noticeId) {
+    if (!resignationId) {
       return res.status(400).json({
         success: false,
-        error: "Notice ID is required",
+        error: "Resignation ID is required",
       });
     }
 
     try {
-      const notice = await prisma.inactivityNotice.findFirst({
+      const resignation = await prisma.staffResignation.findFirst({
         where: {
-          id: noticeId,
+          id: resignationId,
           workspaceGroupId: workspaceId,
         },
       });
 
-      if (!notice) {
+      if (!resignation) {
         return res.status(404).json({
           success: false,
-          error: "Notice not found",
+          error: "Resignation not found",
         });
       }
 
-      const revokedNotice = await prisma.inactivityNotice.update({
+      if (resignation.reviewed) {
+        return res.status(409).json({
+          success: false,
+          error: "Cannot cancel a resignation that has already been reviewed",
+        });
+      }
+
+      await prisma.staffResignation.delete({
         where: {
-          id: noticeId,
-        },
-        data: {
-          revoked: true,
-          reviewed: true,
+          id: resignationId,
         },
       });
 
       return res.status(200).json({
         success: true,
-        message: "Notice revoked successfully",
-        data: {
-          id: revokedNotice.id,
-          revoked: revokedNotice.revoked,
-        },
+        message: "Resignation cancelled successfully",
       });
     } catch (error) {
-      console.error("Error revoking notice:", error);
+      console.error("Error cancelling resignation:", error);
       return res
         .status(500)
         .json({ success: false, error: "Internal server error" });
