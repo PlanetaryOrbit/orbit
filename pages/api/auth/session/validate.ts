@@ -8,10 +8,17 @@ import crypto from 'crypto'
 import prisma from '@/utils/database'
 
 function hashToken(token: string): string {
+  // Remove DONOTSHARE_ prefix before hashing if present
+  const cleanToken = token.replace(/^DONOTSHARE_/i, '')
   return crypto
     .createHash('sha256')
-    .update(token)
+    .update(cleanToken)
     .digest('hex')
+}
+
+function validateTokenFormat(token: string): boolean {
+  // Validate token starts with DONOTSHARE_ followed by 64 hex characters
+  return /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
 }
 
 export default async function handler(
@@ -26,6 +33,12 @@ export default async function handler(
   if (!token) {
     return res.status(401).json({
       error: 'No token',
+    })
+  }
+
+  if (!validateTokenFormat(token)) {
+    return res.status(401).json({
+      error: 'Invalid token format',
     })
   }
 

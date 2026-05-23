@@ -140,7 +140,6 @@ export default async function middleware(request: NextRequest) {
 
     try {
       const url = internalUrl(request, "/api/auth/session/validate");
-      console.log("[Middleware] Validating session at:", url);
       
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
