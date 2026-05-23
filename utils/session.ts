@@ -164,7 +164,7 @@ async function getSessionByToken(token: string) {
 
   return {
     ...session,
-    token: token
+    token: token,
     ipAddress: decrypt(session.ipAddress),
     userAgent: decrypt(session.userAgent),
   }
