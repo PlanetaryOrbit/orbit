@@ -13,7 +13,7 @@ function isPublic(pathname: string) {
 }
 
 function internalUrl(path: string): string {
-  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const base = process.env.VERCEL_URL || process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
@@ -76,11 +76,10 @@ export default async function middleware(request: NextRequest) {
   }
 
   const isActuallySetup = await checkSetup();
-
   const appSetupCookie = request.cookies.get("app_setup")?.value;
-  const cookieIsSetup = appSetupCookie === "true";
+  const cookieIsSetup = request.cookies.get("app_setup") ? appSetupCookie === "true" : false;
 
-  const needsCookieUpdate = cookieIsSetup !== isActuallySetup;
+  const needsCookieUpdate = cookieIsSetup != isActuallySetup;
 
   if (!isActuallySetup && pathname !== "/welcome") {
     const res = NextResponse.redirect(new URL("/welcome", request.url));
