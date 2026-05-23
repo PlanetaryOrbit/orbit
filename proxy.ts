@@ -13,9 +13,30 @@ function isPublic(pathname: string) {
 }
 
 function internalUrl(request: NextRequest, path: string): string {
-  // Use the request's URL to construct the internal URL
-  const { protocol, host } = request.nextUrl;
-  return `${protocol}//${host}${path}`;
+  if (process.env.PLANETARY_CLOUD_URL) {
+    const base = process.env.PLANETARY_CLOUD_URL.replace(/\/$/, "");
+    return `${base}${path}`;
+  }
+  
+  if (process.env.NEXTAUTH_URL) {
+    const base = process.env.NEXTAUTH_URL.replace(/\/$/, "");
+    return `${base}${path}`;
+  }
+  
+  const host = request.headers.get("host") || "";
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    return `http://${host}${path}`;
+  }
+  
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  
+  if (forwardedHost && forwardedProto) {
+    return `${forwardedProto}://${forwardedHost}${path}`;
+  }
+  
+  const { protocol, host: reqHost } = request.nextUrl;
+  return `${protocol}//${reqHost}${path}`;
 }
 
 function getMissingEnvVars(): string[] {
@@ -34,7 +55,10 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
   }
 
   try {
-    const res = await fetch(internalUrl(request, "/api/admin/first-setup/config"));
+    const url = internalUrl(request, "/api/admin/first-setup/config");
+    console.log("[Middleware] Checking setup at:", url);
+    
+    const res = await fetch(url);
 
     if (res.ok) {
       const data = await res.json();
@@ -56,6 +80,7 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
@@ -115,7 +140,10 @@ export default async function middleware(request: NextRequest) {
     }
 
     try {
-      const res = await fetch(internalUrl(request, "/api/auth/session/validate"), {
+      const url = internalUrl(request, "/api/auth/session/validate");
+      console.log("[Middleware] Validating session at:", url);
+      
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
