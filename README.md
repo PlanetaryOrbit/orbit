@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/v/tag/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
   <img src="https://img.shields.io/github/forks/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
   <img src="https://img.shields.io/github/last-commit/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
-  <a href="https://discord.com/invite/ubGPWb3r">
+  <a href="https://discord.gg/m2fqzENapZ">
     <img src="https://img.shields.io/discord/1348101138670682156?style=for-the-badge&logo=discord&logoColor=white&label=Discord&color=7289da" />
   </a>
 
