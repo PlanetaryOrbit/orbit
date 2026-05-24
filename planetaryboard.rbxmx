@@ -192,7 +192,7 @@
 			<Properties>
 				<Content name="LinkedSource"><null></null></Content>
 				<ProtectedString name="Source"><![CDATA[local Config = {
-	baseurl = "<url>", -- the URL of your instance, eg.: https://egg.planetaryapp.cloud/ or https://YOURDOMAIN.com/ (your Top Level Domain may change, additionally if the instance is under a subdomain, please include it.)
+	baseurl = "INSTANCE_URL_PLACEHOLDER", -- the URL of your instance, eg.: https://egg.planetaryapp.cloud/ or https://YOURDOMAIN.com/ (your Top Level Domain may change, additionally if the instance is under a subdomain, please include it.)
 	api_key = "<apikey>", -- automatically generated key
 	workspace_id = "<wid>", -- your workspace id
 	event_type = "<type>", -- the default event, if it's not set on the table below, set "all" if you want it to show all upcoming events, available "shift", "event", "training"...
