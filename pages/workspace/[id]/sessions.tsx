@@ -87,7 +87,7 @@ function SessionMemberAvatar({
       )}
     >
       <img
-        src={`/api/workspace/${workspaceId}/avatar/${userid}`}
+        src={`/api/user/${userid}/avatar`}
         alt={username || "Member"}
         className="h-full w-full rounded-full border-2 border-white object-cover dark:border-zinc-900"
         style={{ background: "transparent" }}

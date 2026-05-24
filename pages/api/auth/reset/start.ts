@@ -4,7 +4,7 @@ import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import { getRobloxThumbnail, getRobloxDisplayName } from "@/utils/roblox";
 
-export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler (req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
 
 	const { username } = req.body;
@@ -19,12 +19,13 @@ export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
 	const array = ["📋", "🎉", "🎂", "📆", "✔️", "📃", "👍", "➕", "📢", "🐒", "🐴", "🐑", "🐘", "🐼", "🐧", "🐦", "🐤", "🐥", "🐣", "🐔", "🐍", "🐢", "🐛", "🐝", "🐜"];
 	const verificationCode = `🤖${Array.from({ length: 11 }, () => array[Math.floor(Math.random() * array.length)]).join("")}`;
 
-	req.session.verification = {
-		userid: authid,
-		verificationCode,
-		isReset: true as boolean,
-	};
-	await req.session.save();
+  await prisma.verificationState.create({
+    data: {
+      code: verificationCode,
+      userId: BigInt(authid),
+      isReset: true,
+    }
+  })
 
 	const [thumbnail, displayName] = await Promise.all([
 		getRobloxThumbnail(authid).catch(() => ""),
@@ -33,8 +34,9 @@ export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
 
 	res.status(200).json({
 		success: true,
+    userId: existingUser.userid.toString(),
 		code: verificationCode,
 		thumbnail: thumbnail || undefined,
 		displayName: displayName || username,
 	});
-});
+};

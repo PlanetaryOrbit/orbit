@@ -2759,7 +2759,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               <div className="flex items-center space-x-3">
                                 {user.picture ? (
                                   <img
-                                    src={user.picture}
+                                    src={`/api/user/${user.userid}/avatar`}
                                     alt={user.username || `User ${user.userid}`}
                                     className="w-8 h-8 rounded-full"
                                   />

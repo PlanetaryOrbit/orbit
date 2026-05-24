@@ -35,6 +35,7 @@ function getAvatarBgColor(displayName: string): string {
 const ForgotPassword: NextPage = () => {
 	const [selectedSlide, setSelectedSlide] = useState(0);
 	const [code, setCode] = useState("");
+  const [userId, setUserId] = useState<number | null>(null);
 	const [resetDisplayName, setResetDisplayName] = useState("");
 	const [resetThumbnail, setResetThumbnail] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -60,6 +61,7 @@ const ForgotPassword: NextPage = () => {
 				username: usernameForm.getValues("username"),
 			});
 			setCode(response.data.code);
+			setUserId(Number(response.data.userId));
 			setResetDisplayName(response.data.displayName || usernameForm.getValues("username"));
 			setResetThumbnail(response.data.thumbnail || "");
 			setSelectedSlide(1);
@@ -74,6 +76,7 @@ const ForgotPassword: NextPage = () => {
 		try {
 			await axios.post("/api/auth/reset/finish", {
 				password: passwordForm.getValues("password"),
+        userId,
 			});
 			Router.push("/");
 		} catch (e: any) {
@@ -241,7 +244,7 @@ const ForgotPassword: NextPage = () => {
 										onPress={async () => {
 											setError(null);
 											try {
-												const response = await axios.post("/api/auth/reset/verify");
+												const response = await axios.post("/api/auth/reset/verify", { userId });
 													if (response.data.success) {
 														setSelectedSlide(3);
 													}

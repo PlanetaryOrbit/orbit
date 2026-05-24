@@ -136,6 +136,15 @@ model ValidationState {
   @@index([code])
 }
 
+model VerificationState {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  userId     BigInt
+  isReset    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  @@index([code])
+}
+
 model pendingVerification {
   token            String   @id @unique @default(uuid()) @db.Uuid
   userid           Int

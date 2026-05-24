@@ -1,21 +1,25 @@
-import { withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function authHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ success: false, error: "Method not allowed" });
 
-  const verification = req.session.verification;
+  const verification = await prisma.verificationState.findFirst({
+    where: {
+      isReset: true,
+      userId: BigInt(req.body.userId),
+    },
+  });
   if (!verification || !verification.isReset)
     return res.status(400).json({ success: false, error: "Invalid verification session" });
 
-  const { userid, verificationCode } = verification;
+  const { userId, code } = verification;
 
-  const blurb = await noblox.getBlurb(Number(userid)).catch(() => null);
-  if (!blurb || !blurb.includes(verificationCode)) {
+  const blurb = await noblox.getBlurb(Number(userId)).catch(() => null);
+  if (!blurb || !blurb.includes(code)) {
     return res.status(400).json({ success: false, error: "Verification code not found in Roblox blurb" });
   }
 
@@ -24,23 +28,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const hash = await bcryptjs.hash(password, 10);
   await prisma.userInfo.update({
-    where: { userid: BigInt(userid) },
+    where: { userid: BigInt(userId) },
     data: { passwordhash: hash },
   });
 
-  delete req.session.verification;
-  await req.session.save();
+  await prisma.verificationState.delete({
+    where: { id: verification.id },
+  });
 
   res.status(200).json({ success: true });
 }
 
-export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const TIMEOUT_MS = 20000;
   const timeoutPromise = new Promise<void>((_, reject) =>
     setTimeout(() => reject(new Error("Request timed out")), TIMEOUT_MS)
   );
   try {
-    await Promise.race([handler(req, res), timeoutPromise]);
+    await Promise.race([authHandler(req, res), timeoutPromise]);
   } catch (error) {
     if ((error as Error).message === "Request timed out") {
       return res.status(503).json({
@@ -48,6 +53,7 @@ export default withAuth(async (req: NextApiRequest, res: NextApiResponse) => {
         error: "Server is too busy, please try again later.",
       });
     }
+    console.log(error)
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
-});
+};
