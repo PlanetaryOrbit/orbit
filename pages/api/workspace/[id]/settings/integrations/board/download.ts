@@ -94,7 +94,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const result = xml_string
     .replace(/<apikey>/g, boardConfig.key)
-    .replace(/<url>/g, `${currentUrl.origin}/`)
+    .replace(/INSTANCE_URL_PLACEHOLDER/g, `${currentUrl.origin}/`)
     .replace(/<wid>/g, req.query.id?.toString() ?? "0")
     .replace(/<type>/g, req.query.event.toString())
     .replace(/<oclaimed>/g, req.query.sClaimed.toString())
