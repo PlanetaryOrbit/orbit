@@ -10,7 +10,7 @@ export async function getCachedAvatar(userId: number): Promise<string> {
   if (!fs.existsSync(AVATAR_DIR)) fs.mkdirSync(AVATAR_DIR, { recursive: true });
 
   const avatarPath = path.join(AVATAR_DIR, `${userId}.png`);
-  const avatarUrl = `/avatars/${userId}.png`;
+  const avatarUrl = `/avatars/${userId}_180.png`;
 
   if (fs.existsSync(avatarPath)) {
     const stats = fs.statSync(avatarPath);

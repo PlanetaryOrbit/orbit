@@ -1044,7 +1044,7 @@ const Quotas: pageWithLayout<pageProps> = ({
             picture:
               u.picture ||
               (typeof id === "string"
-                ? `/api/workspace/${id}/avatar/${u.userid}`
+                ? `/api/user/${u.userid}/avatar`
                 : null),
           }));
         setUserSearchResults(users);

@@ -193,7 +193,7 @@ export function SessionsHistory({
                               <div className="flex items-center gap-1.5">
                                 <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 shrink-0">
                                   <img
-                                    src={`/api/workspace/${router.query.id}/avatar/${session.owner.userid}`}
+                                    src={`/api/user/${session.owner.userid}/avatar`}
                                     alt={session.owner.username || "Host"}
                                     className="w-full h-full object-cover"
                                   />
@@ -236,7 +236,7 @@ export function SessionsHistory({
                                   >
                                 <div className="relative w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
                                     <img
-                                      src={`/api/workspace/${router.query.id}/avatar/${participant.userid}`}
+                                      src={`/api/user/${participant.userid}/avatar`}
                                       alt={participant.user?.username || "User"}
                                       className="w-7 h-7 rounded-full object-cover"
                                     />

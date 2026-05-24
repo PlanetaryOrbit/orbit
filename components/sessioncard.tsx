@@ -65,7 +65,7 @@ function sessionAvatarSrc(
   workspaceId?: number
 ) {
   if (workspaceId && userid) {
-    return `/api/workspace/${workspaceId}/avatar/${userid}`;
+    return `/api/user/${userid}/avatar`;
   }
   return picture || "/default-avatar.jpg";
 }

@@ -553,7 +553,7 @@ export function InformationTab({
                         <Combobox.Option key={member.userid} value={member} className={({ active }) => `cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${active ? "bg-primary/10" : ""}`}>
                           {({ selected }) => (
                             <>
-                              <img src={`/api/workspace/${router.query.id}/avatar/${member.userid}`} className="w-5 h-5 rounded-full object-cover" alt={member.username} />
+                              <img src={`/api/user/${member.userid}/avatar`} className="w-5 h-5 rounded-full object-cover" alt={member.username} />
                               <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>{member.username}</span>
                             </>
                           )}
@@ -566,7 +566,7 @@ export function InformationTab({
             ) : (selectedManager || initialLineManager) ? (
               <div className="flex items-center gap-2">
                 <div className={`rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center overflow-hidden ${getRandomBg((selectedManager || initialLineManager)?.userid || "")}`}>
-                  <img src={`/api/workspace/${router.query.id}/avatar/${(selectedManager || initialLineManager)?.userid}`} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
+                  <img src={`/api/user/${(selectedManager || initialLineManager)?.userid}/avatar`} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
                 </div>
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">
                   {(selectedManager || initialLineManager)?.username}

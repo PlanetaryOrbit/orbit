@@ -180,7 +180,7 @@ export function DocViewMeta({
     >
       {authorId ? (
         <img
-          src={`/api/workspace/${workspaceId}/avatar/${authorId}`}
+          src={`/api/user/${authorId}/avatar`}
           alt={authorName}
           className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
           style={{ background: "transparent" }}

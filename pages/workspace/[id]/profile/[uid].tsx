@@ -1011,7 +1011,7 @@ const Profile: pageWithLayout<pageProps> = ({
                   )}`}
                 >
                   <img
-                    src={`/api/workspace/${workspaceId}/avatar/${user.userid}`}
+                    src={`/api/user/${user.userid}/avatar`}
                     className="h-full w-full object-cover"
                     alt={`${info.displayName}'s avatar`}
                   />

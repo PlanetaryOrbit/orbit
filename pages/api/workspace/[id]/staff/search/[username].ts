@@ -31,7 +31,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       });
     }
 
-    const workspaceGroupId = parseInt(req.query.id as string, 10);
+    const uid = parseInt(req.query.id as string, 10);
 
     const users = await prisma.user.findMany({
       where: {
@@ -41,7 +41,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         },
         roles: {
           some: {
-            workspaceGroupId,
+            workspaceGroupId: uid,
           },
         },
       },
@@ -59,7 +59,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         userid: uid,
         username: user.username,
         picture:
-          user.picture || `/api/workspace/${workspaceGroupId}/avatar/${uid}`,
+          user.picture || `/api/user/${uid}/avatar/${uid}`,
       };
     });
 

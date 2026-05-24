@@ -326,7 +326,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
               )}
             >
               <img
-                src={`/api/workspace/${router.query.id}/avatar/${row.getValue().userId}`}
+                src={`/api/user/${row.getValue().userId}/avatar`}
                 className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
                 style={{ background: "transparent" }}
                 alt=""

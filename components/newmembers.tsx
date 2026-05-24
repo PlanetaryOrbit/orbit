@@ -254,7 +254,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
                     )}
                   >
                     <img
-                      src={`/api/workspace/${workspaceId}/avatar/${m.userid}`}
+                      src={`/api/user/${m.userid}/avatar`}
                       alt={m.username}
                       className="h-16 w-16 rounded-full border-2 border-white object-cover dark:border-zinc-800"
                       style={{ background: "transparent" }}
