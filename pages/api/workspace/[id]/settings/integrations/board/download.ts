@@ -7,15 +7,9 @@ import * as path from "path";
 import axios from "axios";
 import packageInfo from "@/package.json";
 
-type Data = {
-  success: boolean;
-  error?: string;
-  color?: string;
-};
-
 export default withPermissionCheck(handler, "admin");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
