@@ -573,7 +573,10 @@ const Login: NextPage = () => {
                       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                         Paste this code into your Roblox profile bio, then click Verify.
                       </p>
-                      <p className="mb-4 mt-5 select-all rounded-xl bg-zinc-100 px-4 py-3 text-center font-mono text-sm text-zinc-900 dark:bg-zinc-800 dark:text-white">
+                      <p 
+                        className="mb-4 mt-5 select-all rounded-xl bg-zinc-100 px-4 py-3 text-center font-mono text-sm text-zinc-900 dark:bg-zinc-800 dark:text-white"
+                        onClick={() => {navigator.clipboard.writeText(verificationCode); toast.success("Verification code copied to clipboard")}}
+                      >
                         {verificationCode}
                       </p>
                       <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-zinc-500 dark:text-zinc-400">
