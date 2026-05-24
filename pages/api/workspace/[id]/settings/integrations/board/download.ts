@@ -101,7 +101,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     .replace(/<mode>/g, req.query.lightMode.toString() === "true" ? "light" : "dark")
     .replace(/<cformat>/g, req.query.gFormat.toString() === "true" ? "24h" : "12h");
 
-  res.setHeader("Content-Type", "application/xml");
-  res.setHeader("Content-Disposition", "attachment; filename=planetaryboard.rbxmx");
-  res.status(200).send(result as any);
+  res.setHeader("Content-Disposition", "attachment; filename=planetaryboard.rbxmx")
+  res.status(200).send(result)
 }
