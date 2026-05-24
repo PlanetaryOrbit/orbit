@@ -444,7 +444,7 @@ local function getSessions()
 
 	local Payload = {
 		Url = Config.baseurl .. "api/public/v1/workspace/" .. Config.workspace_id 
-			.. "/sessions/calendar?startDate=" .. startDate .. "&endDate=" .. endDate .. categoryParam,
+			.. "/sessions/upcoming" .. categoryParam,
 		Method = "GET",
 		Headers = {
 			["Authorization"] = Config.api_key
