@@ -14,7 +14,7 @@ function isPublic(pathname: string) {
 
 function internalUrl(request: NextRequest, path: string): string {
   if (process.env.PLANETARY_CLOUD_URL) {
-    const base = process.env.PLANETARY_CLOUD_URL.replace(/\/$/, "");
+    const base = process.env.NEXTAUTH_URL || "http://localhost:3000"; // idk seem to work on cloud instances
     return `${base}${path}`;
   }
   
