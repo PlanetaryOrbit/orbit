@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
-import { withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 
 async function editHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -107,8 +107,14 @@ async function editHandler(req: NextApiRequest, res: NextApiResponse) {
   return res.status(405).json({ success: false, error: "Method not allowed" });
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method === "PATCH") {
+    const isSelf = req.auth.userId === BigInt(req.query.uid as string);
+    if (isSelf) {
+      const { timezone, birthdayDay, birthdayMonth, discordId } = req.body;
+      req.body = { timezone, birthdayDay, birthdayMonth, discordId };
+      return editHandler(req, res);
+    }
     return withPermissionCheck(editHandler, 'edit_member_details')(req, res);
   }
   return editHandler(req, res);

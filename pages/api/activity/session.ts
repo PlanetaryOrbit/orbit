@@ -249,7 +249,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         console.log("error falls here")
         return res.status(401).json({ success: false, error: "Authorization required" });
       }
-      console.log(id)
       const session = await prisma.activitySession.findFirst({
         where: {
           userId: BigInt(id.toString()),
