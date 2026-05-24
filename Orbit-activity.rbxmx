@@ -2,7 +2,7 @@
 	<Meta name="ExplicitAutoJoints">true</Meta>
 	<External>null</External>
 	<External>nil</External>
-	<Item class="Script" referent="RBX1e922395b7f2497989758865ad194103">
+	<Item class="Script" referent="RBX136FA6CC08AA4438A6013208DCCB74BB">
 		<Properties>
 			<ProtectedString name="Source"><![CDATA[-- Orbit Activity Tracker
 local ReplicatedStorage  = game:GetService("ReplicatedStorage")
@@ -41,7 +41,7 @@ local Configuration = {
 	cooldownPeriod    = 30,      -- Seconds between HTTP retries
 	minutesTillAFK    = 2,       -- Idle minutes before AFK flag
 	scanInterval      = 300,     -- Seconds between full player scans (5 min)
-	heartbeatInterval = 30,      -- Seconds between lightweight heartbeats
+	heartbeatInterval = 60,      -- Seconds between lightweight heartbeats
 
 	-- Chat capture
 	maxStoredChatLines  = 200,
@@ -65,6 +65,8 @@ local chatLogTable   = {}
 local rankTable      = {}
 local afkTable       = {}
 local sessionActive  = {}
+
+local lastActivityTime: { [number]: number } = {}
 
 local function log(level: string, msg: string)
 	local prefix = string.format("[Orbit][%s] %s", level, msg)
@@ -104,6 +106,11 @@ local function setAFK(Player: Player, state: boolean)
 	elseif not state and idx then
 		table.remove(afkTable, idx)
 	end
+end
+
+local function bumpActivity(Player: Player)
+	lastActivityTime[Player.UserId] = os.clock()
+	setAFK(Player, false)
 end
 
 local function appendChatLine(userId: number, raw: unknown)
@@ -174,11 +181,7 @@ local function httpPost(endpoint: string, body: unknown): boolean
 		log("ERROR", "Failed to encode body for " .. endpoint)
 		return false
 	end
-	local request = HttpQueue.HttpRequest.new(
-		Configuration.url .. endpoint,
-		"POST",
-		encoded,
-		nil,
+	local request = HttpQueue.HttpRequest.new(Configuration.url .. endpoint, "POST", encoded, nil,
 		{
 			["Content-Type"]  = "application/json",
 			["authorization"] = Configuration.auth,
@@ -245,31 +248,61 @@ end
 local function MovementDetection(Player: Player)
 	local Character = Player.Character or Player.CharacterAdded:Wait()
 	local Humanoid  = Character:WaitForChild("Humanoid")
-	local lastMovement = os.clock()
+	local userId    = Player.UserId
 
-	local function onSpeedChanged(Speed: number)
-		if Speed > 0 then
-			setAFK(Player, false)
-			lastMovement = os.clock()
+	if not lastActivityTime[userId] then
+		lastActivityTime[userId] = os.clock()
+	end
+
+	local connections: { RBXScriptConnection } = {}
+
+	local function onActivity(speed: number)
+		if speed > 0 then
+			bumpActivity(Player)
 		else
-			local capturedTime = os.clock()
-			lastMovement = capturedTime
+			local snapshot = os.clock()
+			lastActivityTime[userId] = snapshot
 
 			FastWait(60 * Configuration.minutesTillAFK)
-
-			if lastMovement == capturedTime and isPlayerOnline(Player) then
+			if isPlayerOnline(Player) and lastActivityTime[userId] == snapshot then
 				setAFK(Player, true)
+				log("INFO", Player.Name .. " marked AFK (no movement for "
+					.. Configuration.minutesTillAFK .. " min).")
 			end
 		end
 	end
 
-	Humanoid.Running:Connect(onSpeedChanged)
-	Humanoid.Swimming:Connect(onSpeedChanged)
-	Humanoid.Climbing:Connect(onSpeedChanged)
+	table.insert(connections, Humanoid.Running:Connect(onActivity))
+	table.insert(connections, Humanoid.Swimming:Connect(onActivity))
+	table.insert(connections, Humanoid.Climbing:Connect(onActivity))
+	table.insert(connections, Humanoid.Jumping:Connect(function(isJumping)
+		if isJumping then
+			bumpActivity(Player)
+		end
+	end))
+	local charRemovedConn
+	charRemovedConn = Character.AncestryChanged:Connect(function()
+		if not Character:IsDescendantOf(game) then
+			for _, c in ipairs(connections) do
+				c:Disconnect()
+			end
+			charRemovedConn:Disconnect()
+		end
+	end)
 end
 
 local function InputChange(Player: Player, isIdle: boolean)
-	setAFK(Player, isIdle)
+	if not isIdle then
+		bumpActivity(Player)
+	else
+		local lastActive = lastActivityTime[Player.UserId]
+		local idleSeconds = lastActive and (os.clock() - lastActive) or math.huge
+		local threshold = 60 * Configuration.minutesTillAFK * 0.5
+
+		if idleSeconds >= threshold then
+			setAFK(Player, true)
+		end
+	end
 end
 
 TovyEvent.OnServerEvent:Connect(InputChange)
@@ -278,6 +311,7 @@ local function InitiatePlayer(Player: Player)
 	local rank = fetchRank(Player)
 	rankTable[Player.UserId] = { Rank = rank }
 	chatLogTable[Player.UserId] = {}
+	lastActivityTime[Player.UserId] = os.clock()
 
 	if not isUserTracked(Player) then
 		log("INFO", Player.Name .. " is not at a tracked rank — skipping session.")
@@ -298,21 +332,24 @@ end
 local function CleanupPlayer(Player: Player, reason: string?)
 	EndSession(Player, reason)
 	setAFK(Player, false)
-	rankTable[Player.UserId]   = nil
-	chatLogTable[Player.UserId] = nil
-	sessionActive[Player.UserId] = nil
+	rankTable[Player.UserId]      = nil
+	chatLogTable[Player.UserId]   = nil
+	sessionActive[Player.UserId]  = nil
+	lastActivityTime[Player.UserId] = nil
 end
 
 Players.PlayerAdded:Connect(function(Player)
 	InitiatePlayer(Player)
 
 	Player.CharacterAdded:Connect(function()
+		lastActivityTime[Player.UserId] = os.clock()
 		MovementDetection(Player)
 	end)
 
 	Player.Chatted:Connect(function(Message)
 		if isUserTracked(Player) then
 			appendChatLine(Player.UserId, Message)
+			bumpActivity(Player)
 		end
 	end)
 end)
@@ -359,7 +396,6 @@ end)
 task.spawn(function()
 	while true do
 		task.wait(Configuration.heartbeatInterval)
-
 		for idx, Player in ipairs(afkTable) do
 			local online = isPlayerOnline(Player)
 			if online then
@@ -400,9 +436,10 @@ task.spawn(function()
 					ghostRow.chatBodies = chatLogTable[userId]
 				end
 				httpPost("/api/activity/session?type=end", ghostRow)
-				sessionActive[userId]  = false
-				chatLogTable[userId]   = nil
-				rankTable[userId]      = nil
+				sessionActive[userId]     = false
+				chatLogTable[userId]      = nil
+				rankTable[userId]         = nil
+				lastActivityTime[userId]  = nil
 			end
 		end
 		for _, Player in ipairs(onlinePlayers) do
@@ -441,6 +478,7 @@ task.spawn(function()
 						and newRank >= Configuration.minTrackedRank then
 						log("INFO", Player.Name .. " now meets min rank, starting session.")
 						chatLogTable[Player.UserId] = {}
+						lastActivityTime[Player.UserId] = os.clock()
 						local afkTimer = Instance.new("NumberValue")
 						afkTimer.Name   = "Orbit AFK Timer"
 						afkTimer.Parent = Player
@@ -466,17 +504,6 @@ task.spawn(function()
 				chatLogTable[userId] = nil
 			end
 		end
-
-		log("INFO", string.format(
-			"Scan complete. Online: %d | AFK: %d | Active sessions: %d",
-			#onlinePlayers,
-			#afkTable,
-			(function()
-				local c = 0
-				for _, v in pairs(sessionActive) do if v then c += 1 end end
-				return c
-			end)()
-			))
 	end
 end)
 
@@ -494,7 +521,7 @@ end]]></ProtectedString>
 			<int64 name="SourceAssetId">-1</int64>
 			<BinaryString name="Tags"></BinaryString>
 		</Properties>
-		<Item class="Folder" referent="RBXf3fc8648a3284e1da05ebc072f566654">
+		<Item class="Folder" referent="RBX693341DE809A4CD49D9F5CB3B3393E79">
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
@@ -503,7 +530,7 @@ end]]></ProtectedString>
 				<int64 name="SourceAssetId">-1</int64>
 				<BinaryString name="Tags"></BinaryString>
 			</Properties>
-			<Item class="ModuleScript" referent="RBX3bbb1ccb13c4465ba054a7d3f0fde623">
+			<Item class="ModuleScript" referent="RBX07FA90DC23FB4320BAA3E8AE3B2FB71E">
 				<Properties>
 					<Content name="LinkedSource"><null></null></Content>
 					<ProtectedString name="Source"><![CDATA[--[[
@@ -533,7 +560,7 @@ return exports
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 				</Properties>
-				<Item class="ModuleScript" referent="RBXd07760efdfd24cc1ba181b525f1f0faa">
+				<Item class="ModuleScript" referent="RBX420582FA45444CE5B7E8BF3848CEC181">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -585,7 +612,7 @@ return dataUtils
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXc494869551f249c1bd02bef3d80908b3">
+				<Item class="ModuleScript" referent="RBXE605E8EF534F4B1196851113F9AA2A8F">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -835,7 +862,7 @@ return setmetatable(HttpQueue, {
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX158c7558b88f48fb86c621ee86dffe19">
+				<Item class="ModuleScript" referent="RBXE4B37F048F3A4B308624637FF63546BE">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -958,7 +985,7 @@ return setmetatable(HttpRequest, {
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX684c91fe06894e2e9993101aedf5abc1">
+				<Item class="ModuleScript" referent="RBXF423B4D74F8B485A924F53194D118783">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -997,7 +1024,7 @@ return setmetatable({
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXc1fba2078a4949128aeb7ca3fa6ec60f">
+				<Item class="ModuleScript" referent="RBX4AB9CE10AC1F4A2AB8FB5182011EF779">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1036,7 +1063,7 @@ return newHttpResponse
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXa2bd8508d9ee45a18c0ba9e83b21a75a">
+				<Item class="ModuleScript" referent="RBXEFA62D4AD643454B85B6448358C73AFE">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1095,7 +1122,7 @@ return guards
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXd1989a3ab2bc4319ad17b735fe4b593e">
+				<Item class="ModuleScript" referent="RBX1465A4E06A2F4E0498FC487CD70E98C5">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1136,7 +1163,7 @@ return dependencies
 						<int64 name="SourceAssetId">-1</int64>
 						<BinaryString name="Tags"></BinaryString>
 					</Properties>
-					<Item class="ModuleScript" referent="RBXc0d612c241c24b81ac84322a5f199710">
+					<Item class="ModuleScript" referent="RBXBBEEE3F302994C97A16C59AB027A763C">
 						<Properties>
 							<Content name="LinkedSource"><null></null></Content>
 							<ProtectedString name="Source"><![CDATA[--[[
@@ -2551,7 +2578,7 @@ return Promise
 							<BinaryString name="Tags"></BinaryString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBXcc588c23d11b4247bdb369d50888020e">
+					<Item class="ModuleScript" referent="RBXF32C73DC5C744B7297A402ACA0D7E6E9">
 						<Properties>
 							<Content name="LinkedSource"><null></null></Content>
 							<ProtectedString name="Source"><![CDATA[-- t: a runtime typechecker for Roblox
@@ -3750,7 +3777,7 @@ return t
 					</Item>
 				</Item>
 			</Item>
-			<Item class="LocalScript" referent="RBXa8d5ff8524a644d7857f3fff5e167f8a">
+			<Item class="LocalScript" referent="RBX45BC23D3DC8A4FB5866E74FE8DF5C342">
 				<Properties>
 					<ProtectedString name="Source"><![CDATA[--[[
 
@@ -3785,7 +3812,7 @@ end)]]></ProtectedString>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 				</Properties>
-				<Item class="ObjectValue" referent="RBXe83e70b9db5f4e05a88a7235611c6999">
+				<Item class="ObjectValue" referent="RBX8618873F3AB74AC098C4EF429027BE17">
 					<Properties>
 						<Ref name="Value">null</Ref>
 						<BinaryString name="AttributesSerialize"></BinaryString>
@@ -3797,7 +3824,7 @@ end)]]></ProtectedString>
 					</Properties>
 				</Item>
 			</Item>
-			<Item class="ModuleScript" referent="RBX104c86ce35ce4b0f9c86972ae282c63a">
+			<Item class="ModuleScript" referent="RBX079322345A564EBFA6A031FDE4E49E30">
 				<Properties>
 					<Content name="LinkedSource"><null></null></Content>
 					<ProtectedString name="Source"><![CDATA[local RunService = game:GetService("RunService")
