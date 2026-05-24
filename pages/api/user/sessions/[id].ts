@@ -23,7 +23,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     return res.status(403).json({ success: false, error: 'Forbidden' })
   }
 
-  if (session.token === req.auth.token) {
+  if (session.id === req.auth.session?.id) {
     return res.status(400).json({ success: false, error: 'Cannot revoke your current session — use sign out instead' })
   }
 

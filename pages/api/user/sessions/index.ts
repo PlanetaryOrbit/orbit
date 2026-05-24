@@ -1,38 +1,14 @@
 import { NextApiResponse } from "next"
-
-import {
-  AuthenticatedRequest,
-  withAuth,
-} from "@/lib/withAuth"
-
-import {
-  listActiveSessions,
-  deleteAllUserSessions,
-} from "@/utils/session"
-
-import crypto from "crypto"
-
-function hashToken(token: string) {
-  return crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex")
-}
+import { AuthenticatedRequest, withAuth } from "@/lib/withAuth"
+import { listActiveSessions, deleteAllUserSessions, deleteOtherSessions } from "@/utils/session"
 
 export async function handler(
   req: AuthenticatedRequest,
   res: NextApiResponse
 ) {
-
   try {
     if (req.method === "GET") {
-      console.log("Fetching sessions for user:", req.auth.userId);
-
-      const sessions = await listActiveSessions(req.auth.userId);
-
-      console.log(`Found ${sessions.length} sessions`);
-
-      const currentTokenHash = hashToken(req.auth.token);
+      const sessions = await listActiveSessions(req.auth.userId)
 
       return res.status(200).json({
         sessions: sessions.map((s) => ({
@@ -43,38 +19,35 @@ export async function handler(
           ipAddress: s.ipAddress,
           createdAt: s.createdAt,
           expiresAt: s.expiresAt,
-          isCurrent: s.token === currentTokenHash,
+          isCurrent: s.id === req.auth.session?.id,
         })),
-      });
+      })
     }
 
     if (req.method === "DELETE") {
-      await deleteAllUserSessions(req.auth.userId, req.auth.token);
-
-      res.setHeader("Set-Cookie", [
+      if (req.auth.session?.id) {
+        await deleteOtherSessions(req.auth.userId, req.auth.session.id)
+      } else {
+        await deleteAllUserSessions(req.auth.userId);
+        res.setHeader("Set-Cookie", [
         "session_token=",
         "Path=/",
         "HttpOnly",
         "SameSite=Strict",
         "Secure",
         "Max-Age=0",
-      ].join("; "));
-
-      return res.status(200).json({
-        success: true,
-      });
+      ].join("; "))
+      }
+      return res.status(200).json({ success: true })
     }
 
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed",
-    });
+    return res.status(405).json({ success: false, error: "Method not allowed" })
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("API Error:", error)
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : "Internal server error",
-    });
+    })
   }
 }
 
