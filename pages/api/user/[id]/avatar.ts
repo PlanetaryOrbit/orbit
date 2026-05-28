@@ -66,6 +66,7 @@ async function fetchFallbackRobloxAvatarBuffer(targetResolution: number): Promis
   for (const fid of FALLBACK_HEADSHOT_USER_IDS) {
     try {
       const imageUrl = await getRemoteAvatarUrl(fid, size);
+      if (!imageUrl) continue;
       const response = await axios.get(imageUrl, {
         responseType: 'arraybuffer',
         timeout: 12000,
@@ -292,10 +293,23 @@ function isNotModified(req: NextApiRequest, entry: CacheEntry): boolean {
 async function fetchAndPersist(userId: number, filePath: string, resolution: number = 180): Promise<Buffer> {
   try {
     const remoteUrl = await getRemoteAvatarUrl(userId, resolution);
+
+    if (!remoteUrl) {
+      try {
+        const stale = await fs.readFile(filePath);
+        if (isPngBuffer(stale) && stale.length > 200) {
+          console.warn('Avatar serving stale disk copy for', userId, '(thumbnail pending)');
+          return stale;
+        }
+      } catch { }
+      return fetchFallbackRobloxAvatarBuffer(resolution);
+    }
+
     const response = await axios.get(remoteUrl, {
       responseType: 'arraybuffer',
       timeout: 12000,
-      validateStatus: (status) => status === 200
+      validateStatus: (status) => status === 200,
+      maxRedirects: 0,
     });
     const buf = Buffer.from(response.data);
 
@@ -310,6 +324,10 @@ async function fetchAndPersist(userId: number, filePath: string, resolution: num
     return buf;
   } catch (e) {
     console.warn('Avatar remote fetch failed', userId, resolution, e);
+    try {
+      const stale = await fs.readFile(filePath);
+      if (isPngBuffer(stale) && stale.length > 200) return stale;
+    } catch { }
     return fetchFallbackRobloxAvatarBuffer(resolution);
   }
 }
@@ -352,7 +370,7 @@ async function triggerBackgroundRefresh(
   }
 }
 
-async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Promise<string> {
+async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Promise<string | null> {
   const clampedRes = ROBLOX_RESOLUTIONS.includes(resolution)
     ? resolution
     : Math.min(resolution, 720);
@@ -368,11 +386,18 @@ async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Pro
     });
 
     const entry = response.data?.data?.[0];
-    if (entry?.imageUrl) return entry.imageUrl;
+
+    if (entry?.state === 'Completed' && entry?.imageUrl) return entry.imageUrl;
+
+    if (entry?.state === 'Pending') {
+      console.warn('Roblox Thumbnails API returned Pending for', userId, '— will retry or use disk cache');
+      return null;
+    }
 
     console.warn('Roblox Thumbnails API returned no imageUrl for', userId, entry);
   } catch (e) {
     console.warn('Roblox Thumbnails API request failed for', userId, e);
   }
-  return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=${clampedRes}&height=${clampedRes}&format=png`;
+
+  return null;
 }
