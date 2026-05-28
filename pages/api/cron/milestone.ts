@@ -60,16 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const cronSecret = req.headers["x-cron-secret"] || req.headers.authorization;
-  const expectedSecret = process.env.CRON_SECRET;
-
-  if (!expectedSecret) {
-    return res.status(500).json({ error: "CRON_SECRET not configured" });
-  }
-  if (!cronSecret || String(cronSecret) !== expectedSecret) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
   try {
     const workspaces = await prisma.workspace.findMany({
       select: {

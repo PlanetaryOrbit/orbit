@@ -11,11 +11,6 @@ type Resp = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Resp>) {
   if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
 
-  const secret = req.headers["x-cron-secret"] || req.headers.authorization;
-  const expected = process.env.CRON_SECRET;
-  if (!expected) return res.status(500).json({ success: false, error: "CRON_SECRET not configured" });
-  if (!secret || String(secret) !== expected) return res.status(401).json({ success: false, error: "Unauthorized" });
-
   try {
     const now = new Date();
     const candidates = await prisma.session.findMany({
