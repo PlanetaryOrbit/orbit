@@ -1052,7 +1052,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                             )}`}
                           >
                             <img
-                              src={notice.user?.picture ?? "/default-avatar.jpg"}
+                              src={`/api/user/${notice.user.userid}/avatar` || "/default-avatar.jpg"}
                               alt={notice.user?.username ?? "User"}
                               className="w-11 h-11 object-cover"
                             />
@@ -1146,7 +1146,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                                 )}`}
                               >
                                 <img
-                                  src={notice.user?.picture ?? "/default-avatar.jpg"}
+                                  src={`/api/user/${notice.user.userid}/avatar` || "/default-avatar.jpg"}
                                   alt={notice.user?.username ?? "User"}
                                   className="w-10 h-10 object-cover"
                                 />
@@ -1216,7 +1216,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                               )}`}
                             >
                               <img
-                                src={notice.user?.picture ?? "/default-avatar.jpg"}
+                                src={`/api/user/${notice.user.userid}/avatar` || "/default-avatar.jpg"}
                                 alt={notice.user?.username ?? "User"}
                                 className="w-10 h-10 object-cover"
                               />
