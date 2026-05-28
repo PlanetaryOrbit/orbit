@@ -10,7 +10,6 @@ import * as cookie from "cookie";
 import { getConfig } from "./configEngine";
 import { validateCsrf } from "./csrf";
 import { getThumbnail } from "./userinfoEngine";
-import { getRobloxUserInfo, getUsersWithinAGroupRoleset } from "./roblox";
 import { AuthenticatedRequest, AuthHandler, withAuth } from "@/lib/withAuth";
 import { getSessionByToken } from "./session";
 
@@ -104,88 +103,176 @@ async function retryNobloxRequest<T>(
 async function buildGroupCache(
   groupID: number,
   ranks: noblox.Role[],
-  batchSize = 5,
-): Promise<Map<number, { robloxRoleId: number; username: string }>> {
+): Promise<
+  Map<number, { robloxRoleId: number; username: string; picture: string }>
+> {
   const internalMap = new Map<
     number,
-    { robloxRoleId: number; username: string; _rank: number }
+    { robloxRoleId: number; username: string; picture: string; _rank: number }
   >();
+
   const trackedRanks = ranks.filter((r) => r.rank !== 0);
   const apiKey = await getConfig("roblox_opencloud", groupID);
 
-  for (let i = 0; i < trackedRanks.length; i += batchSize) {
-    const batch = trackedRanks.slice(i, i + batchSize);
-    const results = await Promise.allSettled(
-      batch.map(async (rank) => {
-        await delay(200);
-        const result = (await getUsersWithinAGroupRoleset(
-          groupID,
-          rank.id,
-          apiKey.key,
-        )) as any;
-        if (!result.success)
-          throw new Error(
-            `Failed to fetch roleset ${rank.id}: ${result.message}`,
-          );
-        return { rank, members: result.data };
-      }),
-    );
+  for (const rank of trackedRanks) {
+    let pageToken: string | undefined;
 
-    for (const result of results) {
-      if (result.status === "rejected") {
-        const msg: string = result.reason?.message ?? "";
+    do {
+      await delay(250);
+
+      const params = new URLSearchParams({
+        maxPageSize: "100",
+        filter: `role == 'groups/${groupID}/roles/${rank.id}'`,
+      });
+      if (pageToken) params.set("pageToken", pageToken);
+
+      let response: Response;
+      try {
+        response = await retryNobloxRequest(() =>
+          fetch(
+            `https://apis.roblox.com/cloud/v2/groups/${groupID}/memberships?${params.toString()}`,
+            {
+              headers: {
+                "x-api-key": apiKey.key,
+              },
+            },
+          ).then((r) => {
+            if (!r.ok) {
+              const err: any = new Error(
+                `Group memberships API returned ${r.status}`,
+              );
+              err.statusCode = r.status;
+              throw err;
+            }
+            return r;
+          }),
+        );
+      } catch (err: any) {
+        const msg: string = err?.message ?? "";
         if (
-          msg.includes("401") ||
+          err?.statusCode === 401 ||
+          err?.statusCode === 403 ||
           msg.toLowerCase().includes("unauthorized") ||
-          msg.toLowerCase().includes("forbidden") ||
-          msg.includes("403")
+          msg.toLowerCase().includes("forbidden")
         ) {
           throw new Error(
-            `Auth failure fetching roleset — API key may be invalid or expired: ${msg}`,
+            `Auth failure fetching memberships for role ${rank.id} — API key may be invalid or expired: ${msg}`,
           );
         }
-        continue;
+        console.warn(
+          `[buildGroupCache] Failed to fetch memberships for role ${rank.id}:`,
+          err,
+        );
+        break;
       }
-      const { rank, members } = result.value;
-      for (const member of members) {
-        const userId = Number(member.user?.split("/")[1]);
+
+      const body = (await response.json()) as {
+        groupMemberships: Array<{
+          path: string;
+          user: string;
+          role: string;
+        }>;
+        nextPageToken?: string;
+      };
+
+      for (const membership of body.groupMemberships ?? []) {
+        const userId = Number(membership.user?.split("/")[1]);
         if (!userId) continue;
         const existing = internalMap.get(userId);
         if (!existing || rank.rank > existing._rank) {
           internalMap.set(userId, {
             robloxRoleId: rank.id,
             username: "",
+            picture: "",
             _rank: rank.rank,
           });
         }
       }
-    }
+
+      pageToken = body.nextPageToken;
+    } while (pageToken);
   }
 
   const userIds = Array.from(internalMap.keys());
-  const usernameBatchSize = 50;
-  for (let i = 0; i < userIds.length; i += usernameBatchSize) {
-    const batch = userIds.slice(i, i + usernameBatchSize);
-    await Promise.allSettled(
-      batch.map(async (userId) => {
-        const entry = internalMap.get(userId);
-        if (!entry) return;
-        try {
-          const info = await getRobloxUserInfo(userId, apiKey.key);
-          internalMap.set(userId, { ...entry, username: info.username });
-        } catch {
-          internalMap.set(userId, { ...entry, username: "" });
-        }
-      }),
-    );
+  const bulkBatchSize = 100;
+
+  for (let i = 0; i < userIds.length; i += bulkBatchSize) {
+    const batch = userIds.slice(i, i + bulkBatchSize);
+
+    await delay(300);
+
+    try {
+      const response = await retryNobloxRequest(() =>
+        fetch("https://users.roblox.com/v1/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: batch, excludeBannedUsers: false }),
+        }).then((r) => {
+          if (!r.ok) {
+            const err: any = new Error(`Users API returned ${r.status}`);
+            err.statusCode = r.status;
+            throw err;
+          }
+          return r.json() as Promise<{
+            data: Array<{ id: number; name: string }>;
+          }>;
+        }),
+      );
+
+      for (const user of response.data) {
+        const entry = internalMap.get(user.id);
+        if (entry) internalMap.set(user.id, { ...entry, username: user.name });
+      }
+    } catch (err) {
+      console.warn(
+        `[buildGroupCache] Bulk username fetch failed for batch at ${i}:`,
+        err,
+      );
+    }
+
+    await delay(200);
+
+    try {
+      const ids = batch.join(",");
+      const response = await retryNobloxRequest(() =>
+        fetch(
+          `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${ids}&size=180x180&format=Png&isCircular=false`,
+        ).then((r) => {
+          if (!r.ok) {
+            const err: any = new Error(`Thumbnails API returned ${r.status}`);
+            err.statusCode = r.status;
+            throw err;
+          }
+          return r.json() as Promise<{
+            data: Array<{
+              targetId: number;
+              state: string;
+              imageUrl: string;
+            }>;
+          }>;
+        }),
+      );
+
+      for (const item of response.data) {
+        if (item.state !== "Completed" || !item.imageUrl) continue;
+        const entry = internalMap.get(item.targetId);
+        if (entry)
+          internalMap.set(item.targetId, { ...entry, picture: item.imageUrl });
+      }
+    } catch (err) {
+      console.warn(
+        `[buildGroupCache] Bulk avatar fetch failed for batch at ${i}:`,
+        err,
+      );
+    }
   }
 
   const userRoleMap = new Map<
     number,
-    { robloxRoleId: number; username: string }
+    { robloxRoleId: number; username: string; picture: string }
   >();
-  for (const [userId, { robloxRoleId, username }] of internalMap) {
-    userRoleMap.set(userId, { robloxRoleId, username });
+  for (const [userId, { robloxRoleId, username, picture }] of internalMap) {
+    userRoleMap.set(userId, { robloxRoleId, username, picture });
   }
 
   groupCacheStore.set(groupID, { userRoleMap, builtAt: new Date() });
@@ -406,13 +493,25 @@ export function withPermissionCheckSsr(
 export async function checkGroupRoles(groupID: number) {
   try {
     console.log(`[update-group] Starting sync for group ${groupID}`);
+    const apiKey = await getConfig("roblox_opencloud", groupID);
     let successful = true;
 
     try {
-      const [logo, group] = await Promise.all([
-        noblox.getLogo(groupID, "420x420").catch(() => null),
-        noblox.getGroup(groupID).catch(() => null),
+      const [logoRes, groupRes] = await Promise.all([
+        fetch(
+          `https://thumbnails.roblox.com/v1/groups/icons?groupIds=${groupID}&size=420x420&format=Png`,
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+        fetch(`https://apis.roblox.com/cloud/v2/groups/${groupID}`, {
+          headers: { "x-api-key": apiKey.key },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
       ]);
+
+      const logo = logoRes?.data?.[0]?.imageUrl ?? null;
+      const group = groupRes ? { name: groupRes.displayName } : null;
       console.log(
         `[update-group] Fetched group info for ${groupID} - logo: ${!!logo}, group: ${!!group}`,
       );
@@ -551,12 +650,29 @@ export async function checkGroupRoles(groupID: number) {
       successful = false;
     }
 
-    const rss = await retryNobloxRequest(() => noblox.getRoles(groupID)).catch(
-      (err) => {
-        console.error(`[update-group] Failed to get Roblox roles:`, err);
-        successful = false;
-        return null;
-      },
+    const rss = await retryNobloxRequest(() =>
+      fetch(
+        `https://apis.roblox.com/cloud/v2/groups/${groupID}/roles?maxPageSize=20`,
+        {
+          headers: { "x-api-key": apiKey.key },
+        },
+      ).then(async (r) => {
+        if (!r.ok) {
+          const err: any = new Error(`Roles API returned ${r.status}`);
+          err.statusCode = r.status;
+          throw err;
+        }
+        const body = (await r.json()) as {
+          groupRoles: Array<{ id: string; rank: number; displayName: string }>;
+          nextPageToken?: string;
+        };
+        // map to same shape noblox returned so downstream code stays the same
+        return body.groupRoles.map((r) => ({
+          id: Number(r.id),
+          rank: r.rank,
+          name: r.displayName,
+        }));
+      }),
     );
     if (!rss) {
       console.log(
@@ -682,7 +798,8 @@ export async function checkGroupRoles(groupID: number) {
               if (
                 !result.joinDate ||
                 result.joinDate.getTime() === new Date().setSeconds(0, 0)
-              ) {} else {
+              ) {
+              } else {
                 console.log(
                   `[update-group] Added user ${userId} to workspace ${groupID}`,
                 );
