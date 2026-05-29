@@ -132,53 +132,47 @@ export function withKey(
           ? parseInt(id)
           : undefined;
 
+      let authenticated = false;
+
       if (auth.startsWith("Bearer ")) {
         const apiKey = auth.replace("Bearer ", "");
         const key = await prisma.apiKey.findUnique({
           where: { key: apiKey },
         });
 
-        if (!key) {
-          return res
-            .status(401)
-            .json({ success: false, error: "Invalid API key" });
-        }
-
-        if (key.expiresAt && new Date() > key.expiresAt) {
-          return res
-            .status(401)
-            .json({ success: false, error: "API key expired" });
-        }
-        if (id) {
-          if (key.workspaceGroupId !== workspaceId) {
-            return res.status(403).json({
-              success: false,
-              error: "Access denied",
-            });
+        if (key) {
+          if (key.expiresAt && new Date() > key.expiresAt) {
+            return res.status(401).json({ success: false, error: "API key expired" });
           }
-        }
 
-        await prisma.apiKey.update({
-          where: { id: key.id },
-          data: { lastUsed: new Date() },
-        });
-      } else {
-        const secretKey = await getConfig("board_key", workspaceId as number);
-        if (!secretKey || !secretKey.key || secretKey.key != auth) {
-          return res
-            .status(401)
-            .json({ success: false, error: "Invalid API key" });
+          if (id && key.workspaceGroupId !== workspaceId) {
+            return res.status(403).json({ success: false, error: "Access denied" });
+          }
+
+          await prisma.apiKey.update({
+            where: { id: key.id },
+            data: { lastUsed: new Date() },
+          });
+
+          authenticated = true;
         }
+      }
+
+      if (!authenticated) {
+        const secretKey = await getConfig("board_key", workspaceId as number);
+        if (secretKey?.key && secretKey.key === auth) {
+          authenticated = true;
+        }
+      }
+
+      if (!authenticated) {
+        return res.status(401).json({ success: false, error: "Invalid API key" });
       }
 
       return handler(req, res);
     } catch (error) {
       console.error("Authentication error:", error);
-
-      return res.status(500).json({
-        success: false,
-        error: "Authentication failed",
-      });
+      return res.status(500).json({ success: false, error: "Authentication failed" });
     }
   };
 }
