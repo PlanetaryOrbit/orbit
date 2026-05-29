@@ -492,18 +492,29 @@ export function withPermissionCheckSsr(
 
 export async function checkGroupRoles(groupID: number) {
   try {
-    console.log(`[update-group] Starting sync for group ${groupID}`);
+    if (!Number.isSafeInteger(groupID) || groupID <= 0) {
+      throw new Error(`Invalid groupID: ${groupID}`);
+    }
+    const safeGroupId = String(groupID);
+
+    console.log(`[update-group] Starting sync for group ${safeGroupId}`);
     const apiKey = await getConfig("roblox_opencloud", groupID);
     let successful = true;
 
     try {
+      const logoUrl = new URL("https://thumbnails.roblox.com/v1/groups/icons");
+      logoUrl.searchParams.set("groupIds", safeGroupId);
+      logoUrl.searchParams.set("size", "420x420");
+      logoUrl.searchParams.set("format", "Png");
+
+      const groupUrl = new URL(
+        `https://apis.roblox.com/cloud/v2/groups/${safeGroupId}`,
+      );
       const [logoRes, groupRes] = await Promise.all([
-        fetch(
-          `https://thumbnails.roblox.com/v1/groups/icons?groupIds=${groupID}&size=420x420&format=Png`,
-        )
+        fetch(logoUrl.toString())
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null),
-        fetch(`https://apis.roblox.com/cloud/v2/groups/${groupID}`, {
+        fetch(groupUrl.toString(), {
           headers: { "x-api-key": apiKey.key },
         })
           .then((r) => (r.ok ? r.json() : null))
@@ -650,9 +661,14 @@ export async function checkGroupRoles(groupID: number) {
       successful = false;
     }
 
+    const rolesUrl = new URL(
+      `https://apis.roblox.com/cloud/v2/groups/${safeGroupId}/roles`,
+    );
+    rolesUrl.searchParams.set("maxPageSize", "20");
+
     const rss = await retryNobloxRequest(() =>
       fetch(
-        `https://apis.roblox.com/cloud/v2/groups/${groupID}/roles?maxPageSize=20`,
+        rolesUrl.toString(),
         {
           headers: { "x-api-key": apiKey.key },
         },
