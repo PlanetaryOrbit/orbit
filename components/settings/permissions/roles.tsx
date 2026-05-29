@@ -399,7 +399,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
           <Disclosure
             as="div"
             key={role.id}
-            className="overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/80 shadow-sm"
+            className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/80 shadow-sm"
           >
             {({ open }) => (
               <>

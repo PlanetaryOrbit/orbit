@@ -190,7 +190,7 @@ const Button: FC<Props> = (props) => {
             <Disclosure
               as="div"
               key={role.id}
-              className="overflow-hidden rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/80 shadow-sm"
+              className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-white dark:bg-zinc-800/80 shadow-sm"
             >
               {({ open }) => (
                 <>
@@ -233,7 +233,7 @@ const Button: FC<Props> = (props) => {
                           {roleUsers.map((user: any) => (
                             <div
                               key={user.userid}
-                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700/60 dark:bg-zinc-900/35"
+                              className="flex flex-col gap-3 rounded-xl border border-zinc-200/70 bg-zinc-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700/60 dark:bg-zinc-900/35 overflow-visible"
                             >
                               <div className="flex min-w-0 items-center gap-3">
                                 <img
