@@ -496,6 +496,7 @@ export async function checkGroupRoles(groupID: number) {
       throw new Error(`Invalid groupID: ${groupID}`);
     }
     const safeGroupId = String(groupID);
+    const encGID = encodeURIComponent(safeGroupId);
 
     console.log(`[update-group] Starting sync for group ${safeGroupId}`);
     const apiKey = await getConfig("roblox_opencloud", groupID);
@@ -508,7 +509,7 @@ export async function checkGroupRoles(groupID: number) {
       logoUrl.searchParams.set("format", "Png");
 
       const groupUrl = new URL(
-        `https://apis.roblox.com/cloud/v2/groups/${safeGroupId}`,
+        `https://apis.roblox.com/cloud/v2/groups/${encGID}`,
       );
       const [logoRes, groupRes] = await Promise.all([
         fetch(logoUrl.toString())
@@ -662,7 +663,7 @@ export async function checkGroupRoles(groupID: number) {
     }
 
     const rolesUrl = new URL(
-      `https://apis.roblox.com/cloud/v2/groups/${safeGroupId}/roles`,
+      `https://apis.roblox.com/cloud/v2/groups/${encGID}/roles`,
     );
     rolesUrl.searchParams.set("maxPageSize", "20");
 
