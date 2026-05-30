@@ -17,7 +17,7 @@
   <a href="https://docs.planetaryapp.us">Documentation</a> ·
   <a href="https://feedback.planetaryapp.us/bugs">Report a Bug</a> ·
   <a href="https://feedback.planetaryapp.us/changelog">Changelog</a> ·
-  <a href="https://discord.com/invite/ubGPWb3r">Discord</a>
+  <a href="https://discord.com/invite/mWqdZmEkDc">Discord</a>
 </div>
 
 ---
@@ -238,7 +238,7 @@ Contributions are welcome and appreciated. Whether you're fixing a bug, improvin
 3. **Test** your changes locally before submitting.
 4. **Open a Pull Request** with a clear description of what you've changed and why.
 
-For bug reports and feature requests, please use our [feedback portal](https://feedback.planetaryapp.us/bugs). For questions and discussion, join our [Discord server](https://discord.com/invite/ubGPWb3r).
+For bug reports and feature requests, please use our [feedback portal](https://feedback.planetaryapp.us/bugs). For questions and discussion, join our [Discord server](https://discord.com/invite/mWqdZmEkDc).
 
 ---
 
