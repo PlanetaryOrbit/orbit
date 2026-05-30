@@ -1,7 +1,6 @@
-// pages/api/user/sessions/[id].ts
 import { NextApiResponse } from "next"
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth"
-import { deleteSession } from "@/utils/session"
+import { forceDeleteSession } from "@/utils/session"
 import prisma from "@/utils/database"
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -27,6 +26,8 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     return res.status(400).json({ success: false, error: 'Cannot revoke your current session — use sign out instead' })
   }
 
-  await deleteSession(session.token)
+  console.log(session)
+
+  await forceDeleteSession(session.id)
   return res.status(200).json({ success: true })
 })

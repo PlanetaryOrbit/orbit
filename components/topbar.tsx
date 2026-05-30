@@ -10,13 +10,12 @@ import {
   IconSun,
   IconMoon,
   IconSettings,
-  IconX,
   IconDeviceLaptop,
   IconDeviceMobile,
-  IconDeviceDesktop,
   IconDevices,
   IconChevronLeft,
   IconTrash,
+  IconRefresh,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -25,7 +24,7 @@ import toast from "react-hot-toast";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
 import moment from "moment";
-import { CrownIcon } from "lucide-react";
+import { CrownIcon, RefreshCwIcon } from "lucide-react";
 
 type Session = {
   id: string;
@@ -315,6 +314,11 @@ const Topbar: NextPage = () => {
                         className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                       >
                         Sign out all
+                      </button>
+                      <button
+                        onClick={() => {fetchSessions(); toast.success("Sessions refreshed")}}
+                      >
+                        <IconRefresh className="w-5 h-5 text-black/50 dark:text-white/50 p-0.5 rounded-lg dark:hover:bg-white/5 hover:bg-black/10 transition-all" />
                       </button>
                     </div>
 

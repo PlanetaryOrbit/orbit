@@ -229,6 +229,16 @@ async function deleteSession(token: string) {
     .catch(() => null)
 }
 
+async function forceDeleteSession(id: string) {
+  return prisma.authSession
+    .delete({
+      where: {
+        id: id,
+      },
+    })
+    .catch((err) => { console.error('Error deleting session:', err) })
+}
+
 async function deleteAllUserSessions(userId: bigint) {
   return prisma.authSession.deleteMany({
     where: { userId },
@@ -302,6 +312,7 @@ export {
   getSessionByToken,
   refreshSession,
   rotateSessionToken,
+  forceDeleteSession,
   deleteSession,
   deleteOtherSessions,
   deleteAllUserSessions,
