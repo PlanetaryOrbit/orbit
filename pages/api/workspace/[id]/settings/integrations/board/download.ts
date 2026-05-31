@@ -75,7 +75,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const host =
-    process.env.PLANETARY_CLOUD_URL ||
+    process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL ||
     process.env.VERCEL_URL ||
     req.headers.host;
 

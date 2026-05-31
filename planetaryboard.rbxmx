@@ -439,7 +439,7 @@ local function getSessions()
 	local endDate = tomorrow:FormatUniversalTime("YYYY-MM-DDTHH:mm:ssZ", "en-us")
 
 	local categoryParam = string.lower(Config.event_type) ~= "all" 
-		and ("&category=" .. string.lower(Config.event_type)) 
+		and ("?category=" .. string.lower(Config.event_type)) 
 		or ""
 
 	local Payload = {
