@@ -5,6 +5,12 @@ import packageInfo from '@/package.json'
 
 const TIMEOUT_MS = 12000;
 
+// Rate limiting state for noblox requests
+let nobloxRequestCount = 0;
+let nobloxRateLimitReset = Date.now();
+const NOBLOX_REQUEST_LIMIT = 60;
+const NOBLOX_TIME_WINDOW = 60000;
+
 async function withTimeout<T>(promise: Promise<T>, ms = TIMEOUT_MS): Promise<T> {
   return Promise.race([
     promise,
@@ -12,6 +18,25 @@ async function withTimeout<T>(promise: Promise<T>, ms = TIMEOUT_MS): Promise<T> 
       setTimeout(() => reject(new Error("Request timed out")), ms)
     ),
   ]);
+}
+
+async function waitForNobloxRateLimit() {
+  const now = Date.now();
+  
+  if (now - nobloxRateLimitReset >= NOBLOX_TIME_WINDOW) {
+    nobloxRequestCount = 0;
+    nobloxRateLimitReset = now;
+  }
+  
+  if (nobloxRequestCount >= NOBLOX_REQUEST_LIMIT) {
+    const waitTime = NOBLOX_TIME_WINDOW - (now - nobloxRateLimitReset);
+    console.warn(`[Roblox] Rate limit reached. Waiting ${waitTime}ms...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+    nobloxRequestCount = 0;
+    nobloxRateLimitReset = Date.now();
+  }
+  
+  nobloxRequestCount++;
 }
 
 export interface RobloxUserInfo {
@@ -72,6 +97,7 @@ async function listAllGroupRolesForGroup(client: any, groupId: string) {
 
   return all;
 }
+
 function robloxRankNum(roleLike: { rank?: unknown }): number {
   return Number(roleLike.rank);
 }
@@ -145,6 +171,7 @@ function userInfoFromNobloxPayload(userInfo: any): RobloxUserInfo {
 
 export async function getRobloxUserInfo(id: number | bigint, apiKey?: string): Promise<RobloxUserInfo> {
   const fromNoblox = async () => {
+    await waitForNobloxRateLimit();
     const userInfo = await withTimeout<any>(noblox.getUserInfo(Number(id)));
     return userInfoFromNobloxPayload(userInfo);
   };
@@ -486,7 +513,6 @@ export async function getRobloxUserId(username: string): Promise<number> {
   }
 }
 
-// Keep individual exports
 export const getRobloxUsername = async (id: number | bigint, apiKey?: string) =>
   (await getRobloxUserInfo(id, apiKey ? apiKey : undefined)).username;
 
