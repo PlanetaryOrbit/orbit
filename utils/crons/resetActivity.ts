@@ -1,4 +1,3 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { getConfig } from "@/utils/configEngine";
 
@@ -9,120 +8,133 @@ type ResetResult = {
   error?: string;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+export async function runActivityReset() {
+  const workspaces = await prisma.workspace.findMany({
+    select: {
+      groupId: true,
+      groupName: true,
+    },
+  });
 
-  try {
-    const workspaces = await prisma.workspace.findMany({
-      select: {
-        groupId: true,
-        groupName: true,
-      },
-    });
+  const results: ResetResult[] = [];
 
-    const results: ResetResult[] = [];
-    const now = new Date();
-    const currentDay = now.getDay();
-    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const currentDayName = dayNames[currentDay];
+  const now = new Date();
+  const currentDay = now.getDay();
 
-    for (const workspace of workspaces) {
-      try {
-        const schedule = await getConfig(
-          "activity_reset_schedule",
-          workspace.groupId
+  const dayNames = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+
+  const currentDayName = dayNames[currentDay];
+
+  for (const workspace of workspaces) {
+    try {
+      const schedule = await getConfig(
+        "activity_reset_schedule",
+        workspace.groupId
+      );
+
+      if (!schedule?.enabled) continue;
+      if (schedule.day !== currentDayName) continue;
+
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const endOfToday = new Date(now);
+      endOfToday.setHours(23, 59, 59, 999);
+
+      const allTodayResets = await prisma.activityReset.findMany({
+        where: {
+          workspaceGroupId: workspace.groupId,
+          resetAt: {
+            gte: startOfToday,
+            lte: endOfToday,
+          },
+        },
+      });
+
+      const todayReset = allTodayResets.find(
+        (reset) => reset.resetById === null
+      );
+
+      if (todayReset) continue;
+
+      const allResets = await prisma.activityReset.findMany({
+        where: {
+          workspaceGroupId: workspace.groupId,
+        },
+        orderBy: {
+          resetAt: "desc",
+        },
+      });
+
+      const lastAutoReset = allResets.find(
+        (reset) => reset.resetById === null
+      );
+
+      let shouldReset = false;
+
+      if (!lastAutoReset) {
+        shouldReset = true;
+      } else {
+        const daysSinceLastAutoReset = Math.floor(
+          (now.getTime() - lastAutoReset.resetAt.getTime()) /
+            (1000 * 60 * 60 * 24)
         );
 
-        if (!schedule || !schedule.enabled) {
-          continue;
-        }
-
-        if (schedule.day !== currentDayName) {
-          continue;
-        }
-
-        const startOfToday = new Date(now);
-        startOfToday.setHours(0, 0, 0, 0);
-        
-        const endOfToday = new Date(now);
-        endOfToday.setHours(23, 59, 59, 999);
-
-        const allTodayResets = await prisma.activityReset.findMany({
-          where: { 
-            workspaceGroupId: workspace.groupId,
-            resetAt: {
-              gte: startOfToday,
-              lte: endOfToday,
-            }
-          },
-        });
-        
-        const todayReset = allTodayResets.find(reset => reset.resetById === null);
-
-        if (todayReset) {
-          continue;
-		}
-		
-        const allResets = await prisma.activityReset.findMany({
-          where: { 
-            workspaceGroupId: workspace.groupId,
-          },
-          orderBy: { resetAt: "desc" },
-        });
-        
-        const lastAutoReset = allResets.find(reset => reset.resetById === null);
-
-        let shouldReset = false;
-
-        if (!lastAutoReset) {
+        if (
+          schedule.frequency === "weekly" &&
+          daysSinceLastAutoReset >= 7
+        ) {
           shouldReset = true;
-        } else {
-          const daysSinceLastAutoReset = Math.floor(
-            (now.getTime() - lastAutoReset.resetAt.getTime()) / (1000 * 60 * 60 * 24)
-          );
-
-          if (schedule.frequency === "weekly" && daysSinceLastAutoReset >= 7) {
-            shouldReset = true;
-          } else if (schedule.frequency === "biweekly" && daysSinceLastAutoReset >= 14) {
-            shouldReset = true;
-          } else if (schedule.frequency === "monthly" && daysSinceLastAutoReset >= 28) {
-            shouldReset = true;
-          }
+        } else if (
+          schedule.frequency === "biweekly" &&
+          daysSinceLastAutoReset >= 14
+        ) {
+          shouldReset = true;
+        } else if (
+          schedule.frequency === "monthly" &&
+          daysSinceLastAutoReset >= 28
+        ) {
+          shouldReset = true;
         }
+      }
 
-        if (shouldReset) {
-          await performReset(workspace.groupId);
-          results.push({
-            workspaceId: workspace.groupId,
-            workspaceName: workspace.groupName || `Workspace ${workspace.groupId}`,
-            success: true,
-          });
-        }
-      } catch (error: any) {
+      if (shouldReset) {
+        await performReset(workspace.groupId);
+
         results.push({
           workspaceId: workspace.groupId,
-          workspaceName: workspace.groupName || `Workspace ${workspace.groupId}`,
-          success: false,
-          error: error.message,
+          workspaceName:
+            workspace.groupName ??
+            `Workspace ${workspace.groupId}`,
+          success: true,
         });
       }
+    } catch (error: any) {
+      results.push({
+        workspaceId: workspace.groupId,
+        workspaceName:
+          workspace.groupName ??
+          `Workspace ${workspace.groupId}`,
+        success: false,
+        error: error.message,
+      });
     }
-
-    return res.status(200).json({
-      success: true,
-      message: `Processed ${workspaces.length} workspaces`,
-      results,
-      resetCount: results.filter((r) => r.success).length,
-    });
-  } catch (error: any) {
-    console.error("Error in activity reset cron:", error);
-    return res.status(500).json({ error: error.message });
   }
+
+  return {
+    success: true,
+    processed: workspaces.length,
+    resetCount: results.filter((r) => r.success).length,
+    results,
+  };
 }
 
 async function performReset(workspaceGroupId: number) {

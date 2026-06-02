@@ -1,40 +1,65 @@
-import cron from 'node-cron'
-import axios from 'axios'
+import cron from "node-cron";
 
-function getInternalBaseUrl(): string {
-  if (process.env.PLANETARY_CLOUD_URL) {
-    return (process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/$/, "");
-  }
+import { runSessionUpdateCron } from "@/utils/crons/sessions";
+import { runRoleSyncCron } from "@/utils/crons/update-roles";
+import { runBirthdayCron } from "@/utils/crons/birthday";
+import { runActivityReset } from "@/utils/crons/resetActivity";
+import { runMilestoneCron } from "@/utils/crons/milestones";
 
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL.replace(/\/$/, "");
-  }
-
-  return "http://localhost:3000";
-}
+let initialized = false;
 
 export async function initCronJobs() {
-  const baseUrl = getInternalBaseUrl();
+  if (initialized) return;
+  initialized = true;
 
   try {
-    cron.schedule('* * * * *', async () => {
-      await axios.post(`${baseUrl}/api/cron/update-sessions`);
+    cron.schedule("* * * * *", async () => {
+      try {
+        await runSessionUpdateCron();
+      } catch (err) {
+        console.error("[CRON][SESSIONS]", err);
+      }
     });
-    cron.schedule('0 * * * *', async () => {
-      await axios.post(`${baseUrl}/api/cron/update-roles`);
-    });
-    cron.schedule('0 0 * * *', async () => {
-      await axios.post(`${baseUrl}/api/cron/birthday`);
-    });
-    cron.schedule('0 6 * * *', async () => {
-      await axios.post(`${baseUrl}/api/cron/reset-activity`);
-    });
-    cron.schedule('* * * * *', async () => {
-      await axios.post(`${baseUrl}/api/cron/milestone`);
-    });
-  } catch (err) {
-    console.log(`[CRON JOBS]: An error occured while running a cron job: ${err}`);
-  }
 
-  console.log("[STARTUP] All crons scheduled.");
+    cron.schedule("*/15 * * * *", async () => {
+      try {
+        await runRoleSyncCron();
+      } catch (err) {
+        console.error("[CRON][ROLES]", err);
+      }
+    });
+
+    cron.schedule("0 0 * * *", async () => {
+      try {
+        await runBirthdayCron();
+      } catch (err) {
+        console.error("[CRON][BIRTHDAYS]", err);
+      }
+    });
+
+    cron.schedule("0 6 * * *", async () => {
+      try {
+        await runActivityReset();
+      } catch (err) {
+        console.error("[CRON][ACTIVITY RESET]", err);
+      }
+    });
+
+    cron.schedule("*/5 * * * *", async () => {
+      try {
+        await runMilestoneCron();
+      } catch (err) {
+        console.error("[CRON][MILESTONES]", err);
+      }
+    });
+
+    console.log("[STARTUP] All crons scheduled.");
+  } catch (err) {
+    console.error(
+      "[CRON JOBS] Failed to register cron jobs:",
+      err
+    );
+
+    initialized = false;
+  }
 }
