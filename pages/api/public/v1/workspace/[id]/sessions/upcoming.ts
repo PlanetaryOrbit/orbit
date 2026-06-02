@@ -18,11 +18,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { endDate, category, startDate, status, limit, page, hideClaimed } =
     req.query;
+  const start = startDate 
+    ? new Date(startDate as string) 
+    : (() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return now;
+      })();
 
-  const start = startDate ? new Date(startDate as string) : new Date();
   const end = endDate
     ? new Date(endDate as string)
-    : new Date(Date.now() + 24 * 60 * 60 * 1000);
+    : (() => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+        return tomorrow;
+      })();
 
   if (isNaN(start.getTime()) || isNaN(end.getTime()))
     return res
