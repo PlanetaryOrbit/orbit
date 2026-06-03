@@ -109,7 +109,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       startTime: session.startTime,
       endTime: session.endTime,
       idleTime: session.idleTime
-        ? Math.round(Number(session.idleTime) / 60)
+        ? Math.round(Number(session.idleTime))
         : 0,
       duration: session.endTime
         ? Math.floor(
