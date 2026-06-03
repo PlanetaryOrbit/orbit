@@ -63,33 +63,110 @@ export const getServerSideProps = withPermissionCheckSsr(
             workspaceGroupId: parseInt(query.id as string),
           },
         },
-        discordUser: true
+        discordUser: true,
       },
     });
 
     const membership = currentUser?.workspaceMemberships?.[0];
     const isAdmin = membership?.isAdmin || false;
 
-    const hasManagePermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_member_profiles")) ?? false);
-    const hasManageMembersPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("edit_member_details")) ?? false);
-    const hasManageNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("manage_notices")) ?? false);
-    const hasApproveNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("approve_notices")) ?? false);
-    const hasRecordNoticesPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("record_notices")) ?? false);
-    const hasActivityAdjustmentsPermission = isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("activity_adjustments")) ?? false);
-    
+    const hasManagePermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("view_member_profiles"),
+      ) ??
+        false);
+    const hasManageMembersPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("edit_member_details"),
+      ) ??
+        false);
+    const hasManageNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("manage_notices"),
+      ) ??
+        false);
+    const hasApproveNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("approve_notices"),
+      ) ??
+        false);
+    const hasRecordNoticesPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("record_notices"),
+      ) ??
+        false);
+    const hasActivityAdjustmentsPermission =
+      isAdmin ||
+      (currentUser?.roles?.some((role) =>
+        role.permissions?.includes("activity_adjustments"),
+      ) ??
+        false);
+
     const logbookPermissions = {
-      view: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("view_logbook")) ?? false),
-      rank: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("rank_users")) ?? false),
-      note: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_note")) ?? false),
-      warning: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_warning")) ?? false),
-      promotion: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_promotion")) ?? false),
-      demotion: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_demotion")) ?? false),
-      termination: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_termination")) ?? false),
-      redact: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_redact")) ?? false),
-      delete: isAdmin || (currentUser?.roles?.some((role) => role.permissions?.includes("logbook_delete")) ?? false),
+      view:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("view_logbook"),
+        ) ??
+          false),
+      rank:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("rank_users"),
+        ) ??
+          false),
+      note:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_note"),
+        ) ??
+          false),
+      warning:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_warning"),
+        ) ??
+          false),
+      promotion:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_promotion"),
+        ) ??
+          false),
+      demotion:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_demotion"),
+        ) ??
+          false),
+      termination:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_termination"),
+        ) ??
+          false),
+      redact:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_redact"),
+        ) ??
+          false),
+      delete:
+        isAdmin ||
+        (currentUser?.roles?.some((role) =>
+          role.permissions?.includes("logbook_delete"),
+        ) ??
+          false),
     };
-    
-    const hasAnyLogbookPermission = Object.values(logbookPermissions).some(p => p);
+
+    const hasAnyLogbookPermission = Object.values(logbookPermissions).some(
+      (p) => p,
+    );
 
     const isSelfProfile = currentUserId.toString() === query.uid;
 
@@ -164,10 +241,10 @@ export const getServerSideProps = withPermissionCheckSsr(
     const roleQuotasWithInfo = userTakingAction.roles.flatMap((role) =>
       role.quotaRoles.map((qr) => ({
         ...qr.quota,
-        linkedVia: 'role' as const,
+        linkedVia: "role" as const,
         linkedName: role.name,
         linkedColor: role.color,
-      }))
+      })),
     );
 
     const departmentQuotasWithInfo = userTakingAction.workspaceMemberships
@@ -175,10 +252,10 @@ export const getServerSideProps = withPermissionCheckSsr(
       .flatMap((dm) =>
         dm.department.quotaDepartments.map((qd) => ({
           ...qd.quota,
-          linkedVia: 'department' as const,
+          linkedVia: "department" as const,
           linkedName: dm.department.name,
           linkedColor: dm.department.color,
-        }))
+        })),
       );
 
     const directUserQuotasWithInfo = userTakingAction.quotaUsers.map((qu) => ({
@@ -189,7 +266,11 @@ export const getServerSideProps = withPermissionCheckSsr(
     }));
 
     const quotaMap = new Map();
-    [...roleQuotasWithInfo, ...departmentQuotasWithInfo, ...directUserQuotasWithInfo].forEach((quota) => {
+    [
+      ...roleQuotasWithInfo,
+      ...departmentQuotasWithInfo,
+      ...directUserQuotasWithInfo,
+    ].forEach((quota) => {
       if (!quotaMap.has(quota.id)) {
         quotaMap.set(quota.id, quota);
       }
@@ -215,7 +296,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       }
       noticesEnabled =
         typeof val === "object" && val !== null && "enabled" in val
-          ? (val as { enabled?: boolean }).enabled ?? false
+          ? ((val as { enabled?: boolean }).enabled ?? false)
           : false;
     }
 
@@ -269,7 +350,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     let totalIdleTime = 0;
     if (sessions.length) {
       const completedSessions = sessions.filter(
-        (session) => !session.active && session.endTime
+        (session) => !session.active && session.endTime,
       );
       timeSpent = completedSessions.reduce((sum, session) => {
         const totalTime =
@@ -279,7 +360,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       }, 0);
       timeSpent = Math.round(timeSpent / 60000);
       totalIdleTime = sessions.reduce((sum, session) => {
-        return sum + (session.idleTime ? Number(session.idleTime) : 0);
+        return sum + (session.idleTime ? Number(session.idleTime) / 60 : 0); // seconds → minutes
       }, 0);
     }
     const netAdjustment = adjustments.reduce((sum, a) => sum + a.minutes, 0);
@@ -308,7 +389,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       (_, i) => ({
         day: i,
         ms: [],
-      })
+      }),
     );
 
     weeklySessions.forEach((session) => {
@@ -318,11 +399,11 @@ export const getServerSideProps = withPermissionCheckSsr(
 
       if (session.active && !session.endTime) {
         duration = Math.round(
-          (new Date().getTime() - session.startTime.getTime()) / 60000
+          (new Date().getTime() - session.startTime.getTime()) / 60000,
         );
       } else if (session.endTime) {
         duration = Math.round(
-          (session.endTime.getTime() - session.startTime.getTime()) / 60000
+          (session.endTime.getTime() - session.startTime.getTime()) / 60000,
         );
       }
 
@@ -332,7 +413,7 @@ export const getServerSideProps = withPermissionCheckSsr(
     });
 
     const data: number[] = days.map((d) =>
-      d.ms.reduce((sum, val) => sum + val, 0)
+      d.ms.reduce((sum, val) => sum + val, 0),
     );
 
     const ubook = await prisma.userBook.findMany({
@@ -406,7 +487,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           participation.roleID.toLowerCase().includes("co-host") ||
           slotName.toLowerCase().includes("co-host")
         );
-      }
+      },
     ).length;
 
     const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
@@ -422,7 +503,7 @@ export const getServerSideProps = withPermissionCheckSsr(
           slotName.toLowerCase().includes("co-host");
 
         return !isCoHost && !ownedSessionIds.has(participation.sessionid);
-      }
+      },
     ).length;
 
     const allianceVisits = await prisma.allyVisit.count({
@@ -452,7 +533,7 @@ export const getServerSideProps = withPermissionCheckSsr(
             workspaceGroupId: true,
           },
         },
-        discordUser: true
+        discordUser: true,
       },
     });
 
@@ -492,7 +573,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         color: true,
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
 
@@ -521,7 +602,7 @@ export const getServerSideProps = withPermissionCheckSsr(
       const roles = await noblox.getRoles(workspaceGroupId);
       const userRankRecord =
         user?.ranks?.find(
-          (r: any) => Number(r.workspaceGroupId) === workspaceGroupId
+          (r: any) => Number(r.workspaceGroupId) === workspaceGroupId,
         ) || user?.ranks?.[0];
 
       if (userRankRecord) {
@@ -539,7 +620,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         }
       }
     } catch (e) {
-      console.error('Error fetching member role name:', e);
+      console.error("Error fetching member role name:", e);
       memberRoleName = null;
     }
 
@@ -576,7 +657,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         picture: true,
       },
       orderBy: {
-        username: 'asc',
+        username: "asc",
       },
     });
 
@@ -590,18 +671,20 @@ export const getServerSideProps = withPermissionCheckSsr(
       return { notFound: true };
     }
 
-    const finalLogbookPermissions = isSelfProfile ? {
-      ...logbookPermissions,
-      view: true,
-      rank: false,
-      note: false,
-      warning: false,
-      promotion: false,
-      demotion: false,
-      termination: false,
-      redact: false,
-      delete: false,
-    } : logbookPermissions;
+    const finalLogbookPermissions = isSelfProfile
+      ? {
+          ...logbookPermissions,
+          view: true,
+          rank: false,
+          note: false,
+          warning: false,
+          promotion: false,
+          demotion: false,
+          termination: false,
+          redact: false,
+          delete: false,
+        }
+      : logbookPermissions;
 
     const finalLogbookEnabled = isSelfProfile ? true : hasAnyLogbookPermission;
 
@@ -609,8 +692,8 @@ export const getServerSideProps = withPermissionCheckSsr(
       props: {
         notices: JSON.parse(
           JSON.stringify(notices, (_k, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          )
+            typeof v === "bigint" ? v.toString() : v,
+          ),
         ),
         timeSpent: displayTimeSpent,
         totalIdleTime: Math.round(totalIdleTime),
@@ -618,13 +701,13 @@ export const getServerSideProps = withPermissionCheckSsr(
         data,
         sessions: JSON.parse(
           JSON.stringify(sessions, (_k, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          )
+            typeof v === "bigint" ? v.toString() : v,
+          ),
         ),
         adjustments: JSON.parse(
           JSON.stringify(adjustments, (_k, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          )
+            typeof v === "bigint" ? v.toString() : v,
+          ),
         ),
         info: {
           username: await getUsername(Number(query?.uid as string)),
@@ -639,14 +722,14 @@ export const getServerSideProps = withPermissionCheckSsr(
         quotas,
         userBook: JSON.parse(
           JSON.stringify(ubook, (_k, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          )
+            typeof v === "bigint" ? v.toString() : v,
+          ),
         ),
         user: {
           ...JSON.parse(
             JSON.stringify(user, (_k, v) =>
-              typeof v === "bigint" ? v.toString() : v
-            )
+              typeof v === "bigint" ? v.toString() : v,
+            ),
           ),
           userid: user.userid.toString(),
           joinDate: targetUserMembership?.joinDate
@@ -656,7 +739,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         memberRoleName,
         workspaceMember: targetUserMembership
           ? {
-              departments: targetUserMembership.departmentMembers.map(dm => ({
+              departments: targetUserMembership.departmentMembers.map((dm) => ({
                 id: dm.department.id,
                 name: dm.department.name,
                 color: dm.department.color,
@@ -681,7 +764,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         canEditBasicInfo: isSelfProfile,
       },
     };
-  }
+  },
 );
 
 type pageProps = {
@@ -718,10 +801,10 @@ type pageProps = {
     birthdayMonth: number;
     joinDate: string | null;
     discordUser?: {
-      username: string,
-      avatar: string,
-      discordUserId: string,
-    }
+      username: string;
+      avatar: string;
+      discordUserId: string;
+    };
   };
   workspaceMember: {
     departments: Array<{
@@ -808,7 +891,7 @@ const Profile: pageWithLayout<pageProps> = ({
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [availableHistory, setAvailableHistory] = useState<any[]>([]);
-  
+
   const currentData = {
     timeSpent,
     timesPlayed,
@@ -821,10 +904,10 @@ const Profile: pageWithLayout<pageProps> = ({
     adjustments,
     messages: sessions.reduce(
       (acc, session) => acc + Number(session.messages || 0),
-      0
+      0,
     ),
     idleTime: Math.round(
-      sessions.reduce((acc, session) => acc + Number(session.idleTime || 0), 0)
+      sessions.reduce((acc, session) => acc + Number(session.idleTime || 0), 0),
     ),
   };
 
@@ -841,7 +924,7 @@ const Profile: pageWithLayout<pageProps> = ({
     async function fetchAvailableHistory() {
       try {
         const response = await axios.get(
-          `/api/workspace/${router.query.id}/activity/history/${router.query.uid}`
+          `/api/workspace/${router.query.id}/activity/history/${router.query.uid}`,
         );
         if (response.data.success && response.data.data.history) {
           const validHistory = response.data.data.history.filter(
@@ -849,7 +932,7 @@ const Profile: pageWithLayout<pageProps> = ({
               h.activity.minutes > 0 ||
               h.activity.messages > 0 ||
               h.activity.sessionsHosted > 0 ||
-              h.activity.sessionsAttended > 0
+              h.activity.sessionsAttended > 0,
           );
           setAvailableHistory(validHistory);
         } else {
@@ -881,7 +964,7 @@ const Profile: pageWithLayout<pageProps> = ({
         const historyPeriod = availableHistory[selectedWeek - 1];
         if (historyPeriod) {
           const response = await axios.get(
-            `/api/workspace/${router.query.id}/activity/history/${router.query.uid}?periodEnd=${historyPeriod.period.end}`
+            `/api/workspace/${router.query.id}/activity/history/${router.query.uid}?periodEnd=${historyPeriod.period.end}`,
           );
           if (response.data.success) {
             setHistoricalData(response.data.data);
@@ -922,43 +1005,43 @@ const Profile: pageWithLayout<pageProps> = ({
     selectedWeek === 0
       ? currentData
       : historicalData
-      ? {
-          timeSpent: historicalData.activity.minutes,
-          timesPlayed:
-            historicalData.activity.totalSessions ||
-            historicalData.activity.sessionsHosted +
-              historicalData.activity.sessionsAttended,
-          data: historicalData.chartData || [0, 0, 0, 0, 0, 0, 0],
-          quotas: historicalData.activity.quotaProgress
-            ? Object.values(historicalData.activity.quotaProgress).map(
-                (qp: any) => ({
-                  id: qp.id || qp.name || "",
-                  name: qp.name || "",
-                  type: qp.type || "",
-                  value: qp.requirement || 0,
-                  workspaceGroupId: parseInt(router.query.id as string),
-                  description: null,
-                  sessionType: null,
-                  sessionRole: null,
-                  currentValue: qp.value || 0,
-                  percentage: qp.percentage || 0,
-                })
-              )
-            : [],
-          sessionsHosted: historicalData.activity.sessionsHosted,
-          sessionsAttended: historicalData.activity.sessionsAttended,
-          allianceVisits: historicalData.activity.allianceVisits || 0,
-          sessions: historicalData.sessions || [],
-          adjustments: historicalData.adjustments || [],
-          messages: historicalData.activity.messages || 0,
-          idleTime: historicalData.activity.idleTime || 0,
-        }
-      : currentData;
+        ? {
+            timeSpent: historicalData.activity.minutes,
+            timesPlayed:
+              historicalData.activity.totalSessions ||
+              historicalData.activity.sessionsHosted +
+                historicalData.activity.sessionsAttended,
+            data: historicalData.chartData || [0, 0, 0, 0, 0, 0, 0],
+            quotas: historicalData.activity.quotaProgress
+              ? Object.values(historicalData.activity.quotaProgress).map(
+                  (qp: any) => ({
+                    id: qp.id || qp.name || "",
+                    name: qp.name || "",
+                    type: qp.type || "",
+                    value: qp.requirement || 0,
+                    workspaceGroupId: parseInt(router.query.id as string),
+                    description: null,
+                    sessionType: null,
+                    sessionRole: null,
+                    currentValue: qp.value || 0,
+                    percentage: qp.percentage || 0,
+                  }),
+                )
+              : [],
+            sessionsHosted: historicalData.activity.sessionsHosted,
+            sessionsAttended: historicalData.activity.sessionsAttended,
+            allianceVisits: historicalData.activity.allianceVisits || 0,
+            sessions: historicalData.sessions || [],
+            adjustments: historicalData.adjustments || [],
+            messages: historicalData.activity.messages || 0,
+            idleTime: historicalData.activity.idleTime || 0,
+          }
+        : currentData;
 
   const refetchUserBook = async () => {
     try {
       const response = await fetch(
-        `/api/workspace/${router.query.id}/userbook/${router.query.uid}`
+        `/api/workspace/${router.query.id}/userbook/${router.query.uid}`,
       );
       const data = await response.json();
       setUserBook(data.userBook);
@@ -1000,219 +1083,228 @@ const Profile: pageWithLayout<pageProps> = ({
 
   return (
     <ProfilePageShell>
-        <ProfilePanel className="mb-5 sm:mb-6">
-          <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-6">
-            <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
-              <div className="relative shrink-0">
-                <div
-                  className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl border-2 border-white shadow-sm sm:h-24 sm:w-24 ${getRandomBg(
-                    String(user.userid),
-                    info.username
-                  )}`}
-                >
-                  <img
-                    src={`/api/user/${user.userid}/avatar`}
-                    className="h-full w-full object-cover"
-                    alt={`${info.displayName}'s avatar`}
-                  />
-                </div>
-              </div>
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="truncate text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
-                    {info.displayName}
-                  </h1>
-                  {(() => {
-                    const now = new Date();
-                    const activeNotice = notices.find(
-                      (notice: any) =>
-                        notice.approved === true &&
-                        notice.reviewed === true &&
-                        notice.revoked === false &&
-                        new Date(notice.startTime) <= now &&
-                        new Date(notice.endTime) >= now
-                    );
-                    if (activeNotice) {
-                      return (
-                        <div
-                          className="flex-shrink-0"
-                          title={`On notice: ${activeNotice.reason || "N/A"}`}
-                        >
-                          <IconBeach className="h-5 w-5 text-amber-500" />
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                </div>
-                <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
-                  <span className="text-zinc-400 dark:text-zinc-500">@</span>
-                  {info.username}
-                </p>
-                {memberRoleName && (
-                  <p>
-                    <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                      <span className="truncate">{memberRoleName}</span>
-                    </span>
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-2">
-              {workspaceMember &&
-                workspaceMember.timezone &&
-                (() => {
-                  const userHour = new Date().toLocaleString("en-US", {
-                    timeZone: workspaceMember.timezone,
-                    hour: "numeric",
-                    hour12: false,
-                  });
-                  const hour = parseInt(userHour);
-                  const isDay = hour >= 6 && hour < 18;
-
-                  return (
-                    <div className="inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-100 px-3 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100">
-                      {isDay ? (
-                        <IconSun className="h-4 w-4 shrink-0 text-amber-500" />
-                      ) : (
-                        <IconMoon className="h-4 w-4 shrink-0 text-sky-300" />
-                      )}
-                      <span className="text-xs font-medium tabular-nums sm:text-sm">
-                        {currentTime.toLocaleTimeString("en-US", {
-                          timeZone: workspaceMember.timezone,
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </span>
-                    </div>
-                  );
-                })()}
-              <a
-                href={`https://www.roblox.com/users/${user.userid}/profile`}
-                target="_blank"
-                rel="noreferrer"
-                title="Open profile on Roblox"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme))] text-white shadow-sm transition hover:opacity-90 active:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.45)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+      <ProfilePanel className="mb-5 sm:mb-6">
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-6">
+          <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
+            <div className="relative shrink-0">
+              <div
+                className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl border-2 border-white shadow-sm sm:h-24 sm:w-24 ${getRandomBg(
+                  String(user.userid),
+                  info.username,
+                )}`}
               >
                 <img
-                  src="/roblox.svg"
-                  alt=""
-                  className="h-[18px] w-[18px]"
-                  aria-hidden
+                  src={`/api/user/${user.userid}/avatar`}
+                  className="h-full w-full object-cover"
+                  alt={`${info.displayName}'s avatar`}
                 />
-                <span className="sr-only">Open profile on Roblox</span>
-              </a>
+              </div>
+            </div>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
+                  {info.displayName}
+                </h1>
+                {(() => {
+                  const now = new Date();
+                  const activeNotice = notices.find(
+                    (notice: any) =>
+                      notice.approved === true &&
+                      notice.reviewed === true &&
+                      notice.revoked === false &&
+                      new Date(notice.startTime) <= now &&
+                      new Date(notice.endTime) >= now,
+                  );
+                  if (activeNotice) {
+                    return (
+                      <div
+                        className="flex-shrink-0"
+                        title={`On notice: ${activeNotice.reason || "N/A"}`}
+                      >
+                        <IconBeach className="h-5 w-5 text-amber-500" />
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
+                <span className="text-zinc-400 dark:text-zinc-500">@</span>
+                {info.username}
+              </p>
+              {memberRoleName && (
+                <p>
+                  <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="truncate">{memberRoleName}</span>
+                  </span>
+                </p>
+              )}
             </div>
           </div>
-        </ProfilePanel>
+          <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-2">
+            {workspaceMember &&
+              workspaceMember.timezone &&
+              (() => {
+                const userHour = new Date().toLocaleString("en-US", {
+                  timeZone: workspaceMember.timezone,
+                  hour: "numeric",
+                  hour12: false,
+                });
+                const hour = parseInt(userHour);
+                const isDay = hour >= 6 && hour < 18;
 
-        <ProfilePanel className="overflow-hidden">
-          <Tab.Group>
-            <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
+                return (
+                  <div className="inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-100 px-3 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100">
+                    {isDay ? (
+                      <IconSun className="h-4 w-4 shrink-0 text-amber-500" />
+                    ) : (
+                      <IconMoon className="h-4 w-4 shrink-0 text-sky-300" />
+                    )}
+                    <span className="text-xs font-medium tabular-nums sm:text-sm">
+                      {currentTime.toLocaleTimeString("en-US", {
+                        timeZone: workspaceMember.timezone,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
+                  </div>
+                );
+              })()}
+            <a
+              href={`https://www.roblox.com/users/${user.userid}/profile`}
+              target="_blank"
+              rel="noreferrer"
+              title="Open profile on Roblox"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme))] text-white shadow-sm transition hover:opacity-90 active:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.45)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+            >
+              <img
+                src="/roblox.svg"
+                alt=""
+                className="h-[18px] w-[18px]"
+                aria-hidden
+              />
+              <span className="sr-only">Open profile on Roblox</span>
+            </a>
+          </div>
+        </div>
+      </ProfilePanel>
+
+      <ProfilePanel className="overflow-hidden">
+        <Tab.Group>
+          <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
+            <Tab className={({ selected }) => profileTabClass(selected)}>
+              <IconClipboard
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                stroke={1.75}
+              />
+              Details
+            </Tab>
+            <Tab className={({ selected }) => profileTabClass(selected)}>
+              <IconHistory
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                stroke={1.75}
+              />
+              Activity
+            </Tab>
+            {logbookEnabled && (
               <Tab className={({ selected }) => profileTabClass(selected)}>
-                <IconClipboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
-                Details
+                <IconBook className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
+                Logbook
               </Tab>
+            )}
+            {noticesEnabled && (
               <Tab className={({ selected }) => profileTabClass(selected)}>
-                <IconHistory className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
-                Activity
+                <IconCalendar
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  stroke={1.75}
+                />
+                Time off
               </Tab>
-              {logbookEnabled && (
-                <Tab className={({ selected }) => profileTabClass(selected)}>
-                  <IconBook className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
-                  Logbook
-                </Tab>
-              )}
-              {noticesEnabled && (
-                <Tab className={({ selected }) => profileTabClass(selected)}>
-                  <IconCalendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
-                  Time off
-                </Tab>
-              )}
-            </Tab.List>
-            <Tab.Panels className="p-4 sm:p-5">
+            )}
+          </Tab.List>
+          <Tab.Panels className="p-4 sm:p-5">
+            <Tab.Panel>
+              <InformationTab
+                user={{
+                  userid: String(user.userid),
+                  username: user.username,
+                  displayname: info.displayName,
+                  registered: user.registered,
+                  birthdayDay: user.birthdayDay,
+                  birthdayMonth: user.birthdayMonth,
+                  joinDate: user.joinDate,
+                  DiscordUser: user.discordUser,
+                }}
+                workspaceMember={workspaceMember || undefined}
+                availableDepartments={availableDepartments}
+                lineManager={lineManager}
+                allMembers={allMembers}
+                isUser={isUser}
+                isAdmin={isAdmin}
+                canEditBasicInfo={canEditBasicInfo}
+                canEditMembers={canManageMembers}
+              />
+            </Tab.Panel>
+            <Tab.Panel>
+              <Activity
+                timeSpent={displayData.timeSpent}
+                timesPlayed={displayData.timesPlayed}
+                data={displayData.data}
+                quotas={displayData.quotas}
+                sessionsHosted={displayData.sessionsHosted}
+                sessionsAttended={displayData.sessionsAttended}
+                allianceVisits={displayData.allianceVisits}
+                avatar={info.avatar}
+                sessions={displayData.sessions}
+                adjustments={displayData.adjustments}
+                notices={notices}
+                messages={displayData.messages}
+                idleTime={displayData.idleTime}
+                isHistorical={selectedWeek > 0}
+                historicalPeriod={
+                  selectedWeek > 0 && historicalData
+                    ? {
+                        start: historicalData.period?.start,
+                        end: historicalData.period?.end,
+                      }
+                    : null
+                }
+                loadingHistory={loadingHistory}
+                selectedWeek={selectedWeek}
+                availableHistory={availableHistory}
+                getCurrentWeekLabel={getCurrentWeekLabel}
+                canGoBack={canGoBack}
+                canGoForward={canGoForward}
+                goToPreviousWeek={goToPreviousWeek}
+                goToNextWeek={goToNextWeek}
+                canAdjustActivity={canAdjustActivity}
+              />
+            </Tab.Panel>
+            {logbookEnabled && (
               <Tab.Panel>
-                <InformationTab
-                  user={{
-                    userid: String(user.userid),
-                    username: user.username,
-                    displayname: info.displayName,
-                    registered: user.registered,
-                    birthdayDay: user.birthdayDay,
-                    birthdayMonth: user.birthdayMonth,
-                    joinDate: user.joinDate,
-                    DiscordUser: user.discordUser
-                  }}
-                  workspaceMember={workspaceMember || undefined}
-                  availableDepartments={availableDepartments}
-                  lineManager={lineManager}
-                  allMembers={allMembers}
-                  isUser={isUser}
-                  isAdmin={isAdmin}
-                  canEditBasicInfo={canEditBasicInfo}
-                  canEditMembers={canManageMembers}
+                <Book
+                  userBook={userBook}
+                  onRefetch={refetchUserBook}
+                  logbookPermissions={logbookPermissions}
+                  isSelf={isUser}
                 />
               </Tab.Panel>
+            )}
+            {noticesEnabled && (
               <Tab.Panel>
-                <Activity
-                  timeSpent={displayData.timeSpent}
-                  timesPlayed={displayData.timesPlayed}
-                  data={displayData.data}
-                  quotas={displayData.quotas}
-                  sessionsHosted={displayData.sessionsHosted}
-                  sessionsAttended={displayData.sessionsAttended}
-                  allianceVisits={displayData.allianceVisits}
-                  avatar={info.avatar}
-                  sessions={displayData.sessions}
-                  adjustments={displayData.adjustments}
+                <Notices
                   notices={notices}
-                  messages={displayData.messages}
-                  idleTime={displayData.idleTime}
-                  isHistorical={selectedWeek > 0}
-                  historicalPeriod={
-                    selectedWeek > 0 && historicalData
-                      ? {
-                          start: historicalData.period?.start,
-                          end: historicalData.period?.end,
-                        }
-                      : null
-                  }
-                  loadingHistory={loadingHistory}
-                  selectedWeek={selectedWeek}
-                  availableHistory={availableHistory}
-                  getCurrentWeekLabel={getCurrentWeekLabel}
-                  canGoBack={canGoBack}
-                  canGoForward={canGoForward}
-                  goToPreviousWeek={goToPreviousWeek}
-                  goToNextWeek={goToNextWeek}
-                  canAdjustActivity={canAdjustActivity}
+                  canManageNotices={canManageNotices}
+                  canApproveNotices={canApproveNotices}
+                  canRecordNotices={canRecordNotices}
+                  userId={user.userid}
                 />
               </Tab.Panel>
-              {logbookEnabled && (
-                <Tab.Panel>
-                  <Book
-                    userBook={userBook}
-                    onRefetch={refetchUserBook}
-                    logbookPermissions={logbookPermissions}
-                    isSelf={isUser}
-                  />
-                </Tab.Panel>
-              )}
-              {noticesEnabled && (
-                <Tab.Panel>
-                  <Notices
-                    notices={notices}
-                    canManageNotices={canManageNotices}
-                    canApproveNotices={canApproveNotices}
-                    canRecordNotices={canRecordNotices}
-                    userId={user.userid}
-                  />
-                </Tab.Panel>
-              )}
-            </Tab.Panels>
-          </Tab.Group>
-        </ProfilePanel>
+            )}
+          </Tab.Panels>
+        </Tab.Group>
+      </ProfilePanel>
     </ProfilePageShell>
   );
 };

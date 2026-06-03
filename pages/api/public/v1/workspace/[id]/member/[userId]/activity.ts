@@ -1,19 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from "next"
-import prisma from "@/utils/database"
-import { withKey } from "@/lib/withAuth"
+import type { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@/utils/database";
+import { withKey } from "@/lib/withAuth";
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") return res.status(405).json({ success: false, error: "Method not allowed" })
+  if (req.method !== "GET")
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });
 
-  const workspaceId = Number.parseInt(req.query.id as string)
-  if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" })
+  const workspaceId = Number.parseInt(req.query.id as string);
+  if (!workspaceId)
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing workspace ID" });
 
-  const { userId } = req.query
-  if (!userId) return res.status(400).json({ success: false, error: "Missing user ID" })
+  const { userId } = req.query;
+  if (!userId)
+    return res.status(400).json({ success: false, error: "Missing user ID" });
 
-  const { startDate, endDate, limit = "50" } = req.query
+  const { startDate, endDate, limit = "50" } = req.query;
 
   try {
     // Check if user exists and has a role in this workspace
@@ -38,22 +45,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
         },
       },
-    })
+    });
 
     if (!user) {
-      return res.status(404).json({ success: false, error: "User not found in this workspace" })
+      return res
+        .status(404)
+        .json({ success: false, error: "User not found in this workspace" });
     }
 
     // Build query filters
     const where: any = {
       workspaceGroupId: workspaceId,
       userId: BigInt(userId as string),
-    }
+    };
 
     if (startDate || endDate) {
-      where.startTime = {}
-      if (startDate) where.startTime.gte = new Date(startDate as string)
-      if (endDate) where.startTime.lte = new Date(endDate as string)
+      where.startTime = {};
+      if (startDate) where.startTime.gte = new Date(startDate as string);
+      if (endDate) where.startTime.lte = new Date(endDate as string);
     }
 
     // Fetch activity sessions
@@ -63,26 +72,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         startTime: "desc",
       },
       take: Number(limit),
-    })
+    });
+
+    const completedSessions = sessions.filter((session) => session.endTime);
 
     // Calculate total activity time
-    const totalActivityTime = sessions.reduce((total, session) => {
-      if (session.endTime) {
-        const duration = Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000)
-        return total + duration
-      }
-      return total
-    }, 0)
+    const totalActivityTimeMs = completedSessions.reduce((total, session) => {
+      const durationMs =
+        session.endTime!.getTime() - session.startTime.getTime();
+      const idleMs = session.idleTime
+        ? (Number(session.idleTime) / 60) * 60000
+        : 0;
+      return total + Math.max(0, durationMs - idleMs);
+    }, 0);
+    const totalActivityTime = Math.round(totalActivityTimeMs / 60000);
 
     // Calculate average session length
-    const completedSessions = sessions.filter((session) => session.endTime)
     const averageSessionLength =
       completedSessions.length > 0
         ? completedSessions.reduce((total, session) => {
-            const duration = Math.floor((session.endTime!.getTime() - session.startTime.getTime()) / 1000)
-            return total + duration
-          }, 0) / completedSessions.length
-        : 0
+            const durationMs =
+              session.endTime!.getTime() - session.startTime.getTime();
+            const idleMs = session.idleTime
+              ? (Number(session.idleTime) / 60) * 60000
+              : 0;
+            return total + Math.max(0, durationMs - idleMs);
+          }, 0) /
+          completedSessions.length /
+          60000
+        : 0;
 
     // Format sessions
     const formattedSessions = sessions.map((session) => ({
@@ -90,11 +108,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       active: session.active,
       startTime: session.startTime,
       endTime: session.endTime,
-      idleTime: session.idleTime,
-      duration: session.endTime ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 1000) : null,
+      idleTime: session.idleTime
+        ? Math.round(Number(session.idleTime) / 60)
+        : 0,
+      duration: session.endTime
+        ? Math.floor(
+            (session.endTime.getTime() - session.startTime.getTime()) / 60000,
+          )
+        : null,
       messages: session.messages,
       universeId: session.universeId ? Number(session.universeId) : null,
-    }))
+    }));
 
     // Get inactivity notices
     const notices = await prisma.inactivityNotice.findMany({
@@ -106,7 +130,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         startTime: "desc",
       },
       take: 10,
-    })
+    });
 
     const formattedNotices = notices.map((notice) => ({
       id: notice.id,
@@ -116,7 +140,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       approved: notice.approved,
       reviewed: notice.reviewed,
       revoked: notice.revoked,
-    }))
+    }));
 
     return res.status(200).json({
       success: true,
@@ -133,9 +157,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         averageSessionLength,
         notices: formattedNotices,
       },
-    })
+    });
   } catch (error) {
-    console.error("Error in public API:", error)
-    return res.status(500).json({ success: false, error: "Internal server error" })
+    console.error("Error in public API:", error);
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal server error" });
   }
 }
