@@ -89,7 +89,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Calculate average session length
     const averageSessionLength =
-      completedSessions.length > 0
+      Math.round(completedSessions.length > 0
         ? completedSessions.reduce((total, session) => {
             const durationMs =
               session.endTime!.getTime() - session.startTime.getTime();
@@ -100,7 +100,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           }, 0) /
           completedSessions.length /
           60000
-        : 0;
+        : 0);
 
     // Format sessions
     const formattedSessions = sessions.map((session) => ({
