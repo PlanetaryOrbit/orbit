@@ -129,6 +129,12 @@ const Activity: FC<Props> = ({
   const [adjustReason, setAdjustReason] = useState("");
   const [adjustType, setAdjustType] = useState<"award" | "remove">("award");
   const [submittingAdjust, setSubmittingAdjust] = useState(false);
+  const [localSessions, setLocalSessions] = useState(sessions);
+
+  // keep in sync if prop changes (e.g. week switch)
+  useEffect(() => {
+    setLocalSessions(sessions);
+  }, [sessions]);
 
   // Update displayMinutes when timeSpent prop changes (e.g., when switching between weeks)
   useEffect(() => {
@@ -139,7 +145,9 @@ const Activity: FC<Props> = ({
     const fetchConfig = async () => {
       if (id) {
         try {
-          const res = await axios.get(`/api/workspace/${id}/settings/activity/getConfig`);
+          const res = await axios.get(
+            `/api/workspace/${id}/settings/activity/getConfig`,
+          );
           setIdleTimeEnabled(res.data.idleTimeEnabled ?? true);
         } catch (error) {
           console.error("Failed to fetch activity config:", error);
@@ -183,11 +191,11 @@ const Activity: FC<Props> = ({
           minutes: val,
           action: adjustType,
           reason: adjustReason,
-        }
+        },
       );
       if (!data.success) throw new Error("Failed");
       setDisplayMinutes(
-        (prev) => prev + (adjustType === "remove" ? -val : val)
+        (prev) => prev + (adjustType === "remove" ? -val : val),
       );
       toast.success("Adjustment saved!");
       setAdjustModal(false);
@@ -209,7 +217,10 @@ const Activity: FC<Props> = ({
             Activity
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
-            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
+            <IconCalendarEvent
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+              stroke={1.75}
+            />
             Sessions
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
@@ -233,11 +244,11 @@ const Activity: FC<Props> = ({
                   {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
                     <>
                       {moment(
-                        availableHistory[selectedWeek - 1].period.start
+                        availableHistory[selectedWeek - 1].period.start,
                       ).format("MMM DD")}{" "}
                       -{" "}
                       {moment(
-                        availableHistory[selectedWeek - 1].period.end
+                        availableHistory[selectedWeek - 1].period.end,
                       ).format("MMM DD, YYYY")}
                     </>
                   ) : (
@@ -273,39 +284,69 @@ const Activity: FC<Props> = ({
         ) : (
           <div>
             {isHistorical && historicalPeriod && (
-            <div className="mb-6 rounded-xl bg-amber-500/10 p-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-amber-500/15 p-2">
-                  <IconCalendarTime className="h-5 w-5 text-amber-600 dark:text-amber-400" stroke={1.75} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-amber-900 dark:text-amber-200">
-                    Historical Activity Data
-                  </h3>
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    Showing activity from{" "}
-                    {moment(historicalPeriod.start).format("MMM DD")} -{" "}
-                    {moment(historicalPeriod.end).format("MMM DD, YYYY")}
-                  </p>
+              <div className="mb-6 rounded-xl bg-amber-500/10 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-amber-500/15 p-2">
+                    <IconCalendarTime
+                      className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                      stroke={1.75}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                      Historical Activity Data
+                    </h3>
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      Showing activity from{" "}
+                      {moment(historicalPeriod.start).format("MMM DD")} -{" "}
+                      {moment(historicalPeriod.end).format("MMM DD, YYYY")}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
             )}
 
             <Tab.Panels className="min-h-[400px]">
               <Tab.Panel>
                 {!isHistorical && canAdjustActivity && (
-                    <div className="mb-4 flex justify-end">
-                      <button
-                        onClick={() => setAdjustModal(true)}
-                        className={profilePrimaryButtonClass}
-                      >
-                        <IconAdjustments className="h-4 w-4" stroke={1.75} />
-                        Manual Adjustment
-                      </button>
-                    </div>
-                  )}
+                  <div className="mb-4 flex justify-end">
+                    <button
+                      onClick={() => setAdjustModal(true)}
+                      className={profilePrimaryButtonClass}
+                    >
+                      <IconAdjustments className="h-4 w-4" stroke={1.75} />
+                      Manual Adjustment
+                    </button>
+                  </div>
+                )}
                 <ActivityOverview
+                  onEndSession={(sid, wid) => {
+                    toast.loading("Ending session...", {
+                      id: `session-${sid}`,
+                    });
+                    axios
+                      .post("/api/activity/force-end", {
+                        sessionId: sid,
+                        workspaceId: wid,
+                      })
+                      .then(() => {
+                        toast.success("Session ended", {
+                          id: `session-${sid}`,
+                        });
+                        setLocalSessions((prev) =>
+                          prev.map((s) =>
+                            s.id === sid
+                              ? { ...s, active: false, endTime: new Date() }
+                              : s,
+                          ),
+                        );
+                      })
+                      .catch(() => {
+                        toast.error("Failed to end session", {
+                          id: `session-${sid}`,
+                        });
+                      });
+                  }}
                   data={data}
                   displayMinutes={displayMinutes}
                   messages={messages}
@@ -315,13 +356,13 @@ const Activity: FC<Props> = ({
                   idleTimeEnabled={idleTimeEnabled}
                   notices={notices}
                   adjustments={adjustments}
-                  sessions={sessions}
+                  sessions={localSessions}
                   avatar={avatar}
                 />
               </Tab.Panel>
               <Tab.Panel>
                 <SessionsHistory
-                  sessions={sessions}
+                  sessions={localSessions}
                   notices={notices}
                   adjustments={adjustments}
                   avatar={avatar}
@@ -374,7 +415,9 @@ const Activity: FC<Props> = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className={`w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle transition-all dark:bg-zinc-900 ${profilePanelShadow}`}>
+                <Dialog.Panel
+                  className={`w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle transition-all dark:bg-zinc-900 ${profilePanelShadow}`}
+                >
                   <Dialog.Title
                     as="h3"
                     className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white"
@@ -394,7 +437,9 @@ const Activity: FC<Props> = ({
                         type="button"
                         onClick={() => setAdjustType("remove")}
                         className={`flex-1 ${profileTabClass(adjustType === "remove")} ${
-                          adjustType === "remove" ? "!bg-red-600 !text-white dark:!bg-red-600" : ""
+                          adjustType === "remove"
+                            ? "!bg-red-600 !text-white dark:!bg-red-600"
+                            : ""
                         }`}
                       >
                         Remove
@@ -413,8 +458,8 @@ const Activity: FC<Props> = ({
                           setAdjustMinutes(
                             Math.min(
                               1000,
-                              Math.max(0, parseInt(e.target.value, 10) || 0)
-                            )
+                              Math.max(0, parseInt(e.target.value, 10) || 0),
+                            ),
                           )
                         }
                         className={profileInputClass}
@@ -453,8 +498,8 @@ const Activity: FC<Props> = ({
                       {submittingAdjust
                         ? "Saving..."
                         : adjustType === "award"
-                        ? "Award Minutes"
-                        : "Remove Minutes"}
+                          ? "Award Minutes"
+                          : "Remove Minutes"}
                     </button>
                   </div>
                 </Dialog.Panel>

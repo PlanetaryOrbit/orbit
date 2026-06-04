@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ActivitySessionDetailsDialog } from "@/components/activity/ActivitySessionDetailsDialog";
 import {
   ProfileEmptyState,
@@ -40,13 +40,13 @@ ChartJS.register(
   LineElement,
   Title,
   ChartTooltip,
-  Legend
+  Legend,
 );
 
 type TimelineItem =
   | ({ __type: "session" } & ActivitySession & {
-      user: { picture: string | null };
-    })
+        user: { picture: string | null };
+      })
   | ({ __type: "notice" } & inactivityNotice)
   | ({ __type: "adjustment" } & any);
 
@@ -66,6 +66,7 @@ type Props = {
     };
   })[];
   avatar: string;
+  onEndSession: (sessionId: string, workspaceId: string) => void;
 };
 
 export function ActivityOverview({
@@ -77,6 +78,7 @@ export function ActivityOverview({
   adjustments,
   sessions,
   avatar,
+  onEndSession,
 }: Props) {
   const router = useRouter();
   const { id } = router.query;
@@ -89,16 +91,13 @@ export function ActivityOverview({
   const [chartOptions, setChartOptions] = useState({});
   const [timeline, setTimeline] = useState<TimelineItem[]>(() => {
     const adj = adjustments.map((a) => ({ ...a, __type: "adjustment" }));
-    return [
-      ...sessions.map((s) => ({ ...s, __type: "session" })),
-      ...adj,
-    ];
+    return [...sessions.map((s) => ({ ...s, __type: "session" })), ...adj];
   });
   const [isOpen, setIsOpen] = useState(false);
   const [dialogData, setDialogData] = useState<any>({});
   const [concurrentUsers, setConcurrentUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [liveSessionTimer, setLiveSessionTimer] = useState<NodeJS.Timeout | null>(null);
+  const liveSessionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const theme = useRecoilValue(themeState);
   const isDark = theme === "dark";
@@ -119,33 +118,38 @@ export function ActivityOverview({
 
   useEffect(() => {
     const hasLiveSessions = timeline.some(
-      (item) => item.__type === "session" && item.active && !item.endTime
+      (item) =>
+        item.__type === "session" &&
+        (item as any).active &&
+        !(item as any).endTime,
     );
 
     if (hasLiveSessions) {
-      const timer = setInterval(() => {
+      liveSessionTimerRef.current = setInterval(() => {
         setTimeline((prev) => [...prev]);
       }, 60000);
-
-      setLiveSessionTimer(timer);
-
-      return () => {
-        clearInterval(timer);
-        setLiveSessionTimer(null);
-      };
-    } else if (liveSessionTimer) {
-      clearInterval(liveSessionTimer);
-      setLiveSessionTimer(null);
+    } else {
+      if (liveSessionTimerRef.current) {
+        clearInterval(liveSessionTimerRef.current);
+        liveSessionTimerRef.current = null;
+      }
     }
-  }, [timeline, liveSessionTimer]);
 
-  useEffect(() => {
     return () => {
-      if (liveSessionTimer) {
-        clearInterval(liveSessionTimer);
+      if (liveSessionTimerRef.current) {
+        clearInterval(liveSessionTimerRef.current);
+        liveSessionTimerRef.current = null;
       }
     };
-  }, [liveSessionTimer]);
+  }, [timeline]);
+
+  useEffect(() => {
+    const adj = adjustments.map((a) => ({ ...a, __type: "adjustment" }));
+    setTimeline([
+      ...sessions.map((s) => ({ ...s, __type: "session" })),
+      ...adj,
+    ]);
+  }, [sessions, adjustments]);
 
   const fetchSession = async (sessionId: string) => {
     setLoading(true);
@@ -154,7 +158,7 @@ export function ActivityOverview({
 
     try {
       const { data, status } = await axios.get(
-        `/api/workspace/${id}/activity/${sessionId}`
+        `/api/workspace/${id}/activity/${sessionId}`,
       );
       if (status !== 200) return toast.error("Could not fetch session.");
       if (!data.universe) {
@@ -175,7 +179,7 @@ export function ActivityOverview({
       if (data.message?.startTime && data.message?.endTime) {
         try {
           const concurrentResponse = await axios.get(
-            `/api/workspace/${id}/activity/concurrent?sessionId=${sessionId}&startTime=${data.message.startTime}&endTime=${data.message.endTime}`
+            `/api/workspace/${id}/activity/concurrent?sessionId=${sessionId}&startTime=${data.message.startTime}&endTime=${data.message.endTime}`,
           );
 
           if (concurrentResponse.status === 200) {
@@ -283,30 +287,32 @@ export function ActivityOverview({
                 const isLive = item.active && !item.endTime;
                 const sessionDuration = isLive
                   ? Math.floor(
-                      (new Date().getTime() - new Date(item.startTime).getTime()) /
-                        (1000 * 60)
+                      (new Date().getTime() -
+                        new Date(item.startTime).getTime()) /
+                        (1000 * 60),
                     )
                   : Math.floor(
                       (new Date(item.endTime || new Date()).getTime() -
                         new Date(item.startTime).getTime()) /
-                        (1000 * 60)
+                        (1000 * 60),
                     );
 
                 return (
                   <li key={`session-${item.id}`} className="mb-5 ml-5">
-                    <span
-                      className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-zinc-50 dark:ring-zinc-800/40 ${
-                        isLive ? "animate-pulse bg-emerald-500" : "bg-primary"
-                      }`}
-                    >
+                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center">
                       {isLive ? (
-                        <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                        <>
+                          <span className="absolute h-6 w-6 animate-[ripple_1.6s_ease-out_infinite] rounded-full border-2 border-emerald-500 opacity-0" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                        </>
                       ) : (
-                        <img
-                          className="h-full w-full rounded-full object-cover"
-                          src={item.user.picture ? item.user.picture : avatar}
-                          alt="timeline avatar"
-                        />
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary ring-4 ring-zinc-50 dark:ring-zinc-800/40">
+                          <img
+                            className="h-full w-full rounded-full object-cover"
+                            src={item.user.picture ? item.user.picture : avatar}
+                            alt="timeline avatar"
+                          />
+                        </span>
                       )}
                     </span>
                     <div
@@ -331,21 +337,34 @@ export function ActivityOverview({
                         <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
                           {isLive ? (
                             <>
-                              Started {moment(item.startTime).format("HH:mm")} · {sessionDuration}m
+                              Started {moment(item.startTime).format("HH:mm")} ·{" "}
+                              {sessionDuration}m
                             </>
                           ) : (
                             <>
                               {moment(item.startTime).format("HH:mm")}–
                               {moment(item.endTime).format("HH:mm")} ·{" "}
-                              {moment(item.startTime).format("D MMM")} · {sessionDuration}m
+                              {moment(item.startTime).format("D MMM")} ·{" "}
+                              {sessionDuration}m
                             </>
                           )}
                         </time>
                       </div>
                       {isLive && (
-                        <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
-                          Currently active in game
-                        </p>
+                        <div className="mt-1 flex items-center justify-between">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                            Currently active in game
+                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEndSession(item.id, id as string);
+                            }}
+                            className="text-xs px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-all"
+                          >
+                            Not in game?
+                          </button>
+                        </div>
                       )}
                     </div>
                   </li>
@@ -384,7 +403,10 @@ export function ActivityOverview({
                         </span>{" "}
                         by {item.actor?.username || "Unknown"}
                         {item.reason && (
-                          <span className="text-zinc-400 dark:text-zinc-500"> · {item.reason}</span>
+                          <span className="text-zinc-400 dark:text-zinc-500">
+                            {" "}
+                            · {item.reason}
+                          </span>
                         )}
                       </p>
                     </div>
