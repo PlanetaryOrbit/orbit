@@ -12,6 +12,43 @@ const tiptapExtensions = [
   DocVideo,
 ];
 
+const SAFE_HTML_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+    "img", "h1", "h2", "h3", "video", "iframe",
+  ]),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    a: ["href", "name", "target", "rel"],
+    img: ["src", "alt", "title", "class"],
+    video: ["src", "controls", "playsinline", "class"],
+    iframe: ["src", "class", "frameborder", "allow", "allowfullscreen"],
+  },
+  allowedSchemes: ["http", "https"],
+  allowedSchemesAppliedToAttributes: ["src", "href"],
+  allowedClasses: {
+    video: ["doc-video"],
+    iframe: ["doc-video-embed"],
+    img: ["doc-media-image"],
+  },
+  transformTags: {
+    iframe: (tagName, attribs) => {
+      const src = attribs.src || "";
+      const isAllowed =
+        /^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com)/.test(src);
+      if (!isAllowed) return { tagName: "div", attribs: {} }; // strip unknown iframes
+      return { tagName, attribs: { ...attribs, src } };
+    },
+    a: (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        rel: "noopener noreferrer",
+        target: "_blank",
+      },
+    }),
+  },
+};
+
 export type ParsedDocumentContent =
   | { type: "markdown"; content: string }
   | { type: "html"; content: string }
@@ -39,8 +76,9 @@ export function parseDocumentContent(content: unknown): ParsedDocumentContent {
     return { type: "external", content };
   }
   try {
-    const html = generateHTML(content as object, tiptapExtensions);
-    return { type: "html", content: html };
+    const raw = generateHTML(content as object, tiptapExtensions);
+    // sanitize generateHTML output before it ever hits dangerouslySetInnerHTML
+    return { type: "html", content: sanitizeHtml(raw, SAFE_HTML_OPTIONS) };
   } catch {
     return { type: "markdown", content: String(content ?? "") };
   }
@@ -202,30 +240,8 @@ export function markdownToHtml(markdown: string): string {
 }
 
 export function renderMarkdownToSafeHtml(markdown: string): string {
-  const raw = markdownToHtml(markdown);
-  return sanitizeHtml(raw, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      "img",
-      "h1",
-      "h2",
-      "h3",
-      "video",
-      "iframe",
-    ]),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title", "class"],
-      video: ["src", "controls", "playsinline", "class"],
-      iframe: ["src", "class", "frameborder", "allow", "allowfullscreen"],
-    },
-    allowedSchemes: ["http", "https", "data"],
-    allowedClasses: {
-      video: ["doc-video"],
-      iframe: ["doc-video-embed"],
-      img: ["doc-media-image"],
-    },
-  });
+  const raw = marked.parse(markdown, { async: false, breaks: true }) as string;
+  return sanitizeHtml(raw, SAFE_HTML_OPTIONS);
 }
 
 export const docMediaProseClass =
