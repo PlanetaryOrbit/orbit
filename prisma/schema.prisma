@@ -106,7 +106,6 @@ model AuthSession {
   id        String   @id @unique @default(uuid()) @db.Uuid
   userId    BigInt
   token     String   @unique
-  expiresAt DateTime
   ipAddress String?
   userAgent String?
   browser   String?
@@ -114,6 +113,7 @@ model AuthSession {
   device    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  expiresAt DateTime
   user      user     @relation(fields: [userId], references: [userid])
 }
 

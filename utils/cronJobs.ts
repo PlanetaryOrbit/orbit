@@ -5,6 +5,9 @@ import { runRoleSyncCron } from "@/utils/crons/update-roles";
 import { runBirthdayCron } from "@/utils/crons/birthday";
 import { runActivityReset } from "@/utils/crons/resetActivity";
 import { runMilestoneCron } from "@/utils/crons/milestones";
+import { runSessionCron } from "./crons/authSessions";
+import { runOAuthCron } from "./crons/authState";
+import { runPendingVerificationCron } from "./crons/pVerification";
 
 let initialized = false;
 
@@ -50,6 +53,30 @@ export async function initCronJobs() {
         await runMilestoneCron();
       } catch (err) {
         console.error("[CRON][MILESTONES]", err);
+      }
+    });
+
+    cron.schedule("*/30 * * * *", async () => {
+      try {
+        await runSessionCron();
+      } catch (err) {
+        console.error("[CRON][AUTH]", err);
+      }
+    });
+
+    cron.schedule("*/5 * * * *", async () => {
+      try {
+        await runOAuthCron();
+      } catch (err) {
+        console.error("[CRON][OAUTH]", err);
+      }
+    });
+
+    cron.schedule("*/5 * * * *", async () => {
+      try {
+        await runPendingVerificationCron();
+      } catch (err) {
+        console.error("[CRON][OAUTH]", err);
       }
     });
 
