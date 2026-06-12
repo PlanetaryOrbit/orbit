@@ -23,9 +23,6 @@ import {
   sessionSecondaryButtonClass,
 } from "@/components/sessions/shell";
 
-const authPanelShadow =
-  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
-
 const oauthButtonClass =
   "w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700";
 
@@ -129,6 +126,7 @@ const Login: NextPage = () => {
   const [showCopyright, setShowCopyright] = useState(false);
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [showTraditionalLogin, setShowTraditionalLogin] = useState(false);
 
   const errorToastShown = useRef(false);
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -146,6 +144,7 @@ const Login: NextPage = () => {
     setLoading(false);
     setUsernameCheckLoading(false);
     setUsernameAvailable(null);
+    setShowTraditionalLogin(false);
     if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
   }, [mode]);
 
@@ -242,46 +241,46 @@ const Login: NextPage = () => {
 
   // Step 2 → 3: call start, store both code and token
   const onSubmitSignup: SubmitHandler<SignupForm> = async ({ username, password, verifypassword }) => {
-  if (password !== verifypassword) {
-    setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
-    return;
-  }
-  setLoading(true);
-  setVerificationError(null);
-  try {
-    const { data } = await axios.post("/api/auth/signup/start", { username });
-    setVerificationCode(data.code);
-    setSignupUserid(data.userid);
-    setSignupStep(3);
-  } catch (e: any) {
-    setErrSignup("username", {
-      type: "custom",
-      message: e.response?.data?.error || "Unexpected error occurred.",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    if (password !== verifypassword) {
+      setErrSignup("verifypassword", { type: "validate", message: "Passwords must match" });
+      return;
+    }
+    setLoading(true);
+    setVerificationError(null);
+    try {
+      const { data } = await axios.post("/api/auth/signup/start", { username });
+      setVerificationCode(data.code);
+      setSignupUserid(data.userid);
+      setSignupStep(3);
+    } catch (e: any) {
+      setErrSignup("username", {
+        type: "custom",
+        message: e.response?.data?.error || "Unexpected error occurred.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Step 3: verify — pass token back to finish route
   const onVerifyAgain = async () => {
-  setLoading(true);
-  setVerificationError(null);
-  const { password } = getSignupValues();
-  try {
-    const { data } = await axios.post("/api/auth/signup/finish", {
-      password,
-      code: verificationCode,
-      userid: signupUserid,
-    });
-    if (data.success) Router.push("/");
-    else setVerificationError("Verification failed. Please try again.");
-  } catch (e: any) {
-    setVerificationError(e?.response?.data?.error || "Verification not found. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setVerificationError(null);
+    const { password } = getSignupValues();
+    try {
+      const { data } = await axios.post("/api/auth/signup/finish", {
+        password,
+        code: verificationCode,
+        userid: signupUserid,
+      });
+      if (data.success) Router.push("/");
+      else setVerificationError("Verification failed. Please try again.");
+    } catch (e: any) {
+      setVerificationError(e?.response?.data?.error || "Verification not found. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!Router.isReady || errorToastShown.current) return;
@@ -375,15 +374,34 @@ const Login: NextPage = () => {
 
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16">
             <div className="w-full max-w-md">
-              <div className={clsx("rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8", authPanelShadow)}>
+              <div className={clsx("rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30")}>
 
               {mode === "login" && (
                 <>
                   <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Sign in</h2>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    {effectiveOAuthOnly ? "Use one of the options below to sign in." : "Use your username and password to continue."}
+                    {effectiveOAuthOnly && !showTraditionalLogin 
+                      ? "Use one of the options below to sign in." 
+                      : "Use your username and password to continue."
+                    }
                   </p>
-                  {!effectiveOAuthOnly && (
+                  
+                  {effectiveOAuthOnly && !showTraditionalLogin && (
+                    <div className="mt-6">
+                      <OAuthButtons />
+                      <div className="mt-6 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowTraditionalLogin(true)}
+                          className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                        >
+                          Having trouble? Sign in with password instead
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {(!effectiveOAuthOnly || showTraditionalLogin) && (
                     <FormProvider {...loginMethods}>
                       <form onSubmit={submitLogin(onSubmitLogin)} className="mt-6 space-y-1" noValidate>
                         <Input
@@ -427,16 +445,28 @@ const Login: NextPage = () => {
                             Sign in
                           </AuthSubmitButton>
                         </div>
-                        {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
+                        
+                        {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && !effectiveOAuthOnly && (
                           <>
                             {divider}
                             <OAuthButtons />
                           </>
                         )}
+                        
+                        {effectiveOAuthOnly && showTraditionalLogin && (
+                          <div className="mt-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setShowTraditionalLogin(false)}
+                              className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                            >
+                              Back to sign-in options
+                            </button>
+                          </div>
+                        )}
                       </form>
                     </FormProvider>
                   )}
-                  {effectiveOAuthOnly && <div className="mt-6"><OAuthButtons /></div>}
                 </>
               )}
 
@@ -480,14 +510,10 @@ const Login: NextPage = () => {
                           </form>
                         </FormProvider>
                       )}
-                      {isRobloxOAuth && (
+                      {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
                         <>
                           {!effectiveOAuthOnly && divider}
-                          <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
-                            className={oauthButtonClass}>
-                            <img src="/roblox.svg" alt="Roblox" className="h-5 w-5 dark:invert-0 invert" />
-                            Sign up with Roblox
-                          </button>
+                          <OAuthButtons />
                         </>
                       )}
                     </>
@@ -549,14 +575,10 @@ const Login: NextPage = () => {
                               Continue
                             </AuthSubmitButton>
                           </div>
-                          {isRobloxOAuth && (
+                          {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
                             <>
                               {divider}
-                              <button type="button" onClick={() => (window.location.href = "/api/auth/roblox/start")} disabled={loading}
-                                className={oauthButtonClass}>
-                                <img src="/roblox.svg" alt="Roblox" className="h-5 w-5" />
-                                Sign up with Roblox
-                              </button>
+                              <OAuthButtons />
                             </>
                           )}
                           <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
@@ -613,7 +635,7 @@ const Login: NextPage = () => {
       <Dialog open={showCopyright} onClose={() => setShowCopyright(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className={clsx("mx-auto max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-900", authPanelShadow)}>
+          <Dialog.Panel className={clsx("mx-auto max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-900 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30")}>
             <div className="mb-4 flex items-center justify-between">
               <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">Copyright Notices</Dialog.Title>
               <button onClick={() => setShowCopyright(false)} className="rounded-xl p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800">
