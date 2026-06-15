@@ -26,7 +26,8 @@ import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
 import { Toaster } from "react-hot-toast";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
+
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -47,24 +48,14 @@ ChartJS.register(
   LineElement,
 );
 
-function ThemeHandler() {
-  const theme = useRecoilValue(themeState);
-
-  useEffect(() => {
-    if (!theme) return;
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme as string);
-  }, [theme]);
-
-  return null;
-}
-
 function ColorThemeHandler() {
   const [workspace] = useRecoilState(workspacestate);
-  const theme = useRecoilValue(themeState);
+  const { theme, setTheme, systemTheme } = useTheme();
 
   useEffect(() => {
-    const isDark = theme === "dark";
+    //const isDark = theme === "dark";
+    const { resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === "dark";
     const darkTheme = (workspace as any)?.groupDarkTheme;
     const lightTheme = workspace?.groupTheme;
 
