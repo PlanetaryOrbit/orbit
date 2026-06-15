@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { NextPage } from "next";
 import { loginState, workspacestate } from "@/state";
-import { themeState } from "@/state/theme";
+import { useTheme } from "next-themes";
 import { useRecoilState } from "recoil";
 import { Menu, Listbox } from "@headlessui/react";
 import { useRouter } from "next/router";
@@ -198,7 +198,7 @@ function MobileWorkspaceSwitcher({
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
-  const [theme, setTheme] = useRecoilState(themeState);
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [docsEnabled, setDocsEnabled] = useState(false);
   const [alliesEnabled, setAlliesEnabled] = useState(false);
@@ -329,9 +329,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    if (typeof window !== "undefined") localStorage.setItem("theme", newTheme);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   useEffect(() => {
@@ -599,11 +597,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             "flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
                             active ? "bg-zinc-200/70 dark:bg-zinc-700" : "bg-zinc-100 dark:bg-zinc-800"
                           )}>
-                            {theme === "dark"
+                            {resolvedTheme === "dark"
                               ? <IconSun className="w-3.5 h-3.5" stroke={2} />
                               : <IconMoon className="w-3.5 h-3.5" stroke={2} />}
                           </span>
-                          {theme === "dark" ? "Light mode" : "Dark mode"}
+                          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
                         </button>
                       )}
                     </Menu.Item>
