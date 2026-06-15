@@ -26,6 +26,7 @@ import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "next-themes";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -127,27 +128,32 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <RecoilRoot>
-      <Head>
-        <title>Orbit</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </Head>
-      <ConsoleBanner />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Head>
+          <title>Orbit</title>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+          />
+        </Head>
+        <ConsoleBanner />
 
-      <AuthProvider loading={loading} setLoading={setLoading} />
-      <Initializer />
-      <ThemeHandler />
-      <ColorThemeHandler />
+        <AuthProvider loading={loading} setLoading={setLoading} />
+        <Initializer />
+        <ThemeHandler />
+        <ColorThemeHandler />
 
-      {showLoader && <LoadingScreen done={!loading} />}
+        {showLoader && <LoadingScreen done={!loading} />}
 
-      {!showLoader && (
-        <Layout>
-          <div className="pb-8 sm:pb-0">
-            <Toaster position={isMobile ? "top-center" : "bottom-center"} />
-            <Component {...pageProps} />
-          </div>
-        </Layout>
-      )}
+        {!showLoader && (
+          <Layout>
+            <div className="pb-8 sm:pb-0">
+              <Toaster position={isMobile ? "top-center" : "bottom-center"} />
+              <Component {...pageProps} />
+            </div>
+          </Layout>
+        )}
+      </ThemeProvider>
     </RecoilRoot>
   );
 }
