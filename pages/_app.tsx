@@ -51,10 +51,10 @@ ChartJS.register(
 function ColorThemeHandler() {
   const [workspace] = useRecoilState(workspacestate);
   const { theme, setTheme, systemTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     //const isDark = theme === "dark";
-    const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === "dark";
     const darkTheme = (workspace as any)?.groupDarkTheme;
     const lightTheme = workspace?.groupTheme;

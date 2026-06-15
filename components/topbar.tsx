@@ -4,6 +4,7 @@ import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
 import { Menu } from "@headlessui/react";
 import Router, { useRouter } from "next/router";
+import { useTheme } from "next-themes";
 import {
   IconLogout,
   IconChevronDown,
@@ -19,7 +20,6 @@ import {
 } from "@tabler/icons-react";
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { themeState } from "@/state/theme";
 import toast from "react-hot-toast";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
@@ -48,7 +48,7 @@ type Panel = "main" | "settings" | "sessions";
 
 const Topbar: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
-  const [theme, setTheme] = useRecoilState(themeState);
+  const {theme, setTheme, resolvedTheme} = useTheme();
   const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
   const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
   const [open, setOpen] = useState(false);
@@ -57,6 +57,10 @@ const Topbar: NextPage = () => {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const router = useRouter();
   const errorToastShown = useRef(false);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   const openPanel = (p: Panel) => setPanel(p);
 
@@ -142,12 +146,6 @@ const Topbar: NextPage = () => {
       toast.error("Failed to unlink", { id });
     }
   }
-
-  const toggleTheme = () => {
-    const t = theme === "dark" ? "light" : "dark";
-    setTheme(t);
-    if (typeof window !== "undefined") localStorage.setItem("theme", t);
-  };
 
   useEffect(() => {
     if (!Router.isReady || errorToastShown.current) return;
@@ -255,12 +253,12 @@ const Topbar: NextPage = () => {
                         onClick={toggleTheme}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 transition-colors text-left"
                       >
-                        {theme === "dark" ? (
+                        {resolvedTheme === "dark" ? (
                           <IconSun className="w-4 h-4 text-zinc-400 shrink-0" />
                         ) : (
                           <IconMoon className="w-4 h-4 text-zinc-400 shrink-0" />
                         )}
-                        {theme === "dark" ? "Light mode" : "Dark mode"}
+                        {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
                       </button>
 
                       <button
