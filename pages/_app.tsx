@@ -131,7 +131,6 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
         <AuthProvider loading={loading} setLoading={setLoading} />
         <Initializer />
-        <ThemeHandler />
         <ColorThemeHandler />
 
         {showLoader && <LoadingScreen done={!loading} />}
