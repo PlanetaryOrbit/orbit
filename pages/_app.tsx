@@ -20,12 +20,13 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { themeState } from "@/state/theme";
 import AuthProvider from "./AuthProvider";
 import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider, useTheme } from "next-themes";
+
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -46,24 +47,14 @@ ChartJS.register(
   LineElement,
 );
 
-function ThemeHandler() {
-  const theme = useRecoilValue(themeState);
-
-  useEffect(() => {
-    if (!theme) return;
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme as string);
-  }, [theme]);
-
-  return null;
-}
-
 function ColorThemeHandler() {
   const [workspace] = useRecoilState(workspacestate);
-  const theme = useRecoilValue(themeState);
+  const { theme, setTheme, systemTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
-    const isDark = theme === "dark";
+    //const isDark = theme === "dark";
+    const isDark = resolvedTheme === "dark";
     const darkTheme = (workspace as any)?.groupDarkTheme;
     const lightTheme = workspace?.groupTheme;
 
@@ -127,27 +118,31 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <RecoilRoot>
-      <Head>
-        <title>Orbit</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </Head>
-      <ConsoleBanner />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Head>
+          <title>Orbit</title>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+          />
+        </Head>
+        <ConsoleBanner />
 
-      <AuthProvider loading={loading} setLoading={setLoading} />
-      <Initializer />
-      <ThemeHandler />
-      <ColorThemeHandler />
+        <AuthProvider loading={loading} setLoading={setLoading} />
+        <Initializer />
+        <ColorThemeHandler />
 
-      {showLoader && <LoadingScreen done={!loading} />}
+        {showLoader && <LoadingScreen done={!loading} />}
 
-      {!showLoader && (
-        <Layout>
-          <div className="pb-8 sm:pb-0">
-            <Toaster position={isMobile ? "top-center" : "bottom-center"} />
-            <Component {...pageProps} />
-          </div>
-        </Layout>
-      )}
+        {!showLoader && (
+          <Layout>
+            <div className="pb-8 sm:pb-0">
+              <Toaster position={isMobile ? "top-center" : "bottom-center"} />
+              <Component {...pageProps} />
+            </div>
+          </Layout>
+        )}
+      </ThemeProvider>
     </RecoilRoot>
   );
 }

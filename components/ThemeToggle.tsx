@@ -1,14 +1,12 @@
-import { useRecoilState } from "recoil";
-import { themeState } from "@/state/theme";
+import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = useRecoilState(themeState);
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    const current = resolvedTheme ?? theme;
+    setTheme(current === "dark" ? "light" : "dark");
   };
 
   return (
@@ -17,7 +15,7 @@ const ThemeToggle = () => {
       className="p-2 rounded-full bg-zinc-200 dark:bg-zinc-700 transition hover:scale-105"
       title="Toggle theme"
     >
-      {theme === "dark" ? (
+      {(resolvedTheme ?? theme) === "dark" ? (
         <SunIcon className="w-5 h-5 text-yellow-400" />
       ) : (
         <MoonIcon className="w-5 h-5 text-zinc-800" />

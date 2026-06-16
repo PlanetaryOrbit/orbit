@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Line } from "react-chartjs-2";
+import { useTheme } from "next-themes";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,8 +29,6 @@ import {
   IconClipboardList,
   IconClock,
 } from "@tabler/icons-react";
-import { useRecoilValue } from "recoil";
-import { themeState } from "@/state/theme";
 import moment from "moment";
 import type { ActivitySession, inactivityNotice } from "@prisma/client";
 
@@ -99,8 +98,8 @@ export function ActivityOverview({
   const [loading, setLoading] = useState(true);
   const liveSessionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const theme = useRecoilValue(themeState);
-  const isDark = theme === "dark";
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const sortedTimeline = useMemo(() => {
     return [...timeline].sort((a, b) => {
