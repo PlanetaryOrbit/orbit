@@ -810,8 +810,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 style={{ WebkitTapHighlightColor: "transparent" }}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors select-none outline-none"
               >
-                {theme === "dark" ? <IconSun className="w-5 h-5 shrink-0" stroke={1.5} /> : <IconMoon className="w-5 h-5 shrink-0" stroke={1.5} />}
-                <span className="font-medium">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+                {resolvedTheme === "dark" ? <IconSun className="w-5 h-5 shrink-0" stroke={1.5} /> : <IconMoon className="w-5 h-5 shrink-0" stroke={1.5} />}
+                <span className="font-medium">{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
               </button>
               <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-4" />
               <button
