@@ -200,7 +200,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       idleTimeEnabled && session.idleTime
         ? Number(session.idleTime) * 60000
         : 0;
-    const effectiveTime = sessionDuration - idleTimeMs;
+    const effectiveTime = Math.max(0, sessionDuration - idleTimeMs); // we clamp the value
 
     if (found) {
       found.ms.push(effectiveTime);
