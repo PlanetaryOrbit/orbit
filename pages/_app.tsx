@@ -20,7 +20,6 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { themeState } from "@/state/theme";
 import AuthProvider from "./AuthProvider";
 import { loginState } from "@/state";
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
