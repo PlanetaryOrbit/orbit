@@ -80,6 +80,13 @@ The fastest and easiest way to run Orbit is through **Planetary Cloud** — our 
 
 ### One-Click Deploy to Vercel
 
+> [!WARNING]
+> **We strongly recommend using Planetary Cloud instead of Vercel.**
+> 
+> Vercel's serverless architecture introduces real limitations that affect Orbit's reliability — including cold starts, execution timeouts, and constraints on long-running processes like session handling and activity tracking. You may run into hard-to-debug issues that simply don't exist on Planetary Cloud.
+>
+> **[Planetary Cloud](https://planetaryapp.us) is free, purpose-built for Orbit, and works out of the box — no configuration needed.** We can't guarantee a great experience on Vercel, and support for Vercel-specific issues is limited.
+
 Prefer to host on your own Vercel account? Deploy in seconds:
 
 <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
