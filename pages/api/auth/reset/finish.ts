@@ -7,12 +7,25 @@ async function authHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ success: false, error: "Method not allowed" });
 
+  const rawId = req.body.userId;
+  if (!rawId || typeof rawId !== "string") {
+    return res.status(400).json({ success: false, error: "Missing or invalid userId" });
+  }
+
+  let userIdBigInt: bigint;
+  try {
+    userIdBigInt = BigInt(rawId);
+  } catch {
+    return res.status(400).json({ success: false, error: "Invalid userId format" });
+  }
+
   const verification = await prisma.verificationState.findFirst({
     where: {
       isReset: true,
-      userId: BigInt(req.body.userId),
+      userId: userIdBigInt,
     },
   });
+
   if (!verification || !verification.isReset)
     return res.status(400).json({ success: false, error: "Invalid verification session" });
 
@@ -48,12 +61,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await Promise.race([authHandler(req, res), timeoutPromise]);
   } catch (error) {
     if ((error as Error).message === "Request timed out") {
-      return res.status(503).json({
-        success: false,
-        error: "Server is too busy, please try again later.",
-      });
+      return res.status(503).json({ success: false, error: "Server is too busy, please try again later." });
     }
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
-};
+}

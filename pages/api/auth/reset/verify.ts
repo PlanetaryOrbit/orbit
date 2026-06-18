@@ -5,10 +5,10 @@ import prisma from "@/utils/database";
 async function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    setTimeout(() => reject(new Error(errorMessage)), timeoutMs),
   );
   return Promise.race([promise, timeout]);
 }
@@ -20,17 +20,27 @@ async function authHandler(req: NextApiRequest, res: NextApiResponse) {
       .json({ success: false, error: "Method not allowed" });
   }
 
-  if (!req.body.userId) {
+  const rawId = req.body.userId;
+  if (!rawId || typeof rawId !== "string") {
     return res
       .status(400)
-      .json({ success: false, error: "Missing userId" });
+      .json({ success: false, error: "Missing or invalid userId" });
+  }
+
+  let userIdBigInt: bigint;
+  try {
+    userIdBigInt = BigInt(rawId);
+  } catch {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid userId format" });
   }
 
   try {
     const verification = await prisma.verificationState.findFirst({
       where: {
         isReset: true,
-        userId: BigInt(req.body.userId),
+        userId: userIdBigInt,
       },
     });
 
@@ -43,31 +53,39 @@ async function authHandler(req: NextApiRequest, res: NextApiResponse) {
     const { userId, code } = verification;
 
     let blurb: string | null = null;
-    
     try {
       blurb = await withTimeout(
         noblox.getBlurb(Number(userId)),
         15000,
-        "Roblox API call timed out"
+        "Roblox API call timed out",
       );
     } catch (error: any) {
       console.error("Failed to fetch Roblox blurb:", error.message);
-      
-      if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
+      if (
+        error.message?.includes("401") ||
+        error.message?.includes("Unauthorized")
+      ) {
         return res
           .status(502)
           .json({ success: false, error: "Roblox authentication failed" });
       }
-      
-      if (error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
+      if (
+        error.message?.includes("429") ||
+        error.message?.includes("Too Many Requests")
+      ) {
         return res
           .status(503)
-          .json({ success: false, error: "Roblox API rate limit reached, please try again later" });
+          .json({
+            success: false,
+            error: "Roblox API rate limit reached, please try again later",
+          });
       }
-      
       return res
         .status(502)
-        .json({ success: false, error: "Failed to verify Roblox profile, please try again" });
+        .json({
+          success: false,
+          error: "Failed to verify Roblox profile, please try again",
+        });
     }
 
     if (!blurb || !blurb.includes(code)) {
@@ -90,35 +108,31 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   const TIMEOUT_MS = 25000;
-  
   try {
-    res.setHeader('Connection', 'close');
-    
+    res.setHeader("Connection", "close");
     const timeoutPromise = new Promise<never>((_, reject) => {
       const timer = setTimeout(() => {
         clearTimeout(timer);
         reject(new Error("Request timed out"));
       }, TIMEOUT_MS);
     });
-
     await Promise.race([authHandler(req, res), timeoutPromise]);
   } catch (error: any) {
     if (error.message === "Request timed out") {
       if (!res.headersSent) {
-        return res.status(503).json({
-          success: false,
-          error: "Server is too busy, please try again later.",
-        });
+        return res
+          .status(503)
+          .json({
+            success: false,
+            error: "Server is too busy, please try again later.",
+          });
       }
     }
-    
-    // Only log and handle if response hasn't been sent
     if (!res.headersSent) {
       console.error("Unhandled error:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Internal server error",
-      });
+      return res
+        .status(500)
+        .json({ success: false, error: "Internal server error" });
     }
   }
 }

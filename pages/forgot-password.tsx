@@ -35,7 +35,7 @@ function getAvatarBgColor(displayName: string): string {
 const ForgotPassword: NextPage = () => {
 	const [selectedSlide, setSelectedSlide] = useState(0);
 	const [code, setCode] = useState("");
-  const [userId, setUserId] = useState<number | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 	const [resetDisplayName, setResetDisplayName] = useState("");
 	const [resetThumbnail, setResetThumbnail] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ const ForgotPassword: NextPage = () => {
 				username: usernameForm.getValues("username"),
 			});
 			setCode(response.data.code);
-			setUserId(Number(response.data.userId));
+			setUserId(response.data.userId);
 			setResetDisplayName(response.data.displayName || usernameForm.getValues("username"));
 			setResetThumbnail(response.data.thumbnail || "");
 			setSelectedSlide(1);
