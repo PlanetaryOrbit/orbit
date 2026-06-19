@@ -15,7 +15,7 @@
  *
  * @module api/forms
  * @author BuddyWinte
- * @since 2.1.10-beta.20
+ * @since 2.1.10-beta20
  */
 
 import { withAuth } from "@/lib/withAuth";
