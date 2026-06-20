@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["main", "beta"]
+    branches: ["main"]
   pull_request:
-    branches: ["main", "beta"]
+    branches: ["main"]
 
 jobs:
   typecheck:
@@ -14,19 +14,17 @@ jobs:
         DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          run_install: false
+      - name: Install pnpm        
+        uses: pnpm/action-setup@v4
 
-      - name: Install dependencies
+      - name: Install dependencies        
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
