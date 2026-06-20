@@ -67,6 +67,7 @@ local afkTable       = {}
 local sessionActive  = {}
 
 local lastActivityTime: { [number]: number } = {}
+local afkStartTime: { [number]: number } = {}
 
 local function log(level: string, msg: string)
 	local prefix = string.format("[Orbit][%s] %s", level, msg)
@@ -103,8 +104,10 @@ local function setAFK(Player: Player, state: boolean)
 	local idx = table.find(afkTable, Player)
 	if state and not idx then
 		table.insert(afkTable, Player)
+		afkStartTime[Player.UserId] = os.clock()
 	elseif not state and idx then
 		table.remove(afkTable, idx)
+		afkStartTime[Player.UserId] = nil
 	end
 end
 
@@ -297,7 +300,7 @@ local function InputChange(Player: Player, isIdle: boolean)
 	else
 		local lastActive = lastActivityTime[Player.UserId]
 		local idleSeconds = lastActive and (os.clock() - lastActive) or math.huge
-		local threshold = 60 * Configuration.minutesTillAFK * 0.5
+		local threshold = 60 * Configuration.minutesTillAFK -- now matches MovementDetection's threshold
 
 		if idleSeconds >= threshold then
 			setAFK(Player, true)
@@ -336,6 +339,7 @@ local function CleanupPlayer(Player: Player, reason: string?)
 	chatLogTable[Player.UserId]   = nil
 	sessionActive[Player.UserId]  = nil
 	lastActivityTime[Player.UserId] = nil
+	afkStartTime[Player.UserId]   = nil
 end
 
 Players.PlayerAdded:Connect(function(Player)
@@ -400,12 +404,14 @@ task.spawn(function()
 			local online = isPlayerOnline(Player)
 			if online then
 				local afkTimer = Player:FindFirstChild("Orbit AFK Timer")
-				if afkTimer then
-					afkTimer.Value += 1
+				local start = afkStartTime[Player.UserId]
+				if afkTimer and start then
+					afkTimer.Value = math.floor((os.clock() - start) / 60)
 				end
 			else
 				log("WARN", "AFK table contained offline player — removing ghost entry.")
 				table.remove(afkTable, idx)
+				afkStartTime[Player.UserId] = nil
 			end
 		end
 	end
@@ -440,6 +446,7 @@ task.spawn(function()
 				chatLogTable[userId]      = nil
 				rankTable[userId]         = nil
 				lastActivityTime[userId]  = nil
+				afkStartTime[userId]      = nil
 			end
 		end
 		for _, Player in ipairs(onlinePlayers) do
@@ -493,6 +500,7 @@ task.spawn(function()
 			if not isPlayerOnline(Player) then
 				log("WARN", "Scan: purging offline player from AFK table: " .. tostring(Player))
 				table.remove(afkTable, idx)
+				afkStartTime[Player.UserId] = nil
 			end
 		end
 
