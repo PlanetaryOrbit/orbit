@@ -316,7 +316,7 @@ const Activity: FC<props> = (props) => {
                         <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
                           {({ selected }) => (
                             <>
-                              <span className={selected ? "font-semibold" : ""}>{role.name}</span>
+                              <span className={`${selected ? "font-semibold" : ""} flex gap-2` }>{role.name} <span className="text-zinc-400 dark:text-zinc-500">(Group rank: {role.rank})</span> </span>
                               {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
                             </>
                           )}
