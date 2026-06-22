@@ -18,8 +18,8 @@ function internalUrl(request: NextRequest, path: string): string {
     return `${base}${path}`;
   }
   
-  if (process.env.NEXTAUTH_URL) {
-    const base = process.env.NEXTAUTH_URL.replace(/\/$/, "");
+  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
+    const base = process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL.replace(/\/$/, "") : process.env.PUBLIC_URL!.replace(/\/$/, "");
     return `${base}${path}`;
   }
   

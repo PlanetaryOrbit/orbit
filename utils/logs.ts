@@ -250,8 +250,8 @@ export async function logAudit(workspaceGroupId: number, userId: number | bigint
 					const userAction = getAction(action)
 
 					const avatarUrl =
-						userId && process.env.NEXTAUTH_URL
-							? `${process.env.NEXTAUTH_URL}/avatars/${userId}_180.png`
+						userId && process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!
+							? `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!}/avatars/${userId}_180.png`
 							: "https://cdn.planetaryapp.us/brand/planetary.png"
 
 					let jsonDetails: AuditDetails | null = null;

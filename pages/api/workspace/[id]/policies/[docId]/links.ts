@@ -54,8 +54,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     let baseUrl: string;
-    if (process.env.NEXTAUTH_URL) {
-      baseUrl = process.env.NEXTAUTH_URL;
+    if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
+      baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
       const forwardedProto = req.headers["x-forwarded-proto"];
       let protocol = Array.isArray(forwardedProto)
@@ -118,8 +118,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     let baseUrl: string;
-    if (process.env.NEXTAUTH_URL) {
-      baseUrl = process.env.NEXTAUTH_URL;
+    if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
+      baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
       const forwardedProto = req.headers["x-forwarded-proto"];
       let protocol = Array.isArray(forwardedProto)
@@ -272,8 +272,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     }
 
     let baseUrl: string;
-    if (process.env.NEXTAUTH_URL) {
-      baseUrl = process.env.NEXTAUTH_URL;
+    if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
+      baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
       const forwardedProto = req.headers["x-forwarded-proto"];
       let protocol = Array.isArray(forwardedProto)

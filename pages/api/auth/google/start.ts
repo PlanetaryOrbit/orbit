@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const scopes = ['email','openid','profile'];
 
-  const oauth2 = new google.auth.OAuth2(clientId, secret, `${process.env.NEXTAUTH_URL}/api/auth/google/callback`);
+  const oauth2 = new google.auth.OAuth2(clientId, secret, `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`);
 
   const authUrl = oauth2.generateAuthUrl({
     access_type: 'online',
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     include_granted_scopes: true,
     state: state,
     client_id: clientId,
-    redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/google/callback`
+    redirect_uri: `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`
   });
 
   res.redirect(authUrl)

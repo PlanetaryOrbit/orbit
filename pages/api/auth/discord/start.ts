@@ -43,7 +43,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
 	const authUrl = new URL('https://discord.com/oauth2/authorize');
 	authUrl.searchParams.set('client_id', clientId);
-	authUrl.searchParams.set('redirect_uri', `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`);
+	authUrl.searchParams.set('redirect_uri', `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`);
 	authUrl.searchParams.set('scope', 'identify');
 	authUrl.searchParams.set('response_type', 'code');
 	authUrl.searchParams.set('state', state);
