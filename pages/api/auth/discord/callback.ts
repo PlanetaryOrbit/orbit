@@ -84,7 +84,7 @@ export default async function handler(
       new URLSearchParams({
         grant_type: "authorization_code",
         code: code as string,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`,
+        redirect_uri: `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
         client_id: clientId,
         client_secret: clientSecret,
       }),

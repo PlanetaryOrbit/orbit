@@ -50,7 +50,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
 	const authUrl = new URL('https://apis.roblox.com/oauth/v1/authorize');
 	authUrl.searchParams.set('client_id', clientId);
-	authUrl.searchParams.set('redirect_uri', redirectUri);
+	authUrl.searchParams.set('redirect_uri', redirectUri || process.env.PUBLIC_URL!);
 	authUrl.searchParams.set('scope', 'openid profile');
 	authUrl.searchParams.set('response_type', 'code');
 	authUrl.searchParams.set('state', state);

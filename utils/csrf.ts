@@ -3,8 +3,8 @@ import crypto from "crypto";
 
 function getAllowedOrigins(): string[] {
   const origins: string[] = [];
-  if (process.env.NEXTAUTH_URL) {
-    origins.push(process.env.NEXTAUTH_URL);
+  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!) {
+    origins.push(process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!);
   }
 
   if (process.env.ALLOWED_ORIGINS) {

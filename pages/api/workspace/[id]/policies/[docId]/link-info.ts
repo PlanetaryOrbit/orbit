@@ -54,8 +54,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   // Generate the direct link with proper protocol detection
   let baseUrl: string;
-  if (process.env.NEXTAUTH_URL) {
-    baseUrl = process.env.NEXTAUTH_URL;
+  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
+    baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
   } else {
     const forwardedProto = req.headers["x-forwarded-proto"];
     const protocol = Array.isArray(forwardedProto)
