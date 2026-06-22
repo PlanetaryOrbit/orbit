@@ -89,7 +89,7 @@ The fastest and easiest way to run Orbit is through **Planetary Cloud** — our 
 
 Prefer to host on your own Vercel account? Deploy in seconds:
 
-<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
+<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL,PUBLIC_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
   <img src="https://vercel.com/button" alt="Deploy with Vercel" />
 </a>
 
@@ -99,7 +99,7 @@ Prefer to host on your own Vercel account? Deploy in seconds:
 |---|---|
 | `SESSION_SECRET` | A strong secret string — generate with `openssl rand -base64 32` |
 | `DATABASE_URL` | Your database connection string (e.g. [Supabase](https://supabase.com), [Railway](https://railway.app), [Neon](https://neon.tech)) |
-| `NEXTAUTH_URL` | Your deployment URL, without a trailing slash (e.g. `https://instance.planetaryapp.cloud`) |
+| `NEXTAUTH_URL` or `PUBLIC_URL` | Your deployment URL, without a trailing slash (e.g. `https://instance.planetaryapp.cloud`) |
 | `ROBLOX_WORKSPACE_REDIRECTID` | Your Roblox Group ID — users with workspace access will be redirected automatically |
 
 ---
