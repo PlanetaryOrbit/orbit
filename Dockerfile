@@ -27,7 +27,7 @@ COPY . .
 
 # Build the app (Next.js cache persisted across builds)
 RUN --mount=type=cache,target=/usr/src/app/.next/cache \
-    pnpm run build
+  pnpm run build
 
 # Expose port 3000
 EXPOSE 3000
