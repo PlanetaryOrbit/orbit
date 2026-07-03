@@ -11,7 +11,7 @@ RUN corepack enable
 WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy Prisma schema
 COPY prisma ./prisma/
 
