@@ -11,7 +11,7 @@ RUN corepack enable
 WORKDIR /usr/src/app
 
 # Install app dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copy Prisma schema
 COPY prisma ./prisma/
 
@@ -27,7 +27,7 @@ COPY . .
 
 # Build the app (Next.js cache persisted across builds)
 RUN --mount=type=cache,target=/usr/src/app/.next/cache \
-    pnpm run build
+  pnpm run build
 
 # Expose port 3000
 EXPOSE 3000

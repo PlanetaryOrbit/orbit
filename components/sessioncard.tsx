@@ -165,6 +165,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   const [isCancelExpanded, setIsCancelExpanded] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isUncancelling, setIsUncancelling] = useState(false);
   const router = useRouter();
   const login = useRecoilValue(loginState);
   const workspace = useRecoilValue(workspacestate);
@@ -229,6 +230,29 @@ const SessionModal: React.FC<SessionModalProps> = ({
       toast.error(error?.response?.data?.error || "Failed to cancel session");
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleUncancelSession = async () => {
+    try {
+      const workspaceIdRaw = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+      const workspaceId = typeof workspaceIdRaw === "string" ? workspaceIdRaw : "";
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(workspaceId)) {
+        toast.error("Invalid workspace id");
+        return;
+      }
+
+      setIsUncancelling(true);
+      await axios.delete(
+        `/api/workspace/${workspaceId}/sessions/${session.id}/cancel`,
+      );
+      session.cancelled = false;
+      toast.success("Session uncancelled");
+      refreshSessionData();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to uncancel session");
+    } finally {
+      setIsUncancelling(false);
     }
   };
 
@@ -696,6 +720,9 @@ const SessionModal: React.FC<SessionModalProps> = ({
               <p className="text-sm text-red-600/90 dark:text-red-300">
                 {session.cancellationReason}
               </p>
+              <button onClick={handleUncancelSession} disabled={isUncancelling} className="mt-3 rounded-lg bg-red-600/20 text-red-200/90 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-red-600/60 disabled:cursor-not-allowed disabled:opacity-50">
+                Uncancel Session
+              </button>
             </SessionInset>
           )}
 
