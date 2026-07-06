@@ -91,9 +91,9 @@ export function ProfileStatCard({
 }
 
 export function ProfileSection({
-  icon: Icon,
+  icon: _Icon,
   title,
-  subtitle,
+  subtitle: _subtitle,
   children,
   className,
 }: {
@@ -104,17 +104,9 @@ export function ProfileSection({
   className?: string;
 }) {
   return (
-    <div className={clsx("overflow-hidden rounded-xl bg-zinc-50/80 dark:bg-zinc-800/40", className)}>
-      <div className="flex items-center gap-3 border-b border-zinc-100/80 px-5 py-4 dark:border-zinc-700/40">
-        <div className="rounded-lg bg-primary/10 p-1.5">
-          <Icon className="h-4 w-4 text-primary" stroke={1.75} />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{subtitle}</p>
-        </div>
-      </div>
-      <div className="p-5">{children}</div>
+    <div className={clsx("space-y-3", className)}>
+      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h3>
+      {children}
     </div>
   );
 }

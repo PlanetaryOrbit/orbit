@@ -689,21 +689,52 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             )}
 
             <div>
-              <p className={allianceFormLabelClass}>Strike meter</p>
-              <div className="mt-2 flex gap-1.5">
-                {Array.from({ length: allianceMaxStrikes }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`h-2.5 flex-1 rounded-full transition-colors ${i < meterFilled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-700"}`}
-                  />
-                ))}
-              </div>
-              <div className="mt-3 flex flex-wrap items-baseline gap-2">
-                <span className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-white">{strikesCount}</span>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                  of {allianceMaxStrikes} allowed{strikesCount > allianceMaxStrikes ? " — above workspace cap" : ""}
+              <div className="flex flex-wrap items-center gap-2">
+                {Array.from({ length: allianceMaxStrikes }, (_, i) => {
+                  const filled = i < strikesCount;
+                  const isCritical = strikesCount >= allianceMaxStrikes;
+                  const isWarning = !isCritical && strikesCount / allianceMaxStrikes >= 0.6;
+                  return (
+                    <div
+                      key={i}
+                      className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                        filled
+                          ? isCritical
+                            ? "bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400"
+                            : isWarning
+                            ? "bg-amber-500/15 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400"
+                            : "bg-primary/15 text-primary"
+                          : "bg-zinc-100 text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600"
+                      }`}
+                    >
+                      <IconBolt className="h-4 w-4" stroke={2} />
+                    </div>
+                  );
+                })}
+                <span
+                  className={`ml-1 inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                    strikesCount === 0
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : strikesCount >= allianceMaxStrikes
+                      ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                      : strikesCount / allianceMaxStrikes >= 0.6
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {strikesCount === 0
+                    ? "Clean standing"
+                    : strikesCount >= allianceMaxStrikes
+                    ? "Critical"
+                    : strikesCount / allianceMaxStrikes >= 0.6
+                    ? "Warning"
+                    : `${strikesCount} strike${strikesCount !== 1 ? "s" : ""}`}
                 </span>
               </div>
+              <p className="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400">
+                {strikesCount} of {allianceMaxStrikes} strikes used
+                {strikesCount > allianceMaxStrikes ? " — above workspace cap" : ""}
+              </p>
             </div>
 
             {canManageDiscipline && (

@@ -2,22 +2,27 @@ import React, { useState, useEffect } from "react";
 import { FC } from "@/types/settingsComponent";
 import {
   IconPencil,
-  IconCheck,
   IconX,
   IconAlertTriangle,
   IconStar,
-  IconShieldCheck,
   IconClipboardList,
   IconRocket,
   IconTrash,
   IconPaperclip,
   IconPhoto,
   IconFileDescription,
+  IconArrowRight,
 } from "@tabler/icons-react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import moment from "moment";
+import {
+  ProfileEmptyState,
+  profileInputClass,
+  profilePrimaryButtonClass,
+  profileSecondaryButtonClass,
+} from "@/components/profile/shell";
 
 interface Props {
   userBook: any[];
@@ -369,107 +374,111 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
     termination: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
   };
 
+  const isRankAction = type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination";
+
+  const submitLabel = isSubmitting
+    ? (rankingEnabled && isRankAction ? "Executing…" : "Adding…")
+    : rankingEnabled && logbookPermissions?.rank && isRankAction
+      ? `Add note & ${type === "rank_change" ? "change rank" : type}`
+      : "Add note";
+
   return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
-          <div className="p-1.5 bg-primary/10 rounded-md">
-            <IconPencil className="w-4 h-4 text-primary" />
-          </div>
+    <div className="space-y-6">
+
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Add entry</h3>
+
+        {!isSelf ? (
           <div>
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Add Entry</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Log performance, rank changes, warnings, and updates.
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Entry type
             </p>
-          </div>
-        </div>
-
-        <div className="p-5 space-y-3">
-          <div>
-            <label htmlFor="type" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
-              Entry Type
-            </label>
-            <select
-              id="type"
-              value={type}
-              disabled={isSelf}
-              onChange={(e) => setType(e.target.value)}
-              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 disabled:bg-zinc-100 disabled:text-zinc-500 dark:disabled:bg-zinc-700/50 dark:disabled:text-zinc-400 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-            >
-              {isSelf && <option value="" selected>You can&apos;t add entries to yourself.</option>}
-              {logbookPermissions?.note && <option value="note">Note</option>}
-              {logbookPermissions?.warning && <option value="warning">Warning</option>}
-              {logbookPermissions?.promotion && <option value="promotion">Promotion</option>}
-              {logbookPermissions?.demotion && <option value="demotion">Demotion</option>}
-              {rankingEnabled && logbookPermissions?.rank && (
-                <option value="rank_change">Rank Change</option>
+            <div className="flex flex-wrap gap-1.5">
+              {logbookPermissions?.note && (
+                <button onClick={() => setType("note")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "note" ? "bg-primary text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconClipboardList className="h-3.5 w-3.5" /> Note
+                </button>
               )}
-              {logbookPermissions?.termination && <option value="termination">Termination</option>}
-            </select>
-          </div>
-
-          {rankingEnabled &&
-            logbookPermissions?.rank &&
-            (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-blue-900/20">
-                <IconRocket className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-0.5">Ranking Integration Active</p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    {type === "promotion" && "This will automatically promote the user in the Roblox group."}
-                    {type === "demotion" && "This will automatically demote the user in the Roblox group."}
-                    {type === "rank_change" && "This will automatically change the user's rank to the specified rank."}
-                    {type === "termination" && "This will automatically terminate the user and remove them from the workspace."}
-                  </p>
-                </div>
-              </div>
-            )}
-
-          {rankingEnabled &&
-            !logbookPermissions?.rank &&
-            (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") && (
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20">
-                <IconAlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-0.5">Entry Only — No Rank Action</p>
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    You need the "Logbook — Use Ranking" permission to execute automatic rank changes.
-                  </p>
-                </div>
-              </div>
-            )}
-
-          {type === "rank_change" && (
-            <div>
-              <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
-                Target Rank
-              </label>
-              {loadingRanks ? (
-                <div className="flex items-center gap-2 py-2 text-sm text-zinc-400 dark:text-zinc-500">
-                  <div className="animate-spin w-4 h-4 border-2 border-zinc-200 dark:border-zinc-700 border-t-primary rounded-full" />
-                  Loading ranks...
-                </div>
-              ) : (
-                <select
-                  value={targetRank}
-                  onChange={(e) => setTargetRank(e.target.value)}
-                  className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
-                >
-                  <option value="">Select a rank...</option>
-                  {ranks
-                    .filter((rank) => rank.rank > 0)
-                    .map((rank) => (
-                      <option key={rank.id} value={rank.id}>
-                        {rank.name}
-                      </option>
-                    ))}
-                </select>
+              {logbookPermissions?.warning && (
+                <button onClick={() => setType("warning")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "warning" ? "bg-amber-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconAlertTriangle className="h-3.5 w-3.5" /> Warning
+                </button>
+              )}
+              {logbookPermissions?.promotion && (
+                <button onClick={() => setType("promotion")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "promotion" ? "bg-primary text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconStar className="h-3.5 w-3.5" /> Promotion
+                </button>
+              )}
+              {logbookPermissions?.demotion && (
+                <button onClick={() => setType("demotion")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "demotion" ? "bg-red-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconX className="h-3.5 w-3.5" /> Demotion
+                </button>
+              )}
+              {rankingEnabled && logbookPermissions?.rank && (
+                <button onClick={() => setType("rank_change")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "rank_change" ? "bg-blue-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconRocket className="h-3.5 w-3.5" /> Rank Change
+                </button>
+              )}
+              {logbookPermissions?.termination && (
+                <button onClick={() => setType("termination")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "termination" ? "bg-red-600 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                  <IconX className="h-3.5 w-3.5" /> Termination
+                </button>
               )}
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/50">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">You can&apos;t add entries to yourself.</p>
+          </div>
+        )}
 
+        {!isSelf && rankingEnabled && isRankAction && (
+          <div className={`flex items-start gap-2.5 rounded-xl px-4 py-3 ${logbookPermissions?.rank ? "bg-blue-500/10" : "bg-amber-500/10"}`}>
+            {logbookPermissions?.rank ? (
+              <IconRocket className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+            ) : (
+              <IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            )}
+            <div>
+              <p className={`text-xs font-semibold mb-0.5 ${logbookPermissions?.rank ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"}`}>
+                {logbookPermissions?.rank ? "Ranking integration active" : "Entry only — no rank action"}
+              </p>
+              <p className={`text-xs ${logbookPermissions?.rank ? "text-blue-600/80 dark:text-blue-400/80" : "text-amber-600/80 dark:text-amber-400/80"}`}>
+                {logbookPermissions?.rank
+                  ? type === "promotion" ? "This will automatically promote the user in the Roblox group."
+                    : type === "demotion" ? "This will automatically demote the user in the Roblox group."
+                    : type === "rank_change" ? "This will change the user's rank to the specified rank."
+                    : "This will terminate the user and remove them from the workspace."
+                  : "You need the \"Logbook — Use Ranking\" permission to execute automatic rank changes."}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isSelf && type === "rank_change" && (
           <div>
-            <label htmlFor="note" className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+            <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              Target rank
+            </label>
+            {loadingRanks ? (
+              <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+                Loading ranks…
+              </div>
+            ) : (
+              <select value={targetRank} onChange={(e) => setTargetRank(e.target.value)} className={profileInputClass}>
+                <option value="">Select a rank…</option>
+                {ranks.filter((r) => r.rank > 0).map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+
+        {!isSelf && (
+          <div>
+            <label htmlFor="note" className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
               Note
             </label>
             <textarea
@@ -477,18 +486,20 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               rows={4}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Enter your note here..."
-              className="block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-700/50 text-zinc-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition placeholder:text-zinc-400 dark:placeholder:text-zinc-500 resize-none"
+              placeholder="Enter your note here…"
+              className={`${profileInputClass} resize-none`}
             />
           </div>
+        )}
 
+        {!isSelf && (
           <div>
-            <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1.5">
+            <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
               Attachments
             </label>
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/40 p-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-700/60 px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
-                <IconPaperclip className="w-4 h-4" />
+            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
+              <label className={`inline-flex cursor-pointer items-center gap-2 ${profileSecondaryButtonClass}`}>
+                <IconPaperclip className="h-3.5 w-3.5" />
                 Add files
                 <input
                   type="file"
@@ -499,33 +510,25 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onChange={onAttachmentChange}
                 />
               </label>
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Supports PDF, JPG, PNG, WEBP, and GIF (max 5 files).
+              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                PDF, JPG, PNG, WEBP, GIF — max 5 files.
               </p>
-
               {attachments.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-700/60">
                   {attachments.map((file) => {
                     const isImage = file.type.startsWith("image/");
                     return (
-                      <div
-                        key={`${file.name}-${file.size}`}
-                        className="flex items-center justify-between gap-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 py-2"
-                      >
-                        <div className="min-w-0 flex items-center gap-2">
-                          {isImage ? (
-                            <IconPhoto className="w-4 h-4 text-zinc-500" />
-                          ) : (
-                            <IconFileDescription className="w-4 h-4 text-zinc-500" />
-                          )}
-                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">
-                            {file.name}
-                          </span>
+                      <div key={`${file.name}-${file.size}`} className="flex items-center justify-between gap-2 py-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          {isImage
+                            ? <IconPhoto className="h-4 w-4 shrink-0 text-zinc-400" />
+                            : <IconFileDescription className="h-4 w-4 shrink-0 text-zinc-400" />}
+                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">{file.name}</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeAttachment(file.name, file.size)}
-                          className="text-xs rounded px-2 py-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                          className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-500/10 dark:text-red-400 transition-colors"
                         >
                           Remove
                         </button>
@@ -536,177 +539,148 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               )}
             </div>
           </div>
+        )}
 
+        {!isSelf && (
           <button
             onClick={addNote}
-            disabled={isSubmitting || isSelf}
-            className="w-full flex justify-center items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+            className={`w-full justify-center ${profilePrimaryButtonClass} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                {rankingEnabled && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination")
-                  ? "Executing..."
-                  : "Adding..."}
-              </>
-            ) : rankingEnabled && logbookPermissions?.rank && (type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination") ? (
-              `Add Note & ${type === "rank_change" ? "Change Rank" : type === "promotion" ? "Promote" : type === "demotion" ? "Demote" : "Terminate"}`
-            ) : (
-              "Add Note"
+            {isSubmitting && (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             )}
+            {submitLabel}
           </button>
-        </div>
+        )}
       </div>
 
       {logbookPermissions?.view && (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white dark:bg-zinc-800/80 overflow-hidden">
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-100 dark:border-zinc-700/60">
-            <div className="p-1.5 bg-primary/10 rounded-md">
-              <IconClipboardList className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">History</h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Notes, rank changes, and terminations for this member.
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5">
-            {localBook.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3">
-                <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-700/50 rounded-full flex items-center justify-center">
-                  <IconClipboardList className="w-6 h-6 text-zinc-400 dark:text-zinc-500" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No entries yet</p>
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Logbook entries will appear here</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {localBook.map((entry: any) => {
-                  const rankChangeText = getRankChangeText(entry);
-                  const accent = entryAccent[entry.type] || entryAccent.note;
-                  const badge = entryBadge[entry.type] || entryBadge.note;
-                  const parsedReason = parseEntryReason(entry.reason);
-                  return (
-                    <div
-                      key={entry.id}
-                      className={`flex gap-3 p-3.5 rounded-xl border border-zinc-100 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-700/30 border-l-2 ${accent}`}
-                    >
-                      <div className="flex-shrink-0 mt-0.5">{getIcon(entry.type)}</div>
-                      <div className="flex-grow min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex items-center gap-2 flex-wrap min-w-0">
-                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${badge}`}>
-                              {getEntryTitle(entry.type)}
-                            </span>
-                            {rankChangeText && (
-                              <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded font-medium whitespace-nowrap">
-                                {rankChangeText}
-                              </span>
-                            )}
-                            {entry.redacted && (
-                              <span className="text-xs bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400 px-1.5 py-0.5 rounded">
-                                Redacted
-                              </span>
-                            )}
-                          </div>
-                          <time className="text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap shrink-0">
-                            {moment(entry.createdAt).format("D MMM YYYY")}
-                          </time>
-                        </div>
-                        <p className={`text-sm leading-relaxed ${entry.redacted ? "line-through opacity-50 text-zinc-500 dark:text-zinc-400" : "text-zinc-700 dark:text-zinc-300"}`}>
-                          {parsedReason.text}
-                        </p>
-                        {parsedReason.attachments.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {parsedReason.attachments.map((attachment) => {
-                              const isImage = attachment.mime.startsWith("image/");
-                              return (
-                                <a
-                                  key={`${entry.id}-${attachment.name}-${attachment.size}`}
-                                  href={attachment.dataUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
-                                >
-                                  {isImage ? (
-                                    <IconPhoto className="w-3.5 h-3.5" />
-                                  ) : (
-                                    <IconFileDescription className="w-3.5 h-3.5" />
-                                  )}
-                                  <span className="max-w-[12rem] truncate">{attachment.name}</span>
-                                </a>
-                              );
-                            })}
-                          </div>
-                        )}
-                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                          Logged by {entry.admin?.username || "Unknown"}
-                          {entry.redacted && entry.redactedByUser?.username && (
-                            <> · Redacted by {entry.redactedByUser.username} on {entry.redactedAt ? moment(entry.redactedAt).format("D MMM YYYY") : "Unknown"}</>
-                          )}
-                        </p>
-                      </div>
-                      {(logbookPermissions?.redact || logbookPermissions?.delete) && (
-                        <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
-                          {logbookPermissions?.redact && (
-                            <button
-                              type="button"
-                              onClick={() => redactEntry(entry)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40 transition-colors"
-                            >
-                              <IconAlertTriangle className="w-3.5 h-3.5" />
-                              {entry.redacted ? "Undo" : "Redact"}
-                            </button>
-                          )}
-                          {logbookPermissions?.delete && (
-                            <button
-                              type="button"
-                              onClick={() => deleteEntry(entry)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-700 bg-red-50/80 hover:bg-red-100 dark:border-red-500/35 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/15 transition-colors"
-                            >
-                              <IconTrash className="w-3.5 h-3.5" />
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">History</h3>
+            {localBook.length > 0 && (
+              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                {localBook.length}
+              </span>
             )}
           </div>
+
+          {localBook.length === 0 ? (
+            <ProfileEmptyState
+              icon={IconClipboardList}
+              title="No entries yet"
+              description="Logbook entries will appear here"
+            />
+          ) : (
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+              {localBook.map((entry: any) => {
+                const rankChangeText = getRankChangeText(entry);
+                const badge = entryBadge[entry.type] || entryBadge.note;
+                const parsedReason = parseEntryReason(entry.reason);
+                return (
+                  <div key={entry.id} className="flex items-start gap-3 py-3.5">
+                    <div className="mt-0.5 shrink-0">{getIcon(entry.type)}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${badge}`}>
+                          {getEntryTitle(entry.type)}
+                        </span>
+                        {rankChangeText && (
+                          <span className="inline-flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                            <IconArrowRight className="h-3 w-3" />
+                            {rankChangeText}
+                          </span>
+                        )}
+                        {entry.redacted && (
+                          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            Redacted
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-sm leading-relaxed ${entry.redacted ? "line-through opacity-50 text-zinc-500 dark:text-zinc-400" : "text-zinc-900 dark:text-white"}`}>
+                        {parsedReason.text}
+                      </p>
+                      {parsedReason.attachments.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {parsedReason.attachments.map((att) => {
+                            const isImage = att.mime.startsWith("image/");
+                            return (
+                              <a
+                                key={`${entry.id}-${att.name}-${att.size}`}
+                                href={att.dataUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                              >
+                                {isImage ? <IconPhoto className="h-3.5 w-3.5" /> : <IconFileDescription className="h-3.5 w-3.5" />}
+                                <span className="max-w-[12rem] truncate">{att.name}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                        {moment(entry.createdAt).format("D MMM YYYY")} · Logged by {entry.admin?.username || "Unknown"}
+                        {entry.redacted && entry.redactedByUser?.username && (
+                          <> · Redacted by {entry.redactedByUser.username}{entry.redactedAt ? ` on ${moment(entry.redactedAt).format("D MMM YYYY")}` : ""}</>
+                        )}
+                      </p>
+                    </div>
+                    {(logbookPermissions?.redact || logbookPermissions?.delete) && (
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {logbookPermissions?.redact && (
+                          <button
+                            type="button"
+                            onClick={() => redactEntry(entry)}
+                            className="rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
+                          >
+                            {entry.redacted ? "Undo" : "Redact"}
+                          </button>
+                        )}
+                        {logbookPermissions?.delete && (
+                          <button
+                            type="button"
+                            onClick={() => deleteEntry(entry)}
+                            className="rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {showRedactModal && redactTarget && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl p-6 w-full max-w-sm text-center">
-            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-              <IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900">
+            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10">
+              <IconAlertTriangle className="h-5 w-5 text-amber-500" />
             </div>
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-              {redactTarget.redacted ? "Undo Redaction" : "Redact Entry"}
+            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
+              {redactTarget.redacted ? "Undo redaction" : "Redact entry"}
             </h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+            <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
               {redactTarget.redacted
-                ? "Un-redacting will make this entry visible again."
+                ? "This will make the entry visible again."
                 : "This will cross out the entry for all viewers."}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowRedactModal(false); setRedactTarget(null); }}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white transition-colors"
+                className={`flex-1 justify-center ${profileSecondaryButtonClass}`}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRedact}
-                className="flex-1 px-4 py-2 text-sm font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                className="flex-1 rounded-xl bg-amber-500 py-2 text-sm font-medium text-white transition hover:bg-amber-600"
               >
                 {redactTarget.redacted ? "Undo" : "Redact"}
               </button>
@@ -716,25 +690,25 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
       )}
 
       {showDeleteModal && deleteTarget && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-xl p-6 w-full max-w-sm text-center">
-            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-              <IconTrash className="w-5 h-5 text-red-500 dark:text-red-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900">
+            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
+              <IconTrash className="h-5 w-5 text-red-500" />
             </div>
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">Delete Entry</h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">Delete entry</h2>
+            <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
               This action is permanent and cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
-                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white transition-colors"
+                className={`flex-1 justify-center ${profileSecondaryButtonClass}`}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteEntry}
-                className="flex-1 px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="flex-1 rounded-xl bg-red-500 py-2 text-sm font-medium text-white transition hover:bg-red-600"
               >
                 Delete
               </button>

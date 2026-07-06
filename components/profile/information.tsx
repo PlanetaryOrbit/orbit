@@ -102,39 +102,25 @@ type InformationTabProps = {
   canEditBasicInfo?: boolean; // Level 1: can only edit birthday, discord, timezone
 };
 
-const Field = ({
-  icon: Icon,
+const InfoRow = ({
   label,
   children,
-  requiresLevel2 = false,
-  currentEditLevel = 0,
+  locked = false,
 }: {
-  icon: React.ElementType;
   label: string;
   children: React.ReactNode;
-  requiresLevel2?: boolean;
-  currentEditLevel?: number;
-}) => {
-  const isDisabled = requiresLevel2 && currentEditLevel < 2;
-  
-  return (
-    <div className={`flex items-start gap-3 py-4 ${isDisabled ? 'opacity-60' : ''}`}>
-      <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
-        <Icon className="w-3.5 h-3.5 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mb-0.5">
-          {label}
-          {isDisabled && <span className="ml-2 text-[10px] text-zinc-400">(Requires higher permissions)</span>}
-        </p>
-        {children}
-      </div>
-    </div>
-  );
-};
+  locked?: boolean;
+}) => (
+  <div className={`flex items-center gap-4 py-3 ${locked ? "opacity-50" : ""}`}>
+    <span className="w-28 shrink-0 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+      {label}
+    </span>
+    <div className="min-w-0 flex-1">{children}</div>
+  </div>
+);
 
 const NullValue = ({ label }: { label: string }) => (
-  <span className="text-sm text-zinc-400 dark:text-zinc-500 italic">{label}</span>
+  <span className="text-sm italic text-zinc-400 dark:text-zinc-500">{label}</span>
 );
 
 const monthNames = [
@@ -297,303 +283,355 @@ export function InformationTab({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+    <div>
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
-            Information
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+            Details
           </h3>
           {getEditLevelBadge()}
         </div>
         {canEdit && !editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className={profileSecondaryButtonClass}
-          >
+          <button onClick={() => setEditing(true)} className={profileSecondaryButtonClass}>
             <IconPencil className="w-3.5 h-3.5" />
-            Edit {editLevel === 1 ? "Basic Info" : "All Info"}
+            Edit {editLevel === 1 ? "basic info" : "all info"}
           </button>
         )}
         {editing && (
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={handleCancel}
-              className={`${profileSecondaryButtonClass} flex-1 sm:flex-initial`}
-            >
+          <div className="flex gap-2">
+            <button onClick={handleCancel} className={profileSecondaryButtonClass}>
               <IconX className="w-3.5 h-3.5" />
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl text-white bg-primary hover:bg-primary/90 transition flex-1 sm:flex-initial disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary/90 disabled:opacity-60"
             >
               <IconCheck className="w-3.5 h-3.5" />
-              Save
+              {loading ? "Saving…" : "Save"}
             </button>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className={profileFieldPanelClass}>
-          <Field icon={IconUser} label="Username" requiresLevel2={false} currentEditLevel={editLevel}>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-              @{user.username}
-            </p>
-          </Field>
+      <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
 
-          <Field icon={IconId} label="User ID" requiresLevel2={false} currentEditLevel={editLevel}>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
-              {user.userid}
-            </p>
-          </Field>
+        <InfoRow label="Username">
+          <p className="text-sm font-medium text-zinc-900 dark:text-white">
+            @{user.username}
+          </p>
+        </InfoRow>
 
-          <Field icon={IconBrandDiscord} label="Discord" requiresLevel2={false} currentEditLevel={editLevel}>
-            {editing && editLevel >= 1 ? (
-              <input
-                type="text"
-                value={discordId}
-                onChange={(e) => setDiscordId(e.target.value)}
-                placeholder="Enter Discord ID"
-                className={profileInputClass}
-              />
-            ) : user.DiscordUser ? (
-              <div className="inline-flex items-center gap-2 bg-black/10 dark:bg-white/10 hover:bg-[#5865F2]/10 border border-black/20 dark:border-white/20 hover:border-[#5865F2]/30 rounded-full pl-1 pr-3 py-1 transition-colors cursor-default group">
-                {user.DiscordUser.avatar ? (
-                  <img
-                    src={`https://cdn.discordapp.com/avatars/${user.DiscordUser.discordUserId}/${user.DiscordUser.avatar}.png`}
-                    alt={user.DiscordUser.username}
-                    className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-[#5865F2] flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-medium text-white">
-                      {user.DiscordUser.username.charAt(0).toUpperCase()}
-                    </span>
+        <InfoRow label="User ID">
+          <p className="font-mono text-sm text-zinc-900 dark:text-white">
+            {user.userid}
+          </p>
+        </InfoRow>
+
+        <InfoRow label="Discord">
+          {editing && editLevel >= 1 ? (
+            <input
+              type="text"
+              value={discordId}
+              onChange={(e) => setDiscordId(e.target.value)}
+              placeholder="Discord user ID"
+              className={profileInputClass}
+            />
+          ) : user.DiscordUser ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 py-1 pl-1 pr-3 dark:border-white/10 dark:bg-white/5">
+              {user.DiscordUser.avatar ? (
+                <img
+                  src={`https://cdn.discordapp.com/avatars/${user.DiscordUser.discordUserId}/${user.DiscordUser.avatar}.png`}
+                  alt={user.DiscordUser.username}
+                  className="h-5 w-5 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5865F2]">
+                  <span className="text-[9px] font-bold text-white">
+                    {user.DiscordUser.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                {user.DiscordUser.username}
+              </span>
+            </div>
+          ) : workspaceMember?.discordId ? (
+            <p className="font-mono text-sm text-zinc-900 dark:text-white">
+              {workspaceMember.discordId}
+            </p>
+          ) : (
+            <NullValue label="Not linked" />
+          )}
+        </InfoRow>
+
+        <InfoRow label="Birthday">
+          {editing && editLevel >= 1 ? (
+            <div className="flex gap-2">
+              <select
+                value={birthdayMonth}
+                onChange={(e) => setBirthdayMonth(e.target.value)}
+                className={`flex-1 ${profileInputClass}`}
+              >
+                <option value="">Month</option>
+                {monthNames.slice(1).map((month, idx) => (
+                  <option key={idx + 1} value={idx + 1}>{month}</option>
+                ))}
+              </select>
+              <select
+                value={birthdayDay}
+                onChange={(e) => setBirthdayDay(e.target.value)}
+                className={`flex-1 ${profileInputClass}`}
+              >
+                <option value="">Day</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+            </div>
+          ) : user.birthdayDay && user.birthdayMonth ? (
+            <p className="text-sm text-zinc-900 dark:text-white">
+              {monthNames[user.birthdayMonth]} {user.birthdayDay}
+            </p>
+          ) : (
+            <NullValue label="Not set" />
+          )}
+        </InfoRow>
+
+        <InfoRow label="Timezone">
+          {editing && editLevel >= 1 ? (
+            <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
+              <div className="relative">
+                <Listbox.Button
+                  className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}
+                >
+                  <span className={`block truncate ${selectedTimezone ? "text-zinc-900 dark:text-white" : "text-zinc-400"}`}>
+                    {selectedTimezone || "Select timezone…"}
+                  </span>
+                </Listbox.Button>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                    <Listbox.Option
+                      value=""
+                      className={({ active }) =>
+                        `cursor-pointer select-none px-3 py-2 ${active ? "bg-primary/10 text-primary" : "text-zinc-400"}`
+                      }
+                    >
+                      Not set
+                    </Listbox.Option>
+                    {commonTimezones.map((tz) => (
+                      <Listbox.Option
+                        key={tz}
+                        value={tz}
+                        className={({ active }) =>
+                          `cursor-pointer select-none px-3 py-2 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`
+                        }
+                      >
+                        {tz}
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </Listbox>
+          ) : workspaceMember?.timezone ? (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-zinc-900 dark:text-white">
+                {workspaceMember.timezone}
+              </p>
+              {localTime && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  {isNight ? <IconMoon className="h-3 w-3" /> : <IconSun className="h-3 w-3" />}
+                  {localTime}
+                </span>
+              )}
+            </div>
+          ) : (
+            <NullValue label="Not set" />
+          )}
+        </InfoRow>
+
+        <InfoRow label={selectedDepartments.length === 1 ? "Department" : "Departments"} locked={editLevel < 2 && editing}>
+          {editing && editLevel >= 2 ? (
+            availableDepartments.length > 0 ? (
+              <div className="relative" ref={deptDropdownRef}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setDeptOpen((o) => !o);
+                  }}
+                  className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}
+                >
+                  {selectedDepartments.length === 0
+                    ? "Select departments…"
+                    : selectedDepartments.length === 1
+                      ? selectedDepartments[0].name
+                      : `${selectedDepartments.length} selected`}
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <IconChevronDown className="h-4 w-4 text-zinc-400" />
+                  </span>
+                </button>
+                {deptOpen && (
+                  <div className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                    {availableDepartments.map((dept) => {
+                      const isSelected = selectedDepartments.some((d) => d.id === dept.id);
+                      return (
+                        <div
+                          key={dept.id}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSelectedDepartments((prev) =>
+                              isSelected
+                                ? prev.filter((d) => d.id !== dept.id)
+                                : [...prev, dept],
+                            );
+                          }}
+                          className="relative flex cursor-pointer select-none items-center gap-2 py-2 pl-3 pr-9 hover:bg-primary/10 hover:text-primary text-zinc-900 dark:text-white"
+                        >
+                          <div
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: dept.color || "#6b7280" }}
+                          />
+                          <span className={isSelected ? "font-medium" : ""}>{dept.name}</span>
+                          {isSelected && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary">
+                              <IconCheck className="h-4 w-4" />
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-[#5865F2] transition-colors">
-                  {user.DiscordUser.username}
+              </div>
+            ) : (
+              <NullValue label="No departments available" />
+            )
+          ) : selectedDepartments.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {selectedDepartments.map((dept) => (
+                <span
+                  key={dept.id}
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                  style={{ backgroundColor: dept.color || "#6b7280" }}
+                >
+                  {dept.name}
                 </span>
-              </div>
-            ) : workspaceMember?.discordId ? (
-              <p className="text-sm font-semibold text-zinc-900 dark:text-white font-mono">
-                {workspaceMember.discordId}
-              </p>
-            ) : (
-              <NullValue label="Not linked" />
-            )}
-          </Field>
+              ))}
+            </div>
+          ) : (
+            <NullValue label="Not assigned" />
+          )}
+        </InfoRow>
 
-          <Field icon={IconCalendar} label="Birthday" requiresLevel2={false} currentEditLevel={editLevel}>
-            {editing && editLevel >= 1 ? (
-              <div className="flex gap-2">
-                <select
-                  value={birthdayMonth}
-                  onChange={(e) => setBirthdayMonth(e.target.value)}
-                  className={`flex-1 ${profileInputClass}`}
+        <InfoRow label="Line manager" locked={editLevel < 2 && editing}>
+          {editing && editLevel >= 2 ? (
+            <Combobox value={selectedManager} onChange={setSelectedManager}>
+              <div className="relative">
+                <Combobox.Input
+                  className={profileInputClass}
+                  displayValue={(manager: any) => manager?.username || ""}
+                  onChange={(e) => setManagerQuery(e.target.value)}
+                  placeholder="Search member…"
+                />
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                  afterLeave={() => setManagerQuery("")}
                 >
-                  <option value="">Month</option>
-                  {monthNames.slice(1).map((month, idx) => (
-                    <option key={idx + 1} value={idx + 1}>{month}</option>
-                  ))}
-                </select>
-                <select
-                  value={birthdayDay}
-                  onChange={(e) => setBirthdayDay(e.target.value)}
-                  className={`flex-1 ${profileInputClass}`}
-                >
-                  <option value="">Day</option>
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
-              </div>
-            ) : user.birthdayDay && user.birthdayMonth ? (
-              <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                {monthNames[user.birthdayMonth]} {user.birthdayDay}
-              </p>
-            ) : (
-              <NullValue label="Not set" />
-            )}
-          </Field>
-        </div>
-
-        <div className={`${profileFieldPanelClass} overflow-visible`}>
-          <Field icon={IconClock} label="Timezone" requiresLevel2={false} currentEditLevel={editLevel}>
-            {editing && editLevel >= 1 ? (
-              <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
-                <div className="relative">
-                  <Listbox.Button className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}>
-                    <span className={`block truncate ${selectedTimezone ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'}`}>
-                      {selectedTimezone || "Select timezone..."}
-                    </span>
-                  </Listbox.Button>
-                  <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <Listbox.Options className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
-                      <Listbox.Option value="" className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-400"}`}>Not set</Listbox.Option>
-                      {commonTimezones.map((tz) => (
-                        <Listbox.Option key={tz} value={tz} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>{tz}</Listbox.Option>
-                      ))}
-                    </Listbox.Options>
-                  </Transition>
-                </div>
-              </Listbox>
-            ) : workspaceMember?.timezone ? (
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  {workspaceMember.timezone}
-                </p>
-                {localTime && (
-                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400">
-                    {isNight ? <IconMoon className="w-3 h-3" /> : <IconSun className="w-3 h-3" />}
-                    {localTime}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <NullValue label="Not set" />
-            )}
-          </Field>
-
-          <Field icon={IconBriefcase} label={`Department${selectedDepartments.length !== 1 ? "s" : ""}`} requiresLevel2={true} currentEditLevel={editLevel}>
-            {editing && editLevel >= 2 ? (
-              availableDepartments.length > 0 ? (
-                <div className="relative" ref={deptDropdownRef}>
-                  <button
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setDeptOpen((o) => !o);
-                    }}
-                    className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}
-                  >
-                    {selectedDepartments.length === 0
-                      ? "Select departments..."
-                      : selectedDepartments.length === 1
-                        ? selectedDepartments[0].name
-                        : `${selectedDepartments.length} selected`}
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                      <IconChevronDown className="h-4 w-4 text-zinc-400" />
-                    </span>
-                  </button>
-
-                  {deptOpen && (
-                    <div className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-lg border border-zinc-200 dark:border-zinc-700">
-                      {availableDepartments.map((dept) => {
-                        const isSelected = selectedDepartments.some((d) => d.id === dept.id);
-                        return (
-                          <div
-                            key={dept.id}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              setSelectedDepartments((prev) =>
-                                isSelected
-                                  ? prev.filter((d) => d.id !== dept.id)
-                                  : [...prev, dept]
-                              );
-                            }}
-                            className="relative cursor-pointer select-none py-2 pl-3 pr-9 flex items-center gap-2 hover:bg-primary/10 hover:text-primary text-zinc-900 dark:text-white"
-                          >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: dept.color || "#6b7280" }}
-                            />
-                            <span className={isSelected ? "font-medium" : ""}>{dept.name}</span>
-                            {isSelected && (
-                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary">
-                                <IconCheck className="h-4 w-4" />
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <NullValue label="No departments available" />
-              )
-            ) : selectedDepartments.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {selectedDepartments.map((dept) => (
-                  <span
-                    key={dept.id}
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                    style={{ backgroundColor: dept.color || "#6b7280" }}
-                  >
-                    {dept.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <NullValue label="Not assigned" />
-            )}
-          </Field>
-
-          <Field icon={IconUserCheck} label="Line Manager" requiresLevel2={true} currentEditLevel={editLevel}>
-            {editing && editLevel >= 2 ? (
-              <Combobox value={selectedManager} onChange={setSelectedManager}>
-                <div className="relative">
-                  <Combobox.Input
-                    className={profileInputClass}
-                    displayValue={(manager: any) => manager?.username || ""}
-                    onChange={(e) => setManagerQuery(e.target.value)}
-                    placeholder="Search manager..."
-                  />
-                  <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0" afterLeave={() => setManagerQuery("")}>
-                    <Combobox.Options className="absolute z-[200] mt-1 w-full overflow-auto rounded-lg bg-white dark:bg-zinc-800 py-1 text-sm shadow-xl border border-zinc-200 dark:border-zinc-700">
-                      <Combobox.Option value={null} className={({ active }) => `cursor-pointer select-none py-2 px-3 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`}>
-                        {({ selected }) => <span className={selected ? "font-semibold" : ""}>None</span>}
-                      </Combobox.Option>
-                      {filteredManagers.length === 0 && managerQuery !== "" ? (
-                        <div className="py-2 px-3 text-zinc-500 text-sm">No members found.</div>
-                      ) : filteredManagers.map((member) => (
-                        <Combobox.Option key={member.userid} value={member} className={({ active }) => `cursor-pointer select-none py-2 px-3 flex items-center gap-2 ${active ? "bg-primary/10" : ""}`}>
+                  <Combobox.Options className="absolute z-[200] mt-1 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
+                    <Combobox.Option
+                      value={null}
+                      className={({ active }) =>
+                        `cursor-pointer select-none px-3 py-2 ${active ? "bg-primary/10 text-primary" : "text-zinc-900 dark:text-white"}`
+                      }
+                    >
+                      {({ selected }) => (
+                        <span className={selected ? "font-semibold" : ""}>None</span>
+                      )}
+                    </Combobox.Option>
+                    {filteredManagers.length === 0 && managerQuery !== "" ? (
+                      <div className="px-3 py-2 text-sm text-zinc-500">No members found.</div>
+                    ) : (
+                      filteredManagers.map((member) => (
+                        <Combobox.Option
+                          key={member.userid}
+                          value={member}
+                          className={({ active }) =>
+                            `flex cursor-pointer select-none items-center gap-2 px-3 py-2 ${active ? "bg-primary/10" : ""}`
+                          }
+                        >
                           {({ selected }) => (
                             <>
-                              <img src={`/api/user/${member.userid}/avatar`} className="w-5 h-5 rounded-full object-cover" alt={member.username} />
-                              <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>{member.username}</span>
+                              <img
+                                src={`/api/user/${member.userid}/avatar`}
+                                className="h-5 w-5 rounded-full object-cover"
+                                alt={member.username}
+                              />
+                              <span className={`text-zinc-900 dark:text-white ${selected ? "font-semibold" : ""}`}>
+                                {member.username}
+                              </span>
                             </>
                           )}
                         </Combobox.Option>
-                      ))}
-                    </Combobox.Options>
-                  </Transition>
-                </div>
-              </Combobox>
-            ) : (selectedManager || initialLineManager) ? (
-              <div className="flex items-center gap-2">
-                <div className={`rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center overflow-hidden ${getRandomBg((selectedManager || initialLineManager)?.userid || "")}`}>
-                  <img src={`/api/user/${(selectedManager || initialLineManager)?.userid}/avatar`} className="w-6 h-6 rounded-full object-cover" alt={(selectedManager || initialLineManager)?.username} />
-                </div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  {(selectedManager || initialLineManager)?.username}
-                </p>
+                      ))
+                    )}
+                  </Combobox.Options>
+                </Transition>
               </div>
-            ) : (
-              <NullValue label="Not assigned" />
-            )}
-          </Field>
+            </Combobox>
+          ) : (selectedManager || initialLineManager) ? (
+            <div className="flex items-center gap-2">
+              <div
+                className={`h-6 w-6 shrink-0 overflow-hidden rounded-full ${getRandomBg(
+                  (selectedManager || initialLineManager)?.userid || "",
+                )}`}
+              >
+                <img
+                  src={`/api/user/${(selectedManager || initialLineManager)?.userid}/avatar`}
+                  className="h-6 w-6 object-cover"
+                  alt={(selectedManager || initialLineManager)?.username}
+                />
+              </div>
+              <p className="text-sm text-zinc-900 dark:text-white">
+                {(selectedManager || initialLineManager)?.username}
+              </p>
+            </div>
+          ) : (
+            <NullValue label="Not assigned" />
+          )}
+        </InfoRow>
 
-          <Field icon={IconCalendar} label="Join Date" requiresLevel2={false} currentEditLevel={editLevel}>
-            {user.joinDate ? (
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  {new Date(user.joinDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-                </p>
-                {joinTenure && (
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    {joinTenure}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <NullValue label="Unknown" />
-            )}
-          </Field>
-        </div>
+        <InfoRow label="Join date">
+          {user.joinDate ? (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-zinc-900 dark:text-white">
+                {new Date(user.joinDate).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </p>
+              {joinTenure && (
+                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  {joinTenure}
+                </span>
+              )}
+            </div>
+          ) : (
+            <NullValue label="Unknown" />
+          )}
+        </InfoRow>
+
       </div>
     </div>
   );

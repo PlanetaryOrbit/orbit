@@ -278,44 +278,26 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   return (
     <div className="pagePadding">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-8">
-          <div className="flex items-center gap-3">
-            <div className="shrink-0 w-11 h-11 rounded-xl bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
-              <IconMessageCircle className="w-5 h-5 text-zinc-600 dark:text-zinc-400" stroke={1.5} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-                Group Wall
-              </h1>
-              <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                Share updates and announcements with your team
-              </p>
-            </div>
-          </div>
-        </header>
+      <div className="mx-auto max-w-3xl space-y-6">
+
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
+            Group Wall
+          </h1>
+          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+            Share updates and announcements with your team
+          </p>
+        </div>
 
         {canPostOnWall() ? (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5 sm:p-6 mb-8">
-            <div className="flex items-start gap-4">
-              <div
-                className={clsx(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden",
-                  getRandomBg(login.userId.toString())
-                )}
-              >
-                <img
-                  src={login.thumbnail}
-                  alt="Your avatar"
-                  className="w-full h-full object-cover"
-                />
+          <div className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
+            <div className="flex items-start gap-3">
+              <div className={clsx("h-9 w-9 shrink-0 overflow-hidden rounded-full", getRandomBg(login.userId.toString()))}>
+                <img src={login.thumbnail} alt="Your avatar" className="h-full w-full object-cover" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <textarea
-                  className={clsx(
-                    "w-full border-0 focus:ring-0 resize-none bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500",
-                    "focus:outline-none text-sm sm:text-base"
-                  )}
+                  className="w-full resize-none border-0 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-white dark:placeholder-zinc-500"
                   placeholder="What's on your mind?"
                   value={wallMessage}
                   onChange={(e) => setWallMessage(e.target.value)}
@@ -323,22 +305,22 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   maxLength={10000}
                 />
                 {selectedImage && (
-                  <div className="relative mt-3">
+                  <div className="relative mt-2">
                     <img
                       src={selectedImage}
                       alt="Selected"
-                      className="max-h-64 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-800"
+                      className="max-h-56 w-full rounded-xl bg-zinc-200 object-contain dark:bg-zinc-700"
                     />
                     <button
                       onClick={removeImage}
-                      className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-lg text-white transition-colors"
+                      className="absolute right-2 top-2 rounded-lg bg-black/60 p-1.5 text-white transition hover:bg-black/80"
                     >
-                      <IconX size={16} stroke={2} />
+                      <IconX size={14} stroke={2} />
                     </button>
                   </div>
                 )}
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-zinc-100 dark:border-zinc-700">
-                  <div className="flex items-center gap-1">
+                <div className="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700/60">
+                  <div className="flex items-center gap-0.5">
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -347,35 +329,23 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       onChange={handleImageSelect}
                     />
                     {canAddPhotos() && (
-                      <button
-                        className={iconButtonClass}
-                        onClick={() => fileInputRef.current?.click()}
-                        type="button"
-                      >
-                        <IconPhoto size={20} stroke={1.5} />
+                      <button className={iconButtonClass} onClick={() => fileInputRef.current?.click()} type="button">
+                        <IconPhoto size={18} stroke={1.5} />
                       </button>
                     )}
                     <div className="relative z-10">
-                      <button
-                        type="button"
-                        className={iconButtonClass}
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      >
-                        <IconMoodSmile size={20} stroke={1.5} />
+                      <button type="button" className={iconButtonClass} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                        <IconMoodSmile size={18} stroke={1.5} />
                       </button>
                       {showEmojiPicker && (
-                        <div className="absolute top-full left-0 mt-2 z-20 rounded-xl overflow-hidden shadow-lg border border-zinc-200 dark:border-zinc-700">
+                        <div className="absolute left-0 top-full z-20 mt-2 overflow-hidden rounded-xl shadow-lg">
                           <EmojiPicker
                             onEmojiClick={onEmojiClick}
-                            theme={
-                              document.documentElement.classList.contains("dark")
-                                ? Theme.DARK
-                                : Theme.LIGHT
-                            }
-                            width={350}
-                            height={400}
-                            lazyLoadEmojis={true}
-                            searchPlaceholder="Search emojis..."
+                            theme={document.documentElement.classList.contains("dark") ? Theme.DARK : Theme.LIGHT}
+                            width={320}
+                            height={380}
+                            lazyLoadEmojis
+                            searchPlaceholder="Search emojis…"
                           />
                         </div>
                       )}
@@ -385,207 +355,151 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                     type="button"
                     onClick={sendPost}
                     disabled={loading || (!wallMessage.trim() && !selectedImage)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loading ? (
-                      <span className="inline-flex items-center gap-2">
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        Posting…
-                      </span>
+                      <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
                     ) : (
-                      <>
-                        <IconSend size={18} stroke={1.5} />
-                        Post
-                      </>
+                      <IconSend size={16} stroke={1.75} />
                     )}
+                    {loading ? "Posting…" : "Post"}
                   </button>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-5 sm:p-6 mb-8">
+          <div className="rounded-2xl bg-zinc-100 px-5 py-4 dark:bg-zinc-800/60">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               You don't have permission to post on the wall.
             </p>
           </div>
         )}
 
-        <div className="space-y-4">
-          {posts.length < 1 ? (
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-12 text-center max-w-md mx-auto">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center mb-4">
-                <IconInbox className="w-7 h-7 text-zinc-500 dark:text-zinc-400" stroke={1.5} />
-              </div>
-              <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-                No posts yet
-              </h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        {posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/60">
+              <IconInbox className="h-5 w-5 text-zinc-400 dark:text-zinc-500" stroke={1.75} />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No posts yet</p>
+              <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
                 Be the first to share something with your team.
               </p>
             </div>
-          ) : (
-            posts.map((post: any) => (
-              <div
-                key={post.id}
-                className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 p-5 sm:p-6"
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className={clsx(
-                      "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 overflow-hidden",
-                      getRandomBg(post.authorId)
-                    )}
-                  >
-                    <img
-                      alt=""
-                      src={post.author.picture}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                          {post.author.username}
-                        </h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                          {moment(post.createdAt).format("MMMM D, YYYY [at] h:mm A")}
-                        </p>
-                      </div>
-                      {(() => {
-                        const isAuthor =
-                          String(post.authorId) === String(login.userId);
-                        const hasManageWall =
-                          userPermissions.includes("delete_wall_posts");
-                        const canDelete = isAuthor || hasManageWall;
-
-                        return canDelete ? (
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {posts.map((post: any) => {
+              const isAuthor = String(post.authorId) === String(login.userId);
+              const canDelete = isAuthor || userPermissions.includes("delete_wall_posts");
+              return (
+                <div key={post.id} className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
+                  <div className="flex items-start gap-3">
+                    <div className={clsx("h-9 w-9 shrink-0 overflow-hidden rounded-full", getRandomBg(post.authorId))}>
+                      <img alt={post.author.username} src={post.author.picture} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                            {post.author.username}
+                          </p>
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                            {moment(post.createdAt).format("D MMM YYYY [at] h:mm A")}
+                          </p>
+                        </div>
+                        {canDelete && (
                           <button
                             type="button"
-                            onClick={() => {
-                              setPostToDelete(post.id);
-                              setShowDeleteModal(true);
-                            }}
-                            className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors shrink-0"
+                            onClick={() => { setPostToDelete(post.id); setShowDeleteModal(true); }}
+                            className="shrink-0 rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-500/10 hover:text-red-500"
                             aria-label="Delete post"
                           >
-                            <IconTrash size={18} stroke={1.5} />
+                            <IconTrash size={16} stroke={1.5} />
                           </button>
-                        ) : null;
-                      })()}
-                    </div>
-                    <div className="prose prose-sm text-zinc-800 dark:text-zinc-200 dark:prose-invert max-w-none mt-3">
-                      <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                        {post.content}
-                      </ReactMarkdown>
-                    </div>
-                    {post.image && (
-                      <div className="mt-4">
-                        <img
-                          src={post.image}
-                          alt=""
-                          className="max-h-96 rounded-xl object-contain bg-zinc-100 dark:bg-zinc-800 w-full"
-                          onError={(e) => {
-                            e.currentTarget.src = "/placeholder-image-error.png";
-                            toast.error("Failed to load image");
-                          }}
-                        />
+                        )}
                       </div>
-                    )}
+                      <div className="prose prose-sm mt-2.5 max-w-none text-zinc-800 dark:prose-invert dark:text-zinc-200">
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                          {post.content}
+                        </ReactMarkdown>
+                      </div>
+                      {post.image && (
+                        <div className="mt-3">
+                          <img
+                            src={post.image}
+                            alt=""
+                            className="w-full max-h-96 rounded-xl object-contain bg-zinc-200 dark:bg-zinc-700"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-image-error.png";
+                              toast.error("Failed to load image");
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {postToDelete !== null && (
-        <Transition appear show={showDeleteModal} as={Fragment}>
-          <Dialog
-            as="div"
-            className="relative z-50"
-            onClose={() => setShowDeleteModal(false)}
-          >
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-black/70" />
-            </Transition.Child>
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
-                        <IconTrash className="w-5 h-5 text-red-600 dark:text-red-400" stroke={1.5} />
+          <Transition appear show={showDeleteModal} as={Fragment}>
+            <Dialog as="div" className="relative z-50" onClose={() => setShowDeleteModal(false)}>
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
+                leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
+              >
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+              </Transition.Child>
+              <div className="fixed inset-0 overflow-y-auto">
+                <div className="flex min-h-full items-center justify-center p-4">
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
+                  >
+                    <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all dark:bg-zinc-900">
+                      <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
+                        <IconTrash className="h-5 w-5 text-red-500" stroke={1.75} />
                       </div>
-                      <Dialog.Title
-                        as="h3"
-                        className="text-lg font-semibold text-zinc-900 dark:text-white"
-                      >
+                      <Dialog.Title as="h3" className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
                         Delete post
                       </Dialog.Title>
-                    </div>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                      This action cannot be undone.
-                    </p>
-                    <div className="mt-6 flex gap-3">
-                      <button
-                        type="button"
-                        className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
-                        onClick={() => setShowDeleteModal(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="flex-1 justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-                        onClick={confirmDelete}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        This action cannot be undone.
+                      </p>
+                      <div className="mt-5 flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteModal(false)}
+                          className="flex-1 rounded-xl bg-zinc-100 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={confirmDelete}
+                          className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </Dialog.Panel>
+                  </Transition.Child>
+                </div>
               </div>
-            </div>
-          </Dialog>
-        </Transition>
+            </Dialog>
+          </Transition>
         )}
+
       </div>
     </div>
   );

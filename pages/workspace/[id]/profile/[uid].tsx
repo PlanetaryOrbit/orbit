@@ -1081,230 +1081,322 @@ const Profile: pageWithLayout<pageProps> = ({
 
   const workspaceId = router.query.id as string;
 
+  const activeNotice = notices.find(
+    (notice: any) =>
+      notice.approved === true &&
+      notice.reviewed === true &&
+      notice.revoked === false &&
+      new Date(notice.startTime) <= currentTime &&
+      new Date(notice.endTime) >= currentTime,
+  );
+
+  const joinTenure = user.joinDate
+    ? (() => {
+        const days = Math.floor(
+          (Date.now() - new Date(user.joinDate).getTime()) / 86400000,
+        );
+        if (days < 30) return `${days}d`;
+        if (days < 365) return `${Math.floor(days / 30)}mo`;
+        const y = Math.floor(days / 365);
+        const m = Math.floor((days % 365) / 30);
+        return m > 0 ? `${y}y ${m}mo` : `${y}y`;
+      })()
+    : null;
+
+  const isDay = workspaceMember?.timezone
+    ? (() => {
+        const h = parseInt(
+          new Date().toLocaleString("en-US", {
+            timeZone: workspaceMember.timezone,
+            hour: "numeric",
+            hour12: false,
+          }),
+        );
+        return h >= 6 && h < 18;
+      })()
+    : true;
+
   return (
     <ProfilePageShell>
-      <ProfilePanel className="mb-5 sm:mb-6">
-        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-6">
-          <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-5">
-            <div className="relative shrink-0">
-              <div
-                className={`relative h-[72px] w-[72px] overflow-hidden rounded-2xl border-2 border-white shadow-sm sm:h-24 sm:w-24 ${getRandomBg(
-                  String(user.userid),
-                  info.username,
-                )}`}
-              >
-                <img
-                  src={`/api/user/${user.userid}/avatar`}
-                  className="h-full w-full object-cover"
-                  alt={`${info.displayName}'s avatar`}
-                />
-              </div>
-            </div>
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl dark:text-white">
-                  {info.displayName}
-                </h1>
-                {(() => {
-                  const now = new Date();
-                  const activeNotice = notices.find(
-                    (notice: any) =>
-                      notice.approved === true &&
-                      notice.reviewed === true &&
-                      notice.revoked === false &&
-                      new Date(notice.startTime) <= now &&
-                      new Date(notice.endTime) >= now,
-                  );
-                  if (activeNotice) {
-                    return (
-                      <div
-                        className="flex-shrink-0"
-                        title={`On notice: ${activeNotice.reason || "N/A"}`}
-                      >
-                        <IconBeach className="h-5 w-5 text-amber-500" />
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-              <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
-                <span className="text-zinc-400 dark:text-zinc-500">@</span>
-                {info.username}
-              </p>
-              {memberRoleName && (
-                <p>
-                  <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    <span className="truncate">{memberRoleName}</span>
-                  </span>
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-2">
-            {workspaceMember &&
-              workspaceMember.timezone &&
-              (() => {
-                const userHour = new Date().toLocaleString("en-US", {
-                  timeZone: workspaceMember.timezone,
-                  hour: "numeric",
-                  hour12: false,
-                });
-                const hour = parseInt(userHour);
-                const isDay = hour >= 6 && hour < 18;
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-5">
 
-                return (
-                  <div className="inline-flex h-9 items-center gap-2 rounded-xl bg-zinc-100 px-3 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100">
-                    {isDay ? (
-                      <IconSun className="h-4 w-4 shrink-0 text-amber-500" />
-                    ) : (
-                      <IconMoon className="h-4 w-4 shrink-0 text-sky-300" />
-                    )}
-                    <span className="text-xs font-medium tabular-nums sm:text-sm">
-                      {currentTime.toLocaleTimeString("en-US", {
-                        timeZone: workspaceMember.timezone,
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
+        <aside className="lg:sticky lg:top-5 lg:w-56 xl:w-60 shrink-0">
+          <ProfilePanel className="overflow-hidden">
+            <div
+              className="h-12 w-full"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgb(var(--group-theme)/0.2) 0%, transparent 80%)",
+              }}
+            />
+
+            <div className="px-4 pb-5">
+              <div className="-mt-8 mb-3">
+                <div
+                  className={`h-16 w-16 overflow-hidden rounded-2xl ring-[3px] ring-white shadow dark:ring-zinc-900 ${getRandomBg(
+                    String(user.userid),
+                    info.username,
+                  )}`}
+                >
+                  <img
+                    src={`/api/user/${user.userid}/avatar`}
+                    className="h-full w-full object-cover"
+                    alt={info.displayName}
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3 space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-base font-semibold leading-tight text-zinc-900 dark:text-white truncate">
+                    {info.displayName}
+                  </h1>
+                  {activeNotice && (
+                    <IconBeach
+                      className="h-4 w-4 shrink-0 text-amber-500"
+                      title={`On notice: ${activeNotice.reason || "N/A"}`}
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                  @{info.username}
+                </p>
+                {memberRoleName && (
+                  <div className="pt-1">
+                    <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      <span className="truncate">{memberRoleName}</span>
                     </span>
                   </div>
-                );
-              })()}
-            <a
-              href={`https://www.roblox.com/users/${user.userid}/profile`}
-              target="_blank"
-              rel="noreferrer"
-              title="Open profile on Roblox"
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme))] text-white shadow-sm transition hover:opacity-90 active:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:rgb(var(--group-theme)/0.45)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
-            >
-              <img
-                src="/roblox.svg"
-                alt=""
-                className="h-[18px] w-[18px]"
-                aria-hidden
-              />
-              <span className="sr-only">Open profile on Roblox</span>
-            </a>
-          </div>
-        </div>
-      </ProfilePanel>
+                )}
+              </div>
 
-      <ProfilePanel className="overflow-hidden">
-        <Tab.Group>
-          <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
-            <Tab className={({ selected }) => profileTabClass(selected)}>
-              <IconClipboard
-                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                stroke={1.75}
-              />
-              Details
-            </Tab>
-            <Tab className={({ selected }) => profileTabClass(selected)}>
-              <IconHistory
-                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                stroke={1.75}
-              />
-              Activity
-            </Tab>
-            {logbookEnabled && (
-              <Tab className={({ selected }) => profileTabClass(selected)}>
-                <IconBook className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
-                Logbook
-              </Tab>
-            )}
-            {noticesEnabled && (
-              <Tab className={({ selected }) => profileTabClass(selected)}>
-                <IconCalendar
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                  stroke={1.75}
+              {workspaceMember?.timezone && (
+                <div className="mb-3 inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                  {isDay ? (
+                    <IconSun className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                  ) : (
+                    <IconMoon className="h-3.5 w-3.5 shrink-0 text-sky-400" />
+                  )}
+                  <span className="tabular-nums">
+                    {currentTime.toLocaleTimeString("en-US", {
+                      timeZone: workspaceMember.timezone,
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </span>
+                </div>
+              )}
+
+              {(user.joinDate ||
+                (workspaceMember?.departments?.length ?? 0) > 0 ||
+                lineManager) && (
+                <div className="mb-4 space-y-3 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
+                  {user.joinDate && (
+                    <div>
+                      <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                        Joined
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-zinc-900 dark:text-white">
+                          {new Date(user.joinDate).toLocaleDateString(
+                            undefined,
+                            { month: "short", day: "numeric", year: "numeric" },
+                          )}
+                        </span>
+                        {joinTenure && (
+                          <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            {joinTenure}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {(workspaceMember?.departments?.length ?? 0) > 0 && (
+                    <div>
+                      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                        {workspaceMember!.departments!.length === 1
+                          ? "Department"
+                          : "Departments"}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {workspaceMember!.departments!.map((dept) => (
+                          <span
+                            key={dept.id}
+                            className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
+                            style={{ backgroundColor: dept.color || "#71717a" }}
+                          >
+                            {dept.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {lineManager && (
+                    <div>
+                      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                        Line manager
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-5 w-5 shrink-0 overflow-hidden rounded-full ${getRandomBg(
+                            String(lineManager.userid),
+                          )}`}
+                        >
+                          <img
+                            src={`/api/user/${lineManager.userid}/avatar`}
+                            className="h-full w-full object-cover"
+                            alt={lineManager.username}
+                          />
+                        </div>
+                        <span className="text-sm text-zinc-900 dark:text-white">
+                          {lineManager.username}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <a
+                href={`https://www.roblox.com/users/${user.userid}/profile`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+              >
+                <img
+                  src="/roblox.svg"
+                  alt=""
+                  className="h-4 w-4"
+                  aria-hidden
                 />
-                Time off
-              </Tab>
-            )}
-          </Tab.List>
-          <Tab.Panels className="p-4 sm:p-5">
-            <Tab.Panel>
-              <InformationTab
-                user={{
-                  userid: String(user.userid),
-                  username: user.username,
-                  displayname: info.displayName,
-                  registered: user.registered,
-                  birthdayDay: user.birthdayDay,
-                  birthdayMonth: user.birthdayMonth,
-                  joinDate: user.joinDate,
-                  DiscordUser: user.discordUser,
-                }}
-                workspaceMember={workspaceMember || undefined}
-                availableDepartments={availableDepartments}
-                lineManager={lineManager}
-                allMembers={allMembers}
-                isUser={isUser}
-                isAdmin={isAdmin}
-                canEditBasicInfo={canEditBasicInfo}
-                canEditMembers={canManageMembers}
-              />
-            </Tab.Panel>
-            <Tab.Panel>
-              <Activity
-                timeSpent={displayData.timeSpent}
-                timesPlayed={displayData.timesPlayed}
-                data={displayData.data}
-                quotas={displayData.quotas}
-                sessionsHosted={displayData.sessionsHosted}
-                sessionsAttended={displayData.sessionsAttended}
-                allianceVisits={displayData.allianceVisits}
-                avatar={info.avatar}
-                sessions={displayData.sessions}
-                adjustments={displayData.adjustments}
-                notices={notices}
-                messages={displayData.messages}
-                idleTime={displayData.idleTime}
-                isHistorical={selectedWeek > 0}
-                historicalPeriod={
-                  selectedWeek > 0 && historicalData
-                    ? {
-                        start: historicalData.period?.start,
-                        end: historicalData.period?.end,
-                      }
-                    : null
-                }
-                loadingHistory={loadingHistory}
-                selectedWeek={selectedWeek}
-                availableHistory={availableHistory}
-                getCurrentWeekLabel={getCurrentWeekLabel}
-                canGoBack={canGoBack}
-                canGoForward={canGoForward}
-                goToPreviousWeek={goToPreviousWeek}
-                goToNextWeek={goToNextWeek}
-                canAdjustActivity={canAdjustActivity}
-              />
-            </Tab.Panel>
-            {logbookEnabled && (
-              <Tab.Panel>
-                <Book
-                  userBook={userBook}
-                  onRefetch={refetchUserBook}
-                  logbookPermissions={logbookPermissions}
-                  isSelf={isUser}
-                />
-              </Tab.Panel>
-            )}
-            {noticesEnabled && (
-              <Tab.Panel>
-                <Notices
-                  notices={notices}
-                  canManageNotices={canManageNotices}
-                  canApproveNotices={canApproveNotices}
-                  canRecordNotices={canRecordNotices}
-                  userId={user.userid}
-                />
-              </Tab.Panel>
-            )}
-          </Tab.Panels>
-        </Tab.Group>
-      </ProfilePanel>
+                Open on Roblox
+              </a>
+            </div>
+          </ProfilePanel>
+        </aside>
+
+        <div className="min-w-0 flex-1">
+          <ProfilePanel className="overflow-hidden">
+            <Tab.Group>
+              <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
+                <Tab className={({ selected }) => profileTabClass(selected)}>
+                  <IconClipboard
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    stroke={1.75}
+                  />
+                  Details
+                </Tab>
+                <Tab className={({ selected }) => profileTabClass(selected)}>
+                  <IconHistory
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    stroke={1.75}
+                  />
+                  Activity
+                </Tab>
+                {logbookEnabled && (
+                  <Tab className={({ selected }) => profileTabClass(selected)}>
+                    <IconBook
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                      stroke={1.75}
+                    />
+                    Logbook
+                  </Tab>
+                )}
+                {noticesEnabled && (
+                  <Tab className={({ selected }) => profileTabClass(selected)}>
+                    <IconCalendar
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                      stroke={1.75}
+                    />
+                    Time off
+                  </Tab>
+                )}
+              </Tab.List>
+              <Tab.Panels className="p-4 sm:p-5">
+                <Tab.Panel>
+                  <InformationTab
+                    user={{
+                      userid: String(user.userid),
+                      username: user.username,
+                      displayname: info.displayName,
+                      registered: user.registered,
+                      birthdayDay: user.birthdayDay,
+                      birthdayMonth: user.birthdayMonth,
+                      joinDate: user.joinDate,
+                      DiscordUser: user.discordUser,
+                    }}
+                    workspaceMember={workspaceMember || undefined}
+                    availableDepartments={availableDepartments}
+                    lineManager={lineManager}
+                    allMembers={allMembers}
+                    isUser={isUser}
+                    isAdmin={isAdmin}
+                    canEditBasicInfo={canEditBasicInfo}
+                    canEditMembers={canManageMembers}
+                  />
+                </Tab.Panel>
+                <Tab.Panel>
+                  <Activity
+                    timeSpent={displayData.timeSpent}
+                    timesPlayed={displayData.timesPlayed}
+                    data={displayData.data}
+                    quotas={displayData.quotas}
+                    sessionsHosted={displayData.sessionsHosted}
+                    sessionsAttended={displayData.sessionsAttended}
+                    allianceVisits={displayData.allianceVisits}
+                    avatar={info.avatar}
+                    sessions={displayData.sessions}
+                    adjustments={displayData.adjustments}
+                    notices={notices}
+                    messages={displayData.messages}
+                    idleTime={displayData.idleTime}
+                    isHistorical={selectedWeek > 0}
+                    historicalPeriod={
+                      selectedWeek > 0 && historicalData
+                        ? {
+                            start: historicalData.period?.start,
+                            end: historicalData.period?.end,
+                          }
+                        : null
+                    }
+                    loadingHistory={loadingHistory}
+                    selectedWeek={selectedWeek}
+                    availableHistory={availableHistory}
+                    getCurrentWeekLabel={getCurrentWeekLabel}
+                    canGoBack={canGoBack}
+                    canGoForward={canGoForward}
+                    goToPreviousWeek={goToPreviousWeek}
+                    goToNextWeek={goToNextWeek}
+                    canAdjustActivity={canAdjustActivity}
+                  />
+                </Tab.Panel>
+                {logbookEnabled && (
+                  <Tab.Panel>
+                    <Book
+                      userBook={userBook}
+                      onRefetch={refetchUserBook}
+                      logbookPermissions={logbookPermissions}
+                      isSelf={isUser}
+                    />
+                  </Tab.Panel>
+                )}
+                {noticesEnabled && (
+                  <Tab.Panel>
+                    <Notices
+                      notices={notices}
+                      canManageNotices={canManageNotices}
+                      canApproveNotices={canApproveNotices}
+                      canRecordNotices={canRecordNotices}
+                      userId={user.userid}
+                    />
+                  </Tab.Panel>
+                )}
+              </Tab.Panels>
+            </Tab.Group>
+          </ProfilePanel>
+        </div>
+      </div>
     </ProfilePageShell>
   );
 };

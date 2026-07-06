@@ -280,140 +280,107 @@ export function ActivityOverview({
             description="Sessions and adjustments will appear here"
           />
         ) : (
-          <ol className="relative ml-3 space-y-1 border-l border-zinc-200 dark:border-zinc-700">
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
             {sortedTimeline.map((item: TimelineItem) => {
               if (item.__type === "session") {
-                const isLive = item.active && !item.endTime;
+                const isLive = (item as any).active && !(item as any).endTime;
                 const sessionDuration = isLive
                   ? Math.floor(
-                      (new Date().getTime() -
-                        new Date(item.startTime).getTime()) /
-                        (1000 * 60),
+                      (new Date().getTime() - new Date((item as any).startTime).getTime()) / (1000 * 60),
                     )
                   : Math.floor(
-                      (new Date(item.endTime || new Date()).getTime() -
-                        new Date(item.startTime).getTime()) /
+                      (new Date((item as any).endTime || new Date()).getTime() -
+                        new Date((item as any).startTime).getTime()) /
                         (1000 * 60),
                     );
 
                 return (
-                  <li key={`session-${item.id}`} className="mb-5 ml-5">
-                    <span className="absolute -left-3 flex h-6 w-6 items-center justify-center">
-                      {isLive ? (
-                        <>
-                          <span className="absolute h-6 w-6 animate-[ripple_1.6s_ease-out_infinite] rounded-full border-2 border-emerald-500 opacity-0" />
-                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                        </>
-                      ) : (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary ring-4 ring-zinc-50 dark:ring-zinc-800/40">
+                  <div
+                    key={`session-${(item as any).id}`}
+                    onClick={() => !isLive && fetchSession((item as any).id)}
+                    className={`flex items-start justify-between gap-3 py-3.5 ${!isLive ? "cursor-pointer" : ""}`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="mt-0.5 shrink-0">
+                        {isLive ? (
+                          <span className="relative flex h-5 w-5 items-center justify-center">
+                            <span className="absolute h-5 w-5 animate-ping rounded-full bg-emerald-500 opacity-30" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                          </span>
+                        ) : (
                           <img
-                            className="h-full w-full rounded-full object-cover"
-                            src={item.user.picture ? item.user.picture : avatar}
-                            alt="timeline avatar"
+                            className="h-5 w-5 rounded-full object-cover"
+                            src={(item as any).user?.picture || avatar}
+                            alt="avatar"
                           />
-                        </span>
-                      )}
-                    </span>
-                    <div
-                      onClick={() => !isLive && fetchSession(item.id)}
-                      className={`rounded-xl px-4 py-3 transition-all duration-150 ${
-                        isLive
-                          ? "bg-emerald-500/10"
-                          : "cursor-pointer bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800/60 dark:hover:bg-zinc-800"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                          <span className="text-sm font-medium text-zinc-900 dark:text-white">
                             Activity Session
-                          </p>
+                          </span>
                           {isLive && (
-                            <span className="inline-flex shrink-0 items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                              LIVE
+                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                              Live
                             </span>
                           )}
                         </div>
-                        <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
-                          {isLive ? (
-                            <>
-                              Started {moment(item.startTime).format("HH:mm")} ·{" "}
-                              {sessionDuration}m
-                            </>
-                          ) : (
-                            <>
-                              {moment(item.startTime).format("HH:mm")}–
-                              {moment(item.endTime).format("HH:mm")} ·{" "}
-                              {moment(item.startTime).format("D MMM")} ·{" "}
-                              {sessionDuration}m
-                            </>
-                          )}
-                        </time>
-                      </div>
-                      {isLive && (
-                        <div className="mt-1 flex items-center justify-between">
+                        {isLive ? (
                           <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                            Currently active in game
+                            Currently active · {sessionDuration}m
                           </p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEndSession(item.id, id as string);
-                            }}
-                            className="text-xs px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-all"
-                          >
-                            Not in game?
-                          </button>
-                        </div>
-                      )}
+                        ) : (
+                          <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                            {moment((item as any).startTime).format("HH:mm")}–{moment((item as any).endTime).format("HH:mm")} ·{" "}
+                            {moment((item as any).startTime).format("D MMM")} · {sessionDuration}m
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </li>
+                    {isLive && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEndSession((item as any).id, id as string);
+                        }}
+                        className="shrink-0 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400"
+                      >
+                        Not in game?
+                      </button>
+                    )}
+                  </div>
                 );
               }
               if (item.__type === "adjustment") {
-                const positive = item.minutes > 0;
+                const positive = (item as any).minutes > 0;
                 return (
-                  <li key={`adjust-${item.id}`} className="mb-5 ml-5">
-                    <span
-                      className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white ring-4 ring-zinc-50 dark:ring-zinc-800/40 ${
-                        positive ? "bg-emerald-500" : "bg-red-500"
-                      }`}
-                    >
-                      {positive ? "+" : "−"}
-                    </span>
-                    <div className="rounded-xl bg-zinc-100 px-4 py-3 dark:bg-zinc-800/60">
-                      <div className="flex items-start justify-between gap-3">
+                  <div key={`adjust-${(item as any).id}`} className="flex items-start justify-between gap-3 py-3.5">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className={`mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${positive ? "bg-emerald-500" : "bg-red-500"}`}>
+                        {positive ? "+" : "−"}
+                      </div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-zinc-900 dark:text-white">
                           Manual Adjustment
                         </p>
-                        <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
-                          {moment(item.createdAt).format("D MMM YYYY, HH:mm")}
-                        </time>
+                        <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                          <span className={positive ? "font-medium text-emerald-600 dark:text-emerald-400" : "font-medium text-red-600 dark:text-red-400"}>
+                            {positive ? "+" : "−"}{Math.abs((item as any).minutes)} min
+                          </span>{" "}
+                          by {(item as any).actor?.username || "Unknown"}
+                          {(item as any).reason && <> · {(item as any).reason}</>}
+                        </p>
                       </div>
-                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        <span
-                          className={
-                            positive
-                              ? "font-medium text-emerald-600 dark:text-emerald-400"
-                              : "font-medium text-red-600 dark:text-red-400"
-                          }
-                        >
-                          {positive ? "+" : "−"}
-                          {Math.abs(item.minutes)} min
-                        </span>{" "}
-                        by {item.actor?.username || "Unknown"}
-                        {item.reason && (
-                          <span className="text-zinc-400 dark:text-zinc-500">
-                            {" "}
-                            · {item.reason}
-                          </span>
-                        )}
-                      </p>
                     </div>
-                  </li>
+                    <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                      {moment((item as any).createdAt).format("D MMM, HH:mm")}
+                    </time>
+                  </div>
                 );
               }
             })}
-          </ol>
+          </div>
         )}
       </ProfileSection>
 

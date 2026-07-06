@@ -106,70 +106,61 @@ export function QuotasProgress({
       title="Activity Quotas"
       subtitle="Progress against assigned targets"
     >
-      <div className="space-y-3">
+      <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
         {quotas.map((quota: QuotaWithLinkage) => {
           const pct = getQuotaPercentage(quota) || 0;
           const isComplete = pct >= 100;
           const barWidth = Math.min(pct, 100);
           const currentVal = quota.currentValue !== undefined ? quota.currentValue : 0;
           return (
-            <div
-              key={quota.id}
-              className="rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/60"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
+            <div key={quota.id} className="py-3.5">
+              <div className="mb-2 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white">
                       {quota.name}
-                    </h3>
+                    </span>
                     {isComplete && (
-                      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         Complete
                       </span>
                     )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {quota.sessionType && quota.sessionType !== "all" && (
-                      <span className="text-xs font-medium text-primary">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         {quota.sessionType.charAt(0).toUpperCase() + quota.sessionType.slice(1)} only
                       </span>
                     )}
                     {quota.linkedVia && quota.linkedName && (
                       <span
-                        className="inline-flex items-center gap-1 py-0.5 px-2 rounded text-xs font-medium text-white/95"
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white/95"
                         style={{ backgroundColor: quota.linkedColor || "#71717a" }}
                       >
                         {quota.linkedVia === "role" ? (
-                          <IconUsers className="w-3 h-3 opacity-90" />
+                          <IconUsers className="h-3 w-3 opacity-90" />
                         ) : quota.linkedVia === "department" ? (
-                          <IconBriefcase className="w-3 h-3 opacity-90" />
+                          <IconBriefcase className="h-3 w-3 opacity-90" />
                         ) : (
-                          <IconUser className="w-3 h-3 opacity-90" />
+                          <IconUser className="h-3 w-3 opacity-90" />
                         )}
                         {quota.linkedName}
                       </span>
                     )}
                   </div>
                 </div>
-                <span className="text-sm font-bold tabular-nums text-zinc-900 dark:text-white shrink-0">
+                <span className="shrink-0 tabular-nums text-sm font-bold text-zinc-900 dark:text-white">
                   {currentVal}
                   <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500"> / {quota.value}</span>
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-600/60 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isComplete ? "bg-emerald-500" : "bg-primary"
-                  }`}
+                  className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-emerald-500" : "bg-primary"}`}
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1.5">
+              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
                 {isComplete
-                  ? pct > 100
-                    ? `${pct.toFixed(0)}% · goal exceeded`
-                    : "Goal reached"
+                  ? pct > 100 ? `${pct.toFixed(0)}% · goal exceeded` : "Goal reached"
                   : `${pct.toFixed(0)}% complete`}
               </p>
             </div>
