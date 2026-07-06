@@ -35,12 +35,12 @@ export function isHomeWidgetId(id: string): id is HomeWidgetId {
 
 export const DEFAULT_WIDGET_ORDER: HomeWidgetId[] = [
 	"quick_links",
+	"birthdays",
+	"new_members",
 	"wall",
 	"sessions",
 	"notices",
 	"music_quote",
-	"birthdays",
-	"new_members",
 	"documents",
 ];
 

@@ -220,150 +220,136 @@ const Topbar: NextPage = () => {
               leaveFrom="opacity-100 translate-y-0 scale-100"
               leaveTo="opacity-0 translate-y-1 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-sm bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200/80 dark:border-zinc-700/60 shadow-2xl shadow-zinc-900/10 overflow-hidden">
+              <Dialog.Panel className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl shadow-zinc-900/20 transition-all dark:bg-zinc-900">
                 {panel === "main" && (
-                  <div>
-                    <div className="p-4 border-b border-zinc-100 dark:border-zinc-700/60">
-                      <div className="flex items-center gap-3">
-                        <div className="relative shrink-0">
-                          <img
-                            src={login?.thumbnail}
-                            className="h-12 w-12 rounded-xl object-cover bg-zinc-200/10"
-                            alt=""
-                          />
+                  <>
+                    <div className="flex items-center gap-3 px-4 py-4">
+                      <img
+                        src={login?.thumbnail}
+                        className="h-10 w-10 shrink-0 rounded-full object-cover"
+                        alt=""
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                          {login?.displayname}
+                        </p>
+                        <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
+                          @{login?.username}
+                        </p>
+                      </div>
+                      {login?.canMakeWorkspace && (
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
+                          <CrownIcon className="h-3.5 w-3.5 text-amber-500" />
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-zinc-900 dark:text-white text-sm truncate">
-                            {login?.displayname}
-                          </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                            @{login?.username}
-                          </p>
-                        </div>
-                        {login?.canMakeWorkspace && (
-                          <div className="shrink-0 flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10">
-                            <CrownIcon className="w-3.5 h-3.5 text-amber-500" />
-                          </div>
-                        )}
+                      )}
+                    </div>
+
+                    <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+                      <div>
+                        <button
+                          onClick={toggleTheme}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          {resolvedTheme === "dark" ? (
+                            <IconSun className="h-4 w-4 shrink-0 text-zinc-400" />
+                          ) : (
+                            <IconMoon className="h-4 w-4 shrink-0 text-zinc-400" />
+                          )}
+                          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                        </button>
+                        <button
+                          onClick={() => { openPanel("sessions"); fetchSessions(); }}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          <IconDevices className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="flex-1 text-left">Sessions</span>
+                          <IconChevronDown className="h-3.5 w-3.5 -rotate-90 text-zinc-400" />
+                        </button>
+                        <button
+                          onClick={() => openPanel("settings")}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          <IconSettings className="h-4 w-4 shrink-0 text-zinc-400" />
+                          <span className="flex-1 text-left">Account settings</span>
+                          <IconChevronDown className="h-3.5 w-3.5 -rotate-90 text-zinc-400" />
+                        </button>
+                      </div>
+                      <div>
+                        <button
+                          onClick={logout}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                        >
+                          <IconLogout className="h-4 w-4 shrink-0" />
+                          Sign out
+                        </button>
                       </div>
                     </div>
-
-                    <div className="p-2 space-y-0.5">
-                      <button
-                        onClick={toggleTheme}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 transition-colors text-left"
-                      >
-                        {resolvedTheme === "dark" ? (
-                          <IconSun className="w-4 h-4 text-zinc-400 shrink-0" />
-                        ) : (
-                          <IconMoon className="w-4 h-4 text-zinc-400 shrink-0" />
-                        )}
-                        {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          openPanel("sessions");
-                          fetchSessions();
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 transition-colors text-left"
-                      >
-                        <IconDevices className="w-4 h-4 text-zinc-400 shrink-0" />
-                        <span className="flex-1">Sessions</span>
-                        <IconChevronDown className="w-3.5 h-3.5 text-zinc-400 -rotate-90" />
-                      </button>
-
-                      <button
-                        onClick={() => openPanel("settings")}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 transition-colors text-left"
-                      >
-                        <IconSettings className="w-4 h-4 text-zinc-400 shrink-0" />
-                        <span className="flex-1">Account settings</span>
-                        <IconChevronDown className="w-3.5 h-3.5 text-zinc-400 -rotate-90" />
-                      </button>
-                    </div>
-
-                    <div className="p-2 border-t border-zinc-100 dark:border-zinc-700/60">
-                      <button
-                        onClick={logout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
-                      >
-                        <IconLogout className="w-4 h-4 shrink-0" />
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {panel === "sessions" && (
-                  <div>
-                    <div className="flex items-center gap-2 p-4 border-b border-zinc-100 dark:border-zinc-700/60">
+                  <>
+                    <div className="flex items-center gap-2 px-4 py-3.5">
                       <button
                         onClick={() => setPanel("main")}
-                        className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
-                        <IconChevronLeft className="w-4 h-4 text-zinc-500" />
+                        <IconChevronLeft className="h-4 w-4" />
                       </button>
-                      <p className="font-semibold text-sm text-zinc-900 dark:text-white flex-1">
+                      <p className="flex-1 text-sm font-semibold text-zinc-900 dark:text-white">
                         Active sessions
                       </p>
                       <button
+                        onClick={() => { fetchSessions(); toast.success("Sessions refreshed"); }}
+                        className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <IconRefresh className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={revokeAll}
-                        className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        className="rounded-lg px-2 py-1 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
                       >
                         Sign out all
                       </button>
-                      <button
-                        onClick={() => {fetchSessions(); toast.success("Sessions refreshed")}}
-                      >
-                        <IconRefresh className="w-5 h-5 text-black/50 dark:text-white/50 p-0.5 rounded-lg dark:hover:bg-white/5 hover:bg-black/10 transition-all" />
-                      </button>
                     </div>
 
-                    <div className="overflow-y-auto max-h-80">
+                    <div className="max-h-72 overflow-y-auto">
                       {sessionsLoading ? (
                         <div className="flex items-center justify-center py-10">
-                          <div className="w-6 h-6 border-2 border-zinc-300 dark:border-zinc-600 border-t-primary rounded-full animate-spin" />
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
                         </div>
                       ) : sessions.length === 0 ? (
-                        <p className="text-center text-sm text-zinc-400 py-10">
+                        <p className="py-10 text-center text-sm text-zinc-400 dark:text-zinc-500">
                           No sessions found
                         </p>
                       ) : (
-                        <div className="p-2 space-y-1">
+                        <div className="divide-y divide-zinc-100 px-4 dark:divide-zinc-800/80">
                           {sessions.map((s) => (
-                            <div
-                              key={s.id}
-                              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${s.isCurrent ? "bg-zinc-50 dark:bg-zinc-700/40" : ""}`}
-                            >
-                              <div
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${s.isCurrent ? "bg-primary/10 text-primary" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400"}`}
-                              >
+                            <div key={s.id} className="flex items-center gap-3 py-3">
+                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${s.isCurrent ? "bg-primary/10 text-primary" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"}`}>
                                 <DeviceIcon device={s.device} />
                               </div>
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
-                                  <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
-                                    {s.browser || "Unknown browser"} on{" "}
-                                    {s.os || "Unknown OS"}
+                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                    {s.browser || "Unknown"} on {s.os || "Unknown"}
                                   </p>
                                   {s.isCurrent && (
-                                    <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                                    <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                                       Current
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">
-                                  {s.ipAddress} ·{" "}
-                                  {moment(s.createdAt).fromNow()}
+                                <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
+                                  {s.ipAddress} · {moment(s.createdAt).fromNow()}
                                 </p>
                               </div>
                               {!s.isCurrent && (
                                 <button
                                   onClick={() => revokeSession(s.id)}
-                                  className="shrink-0 p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                  className="shrink-0 rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
                                 >
-                                  <IconTrash className="w-3.5 h-3.5" />
+                                  <IconTrash className="h-3.5 w-3.5" />
                                 </button>
                               )}
                             </div>
@@ -371,35 +357,35 @@ const Topbar: NextPage = () => {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
 
                 {panel === "settings" && (
-                  <div>
-                    <div className="flex items-center gap-2 p-4 border-b border-zinc-100 dark:border-zinc-700/60">
+                  <>
+                    <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3.5 dark:border-zinc-800/80">
                       <button
                         onClick={() => setPanel("main")}
-                        className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
-                        <IconChevronLeft className="w-4 h-4 text-zinc-500" />
+                        <IconChevronLeft className="h-4 w-4" />
                       </button>
-                      <p className="font-semibold text-sm text-zinc-900 dark:text-white">
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
                         Account settings
                       </p>
                     </div>
 
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center gap-4">
+                    <div className="space-y-4 p-4">
+                      <div className="flex items-center gap-3">
                         <img
                           src={login?.thumbnail}
                           alt=""
-                          className="h-16 w-16 rounded-2xl object-cover bg-zinc-200 dark:bg-zinc-600 shrink-0"
+                          className="h-12 w-12 shrink-0 rounded-full object-cover"
                         />
                         <div>
                           <p className="font-semibold text-zinc-900 dark:text-white">
                             {login?.displayname}
                           </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
                             @{login?.username}
                           </p>
                         </div>
@@ -407,104 +393,89 @@ const Topbar: NextPage = () => {
 
                       {isDiscordOAuth &&
                         (login.discordUser ? (
-                          <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-600/60 bg-zinc-50 dark:bg-zinc-700/30">
+                          <div className="flex items-center gap-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-zinc-800">
                             <img
                               src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
                               alt=""
-                              className="h-8 w-8 rounded-full shrink-0"
+                              className="h-7 w-7 shrink-0 rounded-full"
                             />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
                                 {login.discordUser.username}
                               </p>
-                              <p className="text-xs text-zinc-400">
-                                Discord linked
-                              </p>
+                              <p className="text-xs text-zinc-400">Discord linked</p>
                             </div>
                             <button
                               onClick={unlink}
-                              className="text-xs text-red-500 hover:text-red-600 font-medium"
+                              className="text-xs font-medium text-red-500 transition-colors hover:text-red-600"
                             >
                               Unlink
                             </button>
                           </div>
                         ) : (
                           <button
-                            onClick={() =>
-                              (window.location.href = "/api/auth/discord/start")
-                            }
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors"
+                            onClick={() => (window.location.href = "/api/auth/discord/start")}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                           >
-                            <img
-                              src="/discord.svg"
-                              alt=""
-                              className="w-4 h-4 dark:invert-0 invert"
-                            />
+                            <img src="/discord.svg" alt="" className="h-4 w-4 invert dark:invert-0" />
                             Link Discord
                           </button>
                         ))}
 
                       {isGoogleOAuth &&
                         (login.googleUser ? (
-                          <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-600/60 bg-zinc-50 dark:bg-zinc-700/30">
+                          <div className="flex items-center gap-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-zinc-800">
                             <img
-                              src={
-                                login.googleUser.avatar
-                                  ? `/api/google/avatar-proxy?url=${encodeURIComponent(login.googleUser.avatar)}`
-                                  : "/default-avatar.jpg"
-                              }
+                              src={login.googleUser.avatar ? `/api/google/avatar-proxy?url=${encodeURIComponent(login.googleUser.avatar)}` : "/default-avatar.jpg"}
                               alt=""
-                              className="h-8 w-8 rounded-full shrink-0"
+                              className="h-7 w-7 shrink-0 rounded-full"
                             />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
                                 {login.googleUser.email}
                               </p>
-                              <p className="text-xs text-zinc-400">
-                                Google linked
-                              </p>
+                              <p className="text-xs text-zinc-400">Google linked</p>
                             </div>
                             <button
                               onClick={googleUnlink}
-                              className="text-xs text-red-500 hover:text-red-600 font-medium"
+                              className="text-xs font-medium text-red-500 transition-colors hover:text-red-600"
                             >
                               Unlink
                             </button>
                           </div>
                         ) : (
                           <button
-                            onClick={() =>
-                              (window.location.href = "/api/auth/google/start")
-                            }
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-200 dark:border-zinc-600 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors"
+                            onClick={() => (window.location.href = "/api/auth/google/start")}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                           >
-                            <img src="/google.svg" alt="" className="w-4 h-4" />
+                            <img src="/google.svg" alt="" className="h-4 w-4" />
                             Link Google
                           </button>
                         ))}
-                      <div className="pt-2 mt-2 border-t border-zinc-100 dark:border-zinc-700/60 space-y-0.5">
-                        <p className="px-3 pb-1 text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">
+
+                      <div className="space-y-0.5 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+                        <p className="mb-1 px-1 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
                           Danger zone
                         </p>
                         <button
                           onClick={revokeAll}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
                         >
-                          <IconDevices className="w-4 h-4 shrink-0" />
+                          <IconDevices className="h-4 w-4 shrink-0" />
                           Sign out all devices
                         </button>
-                        {!login.canMakeWorkspace && <button
-                          onClick={deleteAccount}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 disabled:text-red-400/50 dark:disabled:text-red-400/60 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
-                        >
-                          <IconTrash className="w-4 h-4 shrink-0" />
-                          {login.canMakeWorkspace
-                            ? "Instance owner account cannot be deleted"
-                            : "Delete account"}
-                        </button>}
+                        {!login.canMakeWorkspace && (
+                          <button
+                            onClick={deleteAccount}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                          >
+                            <IconTrash className="h-4 w-4 shrink-0" />
+                            Delete account
+                          </button>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </Dialog.Panel>
             </Transition.Child>

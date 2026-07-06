@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import React from "react";
 import StickyNoteAnnouncement from "@/components/stickyannouncement";
 import NewToTeam from "@/components/newmembers";
 import Birthdays from "@/components/birthdays";
@@ -30,12 +31,8 @@ const PANEL_COMPONENTS = {
 
 type PanelId = keyof typeof PANEL_META;
 
-function pickMainPanel(enabled: Set<HomeWidgetId>): PanelId | null {
-  if (enabled.has("wall")) return "wall";
-  if (enabled.has("documents")) return "documents";
-  if (enabled.has("sessions")) return "sessions";
-  return null;
-}
+const MAIN_CANDIDATES = new Set<HomeWidgetId>(["wall", "documents", "sessions"]);
+const SIDEBAR_ELIGIBLE = new Set<HomeWidgetId>(["sessions", "notices"]);
 
 function WidgetPanel({
   id,
@@ -62,34 +59,35 @@ function WidgetPanel({
 
 function WeekSection({
   workspaceName,
-  has,
+  widgets,
 }: {
   workspaceName: string;
-  has: (id: HomeWidgetId) => boolean;
+  widgets: HomeWidgetId[];
 }) {
-  const showBirthdays = has("birthdays");
-  const showNewMembers = has("new_members");
-  if (!showBirthdays && !showNewMembers) return null;
+  const hasBirthdays = widgets.includes("birthdays");
+  const hasNewMembers = widgets.includes("new_members");
+  if (!hasBirthdays && !hasNewMembers) return null;
 
   return (
     <section className="space-y-4 sm:space-y-5">
       <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-base">
         This week at {workspaceName}
       </h2>
-
-      {showBirthdays && (
-        <div>
-          <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">Birthdays</p>
-          <Birthdays layout="strip" />
-        </div>
-      )}
-
-      {showNewMembers && (
-        <div>
-          <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">New to the team</p>
-          <NewToTeam embedded />
-        </div>
-      )}
+      {widgets
+        .filter((id) => id === "birthdays" || id === "new_members")
+        .map((id) =>
+          id === "birthdays" ? (
+            <div key="birthdays">
+              <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">Birthdays</p>
+              <Birthdays layout="strip" />
+            </div>
+          ) : (
+            <div key="new_members">
+              <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">New to the team</p>
+              <NewToTeam embedded />
+            </div>
+          )
+        )}
     </section>
   );
 }
@@ -103,82 +101,125 @@ export function HomeDashboard({
   workspaceName: string;
   widgets: HomeWidgetId[];
 }) {
-  const enabled = new Set(widgets);
-  const has = (id: HomeWidgetId) => enabled.has(id);
+  const has = (id: HomeWidgetId) => widgets.includes(id);
 
-  const mainId = pickMainPanel(enabled);
-  const sidebarPanels: PanelId[] = [];
-  if (has("sessions") && mainId !== "sessions") sidebarPanels.push("sessions");
-  if (has("notices")) sidebarPanels.push("notices");
+  const mainId = (widgets.find((id) => MAIN_CANDIDATES.has(id)) ?? null) as PanelId | null;
+
+  const sidebarPanels = widgets.filter(
+    (id): id is PanelId => SIDEBAR_ELIGIBLE.has(id) && id !== mainId
+  );
 
   const showSidebar = sidebarPanels.length > 0 || has("music_quote");
   const showDocumentsBelow = has("documents") && mainId !== null && mainId !== "documents";
-  const showWeek = has("birthdays") || has("new_members");
 
-  const renderFallbackGrid = () => {
-    const ids = widgets.filter(
-      (w): w is PanelId =>
-        w === "wall" || w === "sessions" || w === "notices" || w === "documents"
-    );
-    if (ids.length === 0) return null;
+  type Bucket = "quick_links" | "week" | "main_block" | "documents_below";
+
+  const getBucket = (id: HomeWidgetId): Bucket | null => {
+    if (id === "quick_links") return "quick_links";
+    if (id === "birthdays" || id === "new_members") return "week";
+    if (id === "documents" && showDocumentsBelow) return null; // handled separately at end
+    if (
+      MAIN_CANDIDATES.has(id) ||
+      SIDEBAR_ELIGIBLE.has(id) ||
+      id === "music_quote"
+    )
+      return "main_block";
+    return null;
+  };
+
+  const seen = new Set<Bucket>();
+  const orderedBuckets: Bucket[] = [];
+
+  for (const id of widgets) {
+    const bucket = getBucket(id);
+    if (bucket && !seen.has(bucket)) {
+      seen.add(bucket);
+      orderedBuckets.push(bucket);
+    }
+  }
+
+  if (!seen.has("quick_links") && has("quick_links")) orderedBuckets.push("quick_links");
+  if (!seen.has("week") && (has("birthdays") || has("new_members"))) orderedBuckets.push("week");
+  if (!seen.has("main_block") && (mainId || showSidebar)) orderedBuckets.push("main_block");
+  if (showDocumentsBelow) orderedBuckets.push("documents_below");
+
+  const renderMainBlock = () => {
+    if (!mainId) {
+      const fallbackIds = widgets.filter(
+        (w): w is PanelId => w === "wall" || w === "sessions" || w === "notices" || w === "documents"
+      );
+      return (
+        <>
+          <StickyNoteAnnouncement />
+          {fallbackIds.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {fallbackIds.map((id) => (
+                <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
+              ))}
+            </div>
+          )}
+          {has("music_quote") && <RandomMusic />}
+        </>
+      );
+    }
+
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {ids.map((id) => (
-          <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
-        ))}
+      <div
+        className={clsx(
+          "grid grid-cols-1 gap-3 sm:gap-4 lg:gap-5",
+          showSidebar ? "lg:grid-cols-12" : "lg:grid-cols-1"
+        )}
+      >
+        <div
+          className={clsx(
+            "flex flex-col gap-3 sm:gap-4",
+            showSidebar ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-12"
+          )}
+        >
+          <StickyNoteAnnouncement />
+          <WidgetPanel id={mainId} workspaceId={workspaceId} tall={mainId === "wall"} />
+        </div>
+
+        {showSidebar && (
+          <aside className="flex flex-col gap-3 sm:gap-4 lg:col-span-5 xl:col-span-4">
+            {sidebarPanels.map((id) => (
+              <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
+            ))}
+            {has("music_quote") && <RandomMusic />}
+          </aside>
+        )}
       </div>
     );
   };
 
   return (
     <div className="flex flex-col gap-5 sm:gap-7">
-      {has("quick_links") && <FeaturedExperiences />}
-
-      {showWeek && (
-        <WeekSection workspaceName={workspaceName} has={has} />
-      )}
-
-      {mainId ? (
-        <div
-          className={clsx(
-            "grid grid-cols-1 gap-3 sm:gap-4 lg:gap-5",
-            showSidebar ? "lg:grid-cols-12" : "lg:grid-cols-1"
-          )}
-        >
-          <div
-            className={clsx(
-              "flex flex-col gap-3 sm:gap-4",
-              showSidebar ? "lg:col-span-7 xl:col-span-8" : "lg:col-span-12"
-            )}
-          >
-            <StickyNoteAnnouncement />
-            <WidgetPanel id={mainId} workspaceId={workspaceId} tall={mainId === "wall"} />
-          </div>
-
-          {showSidebar && (
-            <aside className="flex flex-col gap-3 sm:gap-4 lg:col-span-5 xl:col-span-4">
-              {sidebarPanels.map((id) => (
-                <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
-              ))}
-              {has("music_quote") && <RandomMusic />}
-            </aside>
-          )}
-        </div>
-      ) : (
-        <>
-          <StickyNoteAnnouncement />
-          {renderFallbackGrid()}
-          {has("music_quote") && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <RandomMusic />
-            </div>
-          )}
-        </>
-      )}
-
-      {(showDocumentsBelow || (has("documents") && mainId === "documents" && !showSidebar)) && (
-        <WidgetPanel id="documents" workspaceId={workspaceId} />
-      )}
+      {orderedBuckets.map((bucket) => {
+        switch (bucket) {
+          case "quick_links":
+            return <FeaturedExperiences key="quick_links" />;
+          case "week":
+            return (
+              <WeekSection
+                key="week"
+                workspaceName={workspaceName}
+                widgets={widgets}
+              />
+            );
+          case "main_block":
+            return (
+              <React.Fragment key="main_block">
+                {renderMainBlock()}
+              </React.Fragment>
+            );
+          case "documents_below":
+            return (
+              <WidgetPanel key="documents_below" id="documents" workspaceId={workspaceId} />
+            );
+          default:
+            return null;
+        }
+      })}
     </div>
   );
 }

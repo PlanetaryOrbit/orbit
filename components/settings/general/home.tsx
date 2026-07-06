@@ -1,11 +1,28 @@
 import axios from "axios";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type toast from "react-hot-toast";
 import { useRecoilState } from "recoil";
 import { workspacestate } from "@/state";
 import { FC } from "@/types/settingsComponent";
-import { IconRefresh } from "@tabler/icons-react";
+import { IconRefresh, IconGripVertical } from "@tabler/icons-react";
 import clsx from "clsx";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   HOME_WIDGET_LABELS,
   DEFAULT_WIDGET_ORDER,
@@ -19,6 +36,77 @@ type props = {
   hasResetActivityOnly?: boolean;
 };
 
+function SortableWidgetRow({
+  id,
+  enabled,
+  onToggle,
+}: {
+  id: HomeWidgetId;
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={clsx(
+        "flex items-center gap-3 bg-white px-4 py-3.5 dark:bg-zinc-900/60",
+        isDragging && "opacity-50 ring-2 ring-inset ring-primary/20"
+      )}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="shrink-0 cursor-grab touch-none text-zinc-300 transition-colors hover:text-zinc-500 active:cursor-grabbing dark:text-zinc-600 dark:hover:text-zinc-400"
+        aria-label="Drag to reorder"
+      >
+        <IconGripVertical className="h-4 w-4" />
+      </button>
+
+      <span
+        className={clsx(
+          "flex-1 text-sm font-medium transition-colors",
+          enabled
+            ? "text-zinc-900 dark:text-white"
+            : "text-zinc-400 dark:text-zinc-500"
+        )}
+      >
+        {HOME_WIDGET_LABELS[id]}
+      </span>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        onClick={onToggle}
+        className={clsx(
+          "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none",
+          enabled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-700"
+        )}
+      >
+        <span
+          className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+          style={{ transform: enabled ? "translateX(20px)" : "translateX(2px)" }}
+        />
+      </button>
+    </div>
+  );
+}
+
 const home: FC<props> = (props) => {
   const triggerToast = props.triggerToast;
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
@@ -27,26 +115,58 @@ const home: FC<props> = (props) => {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [iconRefreshing, setIconRefreshing] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
-  const enabledSet = useMemo(
-    () => new Set(normalizeHomeWidgetOrder(workspace.settings.widgets)),
-    [workspace.settings.widgets],
+
+  const [widgetOrder, setWidgetOrder] = useState<HomeWidgetId[]>(() => {
+    const current = normalizeHomeWidgetOrder(workspace.settings.widgets ?? []);
+    const missing = DEFAULT_WIDGET_ORDER.filter((id) => !current.includes(id));
+    return [...current, ...missing];
+  });
+
+  const [enabledIds, setEnabledIds] = useState<Set<HomeWidgetId>>(
+    () => new Set(normalizeHomeWidgetOrder(workspace.settings.widgets ?? []))
   );
 
+  const syncWorkspace = (order: HomeWidgetId[], enabled: Set<HomeWidgetId>) => {
+    const next = order.filter((id) => enabled.has(id));
+    setWorkspace((ws) => ({
+      ...ws,
+      settings: { ...ws.settings, widgets: next },
+    }));
+  };
+
   const toggleWidget = (id: HomeWidgetId) => {
-    const current = normalizeHomeWidgetOrder(workspace.settings.widgets);
-    const next = enabledSet.has(id)
-      ? current.filter((w) => w !== id)
-      : DEFAULT_WIDGET_ORDER.filter((w) => [...current, id].includes(w));
-    setWorkspace({ ...workspace, settings: { ...workspace.settings, widgets: next } });
+    const next = new Set(enabledIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setEnabledIds(next);
+    syncWorkspace(widgetOrder, next);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setWidgetOrder((items) => {
+        const oldIndex = items.indexOf(active.id as HomeWidgetId);
+        const newIndex = items.indexOf(over.id as HomeWidgetId);
+        const next = arrayMove(items, oldIndex, newIndex);
+        syncWorkspace(next, enabledIds);
+        return next;
+      });
+    }
   };
 
   const updateHome = async () => {
+    const orderedEnabled = widgetOrder.filter((id) => enabledIds.has(id));
     const res = await axios.patch(
       `/api/workspace/${workspace.groupId}/settings/general/home`,
-      {
-        widgets: normalizeHomeWidgetOrder(workspace.settings.widgets),
-        name: customName
-      }
+      { widgets: orderedEnabled, name: customName }
     );
     if (res.status === 200) {
       triggerToast.success("Updated home");
@@ -142,10 +262,7 @@ const home: FC<props> = (props) => {
                   `/api/workspace/${workspace.groupId}/settings/general/refresh-icon`
                 );
                 if (res.data.success && res.data.groupThumbnail) {
-                  setWorkspace({
-                    ...workspace,
-                    groupThumbnail: res.data.groupThumbnail,
-                  });
+                  setWorkspace((ws) => ({ ...ws, groupThumbnail: res.data.groupThumbnail }));
                   triggerToast.success("Workspace icon updated from Roblox.");
                 } else {
                   triggerToast.error("Could not refresh workspace icon.");
@@ -218,37 +335,44 @@ const home: FC<props> = (props) => {
       <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6">
         Max 8 MB (JPEG, PNG). Recommended aspect ratio: 4:1 or wider.
       </p>
-      <p className="text-lg font-medium text-zinc-900 dark:text-white mb-1">Widgets</p>
-      <p className="text-sm text-zinc-400 dark:text-zinc-500 mb-5">
-        Choose which sections appear on your workspace home page.
-      </p>
 
-      <div className="mb-6 divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-        {DEFAULT_WIDGET_ORDER.map((id) => {
-          const enabled = enabledSet.has(id);
-          return (
-            <div key={id} className="flex items-center justify-between gap-4 px-4 py-3.5 bg-white dark:bg-zinc-900/60">
-              <span className={clsx("text-sm font-medium", enabled ? "text-zinc-900 dark:text-white" : "text-zinc-400 dark:text-zinc-500")}>
-                {HOME_WIDGET_LABELS[id]}
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
-                onClick={() => toggleWidget(id)}
-                className={clsx(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none",
-                  enabled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-700"
-                )}
-              >
-                <span
-                  className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
-                  style={{ transform: enabled ? "translateX(20px)" : "translateX(2px)" }}
-                />
-              </button>
-            </div>
-          );
-        })}
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-lg font-medium text-zinc-900 dark:text-white">Widgets</p>
+          <p className="text-sm text-zinc-400 dark:text-zinc-500">
+            Toggle widgets on or off, and drag to set the order they appear on the home page.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setWidgetOrder(DEFAULT_WIDGET_ORDER);
+            syncWorkspace(DEFAULT_WIDGET_ORDER, enabledIds);
+          }}
+          className="shrink-0 flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <IconRefresh className="h-3 w-3" />
+          Reset order
+        </button>
+      </div>
+
+      <div className="mb-6 mt-3 divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={widgetOrder} strategy={verticalListSortingStrategy}>
+            {widgetOrder.map((id) => (
+              <SortableWidgetRow
+                key={id}
+                id={id}
+                enabled={enabledIds.has(id)}
+                onToggle={() => toggleWidget(id)}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
 
       <button
