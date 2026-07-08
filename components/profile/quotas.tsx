@@ -110,7 +110,9 @@ export function QuotasProgress({
           const pct = getQuotaPercentage(quota) || 0;
           const isComplete = pct >= 100;
           const barWidth = Math.min(pct, 100);
-          const currentVal = Math.round(barWidth / 100 * (quota.value != null ? quota.value : 0)); // eh, rudimentary workaround but works and thats all that matters  
+          const currentVal = quota.currentValue != null
+            ? quota.currentValue
+            : Math.round((pct / 100) * (quota.value ?? 0));
           return (
             <div key={quota.id} className="py-3.5">
               <div className="mb-2 flex items-start justify-between gap-3">
