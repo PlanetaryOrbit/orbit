@@ -5,7 +5,6 @@ import {
   ProfileSection,
 } from "@/components/profile/shell";
 import { IconChartBar, IconUsers, IconBriefcase, IconUser } from "@tabler/icons-react";
-import Tooltip from "@/components/tooltip";
 
 type QuotaWithLinkage = Quota & {
   currentValue?: number;
@@ -111,7 +110,9 @@ export function QuotasProgress({
           const pct = getQuotaPercentage(quota) || 0;
           const isComplete = pct >= 100;
           const barWidth = Math.min(pct, 100);
-          const currentVal = quota.currentValue !== undefined ? quota.currentValue : 0;
+          const currentVal = quota.currentValue != null
+            ? quota.currentValue
+            : Math.round((pct / 100) * (quota.value ?? 0));
           return (
             <div key={quota.id} className="py-3.5">
               <div className="mb-2 flex items-start justify-between gap-3">
