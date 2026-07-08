@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "2.1.10beta20",
+  "version": "2.1.10beta21",
   "private": true,
   "packageManager": "pnpm@11.8.0",
   "scripts": {
