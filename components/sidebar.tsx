@@ -33,9 +33,8 @@ import {
   IconClock,
   IconClockFilled,
   IconTarget,
-  IconDots,
   IconGridDots,
-  IconUserCircle,
+  IconChevronRight,
 } from "@tabler/icons-react";
 import axios from "axios";
 import clsx from "clsx";
@@ -60,138 +59,95 @@ function MobileWorkspaceSwitcher({
   onSelect: (ws: any) => void;
   onGoHome: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const sheetRef = useRef<HTMLDivElement>(null);
-
-  const openSheet = () => {
-    setOpen(true);
-    requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
-  };
-
-  const closeSheet = () => {
-    setVisible(false);
-    setTimeout(() => setOpen(false), 280);
-  };
+  const [expanded, setExpanded] = useState(false);
 
   const otherWorkspaces = login?.workspaces?.filter(
     (ws: any) => ws.groupId !== workspace.groupId
   ) ?? [];
 
+  const currentName = resolveWorkspaceName(
+    login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName,
+    workspace.groupName
+  );
+
   return (
-    <>
+    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 overflow-hidden">
       <button
         type="button"
-        onClick={openSheet}
-        className="flex-1 min-w-0 flex items-center gap-2.5 rounded-2xl px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors duration-150 outline-none"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        className="w-full min-w-0 flex items-center gap-2.5 px-3 py-2.5 outline-none transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70"
       >
         <img
           src={workspace.groupThumbnail || "/favicon.png"}
           alt=""
-          className="w-7 h-7 rounded-lg object-contain bg-zinc-100 dark:bg-zinc-800 shrink-0"
+          className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-zinc-700 shrink-0"
         />
         <div className="flex-1 min-w-0 text-left">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
-            {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
+            {currentName}
           </p>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">Switch workspace</p>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
+            {expanded ? "Choose a workspace" : "Tap to switch workspace"}
+          </p>
         </div>
-        <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={2} />
+        <IconChevronDown
+          className={clsx(
+            "w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-300",
+            expanded && "rotate-180"
+          )}
+          stroke={2}
+        />
       </button>
 
-      {open && (
-        <>
-          <div
-            className={clsx(
-              "fixed inset-0 z-[99995] bg-black/40 rounded-3xl",
-              "transition-opacity duration-[280ms] ease-out",
-              visible ? "opacity-100" : "opacity-0"
-            )}
-            onClick={closeSheet}
-            aria-hidden
-          />
-
-          <div
-            ref={sheetRef}
-            className="fixed bottom-0 inset-x-0 z-[99996] bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl transition-transform duration-[280ms] ease-out"
-            style={{
-              transform: visible ? "translateY(0)" : "translateY(100%)",
-              paddingBottom: "env(safe-area-inset-bottom, 0px)",
-            }}
-          >
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
-            </div>
-
-            <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-              <p className="text-base font-semibold text-zinc-900 dark:text-white">Workspaces</p>
-              <button
-                type="button"
-                onClick={() => { closeSheet(); onGoHome(); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors outline-none select-none"
-              >
-                <IconGridDots className="w-3.5 h-3.5" stroke={1.5} />
-                All workspaces
-              </button>
-            </div>
-
-            <div className="px-4 pb-3">
-              <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2 px-1">
-                Current
-              </p>
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60">
-                <img
-                  src={workspace.groupThumbnail || "/favicon.png"}
-                  alt=""
-                  className="w-9 h-9 rounded-xl object-contain bg-white dark:bg-zinc-700 shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
-                    {resolveWorkspaceName(login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
-                  </p>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Active</p>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              </div>
-            </div>
-
+      <div
+        className={clsx(
+          "grid transition-all duration-300 ease-out",
+          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="px-2 pb-2 pt-0.5 flex flex-col gap-0.5">
             {otherWorkspaces.length > 0 ? (
-              <div className="px-4 pb-4">
-                <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2 px-1">
-                  Switch to
-                </p>
-                <div className="space-y-1">
-                  {otherWorkspaces.map((ws: any) => (
-                    <button
-                      key={ws.groupId}
-                      type="button"
-                      onClick={() => { closeSheet(); onSelect(ws); }}
-                      className="w-full flex items-center gap-3 p-3 rounded-2xl text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors duration-150 outline-none select-none"
-                    >
-                      <img
-                        src={ws.groupThumbnail || "/favicon.svg"}
-                        alt=""
-                        className="w-9 h-9 rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800 shrink-0"
-                      />
-                      <span className="flex-1 min-w-0 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                        {resolveWorkspaceName(ws.customName, ws.groupName)}
-                      </span>
-                      <IconChevronLeft className="w-4 h-4 text-zinc-400 rotate-180 shrink-0" stroke={1.5} />
-                    </button>
-                  ))}
-                </div>
-              </div>
+              otherWorkspaces.map((ws: any) => (
+                <button
+                  key={ws.groupId}
+                  type="button"
+                  onClick={() => { setExpanded(false); onSelect(ws); }}
+                  className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
+                >
+                  <img
+                    src={ws.groupThumbnail || "/favicon.svg"}
+                    alt=""
+                    className="w-8 h-8 rounded-lg object-cover bg-white dark:bg-zinc-700 shrink-0"
+                  />
+                  <span className="flex-1 min-w-0 text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                    {resolveWorkspaceName(ws.customName, ws.groupName)}
+                  </span>
+                </button>
+              ))
             ) : (
-              <div className="px-5 pb-4">
-                <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-3">
-                  No other workspaces available
-                </p>
-              </div>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-3">
+                No other workspaces available
+              </p>
             )}
+
+            <button
+              type="button"
+              onClick={() => { setExpanded(false); onGoHome(); }}
+              className="w-full flex items-center gap-3 p-2 mt-0.5 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
+            >
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 shrink-0">
+                <IconGridDots className="w-4 h-4" stroke={1.5} />
+              </span>
+              <span className="flex-1 min-w-0 text-sm font-medium text-zinc-500 dark:text-zinc-400 truncate">
+                All workspaces
+              </span>
+            </button>
           </div>
-        </>
-      )}
-    </>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -688,22 +644,40 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             );
           })}
 
-          {morePages.length > 0 && (
-            <button
-              type="button"
-              onClick={openMoreSheet}
-              style={{ WebkitTapHighlightColor: "transparent" }}
+          <button
+            type="button"
+            onClick={openMoreSheet}
+            style={{ WebkitTapHighlightColor: "transparent" }}
+            aria-label="Open menu"
+            className={clsx(
+              "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
+              mobileMoreOpen
+                ? "text-[color:rgb(var(--group-theme))]"
+                : "text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300"
+            )}
+          >
+            <span
               className={clsx(
-                "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
+                "relative flex items-center justify-center rounded-full transition-all duration-200",
+                "ring-2 ring-zinc-50 dark:ring-zinc-950",
                 mobileMoreOpen
-                  ? "text-[color:rgb(var(--group-theme))]"
-                  : "text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300"
+                  ? "ring-offset-2 ring-offset-[color:rgb(var(--group-theme))]"
+                  : "ring-offset-2 ring-offset-transparent"
               )}
             >
-              <IconDots className="w-6 h-6" stroke={1.5} />
-              <span className="text-[10px] font-medium leading-none opacity-70">More</span>
-            </button>
-          )}
+              <img
+                src={login?.thumbnail || "/default-avatar.jpg"}
+                alt=""
+                className="w-6 h-6 rounded-full object-cover bg-zinc-200 dark:bg-zinc-700"
+              />
+            </span>
+            <span className={clsx("text-[10px] font-medium leading-none", mobileMoreOpen ? "opacity-100" : "opacity-70")}>
+              Menu
+            </span>
+            {mobileMoreOpen && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-[color:rgb(var(--group-theme))]" />
+            )}
+          </button>
         </div>
       </nav>
       <div
@@ -739,93 +713,133 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
             </div>
 
-            <div className="px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <MobileWorkspaceSwitcher
-                  login={login}
-                  workspace={workspace}
-                  onSelect={(ws) => {
-                    setWorkspace({
-                      ...workspace,
-                      groupId: ws.groupId,
-                      groupName: ws.groupName,
-                      groupThumbnail: ws.groupThumbnail,
-                      customName: ws.customName
-                    });
-                    router.push(`/workspace/${ws.groupId}`);
-                    closeMoreSheet();
-                  }}
-                  onGoHome={() => {
-                    closeMoreSheet();
-                    router.push("/");
-                  }}
-                />
-
+            <div className="px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800 space-y-2">
+              <div className="flex items-center gap-3 px-2 py-1.5">
                 <img
                   src={login?.thumbnail || "/default-avatar.jpg"}
                   alt=""
-                  className="w-9 h-9 rounded-xl object-cover shrink-0"
+                  className="w-10 h-10 rounded-full object-cover shrink-0 bg-zinc-200 dark:bg-zinc-700 ring-2 ring-zinc-100 dark:ring-zinc-800"
                 />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                    {login?.displayname}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                    @{login?.username}
+                  </p>
+                </div>
+              </div>
+
+              <MobileWorkspaceSwitcher
+                login={login}
+                workspace={workspace}
+                onSelect={(ws) => {
+                  setWorkspace({
+                    ...workspace,
+                    groupId: ws.groupId,
+                    groupName: ws.groupName,
+                    groupThumbnail: ws.groupThumbnail,
+                    customName: ws.customName
+                  });
+                  router.push(`/workspace/${ws.groupId}`);
+                  closeMoreSheet();
+                }}
+                onGoHome={() => {
+                  closeMoreSheet();
+                  router.push("/");
+                }}
+              />
+            </div>
+
+            {morePages.length > 0 && (
+              <div className="px-3 pt-3 pb-1">
+                <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  Pages
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {morePages.map((page) => {
+                    const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
+                    const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
+                    const hasBadge = navBadgeCount(page.name) > 0;
+                    const badgeCount = navBadgeCount(page.name);
+
+                    return (
+                      <button
+                        key={page.name}
+                        type="button"
+                        onClick={() => gotopage(page.href)}
+                        style={{ WebkitTapHighlightColor: "transparent" }}
+                        className={clsx(
+                          "flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none",
+                          isActive
+                            ? "bg-[color:rgb(var(--group-theme)/0.1)]"
+                            : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800"
+                        )}
+                      >
+                        <span
+                          className={clsx(
+                            "relative flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-colors",
+                            isActive
+                              ? "bg-[color:rgb(var(--group-theme))] text-white"
+                              : "bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400"
+                          )}
+                        >
+                          <IconComponent className="w-5 h-5" stroke={1.5} />
+                          {hasBadge && (
+                            <span className="absolute -top-1 -right-1 min-w-[1rem] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-zinc-900">
+                              {badgeCount}
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className={clsx(
+                            "flex-1 text-[15px] font-medium truncate",
+                            isActive ? "text-[color:rgb(var(--group-theme))]" : "text-zinc-800 dark:text-zinc-200"
+                          )}
+                        >
+                          {page.name}
+                        </span>
+                        <IconChevronRight className="w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0" stroke={2} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="px-3 pt-2 pb-1">
+              <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                Account
+              </p>
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800"
+                >
+                  <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400">
+                    {resolvedTheme === "dark" ? <IconSun className="w-5 h-5" stroke={1.5} /> : <IconMoon className="w-5 h-5" stroke={1.5} />}
+                  </span>
+                  <span className="flex-1 text-[15px] font-medium text-zinc-800 dark:text-zinc-200">
+                    {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={logout}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-red-50/80 dark:hover:bg-red-950/30 active:bg-red-100/80 dark:active:bg-red-950/50"
+                >
+                  <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400">
+                    <IconLogout className="w-5 h-5" stroke={1.5} />
+                  </span>
+                  <span className="flex-1 text-[15px] font-medium text-red-600 dark:text-red-400">Logout</span>
+                </button>
               </div>
             </div>
 
-            <div className="px-3 py-2 grid grid-cols-2 gap-1">
-              {morePages.map((page) => {
-                const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
-                const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
-                const hasBadge = navBadgeCount(page.name) > 0;
-                const badgeCount = navBadgeCount(page.name);
-
-                return (
-                  <button
-                    key={page.name}
-                    type="button"
-                    onClick={() => gotopage(page.href)}
-                    style={{ WebkitTapHighlightColor: "transparent" }}
-                    className={clsx(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors duration-150 select-none outline-none",
-                      isActive
-                        ? "bg-[color:rgb(var(--group-theme)/0.1)] text-[color:rgb(var(--group-theme))]"
-                        : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60"
-                    )}
-                  >
-                    <div className="relative shrink-0">
-                      <IconComponent className="w-5 h-5" stroke={1.5} />
-                      {hasBadge && (
-                        <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                          {badgeCount}
-                        </span>
-                      )}
-                    </div>
-                    <span className="flex-1 text-sm font-medium truncate">{page.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mx-3 mb-3 mt-1 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                style={{ WebkitTapHighlightColor: "transparent" }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors select-none outline-none"
-              >
-                {resolvedTheme === "dark" ? <IconSun className="w-5 h-5 shrink-0" stroke={1.5} /> : <IconMoon className="w-5 h-5 shrink-0" stroke={1.5} />}
-                <span className="font-medium">{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
-              </button>
-              <div className="h-px bg-zinc-100 dark:bg-zinc-800 mx-4" />
-              <button
-                type="button"
-                onClick={logout}
-                style={{ WebkitTapHighlightColor: "transparent" }}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/30 transition-colors select-none outline-none"
-              >
-                <IconLogout className="w-5 h-5 shrink-0" stroke={1.5} />
-                <span className="font-medium">Logout</span>
-              </button>
-            </div>
-
-            <div className="h-6" />
+            <div className="h-4" />
           </div>
         </>
       )}
