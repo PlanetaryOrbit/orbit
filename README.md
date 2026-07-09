@@ -65,7 +65,7 @@ Orbit ships with a comprehensive set of management tools out of the box:
 | **Documentation** | Host your group's docs natively inside Orbit |
 | **Policies** | Create and assign policy documents for members to review and sign |
 | **Sessions** | Schedule and host sessions with minimal overhead |
-| **Forms** | Create your own forms, manage there analytics. All in one dashboard. |
+| **Forms** | Build custom forms, manage submissions, and track analytics from a single dashboard. |
 
 ---
 
