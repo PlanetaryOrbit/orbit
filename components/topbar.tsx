@@ -171,26 +171,32 @@ const Topbar: NextPage = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-700">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <img src="/planetary.svg" className="h-8 w-32" alt="Planetary" />
 
             <button
               onClick={handleOpen}
-              className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700/60 transition-colors"
+              aria-label="Open account menu"
+              className="group flex items-center gap-2.5 rounded-full p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700/60 sm:pr-3"
             >
-              <div className="relative">
+              <span className="relative inline-flex shrink-0">
                 <img
-                  src={login?.thumbnail}
-                  className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-600 object-cover"
+                  src={login?.thumbnail || "/default-avatar.jpg"}
+                  className="h-9 w-9 rounded-full bg-zinc-200 object-cover ring-2 ring-white transition group-hover:ring-zinc-100 dark:bg-zinc-600 dark:ring-zinc-800 dark:group-hover:ring-zinc-700"
                   alt=""
                 />
-              </div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 hidden sm:block">
+                {login?.canMakeWorkspace && (
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800">
+                    <CrownIcon className="h-2.5 w-2.5 text-white" />
+                  </span>
+                )}
+              </span>
+              <span className="hidden text-sm font-medium text-zinc-700 dark:text-zinc-200 sm:block">
                 {login?.displayname}
               </span>
-              <IconChevronDown className="h-4 w-4 text-zinc-400" />
+              <IconChevronDown className="hidden h-4 w-4 text-zinc-400 sm:block" />
             </button>
           </div>
         </div>
