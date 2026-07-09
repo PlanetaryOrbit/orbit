@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { setConfig, getConfig } from "@/utils/configEngine";
 import { logAudit } from '@/utils/logs';
 import { getUsername } from '@/utils/userinfoEngine';
-// import { withAuth } from '@/lib/withSession';
 import { withAuth } from '@/lib/withAuth'
 import prisma from "@/utils/database";
 

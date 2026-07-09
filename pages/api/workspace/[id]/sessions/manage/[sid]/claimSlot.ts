@@ -1,5 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma, { schedule } from "@/utils/database";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 
@@ -27,8 +27,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       .status(400)
       .json({ success: false, error: "Missing required fields" });
   const day = new Date(date);
-
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const user = await prisma.user.findUnique({
     where: {

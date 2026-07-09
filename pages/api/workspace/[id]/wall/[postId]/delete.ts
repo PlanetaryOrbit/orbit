@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { logAudit } from '@/utils/logs';
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";

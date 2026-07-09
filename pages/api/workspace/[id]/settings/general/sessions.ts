@@ -4,7 +4,6 @@ import { getConfig, setConfig } from '@/utils/configEngine'
 import { logAudit } from '@/utils/logs'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { withAuth } from '@/lib/withAuth'
-// import { withAuth } from '@/lib/withSession'
 
 type Data = {
   success: boolean

@@ -12,6 +12,7 @@ import * as cookie from "cookie";
 import * as crypto from "crypto";
 import { getConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
+import { verifyWorkspace } from "./security";
 
 if (process.env.NODE_ENV === "production") {
   const secret =
@@ -56,6 +57,10 @@ export function withAuth(
   handler: (req: AuthenticatedRequest, res: NextApiResponse) => any,
 ): NextApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
+    if (!verifyWorkspace(req)) return res.status(400).send({
+      success: false,
+      error: "Not valid workspace"
+    });
     try {
       const cookies = cookie.parse(req.headers.cookie || "");
 
@@ -115,6 +120,10 @@ export function withKey(
   handler: (req: NextApiRequest, res: NextApiResponse) => any,
 ): NextApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
+    if (!verifyWorkspace(req)) return res.status(400).send({
+      success: false,
+      error: "Not valid workspace"
+    })
     const { id } = req.query;
     try {
       const auth = req.headers.authorization;

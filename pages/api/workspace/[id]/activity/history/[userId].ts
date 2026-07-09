@@ -1,6 +1,5 @@
-import { withPermissionCheck } from "@/utils/permissionsManager";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 
 export default withAuth(async function handler(

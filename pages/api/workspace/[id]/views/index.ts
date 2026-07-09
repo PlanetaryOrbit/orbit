@@ -1,28 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { v4 as uuidv4 } from "uuid";
 import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-
-async function hasManageViewsPermission(req: AuthenticatedRequest, workspaceId: number) {
-  if (!req.session?.userid) return false;
-  const user = await prisma.user.findFirst({
-    where: { userid: BigInt(req.auth.userId) },
-    include: {
-      roles: {
-        where: { workspaceGroupId: workspaceId },
-      },
-      workspaceMemberships: {
-        where: { workspaceGroupId: workspaceId },
-      },
-    },
-  });
-  if (!user || !user.roles.length) return false;
-  const role = user.roles[0];
-  const membership = user.workspaceMemberships[0];
-  const isAdmin = membership?.isAdmin || false;
-  return isAdmin || (role.permissions || []).includes("create_views") || (role.permissions || []).includes("edit_views") || (role.permissions || []).includes("delete_views");
-}
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);
