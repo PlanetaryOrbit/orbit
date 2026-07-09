@@ -12,7 +12,6 @@ import {
   IconGif,
   IconVideo,
   IconUpload,
-  IconFolder,
 } from "@tabler/icons-react";
 import { docsPanelShadow } from "./shell";
 import {

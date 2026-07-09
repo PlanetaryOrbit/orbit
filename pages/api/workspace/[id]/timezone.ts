@@ -1,6 +1,6 @@
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 
 export default withAuth(handler);
 

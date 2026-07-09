@@ -1,6 +1,6 @@
 import { NextApiResponse } from "next";
 import axios from "axios";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import { AuthenticatedRequest } from "@/lib/withAuth";
 
 interface OpenCloudKeyRes {
   name: string;

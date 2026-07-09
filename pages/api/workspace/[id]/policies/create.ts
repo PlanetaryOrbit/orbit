@@ -3,7 +3,6 @@ import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
 import prisma, { SessionType, document } from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { sanitizeJSON } from '@/utils/sanitise';
-// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'

@@ -1,12 +1,6 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
-import prisma, { SessionType, Session, wallPost } from '@/utils/database';
-// import { withAuth } from '@/lib/withSession'
+import prisma, { wallPost } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
-
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
-import * as noblox from 'noblox.js'
 type Data = {
 	success: boolean
 	error?: string

@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next"
+import type { NextApiResponse } from "next"
 import { withPermissionCheck } from "@/utils/permissionsManager"
 import prisma from "@/utils/database"
 import { AuthenticatedRequest } from "@/lib/withAuth"

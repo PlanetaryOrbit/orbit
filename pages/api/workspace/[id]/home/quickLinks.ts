@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma, { document } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import axios from 'axios';
 import PackageInfo from '@/package.json'

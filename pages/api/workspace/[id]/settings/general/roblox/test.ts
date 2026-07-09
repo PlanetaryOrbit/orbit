@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import axios from "axios";
 import { getConfig } from "@/utils/configEngine";

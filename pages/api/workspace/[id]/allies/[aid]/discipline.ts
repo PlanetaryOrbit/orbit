@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import prisma from "@/utils/database";
 import { getConfig } from "@/utils/configEngine";

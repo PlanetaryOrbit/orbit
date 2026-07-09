@@ -1,8 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma from "@/utils/database";
 import { withPermissionCheck } from "@/utils/permissionsManager";
-import moment from "moment";
-import axios from "axios";
 import { AuthenticatedRequest } from "@/lib/withAuth";
 
 type Data = {

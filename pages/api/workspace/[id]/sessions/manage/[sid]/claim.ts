@@ -1,7 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import prisma, { schedule } from "@/utils/database";
-import roles from "../../../settings/roles";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 type Data = {
   success: boolean;
@@ -21,7 +20,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     return res
       .status(400)
       .json({ success: false, error: "Missing required fields" });
-  const { date, timezoneOffset } = req.body;
+  const { date } = req.body;
   if (!date)
     return res
       .status(400)

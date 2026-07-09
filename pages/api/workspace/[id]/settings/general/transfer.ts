@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/utils/database'
 import { withAuth } from '@/lib/withAuth'
-// import { withAuth } from '@/lib/withSession'
 import { logAudit } from '@/utils/logs'
 
 type Data = {

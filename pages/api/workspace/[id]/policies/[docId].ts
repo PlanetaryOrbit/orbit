@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiResponse } from 'next'
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-// import { withAuth } from '@/lib/withSession'
 import { withPermissionCheck } from '@/utils/permissionsManager'
 import { AuthenticatedRequest } from '@/lib/withAuth';
 
