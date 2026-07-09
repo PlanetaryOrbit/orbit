@@ -4,8 +4,6 @@
  *
  * Helpers to make life easier in the other scripts
  *
- *
- * @module api/forms
  * @author BuddyWinte
  * @since 2.1.10-beta20
  */
@@ -36,7 +34,6 @@ export function hasPerms(
   if (!user?.roles?.length) return false;
   for (const role of user.roles) {
     if (!role?.permissions?.length) continue;
-
     for (const perm of role.permissions) {
       if (perm === permission) return true;
       if (perm.endsWith(".*")) {
