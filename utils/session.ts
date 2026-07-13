@@ -8,7 +8,62 @@ interface IpapiRes {
   region: string
 }
 
-const SESSION_SECRET = process.env.SESSION_SECRET!
+interface GeoResult {
+  country: string | null
+  region: string | null
+}
+
+const SESSION_SECRET = process.env.SESSION_SECRET!;
+
+const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>()
+const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24h
+
+function isPrivateOrLocalIp(ip: string): boolean {
+  return (
+    ip === '::1' ||
+    ip === '127.0.0.1' ||
+    ip.startsWith('10.') ||
+    ip.startsWith('192.168.') ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip)
+  )
+}
+
+async function lookupGeo(ipAddress?: string): Promise<GeoResult> {
+  const empty: GeoResult = { country: null, region: null }
+
+  if (!ipAddress || isPrivateOrLocalIp(ipAddress)) {
+    return empty
+  }
+
+  const cached = geoCache.get(ipAddress)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data
+  }
+
+  try {
+    const res = await axios.get<IpapiRes>(
+      `https://ipapi.co/${ipAddress}/json/`,
+      { timeout: 2000 }
+    )
+
+    if ((res.data as any).error) {
+      console.warn('ipapi.co returned an error payload:', (res.data as any).reason)
+      return empty
+    }
+
+    const geo: GeoResult = {
+      country: res.data.country_name ?? null,
+      region: res.data.region ?? null,
+    }
+
+    geoCache.set(ipAddress, { data: geo, expiresAt: Date.now() + GEO_CACHE_TTL_MS })
+
+    return geo
+  } catch (err) {
+    console.error('ipapi.co lookup failed, continuing without geo data:', err)
+    return empty
+  }
+}
 
 function generateToken(): string {
   const token = crypto.randomBytes(32).toString('hex')
@@ -116,9 +171,8 @@ async function createSession(
 ) {
   const rawToken = generateToken();
 
-  const info = await axios.get<IpapiRes>('https://ipapi.co/json');
-
-  const { browser, os, device } = parseUA(userAgent)
+  const { browser, os, device } = parseUA(userAgent);
+  const geo = await lookupGeo(ipAddress);
 
   const session = await prisma.authSession.create({
     data: {
@@ -133,8 +187,8 @@ async function createSession(
       browser,
       os,
       device,
-      country: info.data.country_name,
-      region: info.data.region
+      country: geo.country,
+      region: geo.region,
     },
 
     include: {
@@ -259,7 +313,6 @@ async function deleteOtherSessions(
   userId: bigint,
   sid: string
 ) {
-
   return prisma.authSession.deleteMany({
     where: {
       userId,
@@ -329,5 +382,5 @@ export {
   deleteOtherSessions,
   deleteAllUserSessions,
   listActiveSessions,
-  purgeExpiredSessions,
+  purgeExpiredSessions
 }
