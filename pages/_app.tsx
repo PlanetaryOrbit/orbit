@@ -137,7 +137,24 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         {!showLoader && (
           <Layout>
             <div className="pb-8 sm:pb-0">
-              <Toaster position={isMobile ? "top-center" : "bottom-center"} />
+              <Toaster position={isMobile ? "top-center" : "bottom-center"} toastOptions={{
+                style: {
+                  borderRadius: '14px',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
+                },
+                success: {
+                  iconTheme: {
+                    primary: '#22bf54',
+                    secondary: '#ffffff'
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: '#bf003d',
+                    secondary: '#ffffff',
+                  },
+                },
+              }} />
               <Component {...pageProps} />
             </div>
           </Layout>
@@ -168,7 +185,7 @@ function Initializer() {
       mounted = false;
       try {
         posthogRef.current?.reset();
-      } catch (e) {}
+      } catch (e) { }
     };
   }, []);
 
@@ -188,7 +205,7 @@ function Initializer() {
         } else {
           try {
             ph.reset();
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     } catch (e) {

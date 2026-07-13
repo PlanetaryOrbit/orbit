@@ -2,7 +2,6 @@ import type { NextPage } from "next";
 import { Dialog, Transition } from "@headlessui/react";
 import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
-import { Menu } from "@headlessui/react";
 import Router, { useRouter } from "next/router";
 import { useTheme } from "next-themes";
 import {
@@ -23,8 +22,8 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
+import { CrownIcon } from "lucide-react";
 import moment from "moment";
-import { CrownIcon, RefreshCwIcon } from "lucide-react";
 
 type Session = {
   id: string;
@@ -36,6 +35,8 @@ type Session = {
   createdAt: string;
   expiresAt: string;
   isCurrent: boolean;
+  region?: string;
+  country?: string;
 };
 
 function DeviceIcon({ device }: { device: string | null }) {
@@ -347,7 +348,7 @@ const Topbar: NextPage = () => {
                                   )}
                                 </div>
                                 <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
-                                  {s.ipAddress} · {moment(s.createdAt).fromNow()}
+                                  {s.country && s.region ? `${s.region}, ${s.country}` : `${s.ipAddress} · ${moment(s.createdAt).fromNow()}`}
                                 </p>
                               </div>
                               {!s.isCurrent && (

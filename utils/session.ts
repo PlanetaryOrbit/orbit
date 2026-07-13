@@ -1,6 +1,12 @@
 import * as crypto from 'crypto'
 import prisma from '@/utils/database'
 import { UAParser } from 'ua-parser-js'
+import axios from 'axios'
+
+interface IpapiRes {
+  country_name: string,
+  region: string
+}
 
 const SESSION_SECRET = process.env.SESSION_SECRET!
 
@@ -108,7 +114,9 @@ async function createSession(
   ipAddress?: string,
   userAgent?: string
 ) {
-  const rawToken = generateToken()
+  const rawToken = generateToken();
+
+  const info = await axios.get<IpapiRes>('https://ipapi.co/json');
 
   const { browser, os, device } = parseUA(userAgent)
 
@@ -125,6 +133,8 @@ async function createSession(
       browser,
       os,
       device,
+      country: info.data.country_name,
+      region: info.data.region
     },
 
     include: {
@@ -273,6 +283,8 @@ async function listActiveSessions(userId: bigint) {
       userAgent: true,
       createdAt: true,
       expiresAt: true,
+      country: true,
+      region: true
     },
   })
 
