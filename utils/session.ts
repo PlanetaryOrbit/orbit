@@ -8,6 +8,11 @@ interface IpapiRes {
   region: string
 }
 
+interface IpapiRes {
+  country_name: string,
+  region: string
+}
+
 interface GeoResult {
   country: string | null
   region: string | null
@@ -171,6 +176,8 @@ async function createSession(
 ) {
   const rawToken = generateToken();
 
+  const info = await axios.get<IpapiRes>('https://ipapi.co/json');
+
   const { browser, os, device } = parseUA(userAgent);
   const geo = await lookupGeo(ipAddress);
 
@@ -187,8 +194,8 @@ async function createSession(
       browser,
       os,
       device,
-      country: geo.country,
-      region: geo.region,
+      country: info.data.country_name,
+      region: info.data.region
     },
 
     include: {

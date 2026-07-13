@@ -348,7 +348,7 @@ const Topbar: NextPage = () => {
                                   )}
                                 </div>
                                 <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
-                                  {s.country && s.region ? `${s.region}, ${s.country}` : `${s.ipAddress} · ${moment(s.createdAt).fromNow()}`}
+                                  {[s.region, s.country].filter(Boolean).join(', ') || `${s.ipAddress} · ${moment(s.createdAt).fromNow()}`}
                                 </p>
                               </div>
                               {!s.isCurrent && (
