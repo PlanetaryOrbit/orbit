@@ -24,7 +24,7 @@ import { withPermissionCheckSsr } from "@/utils/permissionsManager";
 import toast from "react-hot-toast";
 import SessionTemplate from "@/components/sessioncard";
 import PatternEditDialog from "@/components/sessionpatterns";
-import { canCreateAnySession, canAddNotes, canManageSession } from "@/utils/sessionPermissions";
+import { canCreateAnySession, canAddNotes, canManageSession, canCancelSession } from "@/utils/sessionPermissions";
 import { AuthenticatedRequest } from "@/lib/withAuth";
 import clsx from "clsx";
 import {
@@ -1187,6 +1187,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
             }}
             workspaceMembers={workspaceMembers}
             canManage={canManageSession(workspace.yourPermission || [], selectedSession?.type)}
+            canCancel={canCancelSession(workspace.yourPermission || [], selectedSession?.type)}
             canAddNotes={canAddNotes(workspace.yourPermission || [], selectedSession?.type)}
             sessionColors={sessionColors}
             colorsReady={!colorsLoading}

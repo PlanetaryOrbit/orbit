@@ -75,6 +75,7 @@ const Topbar: NextPage = () => {
     try {
       const res = await axios.get("/api/user/sessions");
       setSessions(res.data.sessions || []);
+      toast.success("Sessions refreshed")
     } catch {
       toast.error("Failed to load sessions");
     } finally {
@@ -307,7 +308,7 @@ const Topbar: NextPage = () => {
                         Active sessions
                       </p>
                       <button
-                        onClick={() => { fetchSessions(); toast.success("Sessions refreshed"); }}
+                        onClick={fetchSessions}
                         className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <IconRefresh className="h-4 w-4" />
