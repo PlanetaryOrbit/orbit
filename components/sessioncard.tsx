@@ -141,6 +141,7 @@ interface SessionModalProps {
   onUpdate?: () => void;
   workspaceMembers: any[];
   canManage: boolean;
+  canCancel: boolean;
   canAddNotes?: boolean;
   sessionColors?: SessionColors;
   colorsReady?: boolean | undefined;
@@ -155,6 +156,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   onUpdate,
   workspaceMembers,
   canManage,
+  canCancel,
   canAddNotes,
   sessionColors,
   colorsReady,
@@ -726,7 +728,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
             </SessionInset>
           )}
 
-          {canManage && !session.cancelled && (
+          {(canManage || canCancel)  && !session.cancelled && (
             <SessionInset>
               {!isCancelExpanded ? (
                 <button

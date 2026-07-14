@@ -12,6 +12,10 @@ export default withPermissionCheck(handler, [
   "sessions_training_manage",
   "sessions_event_manage",
   "sessions_other_manage",
+  "sessions_shift_cancel",
+  "sessions_training_cancel",
+  "sessions_event_cancel",
+  "sessions_other_cancel",
 ]);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
