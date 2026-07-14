@@ -20,6 +20,8 @@ export async function handler(
           createdAt: s.createdAt,
           expiresAt: s.expiresAt,
           isCurrent: s.id === req.auth.session?.id,
+          country: s.country,
+          region: s.region
         })),
       })
     }

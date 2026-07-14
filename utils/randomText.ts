@@ -176,6 +176,7 @@ const randomText = (name: string): string => {
     `The 2 AM club has a new member: ${name} 🎟️`,
     `Working in the shadows, ${name}? 👤`,
     `Nighttime is the best time for big ideas, right ${name}? 💡`,
+    `Sleepless on the onyx night, ${name}?`
   ];
 // updated time logic 
  const hour = new Date().getHours();

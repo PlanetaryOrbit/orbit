@@ -1,8 +1,110 @@
 import * as crypto from 'crypto'
 import prisma from '@/utils/database'
 import { UAParser } from 'ua-parser-js'
+import axios from 'axios'
+import * as net from 'net'
 
-const SESSION_SECRET = process.env.SESSION_SECRET!
+interface IpapiRes {
+  country_name: string,
+  region: string
+}
+
+interface IpapiRes {
+  country_name: string,
+  region: string
+}
+
+interface GeoResult {
+  country: string | null
+  region: string | null
+}
+
+const SESSION_SECRET = process.env.SESSION_SECRET!;
+
+const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>()
+const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24h
+
+function normalizeIp(rawIp: string): string {
+  const trimmed = rawIp.trim()
+  const mappedV4Prefix = '::ffff:'
+  if (trimmed.toLowerCase().startsWith(mappedV4Prefix)) {
+    return trimmed.slice(mappedV4Prefix.length)
+  }
+  return trimmed
+}
+
+function isPrivateOrLocalIp(ip: string): boolean {
+  if (ip === '::1' || ip === '127.0.0.1') return true
+
+  if (net.isIP(ip) === 4) {
+    return (
+      ip.startsWith('10.') ||
+      ip.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip) ||
+      ip.startsWith('127.') ||
+      ip.startsWith('169.254.')
+    )
+  }
+
+  if (net.isIP(ip) === 6) {
+    const lower = ip.toLowerCase()
+    return (
+      lower === '::1' ||
+      lower.startsWith('fc') ||
+      lower.startsWith('fd') ||
+      lower.startsWith('fe80:')
+    )
+  }
+
+  return true
+}
+
+function sanitizePublicIp(ipAddress?: string): string | null {
+  if (!ipAddress) return null
+  const normalized = normalizeIp(ipAddress)
+  if (!normalized || net.isIP(normalized) === 0) return null
+  if (isPrivateOrLocalIp(normalized)) return null
+  return normalized
+}
+
+async function lookupGeo(ipAddress?: string): Promise<GeoResult> {
+  const empty: GeoResult = { country: null, region: null }
+
+  const safeIp = sanitizePublicIp(ipAddress)
+  if (!safeIp) {
+    return empty
+  }
+
+  const cached = geoCache.get(safeIp)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data
+  }
+
+  try {
+    const geoUrl = new URL(`/${encodeURIComponent(safeIp)}/json/`, 'https://ipapi.co')
+    const res = await axios.get<IpapiRes>(
+      geoUrl.toString(),
+      { timeout: 2000 }
+    )
+
+    if ((res.data as any).error) {
+      console.warn('ipapi.co returned an error payload:', (res.data as any).reason)
+      return empty
+    }
+
+    const geo: GeoResult = {
+      country: res.data.country_name ?? null,
+      region: res.data.region ?? null,
+    }
+
+    geoCache.set(safeIp, { data: geo, expiresAt: Date.now() + GEO_CACHE_TTL_MS })
+
+    return geo
+  } catch (err) {
+    console.error('ipapi.co lookup failed, continuing without geo data:', err)
+    return empty
+  }
+}
 
 function generateToken(): string {
   const token = crypto.randomBytes(32).toString('hex')
@@ -108,9 +210,10 @@ async function createSession(
   ipAddress?: string,
   userAgent?: string
 ) {
-  const rawToken = generateToken()
+  const rawToken = generateToken();
 
   const { browser, os, device } = parseUA(userAgent)
+  const geo = await lookupGeo(ipAddress)
 
   const session = await prisma.authSession.create({
     data: {
@@ -125,6 +228,8 @@ async function createSession(
       browser,
       os,
       device,
+      country: geo.country,
+      region: geo.region,
     },
 
     include: {
@@ -249,7 +354,6 @@ async function deleteOtherSessions(
   userId: bigint,
   sid: string
 ) {
-
   return prisma.authSession.deleteMany({
     where: {
       userId,
@@ -273,6 +377,8 @@ async function listActiveSessions(userId: bigint) {
       userAgent: true,
       createdAt: true,
       expiresAt: true,
+      country: true,
+      region: true
     },
   })
 
@@ -317,5 +423,5 @@ export {
   deleteOtherSessions,
   deleteAllUserSessions,
   listActiveSessions,
-  purgeExpiredSessions,
+  purgeExpiredSessions
 }
