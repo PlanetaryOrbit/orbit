@@ -119,7 +119,7 @@ Familiarize yourself with the existing folder structure before adding new files 
 
 ## Commit Guidelines
 
-- Write clear, descriptive commit messages in the imperative mood (e.g. `Fix quota calculation for weekly resets`, not `fixed bug`).
+- Write clear, descriptive commit messages (e.g. `Fixed quota calculation for weekly resets`, not `fixed bug`).
 - Keep commits reasonably scoped — avoid bundling unrelated changes together.
 - Reference related issues where relevant (e.g. `Closes #123`).
 
