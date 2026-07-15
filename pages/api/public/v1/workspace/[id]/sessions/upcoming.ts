@@ -45,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .status(400)
       .json({ success: false, error: "startDate must be before endDate" });
 
-  const take = Math.min(Number(limit) || 50, 100);
+  const take = Math.min(Number(limit) || 50, 10000);
   const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
 
   try {

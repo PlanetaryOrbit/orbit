@@ -5,7 +5,7 @@ import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import bcryptjs from "bcryptjs";
 import { setRegistry } from "@/utils/registryManager";
-import { getRobloxUserId } from "@/utils/roblox";
+import { getRobloxUserId, isGroupAllied } from "@/utils/roblox";
 import { createSession } from "@/utils/session";
 
 type Data = {
@@ -67,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let groupName = `Group ${groupIdNumber}`;
     let groupLogo = '';
+    let isVerified = false;
 
     try {
       const [logo, group] = await Promise.all([
@@ -75,12 +76,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       ]);
       if (group) groupName = group.name;
       if (logo) groupLogo = logo;
+      if (await isGroupAllied(groupIdNumber)){ isVerified = true };
     } catch (err) {
       console.error('Failed to fetch group info during workspace setup:', err);
     }
 
     await prisma.workspace.create({
-      data: { groupId: groupIdNumber, groupName, groupLogo, lastSynced: new Date() },
+      data: { groupId: groupIdNumber, groupName, groupLogo, lastSynced: new Date(), isVerified, lastSyncedSuccessful: !!opencloudKey },
     }).catch((e) => { throw new Error("Failed to create workspace") });
 
     await prisma.$transaction([
