@@ -758,8 +758,9 @@ model Form {
   updatedAt        DateTime       @updatedAt
   workspace        workspace      @relation(fields: [workspaceGroupId], references: [groupId])
   createdBy        user           @relation(fields: [createdById], references: [userid])
-  formPages        FormPage[]
-  formResponses    FormResponse[]
+  pages        FormPage[]
+  responses        FormResponse[]
+  permissions  FormPermission[]
 
   @@unique([workspaceGroupId, slug])
   @@index([workspaceGroupId])
@@ -776,7 +777,6 @@ model FormPage {
   updatedAt        DateTime       @updatedAt
   @@index([formId])
   @@unique([formId, order])
-  @@unique([pageId, order])
 }
 
 enum FormQuestionType {
@@ -811,6 +811,7 @@ model FormQuestion {
   answers     FormAnswer[]
 
   @@index([pageId])
+  @@unique([pageId, order])
 }
 
 enum FormResponseStatus {
@@ -834,7 +835,7 @@ model FormResponse {
   reviews       FormReview[]
 
   @@index([formId])
-  @@index([submuttedById])
+  @@index([submittedById])
 }
 
 model FormAnswer {
@@ -861,6 +862,7 @@ model FormReview {
   decision   FormReviewDecision
   comment    String?
   createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
   response   FormResponse       @relation(fields: [responseId], references: [id], onDelete: Cascade)
   reviewer   user               @relation(fields: [reviewerId], references: [userid])
 }
@@ -873,8 +875,8 @@ model FormPermission {
   allow String[]
   deny       String[]
   form      Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
-  role      Role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  user      User?              @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  role      role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      user?              @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([formId])
   @@index([roleId])
