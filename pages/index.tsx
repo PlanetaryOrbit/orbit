@@ -336,12 +336,13 @@ const Home: NextPage = () => {
       } = response.data;
       const currentOrigin =
         typeof window !== "undefined" ? window.location.origin : "";
+      console.log(window.location)
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`;
 
       setExternalConfig({
         clientId: robloxClientId || "",
         clientSecret: robloxClientSecret || "",
-        redirectUri: response.data.redirectUri || autoRedirectUri,
+        redirectUri: autoRedirectUri,
         discordAppId: discordApplicationID || "", // was missing the fallback
         discordAppSecret: discordClientSecret || "", // was missing the fallback
         oauthOnlyLogin: oauthOnlyLogin || false,

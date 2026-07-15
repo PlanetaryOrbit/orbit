@@ -23,7 +23,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 		const envClientId = process.env.ROBLOX_CLIENT_ID;
 		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
 		const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
-    const envRedirectUri = process.env.NEXTAUTH_URL || process.env.PUBLIC_URL ? `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback` : ''
 		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
 		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
 		const envDiscordAppID = process.env.DISCORD_APPLICATION_ID;
@@ -31,7 +30,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const envGoogleClientID = process.env.GOOGLE_APP_ID;
     const envGoogleClientSecret = process.env.GOOGLE_SECRET;
     const envGoogleEmailFiltration = process.env.GOOGLE_EMAIL_FILTRATION;
-		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
+		const usingEnvVars = !!((envClientId && envClientSecret) || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
 
 		if (usingEnvVars) {
 			const bgConfig = await prisma.instanceConfig.findUnique({ where: { key: 'loginBackground' } });
@@ -46,7 +45,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         google_id: envGoogleClientID ? '••••••••' : '',
         google_secret: envGoogleClientID ? '••••••••' : '',
         google_email_filtration: envGoogleEmailFiltration || null,
-        redirectUri: envRedirectUri,
 				loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
 				usingEnvVars: true
 			});
