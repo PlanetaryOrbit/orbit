@@ -773,8 +773,10 @@ model FormPage {
   order       Int
   form        Form           @relation(fields: [formId], references: [id], onDelete: Cascade)
   questions   FormQuestion[]
-
+  updatedAt        DateTime       @updatedAt
   @@index([formId])
+  @@unique([formId, order])
+  @@unique([pageId, order])
 }
 
 enum FormQuestionType {
@@ -804,6 +806,7 @@ model FormQuestion {
   order       Int
   settings    Json?
   createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   page        FormPage         @relation(fields: [pageId], references: [id], onDelete: Cascade)
   answers     FormAnswer[]
 
@@ -821,12 +824,12 @@ enum FormResponseStatus {
 model FormResponse {
   id            String             @id @default(uuid()) @db.Uuid
   formId        String             @db.Uuid
-  submuttedById BigInt?
+  submittedById BigInt?
   status        FormResponseStatus @default(PENDING)
   submittedAt   DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   form          Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
-  submittedBy   user?              @relation(fields: [submuttedById], references: [userid])
+  submittedBy   user?              @relation(fields: [submittedById], references: [userid])
   answers       FormAnswer[]
   reviews       FormReview[]
 
