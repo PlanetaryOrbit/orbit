@@ -31,7 +31,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const envGoogleClientID = process.env.GOOGLE_APP_ID;
     const envGoogleClientSecret = process.env.GOOGLE_SECRET;
     const envGoogleEmailFiltration = process.env.GOOGLE_EMAIL_FILTRATION;
-		const usingEnvVars = !!((envClientId && envClientSecret) || envRedirectUri || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
+		const usingEnvVars = !!((envClientId && envClientSecret) || envWorkspaceID || (envDiscordAppID && envDCClientSecret) || (envGoogleClientID && envGoogleClientSecret) || envGoogleEmailFiltration);
 
 		if (usingEnvVars) {
 			const bgConfig = await prisma.instanceConfig.findUnique({ where: { key: 'loginBackground' } });
