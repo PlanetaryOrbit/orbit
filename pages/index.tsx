@@ -341,7 +341,7 @@ const Home: NextPage = () => {
       setExternalConfig({
         clientId: robloxClientId || "",
         clientSecret: robloxClientSecret || "",
-        redirectUri: response.data.robloxRedirectUri || autoRedirectUri,
+        redirectUri: response.data.redirectUri || autoRedirectUri,
         discordAppId: discordApplicationID || "", // was missing the fallback
         discordAppSecret: discordClientSecret || "", // was missing the fallback
         oauthOnlyLogin: oauthOnlyLogin || false,

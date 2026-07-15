@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
@@ -23,8 +22,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 		try {
 		const envClientId = process.env.ROBLOX_CLIENT_ID;
 		const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
-		const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
 		const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
+    const envRedirectUri = process.env.NEXTAUTH_URL || process.env.PUBLIC_URL ? `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback` : ''
 		const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
 		const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
 		const envDiscordAppID = process.env.DISCORD_APPLICATION_ID;
@@ -39,7 +38,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 			return res.json({
 				robloxClientId: '••••••••',
 				robloxClientSecret: '••••••••',
-				robloxRedirectUri: envRedirectUri,
 				discordApplicationID: envDiscordAppID ? '••••••••' : '',
 				discordClientSecret: envDCClientSecret ? '••••••••' : '',
 				oauthOnlyLogin: envOAuthOnly,
@@ -48,6 +46,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         google_id: envGoogleClientID ? '••••••••' : '',
         google_secret: envGoogleClientID ? '••••••••' : '',
         google_email_filtration: envGoogleEmailFiltration || null,
+        redirectUri: envRedirectUri,
 				loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
 				usingEnvVars: true
 			});
