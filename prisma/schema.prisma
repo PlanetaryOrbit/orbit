@@ -864,3 +864,21 @@ model FormReview {
   response   FormResponse       @relation(fields: [responseId], references: [id], onDelete: Cascade)
   reviewer   user               @relation(fields: [reviewerId], references: [userid])
 }
+
+model FormPermission {
+  id         String             @id @default(uuid()) @db.Uuid
+  formId     String             @db.Uuid
+  roleId     String?            @db.Uuid
+  userId     BigInt?
+  allow String[]
+  deny       String[]
+  form      Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
+  role      Role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User?              @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([formId])
+  @@index([roleId])
+  @@index([userId])
+  @@unique([formId, roleId])
+  @@unique([formId, userId])
+}
