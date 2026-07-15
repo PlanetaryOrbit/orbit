@@ -60,7 +60,7 @@ export default async function handler(
 
   let clientId = process.env.ROBLOX_CLIENT_ID
   let clientSecret = process.env.ROBLOX_CLIENT_SECRET
-  let redirectUri = process.env.ROBLOX_REDIRECT_URI
+  let redirectUri = process.env.ROBLOX_REDIRECT_URI || `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`;
 
   if (!clientId || !clientSecret || !redirectUri) {
     const configs = await prisma.instanceConfig.findMany({
