@@ -758,9 +758,9 @@ model Form {
   updatedAt        DateTime       @updatedAt
   workspace        workspace      @relation(fields: [workspaceGroupId], references: [groupId])
   createdBy        user           @relation(fields: [createdById], references: [userid])
-  pages        FormPage[]
+  pages            FormPage[]
   responses        FormResponse[]
-  permissions  FormPermission[]
+  permissions      FormPermission[]
 
   @@unique([workspaceGroupId, slug])
   @@index([workspaceGroupId])
@@ -867,13 +867,33 @@ model FormReview {
   reviewer   user               @relation(fields: [reviewerId], references: [userid])
 }
 
+enum FormPermissionType {
+  ManagePages
+  ManageQuestions
+  ManageQuestionSettings
+  ManageSettings
+  ManagePermissions
+  ViewResponses
+  ViewOwnResponses
+  SubmitResponses
+  WithdrawResponses
+  DeleteResponses
+  ReviewResponses
+  ApproveResponses
+  DenyResponses
+  AddReviewComments
+  ManageReviews
+  ExportResponses
+  ViewStatistics
+}
+
 model FormPermission {
   id         String             @id @default(uuid()) @db.Uuid
   formId     String             @db.Uuid
   roleId     String?            @db.Uuid
   userId     BigInt?
-  allow String[]
-  deny       String[]
+  allow      FormPermissionType[]
+  deny       FormPermissionType[]
   form      Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
   role      role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
   user      user?              @relation(fields: [userId], references: [userId], onDelete: Cascade)
