@@ -16,23 +16,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .status(400)
       .json({ success: false, error: "Missing workspace ID" });
 
-  const { endDate, category, startDate, status, limit, page, hideClaimed } =
-    req.query;
-  const start = startDate 
-    ? new Date(startDate as string) 
-    : (() => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        return now;
-      })();
+  const {
+    endDate,
+    category,
+    startDate,
+    status,
+    limit,
+    page,
+    hideClaimed,
+    showClaimed,
+    hoursAhead,
+  } = req.query;
+
+  const DEFAULT_HOURS_AHEAD = 24;
+  const MAX_HOURS_AHEAD = 24 * 30;
+
+  const parsedHoursAhead = Number(hoursAhead);
+  const windowHours =
+    Number.isFinite(parsedHoursAhead) && parsedHoursAhead > 0
+      ? Math.min(parsedHoursAhead, MAX_HOURS_AHEAD)
+      : DEFAULT_HOURS_AHEAD;
+
+  const start = startDate ? new Date(startDate as string) : new Date();
 
   const end = endDate
     ? new Date(endDate as string)
     : (() => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(23, 59, 59, 999);
-        return tomorrow;
+        const future = startDate ? new Date(start) : new Date();
+        future.setTime(future.getTime() + windowHours * 60 * 60 * 1000);
+        return future;
       })();
 
   if (isNaN(start.getTime()) || isNaN(end.getTime()))
@@ -48,6 +60,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const take = Math.min(Number(limit) || 50, 10000);
   const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
 
+  if (hideClaimed === "true" && showClaimed === "true")
+    return res.status(400).json({
+      success: false,
+      error: "hideClaimed and showClaimed cannot both be true",
+    });
+
   try {
     const where: any = {
       sessionType: { workspaceGroupId: workspaceId },
@@ -58,6 +76,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (hideClaimed === "true") {
       where.users = { none: {} };
+    } else if (showClaimed === "true") {
+      where.users = { some: {} };
     }
 
     if (status) {
@@ -177,7 +197,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       success: true,
       sessions: formattedSessions,
       sessionsByDate,
-      dateRange: { startDate: start.toISOString(), endDate: end.toISOString() },
+      dateRange: {
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        hoursAhead: !startDate && !endDate ? windowHours : undefined,
+      },
       pagination: {
         total,
         page: Math.max(Number(page) || 1, 1),
