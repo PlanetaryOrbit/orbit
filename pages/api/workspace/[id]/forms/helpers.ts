@@ -28,24 +28,52 @@ export type RequestResponse<T> =
     };
 
 export enum FormPermissionType {
-  ManagePages = "ManagePages",
-  ManageQuestions = "ManageQuestions",
-  ManageQuestionSettings = "ManageQuestionSettings",
-  ManageSettings = "ManageSettings",
-  ManagePermissions = "ManagePermissions",
-  ViewResponses = "ViewResponses",
-  ViewOwnResponses = "ViewOwnResponses",
-  SubmitResponses = "SubmitResponses",
-  WithdrawResponses = "WithdrawResponses",
-  DeleteResponses = "DeleteResponses",
-  ReviewResponses = "ReviewResponses",
-  ApproveResponses = "ApproveResponses",
-  DenyResponses = "DenyResponses",
-  AddReviewComments = "AddReviewComments",
-  ManageReviews = "ManageReviews",
-  ExportResponses = "ExportResponses",
-  ViewStatistics = "ViewStatistics",
+  // Global
+  Create = "Forms.Create",
+  View = "Forms.View",
+  Edit = "Forms.Edit",
+  Delete = "Forms.Delete",
+  Duplicate = "Forms.Duplicate",
+
+  // Overrideable
+  ManagePages = "Forms.ManagePages",
+  ManageQuestions = "Forms.ManageQuestions",
+  ManageQuestionSettings = "Forms.ManageQuestionSettings",
+  ManageSettings = "Forms.ManageSettings",
+  ManagePermissions = "Forms.ManagePermissions",
+  ViewResponses = "Forms.ViewResponses",
+  ViewOwnResponses = "Forms.ViewOwnResponses",
+  SubmitResponses = "Forms.SubmitResponses",
+  WithdrawResponses = "Forms.WithdrawResponses",
+  DeleteResponses = "Forms.DeleteResponses",
+  ReviewResponses = "Forms.ReviewResponses",
+  ApproveResponses = "Forms.ApproveResponses",
+  DenyResponses = "Forms.DenyResponses",
+  AddReviewComments = "Forms.AddReviewComments",
+  ManageReviews = "Forms.ManageReviews",
+  ExportResponses = "Forms.ExportResponses",
+  ViewStatistics = "Forms.ViewStatistics",
 }
+
+const OverrideableFormPermissions = [
+  FormPermissionType.ManagePages,
+  FormPermissionType.ManageQuestions,
+  FormPermissionType.ManageQuestionSettings,
+  FormPermissionType.ManageSettings,
+  FormPermissionType.ManagePermissions,
+  FormPermissionType.ViewResponses,
+  FormPermissionType.ViewOwnResponses,
+  FormPermissionType.SubmitResponses,
+  FormPermissionType.WithdrawResponses,
+  FormPermissionType.DeleteResponses,
+  FormPermissionType.ReviewResponses,
+  FormPermissionType.ApproveResponses,
+  FormPermissionType.DenyResponses,
+  FormPermissionType.AddReviewComments,
+  FormPermissionType.ManageReviews,
+  FormPermissionType.ExportResponses,
+  FormPermissionType.ViewStatistics,
+];
 
 type PermissionSet = {
   allow: FormPermissionType[];
@@ -64,9 +92,100 @@ export function hasFormPermission(
   permission: FormPermissionType,
 ): boolean {
   if (ctx.isOwner) return true;
-  if (ctx.global.deny.includes(permission)) return false;
+
+  // Form
   if (ctx.form.deny.includes(permission)) return false;
   if (ctx.form.allow.includes(permission)) return true;
+
+  // Global
+  if (ctx.global.deny.includes(permission)) return false;
   if (ctx.global.allow.includes(permission)) return true;
+
   return false;
+}
+
+export async function getFormPermissions({
+  formId,
+  userId,
+  isOwner,
+  roleIds,
+}: {
+  formId: string;
+  userId: bigint;
+  isOwner: boolean;
+  roleIds: string[];
+}): Promise<PermissionContext> {
+  if (isOwner) {
+    return {
+      isOwner: true,
+      global: {
+        allow: Object.values(FormPermissionType),
+        deny: [],
+      },
+      form: {
+        allow: Object.values(FormPermissionType),
+        deny: [],
+      },
+    };
+  }
+
+  const roles = await prisma.role.findMany({
+    where: {
+      id: {
+        in: roleIds,
+      },
+    },
+    select: {
+      permissions: true,
+    },
+  });
+
+  const global: PermissionSet = {
+    allow: [],
+    deny: [],
+  };
+
+  for (const role of roles) {
+    for (const permission of role.permissions) {
+      if (
+        Object.values(FormPermissionType).includes(
+          permission as FormPermissionType,
+        )
+      ) {
+        global.allow.push(permission as FormPermissionType);
+      }
+    }
+  }
+
+  const overrides = await prisma.formPermission.findMany({
+    where: {
+      formId,
+      OR: [
+        {
+          userId,
+        },
+        {
+          roleId: {
+            in: roleIds,
+          },
+        },
+      ],
+    },
+  });
+
+  const form: PermissionSet = {
+    allow: [],
+    deny: [],
+  };
+
+  for (const override of overrides) {
+    form.allow.push(...override.allow);
+    form.deny.push(...override.deny);
+  }
+
+  return {
+    isOwner,
+    global,
+    form,
+  };
 }
