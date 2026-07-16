@@ -896,7 +896,7 @@ model FormPermission {
   deny       FormPermissionType[]
   form      Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
   role      role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  user      User?              @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user      user?              @relation(fields: [userId], references: [userid], onDelete: Cascade)
 
   @@index([formId])
   @@index([roleId])
