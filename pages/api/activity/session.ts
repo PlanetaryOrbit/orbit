@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         .getRankInGroup(groupId, userid)
         .catch(() => null);
 
-      if (parsedConfig.role && (!userRank || userRank <= parsedConfig.role)) {
+      if (parsedConfig.role && (!userRank || userRank < parsedConfig.role)) {
         return res
           .status(200)
           .json({ success: true, error: "User is not the right rank" });
