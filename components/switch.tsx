@@ -25,7 +25,7 @@ const SwitchComponenet: FC<Props> = ({
         disabled={disabled}
         onClick={onChange}
         className={clsx(
-          "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none",
+          "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           disabled
             ? "cursor-not-allowed bg-zinc-200 dark:bg-zinc-700"
             : "cursor-pointer",
