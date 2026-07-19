@@ -181,7 +181,7 @@ end
 local function fetchRank(Player: Player): number
 	if not Configuration.rankChecking then return math.huge end
 	local success, rankInfo = pcall(function()
-		return GroupService:GetRolesInGroupAsync(Player.User, Configuration.groupId)
+		return GroupService:GetRolesInGroupAsync(Player.UserId, Configuration.groupId)
 	end)
 	if not success then return math.huge end
 	if not rankInfo.IsMember then return math.huge end
