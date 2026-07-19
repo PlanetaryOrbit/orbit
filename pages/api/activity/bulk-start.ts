@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             create: { userid: BigInt(userid), username, picture },
           });
         } catch (error) {
-          console.error(`[ERROR] Failed to upsert user ${userid}:`, error);
+          console.error("[ERROR] Failed to upsert user %s:", userid, error);
           failed++;
           return;
         }
