@@ -527,7 +527,7 @@ local function InitiatePlayer(Player: Player): boolean
 	local clientClone = TovyClient:Clone()
 	clientClone.Parent = Player:WaitForChild("PlayerGui")
 
-	MovementDetection(Player)
+	task.spawn(MovementDetection, Player)
 	return true
 end
 
