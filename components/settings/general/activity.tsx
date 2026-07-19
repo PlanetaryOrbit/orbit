@@ -243,6 +243,7 @@ const Activity: FC<props> = (props) => {
   };
 
   const updatePrivateServer = async (enabled: boolean) => {
+    const previous = privateServerEnabled;
     setPrivateServerEnabled(enabled);
     try {
       const req = await axios.post(
@@ -254,12 +255,12 @@ const Activity: FC<props> = (props) => {
         triggerToast.success("Updated Private Server tracking!");
       }
     } catch (error: any) {
-      setPrivateServerEnabled(false);
+      setPrivateServerEnabled(previous);
       triggerToast.error("Failed to update private server tracking.");
     }
   };
-
   const updateStudio = async (enabled: boolean) => {
+    const previous = studioEnabled;
     setStudioEnabled(enabled);
     try {
       const req = await axios.post(
@@ -271,8 +272,8 @@ const Activity: FC<props> = (props) => {
         triggerToast.success("Updated Studio tracking!");
       }
     } catch (error: any) {
-      setStudioEnabled(false);
-      triggerToast.error("Failed to update private server tracking.");
+      setStudioEnabled(previous);
+      triggerToast.error("Failed to update studio tracking.");
     }
   };
 

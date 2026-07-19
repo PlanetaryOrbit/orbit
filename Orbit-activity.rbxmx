@@ -592,7 +592,7 @@ game:BindToClose(function()
 end)
 
 local function fetchRemoteConfig()
-	local ok, response = httpGet(`/api/activity/config?id=${Configuration.groupId}`)
+	local ok, response = httpGet(`/api/activity/config?id={Configuration.groupId}`)
 	if not ok or type(response.data) ~= "table" then
 		log("WARN", "Could not fetch remote config — using local defaults.")
 		return
