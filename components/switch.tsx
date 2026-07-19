@@ -1,35 +1,47 @@
-import React, { FC, ReactNode } from "react";
-import { twMerge } from "tailwind-merge";
-import { workspacestate } from "@/state";
-import { useRecoilState } from "recoil";
-import { Switch } from "@headlessui/react";
-type Props = {
-	onChange?: () => void;
-	label: string;
-	classoverride?: string;
-	disabled?: boolean | false;
-	checked?: boolean | false;
+import { FC } from "react";
+import clsx from "clsx";
 
+type Props = {
+  onChange?: () => void;
+  label: string;
+  classoverride?: string;
+  disabled?: boolean;
+  checked?: boolean;
 };
 
-const SwitchComponenet: FC<Props> = ({ disabled, onChange, label, checked }: Props) => {
-	return (
-		<div className="flex flex-row">
-			<Switch
-				checked={checked}
-				className={`${checked ? 'bg-primary' : 'bg-zinc-200'
-					} relative inline-flex h-6 w-11 items-center rounded-full shadow-inner mb-2`}
-				onChange={onChange}
-			>
-				<span
-					className={`${checked ? 'translate-x-6' : 'translate-x-1'
-						} inline-block h-4 w-4 transform rounded-full bg-white transition shadow`}
-				/>
-			</Switch>
-			<p className="ml-2 dark:text-white">{label}</p>
-		</div>
-
-	);
+const SwitchComponenet: FC<Props> = ({
+  disabled,
+  onChange,
+  label,
+  checked,
+  classoverride,
+}: Props) => {
+  return (
+    <div className={clsx("flex items-center", classoverride)}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={onChange}
+        className={clsx(
+          "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none",
+          disabled
+            ? "cursor-not-allowed bg-zinc-200 dark:bg-zinc-700"
+            : "cursor-pointer",
+          !disabled && (checked ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-700")
+        )}
+      >
+        <span
+          className="inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5"
+          style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }}
+        />
+      </button>
+      {label ? (
+        <p className="ml-2 text-sm text-zinc-700 dark:text-white">{label}</p>
+      ) : null}
+    </div>
+  );
 };
 
 export default SwitchComponenet;
