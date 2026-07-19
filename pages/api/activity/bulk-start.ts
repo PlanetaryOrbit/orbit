@@ -138,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         processed++;
         console.log(`[BULK SESSION STARTED] User ${userid} for group ${groupId} - ${sessionMessage}`);
       } catch (error) {
-        console.error(`Failed to start session for user ${sessionData.userid}:`, error);
+        console.error("Failed to start session for user %s:", String(sessionData?.userid), error);
         failed++;
       }
     });
