@@ -10,6 +10,8 @@ type Data = {
 	roles?: any
 	currentRole?: any
 	leaderboardRole?: any
+  privateServerEnabled?:boolean
+  studioEnabled?: boolean
 	idleTimeEnabled?: boolean
 }
 
@@ -38,7 +40,8 @@ export async function handler(
 		roles,
 		currentRole: activityconfig?.role,
 		leaderboardRole: activityconfig?.leaderboardRole,
-		idleTimeEnabled: activityconfig?.idleTimeEnabled ?? true,
+    privateServerEnabled: activityconfig?.privateServerEnabled,
+    studioEnabled: activityconfig?.studioEnabled,
 		success: true,
 	});
 }

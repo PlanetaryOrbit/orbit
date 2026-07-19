@@ -26,12 +26,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let activityconfig = await getConfig("activity", workspaceId);
   if (!activityconfig?.key) {
-    activityconfig = {
-      key: crypto.randomBytes(16).toString("hex"),
-    };
+    const newKey = crypto.randomBytes(16).toString("hex");
+    activityconfig = { ...activityconfig, key: newKey };
     await setConfig("activity", activityconfig, workspaceId);
   }
-
   let xml_string: string;
 
   const isVercel = !!process.env.VERCEL_URL;
@@ -91,7 +89,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   
   let result = xml_string
     .replace(/<apikey>/g, activityconfig.key)
-    .replace(/<url>/g, currentUrl.origin);
+    .replace(/<url>/g, currentUrl.origin)
+    .replace(/<groupid>/g, workspaceId.toString())
+    .replace(/<mintrackedrank>/g, activityconfig?.role ?? '10')
+    .replace(/<privateenabled>/g, activityconfig?.privateServerEnabled ?? false)
+    .replace(/<studioenabled>/g, activityconfig?.studioEnabled ?? false);
+
 
   res.setHeader(
     "Content-Disposition",

@@ -51,6 +51,44 @@ function SettingField({
   )
 }
 
+function ToggleRow({
+  title,
+  hint,
+  checked,
+  disabled,
+  onChange,
+  badge,
+}: {
+  title: string
+  hint: string
+  checked: boolean
+  disabled?: boolean
+  onChange?: () => void
+  badge?: string
+}) {
+  return (
+    <div className="flex flex-row items-center justify-between gap-4 py-3.5">
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          {title}
+          {badge ? (
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+              {badge}
+            </span>
+          ) : null}
+        </p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{hint}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="w-8 text-right text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+          {disabled ? "Off" : checked ? "On" : "Off"}
+        </span>
+        <SwitchComponenet checked={checked} disabled={disabled} onChange={onChange} label="" />
+      </div>
+    </div>
+  )
+}
+
 type props = {
   triggerToast: typeof toast;
   hasResetActivityOnly?: boolean;
@@ -67,11 +105,10 @@ const Activity: FC<props> = (props) => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
-  const [idleTimeEnabled, setIdleTimeEnabled] = useState(true);
-  const [leaderboardStyle, setLeaderboardStyle] = useState<"list" | "podium">(
-    "list"
-  );
+  const [leaderboardStyle, setLeaderboardStyle] = useState<"list" | "podium">("list");
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [privateServerEnabled, setPrivateServerEnabled] = useState(false);
+  const [studioEnabled, setStudioEnabled] = useState(false);
   const [scheduleDay, setScheduleDay] = useState<string>("monday");
   const [scheduleFrequency, setScheduleFrequency] = useState<string>("weekly");
   const router = useRouter();
@@ -85,7 +122,8 @@ const Activity: FC<props> = (props) => {
         setRoles(res.data.roles);
         setSelectedRole(res.data.currentRole);
         setSelectedLRole(res.data.leaderboardRole);
-        setIdleTimeEnabled(res.data.idleTimeEnabled ?? true);
+        setPrivateServerEnabled(res.data.privateServerEnabled);
+        setStudioEnabled(res.data.studioEnabled);
       }
     })();
   }, []);
@@ -204,18 +242,38 @@ const Activity: FC<props> = (props) => {
     }
   };
 
-  const updateIdleTimeEnabled = async (enabled: boolean) => {
+  const updatePrivateServer = async (enabled: boolean) => {
+    const previous = privateServerEnabled;
+    setPrivateServerEnabled(enabled);
     try {
       const req = await axios.post(
-        `/api/workspace/${workspace.groupId}/settings/activity/setIdleTime`,
+        `/api/workspace/${workspace.groupId}/settings/activity/setprivateserver`,
         { enabled: enabled }
       );
       if (req.status === 200) {
-        setIdleTimeEnabled(enabled);
-        triggerToast.success("Updated idle time tracking!");
+        setPrivateServerEnabled(req.data.enabled);
+        triggerToast.success("Updated Private Server tracking!");
       }
     } catch (error: any) {
-      triggerToast.error("Failed to update idle time tracking.");
+      setPrivateServerEnabled(previous);
+      triggerToast.error("Failed to update private server tracking.");
+    }
+  };
+  const updateStudio = async (enabled: boolean) => {
+    const previous = studioEnabled;
+    setStudioEnabled(enabled);
+    try {
+      const req = await axios.post(
+        `/api/workspace/${workspace.groupId}/settings/activity/setstudio`,
+        { enabled: enabled }
+      );
+      if (req.status === 200) {
+        setStudioEnabled(req.data.enabled);
+        triggerToast.success("Updated Studio tracking!");
+      }
+    } catch (error: any) {
+      setStudioEnabled(previous);
+      triggerToast.error("Failed to update studio tracking.");
     }
   };
 
@@ -295,7 +353,7 @@ const Activity: FC<props> = (props) => {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity</p>
                   <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-                    Who is tracked, idle detection, and the desktop loader for in-game time.
+                    Who is tracked, settings, and the desktop loader for in-game time.
                   </p>
                 </div>
               </div>
@@ -308,7 +366,7 @@ const Activity: FC<props> = (props) => {
                 >
                   <Listbox value={selectedRole} onChange={(value: number) => updateRole(value)} as="div" className="relative">
                     <Listbox.Button className={listboxButtonClass}>
-                      <span className="truncate">{(roles.find((r: any) => r.rank === selectedRole) as any)?.name || "Select a role"}</span>
+                      <span className="truncate">{(roles.find((r: any) => r.rank === selectedRole) as any)?.name || 'Select a role'}</span>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                     </Listbox.Button>
                     <Listbox.Options className={listboxOptionsClass}>
@@ -316,7 +374,7 @@ const Activity: FC<props> = (props) => {
                         <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
                           {({ selected }) => (
                             <>
-                              <span className={`${selected ? "font-semibold" : ""} flex gap-2` }>{role.name} <span className="text-zinc-400 dark:text-zinc-500">(Group rank: {role.rank})</span> </span>
+                              <span className={`${selected ? "font-semibold" : ""} flex gap-2`}>{role.name} <span className="text-zinc-400 dark:text-zinc-500">(Group rank: {role.rank})</span> </span>
                               {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
                             </>
                           )}
@@ -326,25 +384,37 @@ const Activity: FC<props> = (props) => {
                   </Listbox>
                 </SettingField>
               </div>
-              <div className="pt-5 pb-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Idle time tracking</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Count time when staff are away from keyboard.</p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2 shrink-0">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right">{idleTimeEnabled ? "On" : "Off"}</span>
-                    <SwitchComponenet checked={idleTimeEnabled} onChange={() => updateIdleTimeEnabled(!idleTimeEnabled)} label="" />
-                  </div>
-                </div>
+
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+                <ToggleRow
+                  title="Private Servers"
+                  hint="Enable if you want the tracker to track the activity of players in a private server."
+                  checked={privateServerEnabled}
+                  onChange={() => updatePrivateServer(!privateServerEnabled)}
+                />
+                <ToggleRow
+                  title="Studio Sessions"
+                  hint="Enable if you want the tracker to track the activity of players on a studio session."
+                  checked={studioEnabled}
+                  onChange={() => updateStudio(!studioEnabled)}
+                />
+                <ToggleRow
+                  title="Workspace Bans"
+                  hint="Enable it if you don't want the tracker to track staff who are banned from the workspace."
+                  checked={false}
+                  disabled
+                  badge="Coming soon"
+                />
               </div>
+
               <div className="pt-5">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Activity loader</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">Install this on your machine to report session time to the workspace.</p>
                 <button
                   type="button"
                   onClick={downloadLoader}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[color:rgb(var(--group-theme))] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+                  disabled={!selectedRole}
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl disabled:bg-white/40 disabled:hover:bg-white/40 disabled:cursor-not-allowed bg-[color:rgb(var(--group-theme))] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90"
                 >
                   <IconDownload className="h-4 w-4" stroke={1.5} />
                   Download loader
@@ -506,13 +576,13 @@ const Activity: FC<props> = (props) => {
           )}
 
           <div className="space-y-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4">
-            <div className="flex flex-col gap-3 sm:min-h-[2.5rem] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <div className="min-w-0 pr-0 sm:pr-2">
+            <div className="flex flex-row items-center justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Automatic reset</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">Run a reset on a recurring schedule (saved separately from manual reset).</p>
               </div>
-              <div className="flex shrink-0 items-center justify-end gap-2 sm:pt-0">
-                <span className="w-8 text-right text-xs text-zinc-500 tabular-nums">{scheduleEnabled ? "On" : "Off"}</span>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="w-8 text-right text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{scheduleEnabled ? "On" : "Off"}</span>
                 <SwitchComponenet
                   checked={scheduleEnabled}
                   onChange={() => setScheduleEnabled(!scheduleEnabled)}

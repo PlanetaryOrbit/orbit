@@ -2,17 +2,18 @@
 	<Meta name="ExplicitAutoJoints">true</Meta>
 	<External>null</External>
 	<External>nil</External>
-	<Item class="Script" referent="RBX136FA6CC08AA4438A6013208DCCB74BB">
+	<Item class="Script" referent="RBX97E7E2AD80E04B9E8A93A147C4CA28E2">
 		<Properties>
 			<ProtectedString name="Source"><![CDATA[-- Orbit Activity Tracker
-local ReplicatedStorage  = game:GetService("ReplicatedStorage")
-local DataStoreService = game:GetService("DataStoreService")
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService  = game:GetService("DataStoreService")
+local HttpService       = game:GetService("HttpService")
+local Players           = game:GetService("Players")
+local RunService        = game:GetService("RunService")
+local GroupService      = game:GetService("GroupService")
 
 local HttpQueue = require(script.Components.HttpQueue)
-local FastWait = require(script.Components.FastWait)
+local FastWait  = require(script.Components.FastWait)
 
 local TovyFolder = Instance.new("Folder", ReplicatedStorage)
 TovyFolder.Name = "Orbit Assets"
@@ -28,26 +29,33 @@ local Configuration = {
 	url  = "<url>",
 	auth = "<apikey>",
 
-	privateEnabled = false,      -- Track private servers?
-	studioEnabled  = false,      -- Track Studio sessions?
+	privateEnabled = <privateenabled>,      -- Track private servers?
+	studioEnabled  = <studioenabled>,       -- Track Studio sessions?
 
 	-- Feature flags
 	bansEnabled       = false,   -- Let Orbit handle bans?
-	rankChecking      = false,   -- Only track members of the group?
-	groupId           = 0,       -- Group ID for rank checks
-	minTrackedRank    = 0,       -- Minimum rank to be tracked (fetched from Orbit on launch)
+	rankChecking      = true,    -- Only track members of the group?
+	groupId           = <groupid>, -- Group ID for rank checks
+	minTrackedRank    = <mintrackedrank>,      -- Minimum rank to be tracked (overridable via remote config)
 
 	-- Timing
-	cooldownPeriod    = 30,      -- Seconds between HTTP retries
-	minutesTillAFK    = 2,       -- Idle minutes before AFK flag
-	scanInterval      = 300,     -- Seconds between full player scans (5 min)
-	heartbeatInterval = 60,      -- Seconds between lightweight heartbeats
+	cooldownPeriod       = 30,   -- Seconds between HTTP retries
+	minutesTillAFK       = 2,    -- Idle minutes before AFK flag
+	scanInterval         = 300,  -- Seconds between full player scans (5 min)
+	heartbeatInterval    = 60,   -- Seconds between lightweight heartbeats
+	rankRefreshInterval  = 600,  -- Seconds between per-player rank re-checks (throttles GroupService)
+	serverHeartbeatEvery = 120,  -- Seconds between backend "server alive" pings
+	remoteEventCooldown  = 3,    -- Min seconds between accepted client Activity events per player
 
 	-- Chat capture
 	maxStoredChatLines  = 200,
 	maxChatCharsPerLine = 512,
-}
 
+	-- Reliability
+	deadLetterStoreName   = "OrbitFailedRequests",
+	deadLetterFlushEvery  = 60,   -- Seconds between dead-letter retry sweeps
+	deadLetterMaxAttempts = 10,   -- Give up (but keep for manual review) after this many failed retries
+}
 
 if not Configuration.studioEnabled and RunService:IsStudio() then
 	return warn("Orbit: Tracking disabled in Studio. (studioEnabled = false)")
@@ -60,14 +68,6 @@ if not Configuration.privateEnabled then
 end
 
 warn("Orbit: Module loaded — activity tracking active.")
-
-local chatLogTable   = {}
-local rankTable      = {}
-local afkTable       = {}
-local sessionActive  = {}
-
-local lastActivityTime: { [number]: number } = {}
-local afkStartTime: { [number]: number } = {}
 
 local function log(level: string, msg: string)
 	local prefix = string.format("[Orbit][%s] %s", level, msg)
@@ -88,6 +88,25 @@ local function safeDecode(raw: string): unknown?
 	return ok and result or nil
 end
 
+type PlayerState = {
+	rank: number,
+	chatLog: { string },
+	sessionActive: boolean,
+	lastActivity: number,
+	afkStart: number?,
+	isAFK: boolean,
+	afkTimerInstance: NumberValue?,
+	pendingAFKCheck: boolean,
+	lastRankCheck: number,
+	lastRemoteEventAccepted: number,
+}
+
+local PlayerData: { [number]: PlayerState } = {}
+
+local function getState(Player: Player): PlayerState?
+	return PlayerData[Player.UserId]
+end
+
 local function isPlayerOnline(Player: Player): boolean
 	return Players:GetPlayerByUserId(Player.UserId) ~= nil
 end
@@ -96,29 +115,33 @@ local function stripChat(text: string): string
 	return (text:gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
-local function isAFK(Player: Player): boolean
-	return table.find(afkTable, Player) ~= nil
-end
 
 local function setAFK(Player: Player, state: boolean)
-	local idx = table.find(afkTable, Player)
-	if state and not idx then
-		table.insert(afkTable, Player)
-		afkStartTime[Player.UserId] = os.clock()
-	elseif not state and idx then
-		table.remove(afkTable, idx)
-		afkStartTime[Player.UserId] = nil
+	local st = getState(Player)
+	if not st then return end
+
+	if state and not st.isAFK then
+		st.isAFK = true
+		st.afkStart = os.clock()
+	elseif not state and st.isAFK then
+		st.isAFK = false
+		st.afkStart = nil
+		if st.afkTimerInstance then
+			st.afkTimerInstance.Value = 0
+		end
 	end
 end
 
 local function bumpActivity(Player: Player)
-	lastActivityTime[Player.UserId] = os.clock()
+	local st = getState(Player)
+	if not st then return end
+	st.lastActivity = os.clock()
 	setAFK(Player, false)
 end
 
 local function appendChatLine(userId: number, raw: unknown)
-	local log_t = chatLogTable[userId]
-	if not log_t then return end
+	local st = PlayerData[userId]
+	if not st then return end
 
 	local text = type(raw) == "string" and raw or ""
 	text = stripChat(text)
@@ -129,23 +152,24 @@ local function appendChatLine(userId: number, raw: unknown)
 		text = text:sub(1, maxChars)
 	end
 
-	table.insert(log_t, text)
+	table.insert(st.chatLog, text)
 
 	local cap = Configuration.maxStoredChatLines
-	while cap > 0 and #log_t > cap do
-		table.remove(log_t, 1)
+	while cap > 0 and #st.chatLog > cap do
+		table.remove(st.chatLog, 1)
 	end
 end
 
 local function collectSessionEndRow(Player: Player): { [string]: unknown }
-	local afkTimer = Player:FindFirstChild("Orbit AFK Timer")
-	local log_t    = chatLogTable[Player.UserId] or {}
+	local st = getState(Player)
+	local log_t = st and st.chatLog or {}
+	local idleMinutes = st and st.afkTimerInstance and st.afkTimerInstance.Value or 0
 
 	local row: { [string]: unknown } = {
 		userid   = Player.UserId,
 		username = Player.Name,
 		placeid  = game.GameId,
-		idleTime = afkTimer and afkTimer.Value or 0,
+		idleTime = idleMinutes,
 		messages = #log_t,
 	}
 	if #log_t > 0 then
@@ -156,42 +180,117 @@ end
 
 local function fetchRank(Player: Player): number
 	if not Configuration.rankChecking then return math.huge end
-	local ok, rank = pcall(Player.GetRankInGroupAsync, Player, Configuration.groupId)
-	return ok and rank or 0
+	local success, rankInfo = pcall(function()
+		return GroupService:GetRolesInGroupAsync(Player.UserId, Configuration.groupId)
+	end)
+	if not success then return math.huge end
+	if not rankInfo.IsMember then return math.huge end
+
+	return rankInfo.Roles[1] and rankInfo.Roles[1].Rank or 0
 end
 
 local function isUserTracked(Player: Player): boolean
 	if not Configuration.rankChecking then return true end
-	local entry = rankTable[Player.UserId]
-	if not entry then return false end
-	return entry.Rank >= Configuration.minTrackedRank
+	local st = getState(Player)
+	if not st then return false end
+	return st.rank >= Configuration.minTrackedRank
 end
 
-local function httpGet(endpoint: string): (boolean, unknown?)
+local DeadLetterStore = DataStoreService:GetDataStore(Configuration.deadLetterStoreName)
+local deadLetterCounter = 0
+
+local function deadLetterKey(): string
+	deadLetterCounter += 1
+	return string.format("%d-%d-%d", game.JobId and #game.JobId or 0, os.time(), deadLetterCounter)
+end
+
+local function enqueueDeadLetter(endpoint: string, body: unknown)
+	local key = deadLetterKey()
+	local ok, err = pcall(function()
+		DeadLetterStore:SetAsync(key, {
+			endpoint = endpoint,
+			body     = body,
+			attempts = 0,
+			queuedAt = os.time(),
+		})
+	end)
+	if ok then
+		log("WARN", "Queued failed request to dead-letter store: " .. endpoint)
+	else
+		log("ERROR", "Failed to enqueue dead-letter entry (" .. endpoint .. "): " .. tostring(err))
+	end
+end
+
+local function rawPost(endpoint: string, encodedBody: string): (boolean, unknown?)
 	local ok, result = pcall(HttpService.RequestAsync, HttpService, {
 		Url     = Configuration.url .. endpoint,
-		Method  = "GET",
-		Headers = { ["authorization"] = Configuration.auth },
+		Method  = "POST",
+		Headers = {
+			["Content-Type"]  = "application/json",
+			["authorization"] = Configuration.auth,
+		},
+		Body = encodedBody,
 	})
-	if not ok then return false, nil end
-	local decoded = safeDecode(result.Body)
-	return decoded ~= nil, decoded
+	if not ok or not result.Success then return false, nil end
+	return true, safeDecode(result.Body)
 end
 
-local function httpPost(endpoint: string, body: unknown): boolean
+local function httpGet(endpoint: string, maxAttempts: number?): (boolean, unknown?)
+	maxAttempts = maxAttempts or 2
+	for attempt = 1, maxAttempts do
+		local ok, result = pcall(HttpService.RequestAsync, HttpService, {
+			Url     = Configuration.url .. endpoint,
+			Method  = "GET",
+			Headers = { ["authorization"] = Configuration.auth },
+		})
+		if ok and result.Success then
+			local decoded = safeDecode(result.Body)
+			if decoded ~= nil then
+				return true, decoded
+			end
+		end
+		if attempt < maxAttempts then
+			task.wait(1)
+		end
+	end
+	return false, nil
+end
+
+local function httpPost(endpoint: string, body: unknown, allowDeadLetter: boolean?): boolean
 	local encoded = safeEncode(body)
 	if not encoded then
 		log("ERROR", "Failed to encode body for " .. endpoint)
 		return false
 	end
-	local request = HttpQueue.HttpRequest.new(Configuration.url .. endpoint, "POST", encoded, nil,
-		{
+
+	local ok = rawPost(endpoint, encoded)
+	if ok then
+		return true
+	end
+
+	local queuedOk = pcall(function()
+		HttpQueue.HttpRequest.new(Configuration.url .. endpoint, "POST", encoded, nil, {
 			["Content-Type"]  = "application/json",
 			["authorization"] = Configuration.auth,
-		}
-	)
-	request:Send()
-	return true
+		}):Send()
+	end)
+
+	if not queuedOk and allowDeadLetter ~= false then
+		enqueueDeadLetter(endpoint, body)
+	end
+
+	return queuedOk
+end
+
+local function handlePossibleBan(Player: Player, response: unknown)
+	if not Configuration.bansEnabled then return end
+	if type(response) ~= "table" then return end
+
+	if response.banned then
+		local reason = type(response.reason) == "string" and response.reason or "Banned"
+		log("WARN", string.format("%s is banned via Orbit (%s) — kicking.", Player.Name, reason))
+		Player:Kick("You have been banned: " .. reason)
+	end
 end
 
 local function checkRemoteSessionActive(Player: Player): boolean
@@ -203,33 +302,91 @@ local function checkRemoteSessionActive(Player: Player): boolean
 end
 
 local function CreateSession(Player: Player)
-	if sessionActive[Player.UserId] then
+	local st = getState(Player)
+	if not st then return end
+
+	if st.sessionActive then
 		log("INFO", "Session already cached as active for " .. Player.Name .. ", skipping.")
 		return
 	end
 
 	if checkRemoteSessionActive(Player) then
 		log("WARN", "Remote session already exists for " .. Player.Name .. ", syncing local cache.")
-		sessionActive[Player.UserId] = true
+		st.sessionActive = true
 		return
 	end
 
-	local success = httpPost("/api/activity/session?type=create", {
-		userid  = Player.UserId,
+	local encoded = safeEncode({
+		userid   = Player.UserId,
 		username = Player.Name,
-		placeid = game.GameId,
+		placeid  = game.GameId,
 	})
+	local ok, response = false, nil
+	if encoded then
+		ok, response = rawPost("/api/activity/session?type=create", encoded)
+	end
 
-	if success then
-		sessionActive[Player.UserId] = true
+	if ok then
+		st.sessionActive = true
 		log("INFO", "Session created for " .. Player.Name)
+		handlePossibleBan(Player, response)
 	else
-		log("ERROR", "Failed to create session for " .. Player.Name)
+		local fallbackOk = httpPost("/api/activity/session?type=create", {
+			userid   = Player.UserId,
+			username = Player.Name,
+			placeid  = game.GameId,
+		})
+		if fallbackOk then
+			st.sessionActive = true
+			log("INFO", "Session created for " .. Player.Name .. " (via retry path)")
+		else
+			log("ERROR", "Failed to create session for " .. Player.Name)
+		end
+	end
+end
+
+local function BulkCreateSessions(playersList: { Player })
+	if #playersList == 0 then return end
+
+	local rows = {}
+	for _, Player in ipairs(playersList) do
+		table.insert(rows, {
+			userid   = Player.UserId,
+			username = Player.Name,
+			placeid  = game.GameId,
+		})
+	end
+
+	local encoded = safeEncode({ sessions = rows })
+	local bulkSucceeded: { [number]: boolean } = {}
+
+	if encoded then
+		local ok, response = rawPost("/api/activity/bulk-start", encoded)
+		if ok and type(response) == "table" and type(response.started) == "table" then
+			for _, userId in ipairs(response.started) do
+				bulkSucceeded[userId] = true
+			end
+			log("INFO", string.format("Bulk-started %d/%d session(s).", #response.started, #playersList))
+		end
+	end
+
+	for _, Player in ipairs(playersList) do
+		local st = getState(Player)
+		if st then
+			if bulkSucceeded[Player.UserId] then
+				st.sessionActive = true
+			else
+				CreateSession(Player)
+			end
+		end
 	end
 end
 
 local function EndSession(Player: Player, reason: string?)
-	if not sessionActive[Player.UserId] then
+	local st = getState(Player)
+	if not st then return end
+
+	if not st.sessionActive then
 		if not checkRemoteSessionActive(Player) then
 			log("INFO", "No session to end for " .. Player.Name)
 			return
@@ -241,7 +398,7 @@ local function EndSession(Player: Player, reason: string?)
 
 	local success = httpPost("/api/activity/session?type=end", row)
 	if success then
-		sessionActive[Player.UserId] = false
+		st.sessionActive = false
 		log("INFO", string.format("Session ended for %s (reason: %s)", Player.Name, row.endReason))
 	else
 		log("ERROR", "Failed to end session for " .. Player.Name)
@@ -251,10 +408,11 @@ end
 local function MovementDetection(Player: Player)
 	local Character = Player.Character or Player.CharacterAdded:Wait()
 	local Humanoid  = Character:WaitForChild("Humanoid")
-	local userId    = Player.UserId
 
-	if not lastActivityTime[userId] then
-		lastActivityTime[userId] = os.clock()
+	local st = getState(Player)
+	if not st then return end
+	if not st.lastActivity then
+		st.lastActivity = os.clock()
 	end
 
 	local connections: { RBXScriptConnection } = {}
@@ -262,17 +420,32 @@ local function MovementDetection(Player: Player)
 	local function onActivity(speed: number)
 		if speed > 0 then
 			bumpActivity(Player)
-		else
-			local snapshot = os.clock()
-			lastActivityTime[userId] = snapshot
+			return
+		end
 
+		local myState = getState(Player)
+		if not myState or myState.pendingAFKCheck then
+			return
+		end
+
+		local snapshot = os.clock()
+		myState.lastActivity = snapshot
+		myState.pendingAFKCheck = true
+
+		task.spawn(function()
 			FastWait(60 * Configuration.minutesTillAFK)
-			if isPlayerOnline(Player) and lastActivityTime[userId] == snapshot then
+
+			local currentState = getState(Player)
+			if currentState then
+				currentState.pendingAFKCheck = false
+			end
+
+			if isPlayerOnline(Player) and currentState and currentState.lastActivity == snapshot then
 				setAFK(Player, true)
 				log("INFO", Player.Name .. " marked AFK (no movement for "
 					.. Configuration.minutesTillAFK .. " min).")
 			end
-		end
+		end)
 	end
 
 	table.insert(connections, Humanoid.Running:Connect(onActivity))
@@ -283,6 +456,7 @@ local function MovementDetection(Player: Player)
 			bumpActivity(Player)
 		end
 	end))
+
 	local charRemovedConn
 	charRemovedConn = Character.AncestryChanged:Connect(function()
 		if not Character:IsDescendantOf(game) then
@@ -294,13 +468,26 @@ local function MovementDetection(Player: Player)
 	end)
 end
 
-local function InputChange(Player: Player, isIdle: boolean)
+local function InputChange(Player: Player, isIdle: unknown)
+	if typeof(isIdle) ~= "boolean" then
+		log("WARN", "Rejected malformed Activity event from " .. Player.Name)
+		return
+	end
+
+	local st = getState(Player)
+	if not st then return end
+
+	local now = os.clock()
+	if now - (st.lastRemoteEventAccepted or 0) < Configuration.remoteEventCooldown then
+		return
+	end
+	st.lastRemoteEventAccepted = now
+
 	if not isIdle then
 		bumpActivity(Player)
 	else
-		local lastActive = lastActivityTime[Player.UserId]
-		local idleSeconds = lastActive and (os.clock() - lastActive) or math.huge
-		local threshold = 60 * Configuration.minutesTillAFK -- now matches MovementDetection's threshold
+		local idleSeconds = st.lastActivity and (now - st.lastActivity) or math.huge
+		local threshold = 60 * Configuration.minutesTillAFK -- matches MovementDetection's threshold
 
 		if idleSeconds >= threshold then
 			setAFK(Player, true)
@@ -310,43 +497,56 @@ end
 
 TovyEvent.OnServerEvent:Connect(InputChange)
 
-local function InitiatePlayer(Player: Player)
+
+local function InitiatePlayer(Player: Player): boolean
 	local rank = fetchRank(Player)
-	rankTable[Player.UserId] = { Rank = rank }
-	chatLogTable[Player.UserId] = {}
-	lastActivityTime[Player.UserId] = os.clock()
+
+	PlayerData[Player.UserId] = {
+		rank                    = rank,
+		chatLog                 = {},
+		sessionActive           = false,
+		lastActivity            = os.clock(),
+		afkStart                = nil,
+		isAFK                   = false,
+		afkTimerInstance        = nil,
+		pendingAFKCheck         = false,
+		lastRankCheck           = os.clock(),
+		lastRemoteEventAccepted = 0,
+	}
 
 	if not isUserTracked(Player) then
 		log("INFO", Player.Name .. " is not at a tracked rank — skipping session.")
-		return
+		return false
 	end
 
 	local afkTimer = Instance.new("NumberValue")
 	afkTimer.Name   = "Orbit AFK Timer"
 	afkTimer.Parent = Player
+	PlayerData[Player.UserId].afkTimerInstance = afkTimer
 
 	local clientClone = TovyClient:Clone()
 	clientClone.Parent = Player:WaitForChild("PlayerGui")
 
-	CreateSession(Player)
-	MovementDetection(Player)
+	task.spawn(MovementDetection, Player)
+	return true
 end
 
 local function CleanupPlayer(Player: Player, reason: string?)
 	EndSession(Player, reason)
-	setAFK(Player, false)
-	rankTable[Player.UserId]      = nil
-	chatLogTable[Player.UserId]   = nil
-	sessionActive[Player.UserId]  = nil
-	lastActivityTime[Player.UserId] = nil
-	afkStartTime[Player.UserId]   = nil
+	PlayerData[Player.UserId] = nil
 end
 
 Players.PlayerAdded:Connect(function(Player)
-	InitiatePlayer(Player)
+	local tracked = InitiatePlayer(Player)
+	if tracked then
+		CreateSession(Player)
+	end
 
 	Player.CharacterAdded:Connect(function()
-		lastActivityTime[Player.UserId] = os.clock()
+		local st = getState(Player)
+		if st then
+			st.lastActivity = os.clock()
+		end
 		MovementDetection(Player)
 	end)
 
@@ -365,7 +565,8 @@ end)
 game:BindToClose(function()
 	local sessions = {}
 	for _, Player in ipairs(Players:GetPlayers()) do
-		if isUserTracked(Player) and (sessionActive[Player.UserId] or checkRemoteSessionActive(Player)) then
+		local st = getState(Player)
+		if st and isUserTracked(Player) and (st.sessionActive or checkRemoteSessionActive(Player)) then
 			local row = collectSessionEndRow(Player)
 			row.endReason = "server_shutdown"
 			table.insert(sessions, row)
@@ -375,19 +576,12 @@ game:BindToClose(function()
 	if #sessions > 0 then
 		local encoded = safeEncode({ sessions = sessions })
 		if encoded then
-			local ok, response = pcall(HttpService.RequestAsync, HttpService, {
-				Url     = Configuration.url .. "/api/activity/bulk-end",
-				Method  = "POST",
-				Headers = {
-					["Content-Type"]  = "application/json",
-					["authorization"] = Configuration.auth,
-				},
-				Body = encoded,
-			})
+			local ok = rawPost("/api/activity/bulk-end", encoded)
 			if ok then
 				log("INFO", string.format("Shutdown: bulk-ended %d session(s).", #sessions))
 			else
-				log("ERROR", "Shutdown: bulk-end request failed — " .. tostring(response))
+				log("ERROR", "Shutdown: bulk-end request failed — queueing for dead-letter retry.")
+				enqueueDeadLetter("/api/activity/bulk-end", { sessions = sessions })
 			end
 		end
 	else
@@ -397,21 +591,76 @@ game:BindToClose(function()
 	task.wait(5)
 end)
 
+local function fetchRemoteConfig()
+	local ok, response = httpGet(`/api/activity/config?id={Configuration.groupId}`)
+	if not ok or type(response.data) ~= "table" then
+		log("WARN", "Could not fetch remote config — using local defaults.")
+		return
+	end
+
+	local overridable = {"minTrackedRank", "privateEnabled", "studioEnabled"}
+	local changed = {}
+	for _, key in ipairs(overridable) do
+		if response[key] ~= nil and response[key] ~= Configuration[key] then
+			Configuration[key] = response[key]
+			table.insert(changed, key)
+		end
+	end
+
+	if #changed > 0 then
+		log("INFO", "Applied remote config overrides: " .. table.concat(changed, ", "))
+	end
+end
+
 task.spawn(function()
 	while true do
 		task.wait(Configuration.heartbeatInterval)
-		for idx, Player in ipairs(afkTable) do
-			local online = isPlayerOnline(Player)
-			if online then
-				local afkTimer = Player:FindFirstChild("Orbit AFK Timer")
-				local start = afkStartTime[Player.UserId]
-				if afkTimer and start then
-					afkTimer.Value = math.floor((os.clock() - start) / 60)
+		for userId, st in pairs(PlayerData) do
+			if st.isAFK and st.afkStart and st.afkTimerInstance then
+				local Player = Players:GetPlayerByUserId(userId)
+				if Player and isPlayerOnline(Player) then
+					st.afkTimerInstance.Value = math.floor((os.clock() - st.afkStart) / 60)
 				end
-			else
-				log("WARN", "AFK table contained offline player — removing ghost entry.")
-				table.remove(afkTable, idx)
-				afkStartTime[Player.UserId] = nil
+			end
+		end
+	end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(Configuration.deadLetterFlushEvery)
+
+		local ok, keysPage = pcall(function()
+			return DeadLetterStore:ListKeysAsync()
+		end)
+		if not ok then continue end
+
+		local currentPage = keysPage:GetCurrentPage()
+		for _, keyInfo in ipairs(currentPage) do
+			local key = keyInfo.KeyName
+			local getOk, entry = pcall(function()
+				local value = DeadLetterStore:GetAsync(key)
+				return value
+			end)
+
+			if getOk and type(entry) == "table" then
+				local encoded = safeEncode(entry.body)
+				if encoded then
+					local postOk = rawPost(entry.endpoint, encoded)
+					if postOk then
+						pcall(function() DeadLetterStore:RemoveAsync(key) end)
+						log("INFO", "Dead-letter retry succeeded for " .. entry.endpoint)
+					else
+						entry.attempts = (entry.attempts or 0) + 1
+						if entry.attempts >= Configuration.deadLetterMaxAttempts then
+							log("ERROR", string.format(
+								"Dead-letter entry %s exceeded max attempts (%d) — leaving in store for manual review.",
+								key, entry.attempts))
+						else
+							pcall(function() DeadLetterStore:SetAsync(key, entry) end)
+						end
+					end
+				end
 			end
 		end
 	end
@@ -423,100 +672,108 @@ task.spawn(function()
 		log("INFO", "Running full player scan...")
 
 		local onlinePlayers = Players:GetPlayers()
-		local onlineSet     = {}
+		local onlineSet: { [number]: boolean } = {}
 		for _, p in ipairs(onlinePlayers) do
 			onlineSet[p.UserId] = true
 		end
-		for userId, active in pairs(sessionActive) do
-			if active and not onlineSet[userId] then
+
+		for userId, st in pairs(PlayerData) do
+			if st.sessionActive and not onlineSet[userId] then
 				log("WARN", string.format(
-					"Ghost session detected for userId %d — ending immediately.", userId
-					))
+					"Ghost session detected for userId %d — ending immediately.", userId))
 				local ghostRow = {
 					userid    = userId,
 					idleTime  = 0,
-					messages  = #(chatLogTable[userId] or {}),
+					messages  = #st.chatLog,
 					endReason = "ghost_cleanup",
 				}
-				if chatLogTable[userId] and #chatLogTable[userId] > 0 then
-					ghostRow.chatBodies = chatLogTable[userId]
+				if #st.chatLog > 0 then
+					ghostRow.chatBodies = st.chatLog
 				end
 				httpPost("/api/activity/session?type=end", ghostRow)
-				sessionActive[userId]     = false
-				chatLogTable[userId]      = nil
-				rankTable[userId]         = nil
-				lastActivityTime[userId]  = nil
-				afkStartTime[userId]      = nil
+				PlayerData[userId] = nil
 			end
 		end
+
 		for _, Player in ipairs(onlinePlayers) do
-			if not isUserTracked(Player) then continue end
-
-			local hasSession = sessionActive[Player.UserId]
-			if not hasSession then
-				local remoteActive = checkRemoteSessionActive(Player)
-				if remoteActive then
-					log("WARN", Player.Name .. " has remote session but no local cache — syncing.")
-					sessionActive[Player.UserId] = true
-				else
-					log("WARN", Player.Name .. " has no active session — recreating.")
-					chatLogTable[Player.UserId] = chatLogTable[Player.UserId] or {}
-					local afkTimer = Player:FindFirstChild("Orbit AFK Timer")
-					if afkTimer then afkTimer.Value = 0 end
-					CreateSession(Player)
-				end
-			end
-		end
-		if Configuration.rankChecking then
-			for _, Player in ipairs(onlinePlayers) do
-				local oldRank  = rankTable[Player.UserId] and rankTable[Player.UserId].Rank or 0
-				local newRank  = fetchRank(Player)
-				rankTable[Player.UserId] = { Rank = newRank }
-
-				if newRank ~= oldRank then
-					log("INFO", string.format("%s rank changed: %d → %d", Player.Name, oldRank, newRank))
-
-					if oldRank >= Configuration.minTrackedRank
-						and newRank < Configuration.minTrackedRank then
-						log("WARN", Player.Name .. " fell below min rank, ending session.")
-						EndSession(Player, "rank_below_minimum")
-
-					elseif oldRank < Configuration.minTrackedRank
-						and newRank >= Configuration.minTrackedRank then
-						log("INFO", Player.Name .. " now meets min rank, starting session.")
-						chatLogTable[Player.UserId] = {}
-						lastActivityTime[Player.UserId] = os.clock()
-						local afkTimer = Instance.new("NumberValue")
-						afkTimer.Name   = "Orbit AFK Timer"
-						afkTimer.Parent = Player
+			if isUserTracked(Player) then
+				local st = getState(Player)
+				if st and not st.sessionActive then
+					local remoteActive = checkRemoteSessionActive(Player)
+					if remoteActive then
+						log("WARN", Player.Name .. " has remote session but no local cache — syncing.")
+						st.sessionActive = true
+					else
+						log("WARN", Player.Name .. " has no active session — recreating.")
+						if st.afkTimerInstance then st.afkTimerInstance.Value = 0 end
 						CreateSession(Player)
 					end
 				end
 			end
 		end
 
-		for idx = #afkTable, 1, -1 do
-			local Player = afkTable[idx]
-			if not isPlayerOnline(Player) then
-				log("WARN", "Scan: purging offline player from AFK table: " .. tostring(Player))
-				table.remove(afkTable, idx)
-				afkStartTime[Player.UserId] = nil
+		if Configuration.rankChecking then
+			for i, Player in ipairs(onlinePlayers) do
+				local st = getState(Player)
+				if st then
+					local dueForRecheck = (os.clock() - (st.lastRankCheck or 0)) >= Configuration.rankRefreshInterval
+					if dueForRecheck then
+						if i > 1 then task.wait(0.25) end
+
+						local oldRank = st.rank
+						local newRank = fetchRank(Player)
+						st.rank = newRank
+						st.lastRankCheck = os.clock()
+
+						if newRank ~= oldRank then
+							log("INFO", string.format("%s rank changed: %d → %d", Player.Name, oldRank, newRank))
+
+							if oldRank >= Configuration.minTrackedRank
+								and newRank < Configuration.minTrackedRank then
+								log("WARN", Player.Name .. " fell below min rank, ending session.")
+								EndSession(Player, "rank_below_minimum")
+
+							elseif oldRank < Configuration.minTrackedRank
+								and newRank >= Configuration.minTrackedRank then
+								log("INFO", Player.Name .. " now meets min rank, starting session.")
+								st.chatLog = {}
+								st.lastActivity = os.clock()
+								if not st.afkTimerInstance then
+									local afkTimer = Instance.new("NumberValue")
+									afkTimer.Name   = "Orbit AFK Timer"
+									afkTimer.Parent = Player
+									st.afkTimerInstance = afkTimer
+								end
+								CreateSession(Player)
+							end
+						end
+					end
+				end
 			end
 		end
-
-		for userId in pairs(chatLogTable) do
-			if not onlineSet[userId] then
-				log("WARN", string.format(
-					"Orphan chat log found for offline userId %d — purging.", userId
-					))
-				chatLogTable[userId] = nil
+		for userId, st in pairs(PlayerData) do
+			if st.isAFK and not onlineSet[userId] then
+				st.isAFK = false
+				st.afkStart = nil
 			end
 		end
 	end
 end)
 
-for _, Player in ipairs(Players:GetPlayers()) do
-	task.spawn(InitiatePlayer, Player)
+fetchRemoteConfig()
+
+do
+	local startupPlayers = Players:GetPlayers()
+	local trackedForBulkStart = {}
+
+	for _, Player in ipairs(startupPlayers) do
+		local tracked = InitiatePlayer(Player)
+		if tracked then
+			table.insert(trackedForBulkStart, Player)
+		end
+	end
+
+	BulkCreateSessions(trackedForBulkStart)
 end]]></ProtectedString>
 			<bool name="Disabled">false</bool>
 			<Content name="LinkedSource"><null></null></Content>
@@ -527,18 +784,18 @@ end]]></ProtectedString>
 			<bool name="DefinesCapabilities">false</bool>
 			<string name="Name">OrbitActivity</string>
 			<int64 name="SourceAssetId">-1</int64>
-			<BinaryString name="Tags"></BinaryString>
+			<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 		</Properties>
-		<Item class="Folder" referent="RBX693341DE809A4CD49D9F5CB3B3393E79">
+		<Item class="Folder" referent="RBX03E86216049E4E9189C6FE50204AFC10">
 			<Properties>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 				<bool name="DefinesCapabilities">false</bool>
 				<string name="Name">Components</string>
 				<int64 name="SourceAssetId">-1</int64>
-				<BinaryString name="Tags"></BinaryString>
+				<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			</Properties>
-			<Item class="ModuleScript" referent="RBX07FA90DC23FB4320BAA3E8AE3B2FB71E">
+			<Item class="ModuleScript" referent="RBX5E7D8CB756C1427096B95E0140358B8A">
 				<Properties>
 					<Content name="LinkedSource"><null></null></Content>
 					<ProtectedString name="Source"><![CDATA[--[[
@@ -566,9 +823,9 @@ return exports
 					<bool name="DefinesCapabilities">false</bool>
 					<string name="Name">HttpQueue</string>
 					<int64 name="SourceAssetId">-1</int64>
-					<BinaryString name="Tags"></BinaryString>
+					<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				</Properties>
-				<Item class="ModuleScript" referent="RBX420582FA45444CE5B7E8BF3848CEC181">
+				<Item class="ModuleScript" referent="RBX75F29D21BFBF4FB3BDF42B2133BFFCF2">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -617,10 +874,10 @@ return dataUtils
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">DataUtils</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXE605E8EF534F4B1196851113F9AA2A8F">
+				<Item class="ModuleScript" referent="RBX04FB9AC7D33842D4B89616FD10E0066B">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -867,10 +1124,10 @@ return setmetatable(HttpQueue, {
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">HttpQueue</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXE4B37F048F3A4B308624637FF63546BE">
+				<Item class="ModuleScript" referent="RBXC78A8C757AB344D4B43C47117867B28F">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -990,10 +1247,10 @@ return setmetatable(HttpRequest, {
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">HttpRequest</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXF423B4D74F8B485A924F53194D118783">
+				<Item class="ModuleScript" referent="RBX7F1CA8443F2640B9B84D1291F912CDA9">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1029,10 +1286,10 @@ return setmetatable({
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">HttpRequestPriority</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX4AB9CE10AC1F4A2AB8FB5182011EF779">
+				<Item class="ModuleScript" referent="RBX8677B616FDDE4670AF8BAF04F5EB81C6">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1068,10 +1325,10 @@ return newHttpResponse
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">HttpResponse</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBXEFA62D4AD643454B85B6448358C73AFE">
+				<Item class="ModuleScript" referent="RBX4CFC94F3BAF145CEB15207CA65631B76">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1127,10 +1384,10 @@ return guards
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">TypeGuards</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX1465A4E06A2F4E0498FC487CD70E98C5">
+				<Item class="ModuleScript" referent="RBX77D5B4EF1F3F4914896A46DD513B57DC">
 					<Properties>
 						<Content name="LinkedSource"><null></null></Content>
 						<ProtectedString name="Source"><![CDATA[--[[
@@ -1169,9 +1426,9 @@ return dependencies
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">DependencyLoader</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
-					<Item class="ModuleScript" referent="RBXBBEEE3F302994C97A16C59AB027A763C">
+					<Item class="ModuleScript" referent="RBXB60E5F68AEBD4741BB0DF7E9EE92F8CF">
 						<Properties>
 							<Content name="LinkedSource"><null></null></Content>
 							<ProtectedString name="Source"><![CDATA[--[[
@@ -2583,10 +2840,10 @@ return Promise
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">Promise</string>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBXF32C73DC5C744B7297A402ACA0D7E6E9">
+					<Item class="ModuleScript" referent="RBX07398AD830EE4E66908038085AB9BE55">
 						<Properties>
 							<Content name="LinkedSource"><null></null></Content>
 							<ProtectedString name="Source"><![CDATA[-- t: a runtime typechecker for Roblox
@@ -3780,12 +4037,12 @@ return t
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">t</string>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 				</Item>
 			</Item>
-			<Item class="LocalScript" referent="RBX45BC23D3DC8A4FB5866E74FE8DF5C342">
+			<Item class="LocalScript" referent="RBX3020D6EEA291429F8F0CF4D1B12E9EA1">
 				<Properties>
 					<ProtectedString name="Source"><![CDATA[--[[
 
@@ -3818,9 +4075,9 @@ end)]]></ProtectedString>
 					<bool name="DefinesCapabilities">false</bool>
 					<string name="Name">OrbitClient</string>
 					<int64 name="SourceAssetId">-1</int64>
-					<BinaryString name="Tags"></BinaryString>
+					<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				</Properties>
-				<Item class="ObjectValue" referent="RBX8618873F3AB74AC098C4EF429027BE17">
+				<Item class="ObjectValue" referent="RBX78A2452CE05045F7881AE4A9EA44F1D0">
 					<Properties>
 						<Ref name="Value">null</Ref>
 						<BinaryString name="AttributesSerialize"></BinaryString>
@@ -3828,11 +4085,11 @@ end)]]></ProtectedString>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">Event</string>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 				</Item>
 			</Item>
-			<Item class="ModuleScript" referent="RBX079322345A564EBFA6A031FDE4E49E30">
+			<Item class="ModuleScript" referent="RBX74A84F7609B54C2E8852FF9A66521DFD">
 				<Properties>
 					<Content name="LinkedSource"><null></null></Content>
 					<ProtectedString name="Source"><![CDATA[local RunService = game:GetService("RunService")
@@ -3882,9 +4139,12 @@ return fastWait]]></ProtectedString>
 					<bool name="DefinesCapabilities">false</bool>
 					<string name="Name">FastWait</string>
 					<int64 name="SourceAssetId">-1</int64>
-					<BinaryString name="Tags"></BinaryString>
+					<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				</Properties>
 			</Item>
 		</Item>
 	</Item>
+	<SharedStrings>
+		<SharedString md5="yuZpQdnvvUBOTYh1jqZ2cA=="></SharedString>
+	</SharedStrings>
 </roblox>
