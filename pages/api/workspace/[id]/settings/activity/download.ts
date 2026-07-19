@@ -25,13 +25,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   let activityconfig = await getConfig("activity", workspaceId);
-  console.log(activityconfig)
   if (!activityconfig?.key) {
     const newKey = crypto.randomBytes(16).toString("hex");
-    await setConfig("activity", {
-      ...activityconfig,
-      key: newKey
-    }, workspaceId);
+    activityconfig = { ...activityconfig, key: newKey };
+    await setConfig("activity", activityconfig, workspaceId);
   }
   let xml_string: string;
 

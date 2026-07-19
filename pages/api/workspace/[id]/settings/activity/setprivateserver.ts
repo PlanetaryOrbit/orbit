@@ -28,7 +28,7 @@ export async function handler(
   const activityconfig = await getConfig('activity', parseInt(req.query.id as string));
   const newconfig = {
     ...activityconfig,
-    privateServerEnabled: req.body.enabled
+    privateServerEnabled: Boolean(req.body.enabled)
   };
   await setConfig('activity', newconfig, parseInt(req.query.id as string));
 

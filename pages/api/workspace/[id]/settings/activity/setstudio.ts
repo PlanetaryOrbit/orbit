@@ -28,7 +28,7 @@ export async function handler(
   const activityconfig = await getConfig('activity', parseInt(req.query.id as string));
   const newconfig = {
     ...activityconfig,
-    studioEnabled: req.body.enabled
+    studioEnabled: Boolean(req.body.enabled)
   };
   await setConfig('activity', newconfig, parseInt(req.query.id as string));
 
