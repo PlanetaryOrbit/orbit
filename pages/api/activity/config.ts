@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   try {
     const activityconfig = await getConfig('activity', parseInt(id as string));
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       data: {
         minTrackedRank: activityconfig?.role,
@@ -35,6 +35,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       .status(500)
       .json({ success: false, error: "Internal server error" });
   }
-
-  return res.status(200).json({ success: true });
 }
