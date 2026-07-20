@@ -15,8 +15,8 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 	let clientId: string | undefined;
 	let redirectUri: string | undefined;
 	clientId = process.env.ROBLOX_CLIENT_ID;
-	redirectUri = process.env.ROBLOX_REDIRECT_URI || `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`;
-	if (!clientId || !redirectUri) {
+	redirectUri = `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`;
+  if (!clientId || !redirectUri) {
 		try {
 			const configs = await prisma.instanceConfig.findMany({
 				where: {
@@ -49,7 +49,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
 	const authUrl = new URL('https://apis.roblox.com/oauth/v1/authorize');
 	authUrl.searchParams.set('client_id', clientId);
-	authUrl.searchParams.set('redirect_uri', redirectUri || `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`);
+	authUrl.searchParams.set('redirect_uri', redirectUri);
 	authUrl.searchParams.set('scope', 'openid profile');
 	authUrl.searchParams.set('response_type', 'code');
 	authUrl.searchParams.set('state', state);

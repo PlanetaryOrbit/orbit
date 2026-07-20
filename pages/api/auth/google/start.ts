@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     include_granted_scopes: true,
     state: state,
     client_id: clientId,
-    redirect_uri: `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`
+    redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`
   });
 
   res.redirect(authUrl)
