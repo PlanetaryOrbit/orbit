@@ -93,7 +93,7 @@ export default async function handler(
       req.headers['user-agent']
     );
 
-    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`);
+    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`);
 
     return res.status(200).json({ success: true });
   } catch (error) {

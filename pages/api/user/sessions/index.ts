@@ -9,6 +9,7 @@ export async function handler(
   try {
     if (req.method === "GET") {
       const sessions = await listActiveSessions(req.auth.userId)
+      console.log(req)
 
       return res.status(200).json({
         sessions: sessions.map((s) => ({
@@ -35,7 +36,7 @@ export async function handler(
         "session_token=",
         "Path=/",
         "HttpOnly",
-        "SameSite=Strict",
+        "SameSite=lax",
         "Secure",
         "Max-Age=0",
       ].join("; "))

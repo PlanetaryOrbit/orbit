@@ -115,6 +115,8 @@ export default async function handler(
       where: { discordUserId },
     });
 
+    console.log(existingDiscord)
+    console.log(req)
 
     const cookies = cookie.parse(req.headers.cookie || "")
     const sessionToken = cookies.session_token
@@ -163,13 +165,13 @@ export default async function handler(
 
     res.setHeader(
       "Set-Cookie",
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7
-      }; ${process.env.NODE_ENV === "production" ? "Secure;" : ""}`
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 7}; ${process.env.NODE_ENV === "production" ? "Secure;" : ""}`
     )
 
     return res.redirect("/")
   } catch (err) {
     console.error("Discord OAuth error:", err)
+    console.log("hi")
 
     if (axios.isAxiosError(err)) {
       console.error(err.response?.data)

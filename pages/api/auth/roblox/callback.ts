@@ -163,7 +163,7 @@ export default async function handler(
 
     res.setHeader(
       'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${
         60 * 60 * 24 * 30
       }; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`
     )

@@ -55,7 +55,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       'session_token=',
       'Path=/',
       'HttpOnly',
-      'SameSite=Strict',
+      'SameSite=lax',
       'Secure',
       'Max-Age=0',
     ].join('; '))

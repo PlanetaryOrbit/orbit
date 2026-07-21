@@ -167,7 +167,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       req.headers["user-agent"]
     )
 
-    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`)
+    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`)
 
     const tovyuser: User = {
       userId: id,

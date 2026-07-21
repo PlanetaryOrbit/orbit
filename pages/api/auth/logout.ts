@@ -23,7 +23,7 @@ export async function handler(
         "session_token=;",
         "Path=/;",
         "HttpOnly;",
-        "SameSite=Strict;",
+        "SameSite=lax;",
         "Max-Age=0;",
         process.env.NODE_ENV === "production" ? "Secure;" : "",
       ].join(" ")

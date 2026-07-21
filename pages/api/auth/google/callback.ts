@@ -175,7 +175,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
     res.setHeader(
       "Set-Cookie",
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 30}`
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`
     )
 
     return res.redirect("/")
