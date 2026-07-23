@@ -38,7 +38,7 @@ model workspace {
   policyLinks          PolicyShareableLink[]
   stickyAnnouncements  StickyAnnouncement[]
   staffResignations    staffResignation[]
-  forms                form[]
+  forms                Form[]
 }
 
 model config {
@@ -102,7 +102,10 @@ model user {
   quotaCustomCompletions   QuotaCustomCompletion[] @relation("QuotaCompletionUser")
   quotaCompletionsReviewed QuotaCustomCompletion[] @relation("QuotaCompletionReviewer")
   quotaUsers               QuotaUser[]
-  forms                    form[]
+  createdForms             Form[]
+  formResponses            FormResponse[]
+  formReviews              FormReview[]
+  formPermissions          FormPermission[]
 }
 
 model AuthSession {
@@ -214,6 +217,7 @@ model role {
   documents        document[]    @relation("documentTorole")
   members          user[]        @relation("roleTouser")
   roleMembers      RoleMember[]
+  formPermissions  FormPermission[]
 }
 
 model RoleMember {
@@ -743,120 +747,163 @@ model PolicyShareableLink {
   @@index([createdById])
 }
 
-model form {
-  id               String           @id @default(uuid()) @db.Uuid
+model Form {
+  id               String         @id @default(uuid()) @db.Uuid
   workspaceGroupId Int
+  createdById      BigInt
   name             String
   description      String?
-  isEnabled        Boolean
-  settings         Json
-  visibility       Json?
-  createdById      BigInt
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  workspace        workspace        @relation(fields: [workspaceGroupId], references: [groupId])
-  createdBy        user             @relation(fields: [createdById], references: [userid])
-  questions        formQuestion[]
-  submissions      formSubmission[]
-  auditLogs        formAuditLog[]
-
-  @@index([workspaceGroupId])
-}
-
-model formQuestion {
-  id              String       @id @default(uuid()) @db.Uuid
-  formId          String       @db.Uuid
-  title           String
-  description     String?
-  type            String
-  required        Boolean      @default(false)
-  position        Int
-  settings        Json?
-  visibilityRules Json?
-  createdAt       DateTime     @default(now())
-  updatedat       DateTime     @updatedAt
-  form            form         @relation(fields: [formId], references: [id], onDelete: Cascade)
-  answers         formAnswer[]
-
-  @@index([formId])
-}
-
-model formSubmission {
-  id               String         @id @default(uuid()) @db.Uuid
-  formId           String         @db.Uuid
-  workspaceGroupId Int
-  userId           BigInt?
-  robloxUserId     BigInt?
-  discordUserId    String?
-  status           String         @default("SUBMITTED")
-  metadata         Json?
-  submittedAt      DateTime       @default(now())
+  slug             String?
+  enabled          Boolean        @default(true)
+  archived         Boolean        @default(false)
+  settings         Json //"allowAnonymous": false, "allowMutiple": false, "successMessage": null
+  createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  form             form           @relation(fields: [formId], references: [id], onDelete: Cascade)
-  answers          formAnswer[]
-  reviews          formReview[]
-  comments         formComment[]
-  auditLogs        formAuditLog[]
+  workspace        workspace      @relation(fields: [workspaceGroupId], references: [groupId])
+  createdBy        user           @relation(fields: [createdById], references: [userid])
+  pages            FormPage[]
+  responses        FormResponse[]
+  permissions      FormPermission[]
+
+  @@unique([workspaceGroupId, slug])
+  @@index([workspaceGroupId])
+}
+
+model FormPage {
+  id          String         @id @default(uuid()) @db.Uuid
+  formId      String         @db.Uuid
+  name        String
+  description String?
+  order       Int
+  form        Form           @relation(fields: [formId], references: [id], onDelete: Cascade)
+  questions   FormQuestion[]
+  updatedAt        DateTime       @updatedAt
+  @@index([formId])
+  @@unique([formId, order])
+}
+
+enum FormQuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  TIME
+  DATETIME
+  EMAIL
+  URL
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  ROBLOX_USER
+  DISCORD_USER
+}
+
+model FormQuestion {
+  id          String           @id @default(uuid()) @db.Uuid
+  pageId      String           @db.Uuid
+  label       String
+  description String?
+  type        FormQuestionType
+  required    Boolean          @default(false)
+  placeholder String?
+  order       Int
+  settings    Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  page        FormPage         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  answers     FormAnswer[]
+
+  @@index([pageId])
+  @@unique([pageId, order])
+}
+
+enum FormResponseStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  DENIED
+  WITHDRAWN
+}
+
+model FormResponse {
+  id            String             @id @default(uuid()) @db.Uuid
+  formId        String             @db.Uuid
+  submittedById BigInt?
+  status        FormResponseStatus @default(PENDING)
+  submittedAt   DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  form          Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
+  submittedBy   user?              @relation(fields: [submittedById], references: [userid])
+  answers       FormAnswer[]
+  reviews       FormReview[]
 
   @@index([formId])
-  @@index([workspaceGroupId])
-  @@index([status])
+  @@index([submittedById])
 }
 
-model formAnswer {
-  id           String         @id @default(uuid()) @db.Uuid
-  submissionId String         @db.Uuid
-  questionId   String         @db.Uuid
-  value        Json
-  createdAt    DateTime       @default(now())
-  submission   formSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  question     formQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+model FormAnswer {
+  id         String       @id @default(uuid()) @db.Uuid
+  questionId String       @db.Uuid
+  responseId String       @db.Uuid
+  value      Json
+  response   FormResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question   FormQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  @@index([submissionId])
-  @@index([questionId])
+  @@unique([responseId, questionId])
 }
 
-model formReview {
-  id           String         @id @default(uuid()) @db.Uuid
-  submissionId String         @db.Uuid
-  reviewerId   BigInt
-  vote         String?
-  score        Int?
-  notes        String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  submission   formSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-
-  @@index([submissionId])
-  @@index([reviewerId])
+enum FormReviewDecision {
+  APPROVED
+  DENIED
+  COMMENT
 }
 
-model formComment {
-  id           String         @id @default(uuid()) @db.Uuid
-  submissionId String         @db.Uuid
-  authorId     BigInt
-  content      String
-  internal     Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  submission   formSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-
-  @@index([submissionId])
+model FormReview {
+  id         String             @id @default(uuid()) @db.Uuid
+  responseId String             @db.Uuid
+  reviewerId BigInt
+  decision   FormReviewDecision
+  comment    String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  response   FormResponse       @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  reviewer   user               @relation(fields: [reviewerId], references: [userid])
 }
 
-model formAuditLog {
-  id               String          @id @default(uuid()) @db.Uuid
-  workspaceGroupId Int?
-  formId           String?         @db.Uuid
-  submissionId     String?         @db.Uuid
-  actorId          BigInt?
-  action           String
-  details          Json?
-  createdAt        DateTime        @default(now())
-  form             form?           @relation(fields: [formId], references: [id])
-  submission       formSubmission? @relation(fields: [submissionId], references: [id])
+enum FormPermissionType {
+  ManagePages
+  ManageQuestions
+  ManageQuestionSettings
+  ManageSettings
+  ManagePermissions
+  ViewResponses
+  ViewOwnResponses
+  SubmitResponses
+  WithdrawResponses
+  DeleteResponses
+  ReviewResponses
+  ApproveResponses
+  DenyResponses
+  AddReviewComments
+  ManageReviews
+  ExportResponses
+  ViewStatistics
+}
+
+model FormPermission {
+  id         String             @id @default(uuid()) @db.Uuid
+  formId     String             @db.Uuid
+  roleId     String?            @db.Uuid
+  userId     BigInt?
+  allow      FormPermissionType[]
+  deny       FormPermissionType[]
+  form      Form               @relation(fields: [formId], references: [id], onDelete: Cascade)
+  role      role?              @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      user?              @relation(fields: [userId], references: [userid], onDelete: Cascade)
 
   @@index([formId])
-  @@index([submissionId])
-  @@index([workspaceGroupId])
+  @@index([roleId])
+  @@index([userId])
+  @@unique([formId, roleId])
+  @@unique([formId, userId])
 }

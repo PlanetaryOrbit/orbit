@@ -26,14 +26,8 @@ const Forms: FC<props> = (props) => {
           <p className="text-xs text-zinc-500 dark:text-zinc-400">Create, customize, and manage workspace forms for collecting structured data, submissions, and user input across your workspace (<strong>Coming Soon</strong>)</p>
         </div>
       </div>
-      {/*<SwitchComponenet
-        checked={workspace.settings?.policiesEnabled}
-        label=""
-        classoverride="mt-0"
-      />*/}
       <SwitchComponenet
-        checked={false}
-        disabled
+        checked={workspace.settings?.policiesEnabled}
         label=""
         classoverride="mt-0"
       />
