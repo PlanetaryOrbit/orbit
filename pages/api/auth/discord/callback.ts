@@ -176,7 +176,6 @@ export default async function handler(
     if (axios.isAxiosError(err)) {
       console.error(err.response?.data)
     }
-    return res.status(500).json({ err, code, state })
-    //res.redirect("/login?error=oauth_failed")
+    return res.redirect("/login?error=oauth_failed")
   }
 }
