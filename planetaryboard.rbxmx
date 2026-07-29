@@ -439,12 +439,12 @@ local function getSessions()
 	local endDate = tomorrow:FormatUniversalTime("YYYY-MM-DDTHH:mm:ssZ", "en-us")
 
 	local categoryParam = string.lower(Config.event_type) ~= "all" 
-		and ("?category=" .. string.lower(Config.event_type)) 
+		and ("&category=" .. string.lower(Config.event_type)) 
 		or ""
 
 	local Payload = {
 		Url = Config.baseurl .. "api/public/v1/workspace/" .. Config.workspace_id 
-			.. "/sessions/upcoming" .. categoryParam,
+			.. "/sessions/calendar?startDate=" .. startDate .. "&endDate=" .. endDate .. categoryParam,
 		Method = "GET",
 		Headers = {
 			["Authorization"] = Config.api_key
