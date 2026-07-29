@@ -69,8 +69,6 @@ export default function Error() {
                   Report an issue
                 </Link>
               </div>
-
-              <p className="mt-4 text-sm text-zinc-500">Or try searching from the sidebar.</p>
             </div>
           </div>
         </motion.div>
