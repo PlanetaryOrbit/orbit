@@ -19,7 +19,7 @@
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.2.0",
     "@intercom/messenger-js-sdk": "^0.0.14",
-    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/adapter-pg": "^7.9.1",
     "@relatiohq/opencloud": "^1.10.2",
     "@tabler/icons-react": "^3.44.0",
     "@tailwindcss/forms": "^0.5.11",
@@ -92,7 +92,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.20",
     "postcss": "^8.5.16",
-    "prisma": "^7.8.0",
+    "prisma": "^7.9.1",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "webpack": "^5.108.4"
