@@ -412,8 +412,10 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   const [selectedType, setSelectedType] = useState<
     "" | "holiday" | "sickness" | "personal" | "school" | "other"
   >("");
-  const [resignationReviewComment, setResignationReviewComment] = useState("")
-  const [noticeReviewComment, setNoticeReviewComment] = useState("")
+  const [resignationReviewComments, setResignationReviewComments] =
+    useState<Record<string, string>>({});
+  const [noticeReviewComments, setNoticeReviewComments] =
+    useState<Record<string, string>>({});
 
   const TYPE_LABELS: Record<string, string> = {
     holiday: "Holiday",
@@ -486,7 +488,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         `/api/workspace/${id}/activity/notices/update`,
         {
           id: noticeId,
-          reviewComment: noticeReviewComment.trim() || null,
+          reviewComment: (noticeReviewComments[noticeId] ?? "").trim() || null,
           status,
         }
       );
@@ -497,7 +499,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         } else {
           window.location.reload();
         }
-        setNoticeReviewComment("")
+        setNoticeReviewComments((prev) => {
+          const next = { ...prev };
+          delete next[noticeId];
+          return next;
+        });
         toast.success("Notice updated!");
       }
     } catch {
@@ -542,7 +548,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
     try {
       const res = await axios.post(`/api/workspace/${id}/resignations/update`, {
         id: resignationId,
-        reviewComment: resignationReviewComment.trim() || null,
+        reviewComment: (resignationReviewComments[resignationId] ?? "").trim() || null,
         status,
       });
       if (res.data.success) {
@@ -552,7 +558,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         } else {
           window.location.reload();
         }
-        setResignationReviewComment("")
+        setResignationReviewComments((prev) => {
+          const next = { ...prev };
+          delete next[resignationId];
+          return next;
+        });
         toast.success(
           status === "cancel"
             ? "Resignation removed"
@@ -999,8 +1009,13 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           <>
                           <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                             <textarea
-                               value={resignationReviewComment}
-                               onChange={(e) => setResignationReviewComment(e.target.value)}
+                               value={resignationReviewComments[r.id] ?? ""}
+                               onChange={(e) =>
+                                 setResignationReviewComments((prev) => ({
+                                  ...prev,
+                                  [r.id]: e.target.value
+                                 }))
+                               }
                                className={sessionFormInputClass + " resize-none"}
                                rows={3}
                                placeholder="Add a review comment (optional)"
@@ -1099,8 +1114,13 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           <>
                           <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                             <textarea
-                               value={noticeReviewComment}
-                               onChange={(e) => setNoticeReviewComment(e.target.value)}
+                               value={noticeReviewComments[notice.id] ?? ""}
+                               onChange={(e) =>
+                                 setNoticeReviewComments((prev) => ({
+                                  ...prev,
+                                  [notice.id]: e.target.value
+                                 }))
+                               }
                                className={sessionFormInputClass + " resize-none"}
                                rows={3}
                                placeholder="Add a review comment (optional)"
