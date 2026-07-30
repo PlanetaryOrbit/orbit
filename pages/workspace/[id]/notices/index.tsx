@@ -412,6 +412,8 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
   const [selectedType, setSelectedType] = useState<
     "" | "holiday" | "sickness" | "personal" | "school" | "other"
   >("");
+  const [resignationReviewComment, setResignationReviewComment] = useState("")
+  const [noticeReviewComment, setNoticeReviewComment] = useState("")
 
   const TYPE_LABELS: Record<string, string> = {
     holiday: "Holiday",
@@ -484,6 +486,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         `/api/workspace/${id}/activity/notices/update`,
         {
           id: noticeId,
+          reviewComment: noticeReviewComment.trim() || null,
           status,
         }
       );
@@ -494,6 +497,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         } else {
           window.location.reload();
         }
+        setNoticeReviewComment("")
         toast.success("Notice updated!");
       }
     } catch {
@@ -538,6 +542,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
     try {
       const res = await axios.post(`/api/workspace/${id}/resignations/update`, {
         id: resignationId,
+        reviewComment: resignationReviewComment.trim() || null,
         status,
       });
       if (res.data.success) {
@@ -547,6 +552,7 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
         } else {
           window.location.reload();
         }
+        setResignationReviewComment("")
         toast.success(
           status === "cancel"
             ? "Resignation removed"
@@ -864,9 +870,20 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                         <p className="text-sm text-zinc-700 dark:text-zinc-300">
                           {notice.reason}
                         </p>
-                        {notice.reviewed && !notice.approved && notice.reviewComment && (
-                          <div className="mt-3 rounded-xl bg-red-500/5 border border-red-500/20 p-3">
-                            <p className="text-sm text-red-600 dark:text-red-400">
+                        {notice.reviewed && notice.reviewComment && (
+                          <div
+                            className={`mt-3 rounded-xl border p-3 ${
+                              notice.approved
+                                ? "bg-green-500/5 border-green-500/20"
+                                : "bg-red-500/5 border-red-500/20"
+                            }`}
+                          >
+                            <p className={
+                              notice.approved
+                                ?  "text-sm text-green-600 dark:text-green-400"
+                                : "text-sm text-red-600 dark:text-red-400"
+                            }
+                            >
                               <span className="font-medium">Review comment:</span> {notice.reviewComment}
                             </p>
                           </div>
@@ -905,9 +922,20 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                         <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
                           {r.reason}
                         </p>
-                        {r.reviewed && !r.approved && r.reviewComment && (
-                          <div className="mt-3 rounded-xl bg-red-500/5 border border-red-500/20 p-3">
-                            <p className="text-sm text-red-600 dark:text-red-400">
+                        {r.reviewed && r.reviewComment && (
+                          <div 
+                            className={`mt-3 rounded-xl border p-3 ${
+                              r.approved
+                               ? "bg-green-500/5 border-green-500/20"
+                               : "bg-red-500/5 border-red-500/20"
+                          }`}
+                          >
+                            <p className={
+                              r.approved
+                               ? "text-sm text-green-600 dark:text-green-400"
+                               : "text-sm text-red-600 dark:text-red-400"
+                            }
+                            >
                               <span className="font-medium">Comment:</span>{" "}
                               {r.reviewComment}
                             </p>
@@ -968,7 +996,17 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           </p>
                         </div>
                         {hasApproveResignationsAccess ? (
-                          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                          <>
+                          <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <textarea
+                               value={resignationReviewComment}
+                               onChange={(e) => setResignationReviewComment(e.target.value)}
+                               className={sessionFormInputClass + " resize-none"}
+                               rows={3}
+                               placeholder="Add a review comment (optional)"
+                              />
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-4">
                             <button
                               type="button"
                               onClick={() => updateResignation(r.id, "approve")}
@@ -979,22 +1017,23 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                             </button>
                             <button
                               type="button"
-                              onClick={() => updateResignation(r.id, "deny")}
-                              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors"
+                            onClick={() => updateResignation(r.id, "deny")}
+                            className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors"
                             >
                               <IconX className="w-4 h-4" />
                               Deny
                             </button>
-                            {hasManageResignationsAccess && (
-                              <button
+                           {hasManageResignationsAccess && (
+                             <button
                                 type="button"
                                 onClick={() => updateResignation(r.id, "cancel")}
                                 className={sessionSecondaryButtonClass}
-                              >
+                             >
                                 Remove
-                              </button>
+                             </button>
                             )}
                           </div>
+                          </>
                         ) : (
                           <p className="text-xs text-zinc-500 dark:text-zinc-400">
                             You don&apos;t have permission to approve resignations.
@@ -1057,22 +1096,33 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           </p>
                         </div>
                         {hasApproveAccess ? (
-                        <div className="flex gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                          <button
-                            onClick={() => updateNotice(notice.id, "approve")}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                          >
-                            <IconCheck className="w-4 h-4" />
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => updateNotice(notice.id, "deny")}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors"
-                          >
-                            <IconX className="w-4 h-4" />
-                            Deny
-                          </button>
-                        </div>
+                          <>
+                          <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <textarea
+                               value={noticeReviewComment}
+                               onChange={(e) => setNoticeReviewComment(e.target.value)}
+                               className={sessionFormInputClass + " resize-none"}
+                               rows={3}
+                               placeholder="Add a review comment (optional)"
+                              />
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => updateNotice(notice.id, "approve")}
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                            >
+                             <IconCheck className="w-4 h-4" />
+                              Approve
+                            </button>
+                            <button
+                             onClick={() => updateNotice(notice.id, "deny")}
+                              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors"
+                            >
+                             <IconX className="w-4 h-4" />
+                             Deny
+                            </button>
+                         </div>
+                        </>
                         ) : (
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 pt-1">
                             You don&apos;t have permission to approve notices.
