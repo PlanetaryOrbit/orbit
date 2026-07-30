@@ -20,6 +20,7 @@
     "@heroicons/react": "^2.2.0",
     "@intercom/messenger-js-sdk": "^0.0.14",
     "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "@relatiohq/opencloud": "^1.10.2",
     "@tabler/icons-react": "^3.44.0",
     "@tailwindcss/forms": "^0.5.11",
@@ -82,7 +83,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@prisma/client": "^7.9.1",
     "@types/node": "^20.19.43",
     "@types/pg": "^8.20.0",
     "@types/react": "^18.3.31",

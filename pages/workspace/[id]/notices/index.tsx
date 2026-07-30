@@ -890,8 +890,8 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           >
                             <p className={
                               notice.approved
-                                ?  "text-sm text-green-600 dark:text-green-400"
-                                : "text-sm text-red-600 dark:text-red-400"
+                                ?  "text-sm text-green-600 dark:text-green-400 whitespace-pre-wrap"
+                                : "text-sm text-red-600 dark:text-red-400 whitespace-pre-wrap"
                             }
                             >
                               <span className="font-medium">Review comment:</span> {notice.reviewComment}
@@ -942,8 +942,8 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                           >
                             <p className={
                               r.approved
-                               ? "text-sm text-green-600 dark:text-green-400"
-                               : "text-sm text-red-600 dark:text-red-400"
+                               ? "text-sm text-green-600 dark:text-green-400 whitespace-pre-wrap"
+                               : "text-sm text-red-600 dark:text-red-400 whitespace-pre-wrap"
                             }
                             >
                               <span className="font-medium">Comment:</span>{" "}
@@ -1008,7 +1008,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                         {hasApproveResignationsAccess ? (
                           <>
                           <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <label htmlFor={`resignation-review-${r.id}`} className="sr-only">
+                              Review comment for {r.user?.username || "this resignation"}
+                            </label>
                             <textarea
+                               id={`resignation-review-${r.id}`}
                                value={resignationReviewComments[r.id] ?? ""}
                                onChange={(e) =>
                                  setResignationReviewComments((prev) => ({
@@ -1113,7 +1117,11 @@ const Notices: pageWithLayout<NoticesPageProps> = ({
                         {hasApproveAccess ? (
                           <>
                           <div className="gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <label htmlFor={`notice-review-${notice.id}`} className="sr-only">
+                              Review comment for {notice.user?.username || "this notice"}
+                            </label>
                             <textarea
+                               id={`notice-review-${notice.id}`}
                                value={noticeReviewComments[notice.id] ?? ""}
                                onChange={(e) =>
                                  setNoticeReviewComments((prev) => ({
