@@ -154,10 +154,10 @@ export const getServerSideProps = withPermissionCheckSsr(
       if (user && user.roles?.[0] && !isAdmin) {
         const role = user.roles[0];
         const sessionTypes = ["shift", "training", "event", "other"];
-        const visibleTypes = sessionTypes.filter(type => 
+        const visibleTypes = sessionTypes.filter(type =>
           role.permissions.includes(`sessions_${type}_see`)
         );
-        
+
         if (visibleTypes.length > 0) {
           filteredSessions = allSessions.filter((session) =>
             visibleTypes.includes(session.type || "other")
@@ -675,7 +675,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
 
   const handleEditSession = async (sessionId: string) => {
     const session = allSessions.find(s => s.id === sessionId);
-    
+
     if (session?.scheduleId) {
       setSessionToEdit(session);
       setIsPatternEditDialogOpen(true);
@@ -745,7 +745,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
         );
         return [...otherDateSessions, ...sessions];
       });
-      
+
       return sessions;
     } catch (error) {
       console.error("Failed to load sessions:", error);
@@ -761,13 +761,13 @@ const Home: pageWithLayout<pageProps> = (props) => {
       setHasInitialLoad(true);
       return;
     }
-    
+
     if (router.query.id && selectedDate && !loading) {
       loadSessionsForDate(selectedDate);
       setHasInitialLoad(true);
     }
   }, [router.query.id, selectedDate, showHistory]);
-  
+
   useEffect(() => {
     const newWeekDates = getWeekDates(getMonday(currentWeek));
     const today = new Date();
@@ -781,7 +781,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
       setSelectedDate(newWeekDates[0]);
     }
   }, [currentWeek]);
-  
+
   useEffect(() => {
     if (router.query.refresh === "true" && selectedDate) {
       loadSessionsForDate(selectedDate);

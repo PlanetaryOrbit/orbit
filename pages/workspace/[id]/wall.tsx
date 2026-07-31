@@ -28,6 +28,16 @@ import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { AuthenticatedRequest } from "@/lib/withAuth";
 
+const sanitizePosts = (posts: wallPost[]) =>
+  posts.map((post) => ({
+    ...post,
+    content:
+      typeof post.content === "string"
+        ? sanitizeHtml(post.content, SANITIZE_OPTIONS)
+        : post.content,
+    image: typeof post.image === "string" ? post.image : null,
+  }));
+
 const SANITIZE_OPTIONS = {
   allowedTags: [],
   allowedAttributes: {},
@@ -93,7 +103,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [wallMessage, setWallMessage] = useState("");
-  const [posts, setPosts] = useState(props.posts);
+  //const [posts, setPosts] = useState(props.posts);
+  const [posts, setPosts] = useState(() => sanitizePosts(props.posts));
   const userPermissions = props.userPermissions;
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -108,20 +119,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       return () => clearTimeout(t);
     }
   }, [showDeleteModal, postToDelete]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && props.posts.length > 0) {
-      const sanitizedPosts = props.posts.map((post) => ({
-        ...post,
-        content:
-          typeof post.content === "string"
-            ? sanitizeHtml(post.content, SANITIZE_OPTIONS)
-            : post.content,
-        image: typeof post.image === "string" ? post.image : null,
-      }));
-      setPosts(sanitizedPosts);
-    }
-  }, [props.posts]);
 
   const confirmDelete = async () => {
     if (!postToDelete) return;
@@ -155,7 +152,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         toast.success("Wall message posted!");
         setWallMessage("");
         setSelectedImage(null);
-        setPosts([req.data.post, ...posts]);
+        //setPosts([req.data.post, ...posts]);
+        setPosts((prev) => [req.data.post, ...prev]);
         setLoading(false);
       })
       .catch((error) => {

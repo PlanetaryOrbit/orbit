@@ -439,4 +439,8 @@ export async function queryAudit(workspaceGroupId: number, opts: { userId?: numb
 	}
 }
 
-export default { logAudit, queryAudit };
+const auditLogs = {
+  logAudit, queryAudit
+}
+
+export default auditLogs;

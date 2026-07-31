@@ -160,10 +160,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     const hasUnscheduledPerm = canCreateUnscheduled(workspace.yourPermission || [], type.value);
     return hasScheduledPerm || hasUnscheduledPerm;
   });
-  const canCreateAnyScheduled = availableSessionTypes.some(type => 
+  const canCreateAnyScheduled = availableSessionTypes.some(type =>
     canCreateScheduled(workspace.yourPermission || [], type.value)
   );
-  const canCreateAnyUnscheduled = availableSessionTypes.some(type => 
+  const canCreateAnyUnscheduled = availableSessionTypes.some(type =>
     canCreateUnscheduled(workspace.yourPermission || [], type.value)
   );
 
@@ -278,7 +278,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               const [localHours, localMinutes] = timeValue.split(":").map(Number);
               return { hours: localHours, minutes: localMinutes };
             });
-            
+
             await axios.post(
               `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
               {
@@ -307,7 +307,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           const [localHours, localMinutes] = timeValue.split(":").map(Number);
           return { hours: localHours, minutes: localMinutes };
         });
-        
+
         await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-scheduled`, {
           sessionTypeId: createdSessionType.id,
           name: form.getValues().name,
@@ -328,7 +328,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         );
 
         // Prevent creating sessions in the past
-        if (localDateTime.getTime() <= Date.now()) {
+        //if (localDateTime.getTime() <= Date.now()) {
+        //  setFormError("Cannot create a session in the past. Choose a future date/time.");
+        //  setIsSubmitting(false);
+        //  return;
+        //}
+        // Date.now is impure, so we use a different solution
+        const now = new Date();
+        if (localDateTime.getTime() <= now.getTime()) {
           setFormError("Cannot create a session in the past. Choose a future date/time.");
           setIsSubmitting(false);
           return;
@@ -409,7 +416,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       } catch (err: any) {
         console.log("Creation completed with note:", err);
       }
-      
+
       setPendingCreation(null);
       setShowOverlapModal(false);
       setTimeout(() => {
@@ -809,7 +816,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         }}
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
-                        {canCreateAnyUnscheduled 
+                        {canCreateAnyUnscheduled
                           ? "Enable this to set up a one time session"
                           : "You don't have permission to create unscheduled sessions"}
                       </p>

@@ -241,7 +241,8 @@ const EditSession: pageWithLayout<
       const newDate = new Date(localDateTime);
 
       // Prevent updating a session to a past date/time
-      if (newDate.getTime() <= Date.now()) {
+      const now = new Date();
+      if (newDate.getTime() <= now.getTime()) {
         setFormError("Cannot set session date/time in the past. Choose a future date/time.");
         setIsSubmitting(false);
         setShowUpdateModal(false);
@@ -263,9 +264,9 @@ const EditSession: pageWithLayout<
             newName: formData.name,
           }
         );
-        
+
         toast.success(
-          scope === "single" 
+          scope === "single"
             ? "Session updated successfully"
             : scope === "future"
             ? "This and future sessions updated successfully"
@@ -290,7 +291,7 @@ const EditSession: pageWithLayout<
 
         toast.success("Session updated successfully");
       }
-      
+
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
       setFormError(
@@ -325,23 +326,23 @@ const EditSession: pageWithLayout<
     try {
       // If we have a scope from the pattern dialog, use it instead of asking again
       const deleteScope = scope || (deleteAll ? "all" : "single");
-      
+
       await axios.delete(
         `/api/workspace/${workspace.groupId}/sessions/${session.id}/delete`,
         {
-          data: { 
+          data: {
             deleteAll: deleteScope === "all",
             deleteScope: deleteScope, // Pass the scope for future/single distinction
           },
         }
       );
-      
-      const successMessage = deleteScope === "single" 
+
+      const successMessage = deleteScope === "single"
         ? "Session deleted successfully"
         : deleteScope === "future"
         ? "This and future sessions deleted successfully"
         : "All sessions in series deleted successfully";
-      
+
       toast.success(successMessage);
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
