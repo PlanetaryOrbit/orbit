@@ -82,6 +82,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@prisma/client": "^7.9.1",
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.0",
@@ -91,10 +92,12 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^10.8.0",
     "eslint-config-next": "^16.2.12",
+    "globals": "^17.8.0",
     "postcss": "^8.5.25",
     "prisma": "^7.9.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
+    "typescript-eslint": "^8.65.0",
     "webpack": "^5.109.2"
   },
   "resolutions": {
