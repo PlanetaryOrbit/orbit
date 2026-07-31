@@ -1,9 +1,0 @@
-allowBuilds:
-  '@parcel/watcher': true
-  '@prisma/engines': true
-  core-js: true
-  noblox.js: true
-  prisma: true
-  protobufjs: true
-  sharp: true
-  unrs-resolver: true
