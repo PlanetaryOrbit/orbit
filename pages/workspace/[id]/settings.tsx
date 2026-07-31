@@ -299,7 +299,7 @@ const Settings: pageWithLayout<Props> = ({
   isAdmin,
   userPermissions,
 }) => {
-  const [activeSection, setActiveSection] = useState("general");
+  //const [activeSection, setActiveSection] = useState("general");
   const [isSidebarExpanded] = useState(true);
 
   const hasPermission = (permission: string) => {
@@ -307,15 +307,13 @@ const Settings: pageWithLayout<Props> = ({
   };
 
   const router = useRouter();
+  const urlTab = decodeTab(router.query.t as string | null);
 
-  useEffect(() => {
-    const t = router.query.t as string | undefined;
-    const decoded = decodeTab(t ?? null);
-
-    if (decoded && SECTIONS[decoded as keyof typeof SECTIONS]) {
-      setActiveSection(decoded);
-    }
-  }, [router.query.t]);
+  const [activeSection, setActiveSection] = useState(
+    urlTab && SECTIONS[urlTab as keyof typeof SECTIONS]
+      ? urlTab
+      : "general",
+  );
 
   const canAccessGeneral = hasPermission("workspace_customisation");
   const canAccessActivity = hasPermission("reset_activity");
@@ -341,20 +339,13 @@ const Settings: pageWithLayout<Props> = ({
     return false;
   });
 
-  useEffect(() => {
-    if (
-      availableSections.length > 0 &&
-      !availableSections.find(([key]) => key === activeSection)
-    ) {
-      setActiveSection(availableSections[0][0]);
-    }
-  }, []);
+  const currentSection = availableSections.find(([key]) => key === activeSection) ? currentSection : availableSections[0]?.[0] ?? "general";
 
   const panelClass =
     "rounded-2xl bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/70 dark:shadow-zinc-950/30";
 
   const renderContent = () => {
-    if (activeSection === "permissions") {
+    if (currentSection === "permissions") {
       return (
         <div className={`${panelClass} p-5 sm:p-6`}>
           <Permissions
@@ -367,7 +358,7 @@ const Settings: pageWithLayout<Props> = ({
       );
     }
 
-    if (activeSection === "audit") {
+    if (currentSection === "audit") {
       return (
         <div className={`${panelClass} p-5 sm:p-6`}>
           <All.AuditLogs />
@@ -375,7 +366,7 @@ const Settings: pageWithLayout<Props> = ({
       );
     }
 
-    if (activeSection === "api") {
+    if (currentSection === "api") {
       const apiComponents = [...SECTIONS.api.components];
       const apiKeyIndex = apiComponents.findIndex(({ key }) =>
         key.toLowerCase().includes("key"),
@@ -395,7 +386,7 @@ const Settings: pageWithLayout<Props> = ({
       );
     }
 
-    if (activeSection === "features") {
+    if (currentSection === "features") {
       return (
         <div className={`${panelClass} overflow-hidden`}>
           <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -410,8 +401,8 @@ const Settings: pageWithLayout<Props> = ({
       );
     }
 
-    const section = SECTIONS[activeSection as keyof typeof SECTIONS];
-    const isServices = activeSection === "instance";
+    const section = SECTIONS[currentSection as keyof typeof SECTIONS];
+    const isServices = currentSection === "instance";
 
     if (isServices) {
       return (
@@ -443,7 +434,7 @@ const Settings: pageWithLayout<Props> = ({
             } else {
               componentProps.isSidebarExpanded = isSidebarExpanded;
               componentProps.hasResetActivityOnly =
-                activeSection === "activity" &&
+                currentSection === "activity" &&
                 !isAdmin &&
                 !userPermissions.includes("workspace_customisation");
             }
@@ -483,13 +474,13 @@ const Settings: pageWithLayout<Props> = ({
             <nav className="space-y-0.5">
               {availableSections.map(([key, section]) => {
                 const Icon = section.icon;
-                const isActive = activeSection === key;
+                const isActive = currentSection === key;
                 return (
                   <button
                     key={key}
                     onClick={() => {
                         const encoded = encodeTab(key);
-                        setActiveSection(key);
+                        setcurrentSection(key);
                         router.replace(
                           {
                             pathname: router.pathname,
@@ -517,11 +508,11 @@ const Settings: pageWithLayout<Props> = ({
           <div className="flex-1 min-w-0">
             <div className="mb-5">
               <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                {SECTIONS[activeSection as keyof typeof SECTIONS]?.name ||
+                {SECTIONS[currentSection as keyof typeof SECTIONS]?.name ||
                   "Settings"}
               </h2>
               <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">
-                {SECTIONS[activeSection as keyof typeof SECTIONS]
+                {SECTIONS[currentSection as keyof typeof SECTIONS]
                   ?.description || "Manage your settings"}
               </p>
             </div>
