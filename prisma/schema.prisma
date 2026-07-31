@@ -872,6 +872,7 @@ model FormReview {
 }
 
 enum FormPermissionType {
+  View
   ManagePages
   ManageQuestions
   ManageQuestionSettings
