@@ -11,24 +11,20 @@ jobs:
     name: TypeScript Check
     runs-on: ubuntu-latest
     env:
-        DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+      DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
-      - name: Install pnpm        
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies        
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm exec prisma generate
+        run: bunx prisma generate
 
       - name: Run type check
-        run: pnpm tsc --noEmit
+        run: bun run typecheck
