@@ -766,6 +766,8 @@ model Form {
 
   @@unique([workspaceGroupId, slug])
   @@index([workspaceGroupId])
+  @@index([workspaceGroupId, archived, enabled])
+  @@index([workspaceGroupId, createdAt])
 }
 
 model FormPage {
@@ -905,4 +907,5 @@ model FormPermission {
   @@index([userId])
   @@unique([formId, roleId])
   @@unique([formId, userId])
+  @@unique([formId, roleId, userId])
 }

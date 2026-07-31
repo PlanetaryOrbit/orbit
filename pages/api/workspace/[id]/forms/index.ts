@@ -11,18 +11,12 @@
  */
 "use strict";
 
-import { FormPermissionType, getFormPermissions, hasFormPermission } from "./helpers";
 import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";
+import { FormPermissionType } from "./helpers";
 
 export default withAuth(async (req, res) => {
   try {
-    const { auth } = req;
-    const { session } = auth;
-    const { userid } = session;
-
-    const workspaceId = Number(req.query.id);
-
     if (req.method !== "GET") {
       return res.status(405).json({
         success: false,
@@ -33,6 +27,9 @@ export default withAuth(async (req, res) => {
       });
     }
 
+    const { session } = req.auth;
+    const workspaceId = Number(req.query.id);
+
     const {
       archived,
       enabled,
@@ -40,33 +37,37 @@ export default withAuth(async (req, res) => {
       page = "1",
       limit = "20",
     } = req.query;
+
     const pageNumber = Math.max(Number(page), 1);
     const limitNumber = Math.min(Math.max(Number(limit), 1), 100);
+
     const where = {
       workspaceGroupId: workspaceId,
+
       ...(archived !== undefined && {
         archived: archived === "true",
       }),
+
       ...(enabled !== undefined && {
         enabled: enabled === "true",
       }),
-      ...(typeof search === "string" &&
-        search.length > 0 && {
-          OR: [
-            {
-              name: {
-                contains: search,
-                mode: "insensitive",
-              },
+
+      ...(typeof search === "string" && {
+        OR: [
+          {
+            name: {
+              contains: search,
+              mode: "insensitive",
             },
-            {
-              description: {
-                contains: search,
-                mode: "insensitive",
-              },
+          },
+          {
+            description: {
+              contains: search,
+              mode: "insensitive",
             },
-          ],
-        }),
+          },
+        ],
+      }),
     };
 
     const [forms, total] = await Promise.all([
@@ -76,6 +77,7 @@ export default withAuth(async (req, res) => {
           id: true,
           name: true,
           description: true,
+          slug: true,
           enabled: true,
           archived: true,
           createdAt: true,
@@ -93,15 +95,43 @@ export default withAuth(async (req, res) => {
       }),
     ]);
 
-    if (!session.isOwner) {
-      const permissions = await prisma.formPermission.findMany({
+    if (!session.isOwner && forms.length > 0) {
+      const roles = await prisma.role.findMany({
+        where: {
+          id: {
+            in: session.roles ?? [],
+          },
+        },
+        select: {
+          permissions: true,
+        },
+      });
+
+
+      const globalPermissions = new Set<FormPermissionType>();
+
+      for (const role of roles) {
+        for (const permission of role.permissions) {
+          if (
+            Object.values(FormPermissionType)
+              .includes(permission as FormPermissionType)
+          ) {
+            globalPermissions.add(
+              permission as FormPermissionType
+            );
+          }
+        }
+      }
+
+
+      const overrides = await prisma.formPermission.findMany({
         where: {
           formId: {
-            in: forms.map((form) => form.id),
+            in: forms.map(x => x.id),
           },
           OR: [
             {
-              userId: userid,
+              userId: session.userid,
             },
             {
               roleId: {
@@ -112,29 +142,41 @@ export default withAuth(async (req, res) => {
         },
       });
 
-      const visible = forms.filter((form) => {
-        const overrides = permissions.filter(
-          (permission) => permission.formId === form.id,
-        );
-        return hasFormPermission(
-          {
-            isOwner: false,
-            global: {
-              allow: [],
-              deny: [],
-            },
-            form: {
-              allow: overrides.flatMap((x) => x.allow),
-              deny: overrides.flatMap((x) => x.deny),
-            },
-          },
-          FormPermissionType.View,
+
+      const visibleForms = forms.filter(form => {
+        const formPermissions =
+          overrides.filter(
+            x => x.formId === form.id
+          );
+
+
+        const denied = new Set<FormPermissionType>();
+        const allowed = new Set<FormPermissionType>();
+
+        for (const permission of formPermissions) {
+          permission.deny.forEach(x => denied.add(x));
+          permission.allow.forEach(x => allowed.add(x));
+        }
+
+
+        if (denied.has(FormPermissionType.View)) {
+          return false;
+        }
+
+        if (allowed.has(FormPermissionType.View)) {
+          return true;
+        }
+
+        return globalPermissions.has(
+          FormPermissionType.View
         );
       });
+
+
       return res.status(200).json({
         success: true,
         data: {
-          forms: visible,
+          forms: visibleForms,
           pagination: {
             page: pageNumber,
             limit: limitNumber,
@@ -143,6 +185,8 @@ export default withAuth(async (req, res) => {
         },
       });
     }
+
+
     return res.status(200).json({
       success: true,
       data: {
@@ -154,8 +198,10 @@ export default withAuth(async (req, res) => {
         },
       },
     });
+
   } catch (err) {
-    console.error("[Forms] Failed to list forms:", err);
+    console.error("[Forms] Failed to list forms", err);
+
     return res.status(500).json({
       success: false,
       error: {
