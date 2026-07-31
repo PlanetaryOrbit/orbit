@@ -2,16 +2,19 @@
  * Forms API - Build custom forms, manage submissions, and track analytics
  * from a single dashboard.
  *
- * This module contains shared helper utilities used throughout the Forms API.
+ * This file contains helpers for the Forms API.
  *
- * @file Helpers for the Forms API.
- * @module Pages/API/Workspace/[id]/Forms/Helpers
+ * @module Pages/API/Workspace/[id]/Forms
  * @since 2.1.10-beta21
  * @author BuddyWinte
  */
+
 "use strict";
 
 import { prisma } from "@/lib/prisma";
+import { FormPermissionType } from "@prisma/client";
+
+export { FormPermissionType };
 
 export interface ErrorBody {
   code: string;
@@ -29,54 +32,6 @@ export type RequestResponse<T> =
       error: ErrorBody;
     };
 
-export enum FormPermissionType {
-  // Global
-  Create = "Forms.Create",
-  View = "Forms.View",
-  Edit = "Forms.Edit",
-  Delete = "Forms.Delete",
-  Duplicate = "Forms.Duplicate",
-
-  // Overrideable
-  ManagePages = "Forms.ManagePages",
-  ManageQuestions = "Forms.ManageQuestions",
-  ManageQuestionSettings = "Forms.ManageQuestionSettings",
-  ManageSettings = "Forms.ManageSettings",
-  ManagePermissions = "Forms.ManagePermissions",
-  ViewResponses = "Forms.ViewResponses",
-  ViewOwnResponses = "Forms.ViewOwnResponses",
-  SubmitResponses = "Forms.SubmitResponses",
-  WithdrawResponses = "Forms.WithdrawResponses",
-  DeleteResponses = "Forms.DeleteResponses",
-  ReviewResponses = "Forms.ReviewResponses",
-  ApproveResponses = "Forms.ApproveResponses",
-  DenyResponses = "Forms.DenyResponses",
-  AddReviewComments = "Forms.AddReviewComments",
-  ManageReviews = "Forms.ManageReviews",
-  ExportResponses = "Forms.ExportResponses",
-  ViewStatistics = "Forms.ViewStatistics",
-}
-
-const OverrideableFormPermissions = [
-  FormPermissionType.ManagePages,
-  FormPermissionType.ManageQuestions,
-  FormPermissionType.ManageQuestionSettings,
-  FormPermissionType.ManageSettings,
-  FormPermissionType.ManagePermissions,
-  FormPermissionType.ViewResponses,
-  FormPermissionType.ViewOwnResponses,
-  FormPermissionType.SubmitResponses,
-  FormPermissionType.WithdrawResponses,
-  FormPermissionType.DeleteResponses,
-  FormPermissionType.ReviewResponses,
-  FormPermissionType.ApproveResponses,
-  FormPermissionType.DenyResponses,
-  FormPermissionType.AddReviewComments,
-  FormPermissionType.ManageReviews,
-  FormPermissionType.ExportResponses,
-  FormPermissionType.ViewStatistics,
-];
-
 type PermissionSet = {
   allow: FormPermissionType[];
   deny: FormPermissionType[];
@@ -84,7 +39,6 @@ type PermissionSet = {
 
 type PermissionContext = {
   isOwner: boolean;
-
   global: PermissionSet;
   form: PermissionSet;
 };
@@ -95,11 +49,11 @@ export function hasFormPermission(
 ): boolean {
   if (ctx.isOwner) return true;
 
-  // Form
+  // Form overrides take priority
   if (ctx.form.deny.includes(permission)) return false;
   if (ctx.form.allow.includes(permission)) return true;
 
-  // Global
+  // Global permissions
   if (ctx.global.deny.includes(permission)) return false;
   if (ctx.global.allow.includes(permission)) return true;
 
@@ -154,7 +108,9 @@ export async function getFormPermissions({
           permission as FormPermissionType,
         )
       ) {
-        global.allow.push(permission as FormPermissionType);
+        global.allow.push(
+          permission as FormPermissionType,
+        );
       }
     }
   }

@@ -9,8 +9,10 @@
  * @since 2.1.10-beta21
  * @author BuddyWinte
  */
+
 "use strict";
 
+import { Prisma } from "@prisma/client";
 import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";
 import { FormPermissionType } from "./helpers";
@@ -28,6 +30,17 @@ export default withAuth(async (req, res) => {
     }
 
     const { session } = req.auth;
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Unauthorized",
+        },
+      });
+    }
+
     const workspaceId = Number(req.query.id);
 
     const {
@@ -41,7 +54,7 @@ export default withAuth(async (req, res) => {
     const pageNumber = Math.max(Number(page), 1);
     const limitNumber = Math.min(Math.max(Number(limit), 1), 100);
 
-    const where = {
+    const where: Prisma.FormWhereInput = {
       workspaceGroupId: workspaceId,
 
       ...(archived !== undefined && {
@@ -52,22 +65,23 @@ export default withAuth(async (req, res) => {
         enabled: enabled === "true",
       }),
 
-      ...(typeof search === "string" && {
-        OR: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive",
+      ...(typeof search === "string" &&
+        search.length > 0 && {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
-          },
-          {
-            description: {
-              contains: search,
-              mode: "insensitive",
+            {
+              description: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
     };
 
     const [forms, total] = await Promise.all([
@@ -95,11 +109,26 @@ export default withAuth(async (req, res) => {
       }),
     ]);
 
-    if (!session.isOwner && forms.length > 0) {
+    const isOwner = session.user.isOwner ?? false;
+
+    if (!isOwner && forms.length > 0) {
+      const roleMemberships = await prisma.roleMember.findMany({
+        where: {
+          userId: session.user.userid,
+        },
+        select: {
+          roleId: true,
+        },
+      });
+
+      const roleIds = roleMemberships.map(
+        role => role.roleId,
+      );
+
       const roles = await prisma.role.findMany({
         where: {
           id: {
-            in: session.roles ?? [],
+            in: roleIds,
           },
         },
         select: {
@@ -107,57 +136,57 @@ export default withAuth(async (req, res) => {
         },
       });
 
-
       const globalPermissions = new Set<FormPermissionType>();
 
       for (const role of roles) {
         for (const permission of role.permissions) {
           if (
-            Object.values(FormPermissionType)
-              .includes(permission as FormPermissionType)
+            Object.values(FormPermissionType).includes(
+              permission as FormPermissionType,
+            )
           ) {
             globalPermissions.add(
-              permission as FormPermissionType
+              permission as FormPermissionType,
             );
           }
         }
       }
 
-
       const overrides = await prisma.formPermission.findMany({
         where: {
           formId: {
-            in: forms.map(x => x.id),
+            in: forms.map(form => form.id),
           },
           OR: [
             {
-              userId: session.userid,
+              userId: session.user.userid,
             },
             {
               roleId: {
-                in: session.roles ?? [],
+                in: roleIds,
               },
             },
           ],
         },
       });
 
-
       const visibleForms = forms.filter(form => {
-        const formPermissions =
-          overrides.filter(
-            x => x.formId === form.id
+        const permissions = overrides.filter(
+          override => override.formId === form.id,
+        );
+
+        const allowed = new Set<FormPermissionType>();
+        const denied = new Set<FormPermissionType>();
+
+        for (const permission of permissions) {
+          permission.allow.forEach(value =>
+            allowed.add(value),
           );
 
-
-        const denied = new Set<FormPermissionType>();
-        const allowed = new Set<FormPermissionType>();
-
-        for (const permission of formPermissions) {
-          permission.deny.forEach(x => denied.add(x));
-          permission.allow.forEach(x => allowed.add(x));
+          permission.deny.forEach(value =>
+            denied.add(value),
+          );
         }
-
 
         if (denied.has(FormPermissionType.View)) {
           return false;
@@ -168,10 +197,9 @@ export default withAuth(async (req, res) => {
         }
 
         return globalPermissions.has(
-          FormPermissionType.View
+          FormPermissionType.View,
         );
       });
-
 
       return res.status(200).json({
         success: true,
@@ -186,7 +214,6 @@ export default withAuth(async (req, res) => {
       });
     }
 
-
     return res.status(200).json({
       success: true,
       data: {
@@ -198,7 +225,6 @@ export default withAuth(async (req, res) => {
         },
       },
     });
-
   } catch (err) {
     console.error("[Forms] Failed to list forms", err);
 
