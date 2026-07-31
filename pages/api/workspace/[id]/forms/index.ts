@@ -9,6 +9,8 @@
  * @since 2.1.10-beta21
  * @author BuddyWinte
  */
+"use strict";
+
 import { FormPermissionType, getFormPermissions, hasFormPermission } from "./helpers";
 import { withAuth } from "@/lib/withAuth";
 import { prisma } from "@/lib/prisma";

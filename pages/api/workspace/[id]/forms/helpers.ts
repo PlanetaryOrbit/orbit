@@ -9,6 +9,8 @@
  * @since 2.1.10-beta21
  * @author BuddyWinte
  */
+"use strict";
+
 import { prisma } from "@/lib/prisma";
 
 export interface ErrorBody {
