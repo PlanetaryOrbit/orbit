@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/extension-bubble-menu/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -268,7 +268,7 @@ export default function RichDocumentEditor({
   useEffect(() => {
     if (!editor || value === lastEmitted.current) return;
     syncingRef.current = true;
-    editor.commands.setContent(markdownToHtml(value), false);
+    editor.commands.setContent(markdownToHtml(value), { emitUpdate: false });
     lastEmitted.current = value;
     syncingRef.current = false;
   }, [editor, value]);
