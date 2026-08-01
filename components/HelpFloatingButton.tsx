@@ -75,12 +75,12 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
             </div>
             <div className="mb-4">
               <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Orbit</p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">© 2025 Planetary — Licensed under GPL-3.0.</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">© 2025 Planetary — All rights reserved.</p>
             </div>
             <div className="border-t border-zinc-200 dark:border-zinc-700 my-4" />
             <div>
               <p className="text-sm font-medium text-zinc-900 dark:text-white mb-1">Original Tovy Project</p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">© 2022 Tovy — Licensed under GPL-3.0.</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">© 2022 Tovy — All rights reserved.</p>
             </div>
           </Dialog.Panel>
         </div>
