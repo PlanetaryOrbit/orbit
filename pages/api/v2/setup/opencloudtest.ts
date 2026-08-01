@@ -11,6 +11,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { RequestResponse } from "../types";
 import { enforceRateLimit } from "../ratelimit";
+import cache from "@/utils/v2/cache";
+import { authenticate } from "@/lib/v2/withAuth";
 
 interface OpenCloudKeyResponse {
   name: string;
@@ -25,12 +27,22 @@ interface OpenCloudKeyResponse {
 
 type OpenCloudTestResponse = {
   valid: boolean;
-}
+};
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RequestResponse<OpenCloudTestResponse>>,
 ) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      success: false,
+      error: {
+        code: "METHOD_NOT_ALLOWED",
+        message: "Method not allowed.",
+      },
+    });
+  }
+
   const allowed = await enforceRateLimit(req, res, {
     cost: 2,
   });
@@ -39,38 +51,64 @@ export default async function handler(
     return;
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({
+  const auth = await authenticate(req);
+
+  console.log(auth);
+  if (!auth) {
+    return res.status(401).json({
       success: false,
       error: {
-        code: "METHOD_NOT_ALLOWED",
-        message: "Method not allowed."
+        code: "UNAUTHORIZED",
+        message: "Unauthorized.",
+      },
+    });
+  }
+
+  if (!auth.user.isOwner) {
+    return res.status(403).json({
+      success: false,
+      error: {
+        code: "FORBIDDEN",
+        message: "You must be owner to perform this action.",
+      },
+    });
+  }
+
+  const cachedResult = await cache.get(`opencloudtest:${req.body.key}`);
+  if (cachedResult) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        valid: true,
       },
     });
   }
 
   const { key } = req.body as {
     key?: string;
-  }
+  };
 
   if (!key?.trim()) {
     return res.status(400).json({
       success: false,
       error: {
         code: "MISSING_API_KEY",
-        message: "Open Cloud Key is required."
+        message: "Open Cloud Key is required.",
       },
     });
   }
 
   try {
-    const response = await fetch("https://apis.roblox.com/api-keys/v1/introspect", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "https://apis.roblox.com/api-keys/v1/introspect",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ apiKey: key.trim() }),
       },
-      body: JSON.stringify({ apiKey: key.trim() }),
-    });
+    );
 
     if (response.status === 401) {
       return res.status(401).json({
@@ -89,8 +127,7 @@ export default async function handler(
         success: false,
         error: {
           code: "INVALID_API_KEY",
-          message:
-            robloxError?.message ?? "Open Cloud Key is invalid.",
+          message: robloxError?.message ?? "Open Cloud Key is invalid.",
           details: {
             robloxCode: robloxError?.code,
           },
@@ -120,9 +157,7 @@ export default async function handler(
       });
     }
 
-    const groupScope = data.scopes.find(
-      (scope) => scope.name === "group"
-    );
+    const groupScope = data.scopes.find((scope) => scope.name === "group");
 
     if (!groupScope) {
       return res.status(400).json({
@@ -141,11 +176,13 @@ export default async function handler(
         success: false,
         error: {
           code: "INSUFFICIENT_SCOPE_PERMISSIONS",
-          message: "Open Cloud Key is missing read or write permissions in `group` scope.",
+          message:
+            "Open Cloud Key is missing read or write permissions in `group` scope.",
         },
       });
     }
 
+    await cache.set(`opencloudtest:${req.body.key}`, { valid: true });
     return res.status(200).json({
       success: true,
       data: {
@@ -160,6 +197,6 @@ export default async function handler(
         code: "INTERNAL_SERVER_ERROR",
         message: "Internal server error.",
       },
-    })
+    });
   }
 }

@@ -89,6 +89,7 @@ const cache = {
   del,
   has,
   increment,
+  clear
 };
 
 export default cache;
