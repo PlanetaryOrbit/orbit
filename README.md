@@ -89,7 +89,7 @@ The fastest and easiest way to run Orbit is through **Planetary Cloud** — our 
 
 Prefer to host on your own Vercel account? Deploy in seconds:
 
-<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit&env=SESSION_SECRET,DATABASE_URL,PUBLIC_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
+<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit%2Ftree%2Fv2.1.10beta21&env=SESSION_SECRET,DATABASE_URL,PUBLIC_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
   <img src="https://vercel.com/button" alt="Deploy with Vercel" />
 </a>
 
