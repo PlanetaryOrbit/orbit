@@ -1,290 +1,174 @@
-import * as crypto from 'crypto'
-import prisma from '@/utils/database'
-import { UAParser } from 'ua-parser-js'
-import axios from 'axios'
-import * as net from 'net'
+/**
+ * Orbit API
+ *
+ * Authentication session management.
+ *
+ * @module utils/session
+ * @since 2.1.10beta21
+ * @author BuddyWinte
+ */
 
-interface IpapiRes {
-  country_name: string,
-  region: string
+import crypto from "crypto";
+import { UAParser } from "ua-parser-js";
+import { prisma } from "@/lib/prisma";
+
+const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000;
+
+function generateToken() {
+  return `orbit_${crypto.randomBytes(48).toString("hex")}`;
 }
 
-interface IpapiRes {
-  country_name: string,
-  region: string
-}
-
-interface GeoResult {
-  country: string | null
-  region: string | null
-}
-
-const SESSION_SECRET = process.env.SESSION_SECRET!;
-
-const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>()
-const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24h
-
-function normalizeIp(rawIp: string): string {
-  const trimmed = rawIp.trim()
-  const mappedV4Prefix = '::ffff:'
-  if (trimmed.toLowerCase().startsWith(mappedV4Prefix)) {
-    return trimmed.slice(mappedV4Prefix.length)
-  }
-  return trimmed
-}
-
-function isPrivateOrLocalIp(ip: string): boolean {
-  if (ip === '::1' || ip === '127.0.0.1') return true
-
-  if (net.isIP(ip) === 4) {
-    return (
-      ip.startsWith('10.') ||
-      ip.startsWith('192.168.') ||
-      /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip) ||
-      ip.startsWith('127.') ||
-      ip.startsWith('169.254.')
-    )
-  }
-
-  if (net.isIP(ip) === 6) {
-    const lower = ip.toLowerCase()
-    return (
-      lower === '::1' ||
-      lower.startsWith('fc') ||
-      lower.startsWith('fd') ||
-      lower.startsWith('fe80:')
-    )
-  }
-
-  return true
-}
-
-function sanitizePublicIp(ipAddress?: string): string | null {
-  if (!ipAddress) return null
-  const normalized = normalizeIp(ipAddress)
-  if (!normalized || net.isIP(normalized) === 0) return null
-  if (isPrivateOrLocalIp(normalized)) return null
-  return normalized
-}
-
-async function lookupGeo(ipAddress?: string): Promise<GeoResult> {
-  const empty: GeoResult = { country: null, region: null }
-
-  const safeIp = sanitizePublicIp(ipAddress)
-  if (!safeIp) {
-    return empty
-  }
-
-  const cached = geoCache.get(safeIp)
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.data
-  }
-
-  try {
-    const geoUrl = new URL(`/${encodeURIComponent(safeIp)}/json/`, 'https://ipapi.co')
-    const res = await axios.get<IpapiRes>(
-      geoUrl.toString(),
-      { timeout: 2000 }
-    )
-
-    if ((res.data as any).error) {
-      console.warn('ipapi.co returned an error payload:', (res.data as any).reason)
-      return empty
-    }
-
-    const geo: GeoResult = {
-      country: res.data.country_name ?? null,
-      region: res.data.region ?? null,
-    }
-
-    geoCache.set(safeIp, { data: geo, expiresAt: Date.now() + GEO_CACHE_TTL_MS })
-
-    return geo
-  } catch (err) {
-    console.error('ipapi.co lookup failed, continuing without geo data:', err)
-    return empty
-  }
-}
-
-function generateToken(): string {
-  const token = crypto.randomBytes(32).toString('hex')
-  return `DONOTSHARE_${token}`
-}
-
-function hashToken(token: string): string {
-  const cleanToken = token.replace(/^DONOTSHARE_/i, '')
+function hashToken(token: string) {
   return crypto
-    .createHash('sha256')
-    .update(cleanToken)
-    .digest('hex')
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
 }
 
-function getKey() {
-  return crypto
-    .createHash('sha256')
-    .update(SESSION_SECRET)
-    .digest()
-}
-
-function encrypt(value?: string | null): string | null {
-  if (!value) return null
-
-  const iv = crypto.randomBytes(16)
-
-  const cipher = crypto.createCipheriv(
-    'aes-256-gcm',
-    getKey(),
-    iv
-  )
-
-  const encrypted = Buffer.concat([
-    cipher.update(value, 'utf8'),
-    cipher.final(),
-  ])
-
-  const authTag = cipher.getAuthTag()
-
-  return [
-    iv.toString('hex'),
-    authTag.toString('hex'),
-    encrypted.toString('hex'),
-  ].join(':')
-}
-
-function decrypt(value?: string | null): string | null {
-  if (!value) return null
-  const parts = value.split(':')
-  if (parts.length !== 3) return value
-
-  const [ivHex, tagHex, encryptedHex] = parts
-
-  try {
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      getKey(),
-      Buffer.from(ivHex, 'hex')
-    )
-
-    decipher.setAuthTag(Buffer.from(tagHex, 'hex'))
-
-    const decrypted = Buffer.concat([
-      decipher.update(Buffer.from(encryptedHex, 'hex')),
-      decipher.final(),
-    ])
-
-    return decrypted.toString('utf8')
-  } catch {
-    return null
-  }
-}
-
-function parseUA(userAgent?: string) {
+function parseUserAgent(userAgent?: string) {
   if (!userAgent) {
     return {
       browser: null,
       os: null,
       device: null,
-    }
+    };
   }
 
-  const parser = new UAParser(userAgent)
-  const result = parser.getResult()
+  const result = new UAParser(userAgent).getResult();
 
   return {
     browser:
       [result.browser.name, result.browser.version]
         .filter(Boolean)
-        .join(' ') || null,
+        .join(" ") || null,
 
     os:
       [result.os.name, result.os.version]
         .filter(Boolean)
-        .join(' ') || null,
+        .join(" ") || null,
 
-    device: result.device.type ?? 'desktop',
-  }
+    device:
+      result.device.type ??
+      "desktop",
+  };
 }
 
-async function createSession(
+export async function createSession(
   userId: bigint,
-  ipAddress?: string,
-  userAgent?: string
+  options?: {
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  },
 ) {
-  const rawToken = generateToken();
+  const token = generateToken();
 
-  const { browser, os, device } = parseUA(userAgent)
-  const geo = await lookupGeo(ipAddress)
+  const metadata = parseUserAgent(
+    options?.userAgent ?? undefined,
+  );
 
   const session = await prisma.authSession.create({
     data: {
       id: crypto.randomUUID(),
-      token: hashToken(rawToken),
+
       userId,
+
+      token: hashToken(token),
+
+      ipAddress:
+        options?.ipAddress ?? null,
+
+      userAgent:
+        options?.userAgent ?? null,
+
+      browser: metadata.browser,
+      os: metadata.os,
+      device: metadata.device,
+
       expiresAt: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
+        Date.now() + SESSION_DURATION,
       ),
-      ipAddress: encrypt(ipAddress),
-      userAgent: encrypt(userAgent),
-      browser,
-      os,
-      device,
-      country: geo.country,
-      region: geo.region,
     },
 
     include: {
       user: true,
     },
-  })
+  });
 
   return {
     ...session,
-    token: rawToken,
-  }
+    token,
+  };
 }
 
-async function getSessionByToken(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) return null
 
-  const hashedToken = hashToken(token)
+export async function getSessionByToken(
+  token: string,
+) {
+  if (!token.startsWith("orbit_")) {
+    return null;
+  }
 
-  const session = await prisma.authSession.findUnique({
-    where: {
-      token: hashedToken,
-    },
+  const session =
+    await prisma.authSession.findUnique({
+      where: {
+        token: hashToken(token),
+      },
 
-    include: {
-      user: true,
-    },
-  })
+      include: {
+        user: true,
+      },
+    });
 
-  if (!session) return null
+
+  if (!session) {
+    return null;
+  }
+
 
   if (session.expiresAt < new Date()) {
-    await prisma.authSession
-      .delete({
-        where: {
-          token: hashedToken,
-        },
-      })
-      .catch(() => null)
+    await prisma.authSession.delete({
+      where: {
+        id: session.id,
+      },
+    }).catch(() => null);
 
-    return null
+    return null;
   }
+
 
   return {
     ...session,
-    token: token,
-    ipAddress: decrypt(session.ipAddress),
-    userAgent: decrypt(session.userAgent),
-  }
+    token,
+  };
 }
 
-async function refreshSession(token: string, days = 30) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) throw new Error('Invalid token format')
 
+export async function deleteSession(
+  token: string,
+) {
+  return prisma.authSession.delete({
+    where: {
+      token: hashToken(token),
+    },
+  }).catch(() => null);
+}
+
+
+export async function deleteAllUserSessions(
+  userId: bigint,
+) {
+  return prisma.authSession.deleteMany({
+    where: {
+      userId,
+    },
+  });
+}
+
+
+export async function refreshSession(
+  token: string,
+  days = 30,
+) {
   return prisma.authSession.update({
     where: {
       token: hashToken(token),
@@ -292,136 +176,20 @@ async function refreshSession(token: string, days = 30) {
 
     data: {
       expiresAt: new Date(
-        Date.now() + days * 24 * 60 * 60 * 1000
+        Date.now() +
+        days * 24 * 60 * 60 * 1000,
       ),
     },
-  })
+  });
 }
 
-async function rotateSessionToken(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) throw new Error('Invalid token format')
 
-  const newToken = generateToken()
-
-  const session = await prisma.authSession.update({
-    where: {
-      token: hashToken(token),
-    },
-
-    data: {
-      token: hashToken(newToken),
-      updatedAt: new Date(),
-    },
-  })
-
-  return {
-    ...session,
-    token: newToken,
-  }
-}
-
-async function deleteSession(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) return null
-
-  return prisma.authSession
-    .delete({
-      where: {
-        token: hashToken(token),
-      },
-    })
-    .catch(() => null)
-}
-
-async function forceDeleteSession(id: string) {
-  return prisma.authSession
-    .delete({
-      where: {
-        id: id,
-      },
-    })
-    .catch((err) => { console.error('Error deleting session:', err) })
-}
-
-async function deleteAllUserSessions(userId: bigint) {
+export async function purgeExpiredSessions() {
   return prisma.authSession.deleteMany({
-    where: { userId },
-  })
-}
-
-async function deleteOtherSessions(
-  userId: bigint,
-  sid: string
-) {
-  return prisma.authSession.deleteMany({
-    where: {
-      userId,
-      NOT: {
-        id: sid,
-      },
-    },
-  })
-}
-
-async function listActiveSessions(userId: bigint) {
-  const sessions = await prisma.authSession.findMany({
-    where: { userId, expiresAt: { gt: new Date() } },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      browser: true,
-      os: true,
-      device: true,
-      ipAddress: true,
-      userAgent: true,
-      createdAt: true,
-      expiresAt: true,
-      country: true,
-      region: true
-    },
-  })
-
-  const results = []
-
-  for (const session of sessions) {
-    try {
-      results.push({
-        ...session,
-        ipAddress: decrypt(session.ipAddress),
-        userAgent: decrypt(session.userAgent),
-      })
-    } catch {
-      await prisma.authSession.delete({ where: { id: session.id } }).catch(() => null)
-    }
-  }
-
-  return results
-}
-
-async function purgeExpiredSessions() {
-  const { count } = await prisma.authSession.deleteMany({
     where: {
       expiresAt: {
         lt: new Date(),
       },
     },
-  })
-
-  console.log(`Purged ${count} expired sessions.`)
-
-  return count
-}
-
-export {
-  createSession,
-  getSessionByToken,
-  refreshSession,
-  rotateSessionToken,
-  forceDeleteSession,
-  deleteSession,
-  deleteOtherSessions,
-  deleteAllUserSessions,
-  listActiveSessions,
-  purgeExpiredSessions
+  });
 }

@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "SessionType" ALTER COLUMN "gameId" SET DATA TYPE BIGINT;

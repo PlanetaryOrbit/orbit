@@ -1,5 +1,5 @@
 const webpack = require("webpack");
-
+const isDev = process.env.NODE_ENV === "development";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -37,7 +37,7 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud",
+              `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud`,
               "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://*.posthog.com https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud",
               "script-src-attr 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
