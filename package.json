@@ -80,6 +80,7 @@
     "tailwind-merge": "^2.6.1",
     "ua-parser-js": "^2.0.10",
     "uuid": "^9.0.1",
+    "ws": "^8.21.1",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
