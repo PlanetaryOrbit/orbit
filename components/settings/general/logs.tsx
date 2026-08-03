@@ -175,13 +175,13 @@ const renderDetails = (details: any, action?: string) => {
 
   const hasBefore = Object.prototype.hasOwnProperty.call(details, 'before');
   const hasAfter = Object.prototype.hasOwnProperty.call(details, 'after');
-  
+
   if (hasBefore || hasAfter) {
     const before = details.before || {};
     const after = details.after || {};
     const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
     const changes: any[] = [];
-    
+
     if (details.roleName) {
       changes.push({
         key: 'roleName',
@@ -189,7 +189,7 @@ const renderDetails = (details: any, action?: string) => {
         value: details.roleName
       });
     }
-    
+
     for (const key of allKeys) {
       const beforeVal = before[key];
       const afterVal = after[key];
@@ -200,7 +200,7 @@ const renderDetails = (details: any, action?: string) => {
         const afterSet = new Set(afterVal);
         const added = afterVal.filter((p: string) => !beforeSet.has(p));
         const removed = beforeVal.filter((p: string) => !afterSet.has(p));
-        
+
         if (added.length > 0 || removed.length > 0) {
           changes.push({
             key: 'permissions',
@@ -211,11 +211,11 @@ const renderDetails = (details: any, action?: string) => {
         }
         continue;
       }
-      
+
       if (key === 'sessionColors' && typeof beforeVal === 'object' && typeof afterVal === 'object' && beforeVal !== null && afterVal !== null) {
         const allSessionKeys = Array.from(new Set([...Object.keys(beforeVal), ...Object.keys(afterVal)]));
         const colorChanges: any[] = [];
-        
+
         for (const sessionKey of allSessionKeys) {
           if (beforeVal[sessionKey] !== afterVal[sessionKey]) {
             colorChanges.push({
@@ -226,7 +226,7 @@ const renderDetails = (details: any, action?: string) => {
             });
           }
         }
-        
+
         if (colorChanges.length > 0) {
           changes.push({
             key: 'sessionColors',
@@ -236,7 +236,7 @@ const renderDetails = (details: any, action?: string) => {
         }
         continue;
       }
-      
+
       if (Array.isArray(beforeVal) && Array.isArray(afterVal)) {
         const maxLength = Math.max(beforeVal.length, afterVal.length);
         for (let i = 0; i < maxLength; i++) {
@@ -284,11 +284,11 @@ const renderDetails = (details: any, action?: string) => {
         changes.push({ key, before: beforeVal, after: afterVal });
       }
     }
-    
+
     if (changes.length === 0) {
       return <span className="text-xs text-zinc-500 dark:text-zinc-400 italic">No changes detected</span>;
     }
-    
+
     return (
       <div className="space-y-2">
         {changes.map((change, idx) => {
@@ -301,7 +301,7 @@ const renderDetails = (details: any, action?: string) => {
               </div>
             );
           }
-          
+
           if (change.type === 'permissions') {
             return (
               <div key={change.key} className="text-sm">
@@ -325,7 +325,7 @@ const renderDetails = (details: any, action?: string) => {
               </div>
             );
           }
-          
+
           if (change.type === 'sessionColors') {
             return (
               <div key={change.key} className="text-sm">
@@ -355,7 +355,7 @@ const renderDetails = (details: any, action?: string) => {
               </div>
             );
           }
-          
+
           return (
             <div key={change.key + idx} className="text-sm">
               <div className="font-medium text-zinc-700 dark:text-zinc-300 mb-1 capitalize">
@@ -380,14 +380,14 @@ const renderDetails = (details: any, action?: string) => {
   }
 
   if (typeof details === 'object') {
-    const entries = Object.entries(details).filter(([key]) => 
+    const entries = Object.entries(details).filter(([key]) =>
       key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt'
     );
-    
+
     if (entries.length === 0) {
       return <span className="text-xs text-zinc-500 dark:text-zinc-400 italic">No details</span>;
     }
-    
+
     return (
       <div className="space-y-1.5">
         {entries.map(([key, value]) => (

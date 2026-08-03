@@ -39,7 +39,10 @@ export async function handler(
   }
 
   const page = Math.max(Number(req.query.page ?? 1), 1);
-  const limit = Math.min(Math.max(Number(req.query.limit ?? 50), 1), 100);
+  const limit = Math.min(
+    Math.max(Number(req.query.limit ?? 50), 1),
+    100
+  );
 
   const userId = req.query.userId
     ? Number(req.query.userId)
@@ -52,11 +55,29 @@ export async function handler(
 
   const search =
     typeof req.query.search === "string"
-      ? req.query.search
+      ? req.query.search.trim()
       : undefined;
 
+
+  const cacheKey = [
+    "audit",
+    workspaceId,
+    page,
+    limit,
+    userId ?? "all",
+    action ?? "all",
+    search ?? "none",
+  ].join(":");
+
+
+  const cached = await cache.get(cacheKey);
+
+  if (cached) {
+    return res.status(200).json(cached);
+  }
+
+
   const skip = (page - 1) * limit;
-  // our cacheKey should be just workspaceId
 
 
   try {
@@ -81,40 +102,46 @@ export async function handler(
     ];
 
 
-    const users =
-      userIds.length > 0
-        ? await prisma.user.findMany({
-            where: {
-              userid: {
-                in: userIds.map(BigInt),
-              },
-            },
-            select: {
-              userid: true,
-              username: true,
-            },
-          })
-        : [];
+    let userMap = new Map<string, string>();
+
+    if (userIds.length) {
+      const users = await prisma.user.findMany({
+        where: {
+          userid: {
+            in: userIds.map(BigInt),
+          },
+        },
+        select: {
+          userid: true,
+          username: true,
+        },
+      });
 
 
-    const userMap = new Map(
-      users.map((u) => [
-        String(u.userid),
-        u.username ?? String(u.userid),
-      ])
-    );
+      userMap = new Map(
+        users.map((u) => [
+          String(u.userid),
+          u.username ?? String(u.userid),
+        ])
+      );
+    }
 
 
     const enrichedRows = rows.map((r) => ({
-      ...r,
+      id: r.id,
+      action: r.action,
+      createdAt: r.createdAt,
+      userId: r.userId,
       userName:
-        (r.userId && userMap.get(String(r.userId))) ||
-        r.details?.actorUsername ||
-        r.details?.actorName ||
-        r.userId ||
+        (r.userId && userMap.get(String(r.userId))) ??
+        r.details?.actorUsername ??
+        r.details?.actorName ??
         "System",
+      details: r.details,
     }));
 
+
+    const total = result.total ?? 0;
 
     const response = {
       success: true,
@@ -122,16 +149,16 @@ export async function handler(
       pagination: {
         page,
         limit,
-        total: result.total ?? 0,
-        pages: Math.ceil((result.total ?? 0) / limit),
+        total,
+        pages: Math.ceil(total / limit),
       },
     };
 
 
-    await cacheSet(
+    await cache.set(
       cacheKey,
       response,
-      30 // seconds
+      60
     );
 
 
