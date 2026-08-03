@@ -3,8 +3,8 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Topbar from "@/components/topbar";
-import Router, { useRouter } from "next/router";
-import { loginState, workspaceinfo } from "@/state";
+import { useRouter } from "next/router";
+import { loginState } from "@/state";
 import { Transition, Dialog } from "@headlessui/react";
 import { useState, useEffect, Fragment, useRef, useCallback } from "react";
 import axios from "axios";
@@ -30,7 +30,6 @@ import {
   IconClockCog,
 } from "@tabler/icons-react";
 import clsx from "clsx";
-import { workspace } from "@prisma/client";
 import {
   WorkspaceCard,
   WorkspacesEmptyState,
@@ -42,13 +41,6 @@ import {
   workspacesPrimaryButtonClass,
   workspacesSecondaryButtonClass,
 } from "@/components/workspaces/shell";
-
-interface RolesRes {
-  success: true;
-  data: {
-    workspace: Workspaces;
-  }[];
-}
 
 interface Workspaces {
   groupId: number;
@@ -507,7 +499,7 @@ const Home: NextPage = () => {
                   className={clsx(workspacesSecondaryButtonClass, "gap-2 px-4 py-2.5")}
                 >
                   <IconRefresh className="h-4 w-4" stroke={1.5} />
-                  <span className="hidden sm:inline">Check Roles</span>
+                  <span className="hidden sm:inline">Refresh Roles</span>
                 </button>
                 {isOwner ? (
                   <button
@@ -587,7 +579,7 @@ const Home: NextPage = () => {
               description={
                 isOwner
                   ? "Create your first workspace to get started."
-                  : "You don't have permission to create workspaces. Contact an administrator if you need access."
+                  : "You may need to contact whoever is managing this instance to get access."
               }
               action={
                 isOwner ? (
