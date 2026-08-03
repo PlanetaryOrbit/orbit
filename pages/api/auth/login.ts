@@ -11,7 +11,7 @@ import prisma from "@/utils/database";
 import rateLimit from "express-rate-limit";
 import { NextApiHandler } from "next";
 import { createSession } from "@/utils/session";
-import cache from "@/utils/v2/cache";
+import cache from "@/utils/cache";
 
 async function getCachedGroupInfo(groupId: number) {
   const cacheKey = `roblox:group:${groupId}`;

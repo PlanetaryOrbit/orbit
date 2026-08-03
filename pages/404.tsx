@@ -7,7 +7,7 @@ export default function Error() {
   return (
     <>
       <Head>
-        <title>404 — Page Not Found</title>
+        <title>404 - Page Not Found</title>
         <meta name="robots" content="noindex" />
       </Head>
 

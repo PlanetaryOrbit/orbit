@@ -9,6 +9,7 @@ import Input from "@/components/input";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
+import { getContrastColor } from "@/utils/color";
 
 type FormData = {
   username: string;
@@ -17,7 +18,7 @@ type FormData = {
 };
 
 const Login: NextPage = () => {
-  const [selectedColor, setSelectedColor] = useState("bg-orbit");
+  const [selectedColor, setSelectedColor] = useState("#9d8fff");
   const [login, setLogin] = useRecoilState(loginState);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false)
@@ -136,43 +137,43 @@ const Login: NextPage = () => {
   };
 
   const colors = [
-    "bg-pink-100",
-    "bg-rose-100",
-    "bg-orange-100",
-    "bg-amber-100",
-    "bg-lime-100",
-    "bg-emerald-100",
-    "bg-cyan-100",
-    "bg-sky-100",
-    "bg-indigo-100",
-    "bg-purple-100",
-    "bg-pink-400",
-    "bg-rose-400",
-    "bg-orange-400",
-    "bg-amber-400",
-    "bg-lime-400",
-    "bg-emerald-400",
-    "bg-cyan-400",
-    "bg-sky-400",
-    "bg-indigo-400",
-    "bg-violet-400",
-    "bg-orbit",
-    "bg-rose-600",
-    "bg-orange-600",
-    "bg-amber-600",
-    "bg-lime-600",
-    "bg-emerald-600",
-    "bg-cyan-600",
-    "bg-sky-600",
-    "bg-indigo-600",
-    "bg-violet-600",
+    "#fce7f3", // pink-100
+    "#ffe4e6", // rose-100
+    "#ffedd5", // orange-100
+    "#fef3c7", // amber-100
+    "#ecfccb", // lime-100
+    "#d1fae5", // emerald-100
+    "#cffafe", // cyan-100
+    "#e0f2fe", // sky-100
+    "#e0e7ff", // indigo-100
+    "#f3e8ff", // purple-100
+    "#f9a8d4", // pink-400
+    "#fb7185", // rose-400
+    "#fb923c", // orange-400
+    "#fbbf24", // amber-400
+    "#a3e635", // lime-400
+    "#34d399", // emerald-400
+    "#22d3ee", // cyan-400
+    "#38bdf8", // sky-400
+    "#818cf8", // indigo-400
+    "#a78bfa", // violet-400
+    "#9d8fff", // orbit
+    "#e11d48", // rose-600
+    "#ea580c", // orange-600
+    "#d97706", // amber-600
+    "#65a30d", // lime-600
+    "#059669", // emerald-600
+    "#0891b2", // cyan-600
+    "#0284c7", // sky-600
+    "#4f46e5", // indigo-600
+    "#7c3aed", // violet-600
   ];
 
   return (
-    <div className="min-h-screen bg-infobg-light dark:bg-infobg-dark bg-no-repeat bg-cover bg-center flex flex-col">
+    <div className={`min-h-screen bg-no-repeat bg-cover bg-center flex flex-col`}>
       <div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
         <p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
-          👋 Welcome <br /> to <span className="text-pink-100">Orbit</span>
+          👋 Welcome <br /> to <span style={{ color: selectedColor }}>Orbit</span>
         </p>
       </div>
 
@@ -212,29 +213,34 @@ const Login: NextPage = () => {
                       key={i}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`aspect-square rounded-lg transform transition-all ease-in-out ${color} ${selectedColor === color
+                      className={`aspect-square rounded-lg transform transition-all ease-in-out ${selectedColor === color
                         ? "ring-2 ring-black dark:ring-white ring-offset-2"
                         : "hover:scale-105"
                         }`}
+                      style={{ backgroundColor: color }}
                     />
                   ))}
                 </div>
               </div>
+              {/* input a hex color */}
+
 
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => window.open("https://docs.planetaryapp.cloud/", "_blank", "noopener,noreferrer")}
-                  className="border-orbit border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition"
+                  className="border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition"
+                  style={{ borderColor: selectedColor }}
                 >
-                  Docs
+                  Documentation
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     handleSubmit(nextSlide)();
                   }}
-                  className="ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition"
+                  className="ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 font-bold hover:bg-orbit/80 transition"
+                  style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
                 >
                   Continue
                 </button>
@@ -333,8 +339,9 @@ const Login: NextPage = () => {
                   type="button"
                   onClick={() => setSelectedSlide(2)}
                   disabled={ocTesting || (ockey.length > 0 && ocKeyStatus !== "verified")}
-                  className={`ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${ocTesting || (ockey.length > 0 && ocKeyStatus !== "verified") ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`ml-auto py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${ocTesting || (ockey.length > 0 && ocKeyStatus !== "verified") ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
+                    style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
                 >
                   {ockey.length === 0 ? "Skip this" : "Continue"}
                 </button>
@@ -408,7 +415,8 @@ const Login: NextPage = () => {
                     type="button"
                     onClick={signupform.handleSubmit(createAccount)}
                     disabled={isLoading}
-                    className={`ml-auto bg-orbit py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`ml-auto py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ backgroundColor: selectedColor }}
                   >
                     {isLoading ? 'Creating...' : 'Continue'}
                   </button>

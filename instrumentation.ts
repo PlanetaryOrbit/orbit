@@ -7,8 +7,5 @@ export async function register() {
     const cache = await import("./utils/cache");
     await cache.clear();
     console.log("[STARTUP] Cache cleared");
-    const { startWebsocketServer } = await import("./websocket/server");
-    startWebsocketServer();
-    console.log("[STARTUP] WebSocket server initialized");
   }
 }
