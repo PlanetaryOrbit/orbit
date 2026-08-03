@@ -5,7 +5,7 @@ import { getUsername, getThumbnail } from "@/utils/userinfoEngine";
 import { checkSpecificUser } from "@/utils/permissionsManager";
 import { generateSessionTimeMessage } from "@/utils/sessionMessage";
 import { deriveActivityEndChatFields } from "@/utils/activitySessionChat";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import cache from "@/utils/cache";
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -14,107 +14,168 @@ import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 type Data = {
   success: boolean;
   error?: string;
-  data?: any,
+  data?: any;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method != "POST" && req.method != "GET") {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Data>,
+) {
+  if (req.method !== "POST" && req.method !== "GET") {
     return res
       .status(405)
       .json({ success: false, error: "Method not allowed" });
   }
+
   const { authorization } = req.headers;
+
   let config;
   let groupId;
+
   try {
     if (authorization) {
-      config = await prisma.config.findFirst({
-        where: {
-          value: {
-            path: ["key"],
-            equals: authorization,
-          },
-        },
-      });
+      const cacheKey = `config:key:${authorization}`;
+
+      config = await cache.get<any>(cacheKey);
 
       if (!config) {
-        return res.status(401).json({ success: false, error: "Invalid authorization key" });
+        config = await prisma.config.findFirst({
+          where: {
+            value: {
+              path: ["key"],
+              equals: authorization,
+            },
+          },
+        });
+
+        if (config) {
+          await cache.set(cacheKey, config, 300);
+        }
       }
 
-
+      if (!config) {
+        return res
+          .status(401)
+          .json({ success: false, error: "Invalid authorization key" });
+      }
     }
   } catch (err) {
     console.error("Unexpected error in /api/activity:", err);
+
     return res
       .status(500)
       .json({ success: false, error: "Internal server error" });
   }
 
-  if (req.method == "POST") {
+  if (req.method === "POST") {
     const { userid, placeid, idleTime } = req.body;
     const { type } = req.query;
 
-    if (!userid || isNaN(userid))
+    if (!userid || isNaN(userid)) {
       return res
         .status(400)
         .json({ success: false, error: "Invalid or missing userid" });
-    if (!type || typeof type !== "string")
+    }
+
+    if (!type || typeof type !== "string") {
       return res
         .status(400)
         .json({ success: false, error: "Missing query type (create or end)" });
+    }
 
     try {
       if (req.session?.userId) {
         const workspaceId = req.body.workspaceId;
 
         if (!workspaceId) {
-          return res.status(400).json({ success: false, error: "Workspace ID required for session-based auth" });
+          return res.status(400).json({
+            success: false,
+            error: "Workspace ID required for session-based auth",
+          });
         }
 
-        config = await prisma.config.findFirst({
-          where: {
-            workspaceGroupId: Number(workspaceId),
-          },
-        });
+        const cacheKey = `config:workspace:${workspaceId}`;
+
+        config = await cache.get<any>(cacheKey);
 
         if (!config) {
-          return res.status(404).json({ success: false, error: "Workspace not found" });
+          config = await prisma.config.findFirst({
+            where: {
+              workspaceGroupId: Number(workspaceId),
+            },
+          });
+
+          if (config) {
+            await cache.set(cacheKey, config, 300);
+          }
         }
+
+        if (!config) {
+          return res
+            .status(404)
+            .json({ success: false, error: "Workspace not found" });
+        }
+
         groupId = config.workspaceGroupId;
       } else if (config) {
         groupId = config.workspaceGroupId;
       } else {
-        console.log("error falls here")
-        return res.status(401).json({ success: false, error: "Authorization required" });
+        return res
+          .status(401)
+          .json({ success: false, error: "Authorization required" });
       }
 
       const parsedConfig = JSON.parse(JSON.stringify(config.value));
 
-      const userRank = await noblox
-        .getRankInGroup(groupId, userid)
-        .catch(() => null);
+      const rankCacheKey = `roblox:rank:${groupId}:${userid}`;
+
+      let userRank = await cache.get<number | null>(rankCacheKey);
+
+      if (userRank === null) {
+        userRank = await noblox
+          .getRankInGroup(groupId, userid)
+          .catch(() => null);
+
+        await cache.set(rankCacheKey, userRank, 300);
+      }
 
       if (parsedConfig.role && (!userRank || userRank < parsedConfig.role)) {
-        return res
-          .status(200)
-          .json({ success: true, error: "User is not the right rank" });
-      }
-
-      const username = await getUsername(userid);
-      const picture = getThumbnail(userid);
-
-      try {
-        await prisma.user.upsert({
-          where: { userid: BigInt(userid) },
-          update: { username, picture },
-          create: { userid: BigInt(userid), username, picture },
+        return res.status(200).json({
+          success: true,
+          error: "User is not the right rank",
         });
-      } catch (error) {
-        console.error(`[ERROR] Failed to upsert user ${userid}:`, error);
-        return res
-          .status(500)
-          .json({ success: false, error: "Failed to create/update user" });
       }
+
+      let username = await cache.get<string>(`roblox:username:${userid}`);
+
+      if (!username) {
+        username = await getUsername(userid);
+
+        await cache.set(`roblox:username:${userid}`, username, 3600);
+      }
+
+      let picture = await cache.get<string>(`roblox:thumbnail:${userid}`);
+
+      if (!picture) {
+        picture = getThumbnail(userid);
+
+        await cache.set(`roblox:thumbnail:${userid}`, picture, 3600);
+      }
+
+      await prisma.user.upsert({
+        where: {
+          userid: BigInt(userid),
+        },
+        update: {
+          username,
+          picture,
+        },
+        create: {
+          userid: BigInt(userid),
+          username,
+          picture,
+        },
+      });
 
       await checkSpecificUser(userid);
 
@@ -128,31 +189,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (existing) {
-          return res
-            .status(400)
-            .json({ success: false, error: "Session already initialized" });
+          return res.status(400).json({
+            success: false,
+            error: "Session already initialized",
+          });
         }
 
         let gameName = null;
+
         if (placeid) {
           try {
-            const universeInfo: any = await noblox.getUniverseInfo(
-              Number(placeid)
+            let universeInfo = await cache.get<any>(
+              `roblox:universe:${placeid}`,
             );
-            if (universeInfo && universeInfo[0] && universeInfo[0].name) {
+
+            if (!universeInfo) {
+              universeInfo = await noblox.getUniverseInfo(Number(placeid));
+
+              await cache.set(
+                `roblox:universe:${placeid}`,
+                universeInfo,
+                86400,
+              );
+            }
+
+            if (universeInfo?.[0]?.name) {
               gameName = universeInfo[0].name;
             }
-          } catch (error) {
+          } catch {
             console.log(
-              `[WARNING] Could not fetch universe info for place ${placeid}`
+              `[WARNING] Could not fetch universe info for place ${placeid}`,
             );
           }
         }
 
         const sessionStartTime = new Date();
+
         const sessionMessage = generateSessionTimeMessage(
           gameName,
-          sessionStartTime
+          sessionStartTime,
         );
 
         await prisma.activitySession.create({
@@ -162,16 +237,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             active: true,
             startTime: sessionStartTime,
             universeId: placeid ? BigInt(placeid) : null,
-            sessionMessage: sessionMessage,
+            sessionMessage,
             workspaceGroupId: groupId,
           },
         });
 
-        console.log(
-          `[SESSION STARTED] User ${userid} for group ${groupId} - ${sessionMessage}`
-        );
-        return res.status(200).json({ success: true });
-      } else if (type === "end") {
+        await cache.del(`activity:session:${groupId}:${userid}`);
+
+        return res.status(200).json({
+          success: true,
+        });
+      }
+
+      if (type === "end") {
         const session = await prisma.activitySession.findFirst({
           where: {
             userId: BigInt(userid),
@@ -181,48 +259,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!session) {
-          return res.status(400).json({ success: false, error: "Session not found" });
+          return res.status(400).json({
+            success: false,
+            error: "Session not found",
+          });
         }
 
         const endTime = new Date();
-        const durationMs = endTime.getTime() - session.startTime.getTime();
-
-        if (durationMs < 0) {
-          return res.status(400).json({ success: false, error: "Invalid session duration" });
-        }
 
         const { messages: messagesCount, chatLog } =
           deriveActivityEndChatFields(req.body as Record<string, unknown>);
 
         await prisma.activitySession.update({
-          where: { id: session.id },
+          where: {
+            id: session.id,
+          },
           data: {
             endTime,
             active: false,
-            idleTime: idleTime ? Math.max(0, Number(idleTime)) : 0, 
+            idleTime: idleTime ? Math.max(0, Number(idleTime)) : 0,
             messages: messagesCount,
             ...(chatLog !== undefined ? { chatLog } : {}),
           },
         });
 
-        console.log(`[SESSION ENDED] User ${userid} (ID: ${session.id})`);
-        return res.status(200).json({ success: true });
-      } else {
-        return res
-          .status(400)
-          .json({ success: false, error: "Invalid query type" });
+        await cache.del(`activity:session:${groupId}:${userid}`);
+
+        return res.status(200).json({
+          success: true,
+        });
       }
-    } catch (error: any) {
-      console.error("Unexpected error in /api/activity:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+
+      return res.status(400).json({
+        success: false,
+        error: "Invalid query type",
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        error: "Internal server error",
+      });
     }
-  } else if (req.method == "GET") {
+  }
+
+  if (req.method === "GET") {
     const { id } = req.query;
 
     if (!id) {
-      return res.status(401).json({ success: false, error: "Session ID required." });
+      return res.status(401).json({
+        success: false,
+        error: "Session ID required.",
+      });
     }
 
     try {
@@ -230,7 +319,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const workspaceId = req.body.workspaceId;
 
         if (!workspaceId) {
-          return res.status(400).json({ success: false, error: "Workspace ID required for session-based auth" });
+          return res.status(400).json({
+            success: false,
+            error: "Workspace ID required for session-based auth",
+          });
         }
 
         config = await prisma.config.findFirst({
@@ -240,39 +332,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!config) {
-          return res.status(404).json({ success: false, error: "Workspace not found" });
+          return res.status(404).json({
+            success: false,
+            error: "Workspace not found",
+          });
         }
+
         groupId = config.workspaceGroupId;
       } else if (config) {
         groupId = config.workspaceGroupId;
       } else {
-        console.log("error falls here")
-        return res.status(401).json({ success: false, error: "Authorization required" });
+        return res.status(401).json({
+          success: false,
+          error: "Authorization required",
+        });
       }
-      const session = await prisma.activitySession.findFirst({
-        where: {
-          userId: BigInt(id.toString()),
-          workspaceGroupId: groupId,
-          active: true
+
+      const cacheKey = `activity:session:${groupId}:${id}`;
+
+      let session = await cache.get<any>(cacheKey);
+
+      if (!session) {
+        session = await prisma.activitySession.findFirst({
+          where: {
+            userId: BigInt(id.toString()),
+            workspaceGroupId: groupId,
+            active: true,
+          },
+        });
+
+        if (session) {
+          await cache.set(cacheKey, session, 15);
         }
-      })
+      }
 
       if (!session) {
         return res.status(404).json({
           success: false,
-          error: "No active session found."
-        })
+          error: "No active session found.",
+        });
       }
 
       return res.status(200).json({
         success: true,
-        data: session
-      })
+        data: session,
+      });
     } catch (err) {
-      console.error("Unexpected error in /api/activity:", err);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error(err);
+
+      return res.status(500).json({
+        success: false,
+        error: "Internal server error",
+      });
     }
   }
 }
