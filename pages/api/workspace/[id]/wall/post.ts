@@ -152,8 +152,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       });
 
       const isAdmin = user?.workspaceMemberships?.[0]?.isAdmin || false;
-      const hasPhotoPermission = 
-        isAdmin || 
+      const hasPhotoPermission =
+        isAdmin ||
         user?.roles?.[0]?.permissions?.includes("add_wall_photos");
 
       if (!hasPhotoPermission) {
