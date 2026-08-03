@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getUsername, getThumbnail, getDisplayName } from "@/utils/userinfoEngine";
+import { getUsername, getDisplayName } from "@/utils/userinfoEngine";
+import { fetchAvatar } from "@/utils/avatar";
 import { User } from "@/types/index.d";
 import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
@@ -15,128 +16,218 @@ type Data = {
   debug?: any;
 };
 
-async function safeHashPassword(password: string): Promise<string> {
-  try {
-    return await bcryptjs.hash(password, 10);
-  } catch (error) {
-    console.error("Error hashing password:", error);
-    throw new Error("Failed to hash password");
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Data>,
+) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      success: false,
+      error: "Method not allowed",
+    });
   }
-}
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res.status(405).json({ success: false, error: "Method not allowed" });
 
   if (!req.body || typeof req.body !== "object") {
-    return res.status(400).json({ success: false, error: "Invalid request body - must be JSON" });
+    return res.status(400).json({
+      success: false,
+      error: "Invalid request body - must be JSON",
+    });
   }
 
   const { groupid, username, password, color, opencloudKey } = req.body;
+
   if (!groupid || !username || !password || !color) {
-    return res.status(400).json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({
+      success: false,
+      error: "Missing required fields",
+    });
   }
 
-  const groupIdNumber = typeof groupid === "string" ? parseInt(groupid) : groupid;
-  if (isNaN(groupIdNumber)) {
-    return res.status(400).json({ success: false, error: "Invalid groupid" });
+  const groupIdNumber = typeof groupid === "string" ? Number(groupid) : groupid;
+
+  if (!Number.isInteger(groupIdNumber)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid groupid",
+    });
   }
 
   try {
-    let userid = (await getRobloxUserId(username).catch((e) => {
-      console.error("Error getting Roblox user ID:", e);
-      return null;
-    })) as number | undefined;
-
-    if (!userid) {
-      return res.status(404).json({ success: false, error: "Username not found" });
-    }
-
-    const existingWorkspace = await prisma.workspace.findFirst({ where: { groupId: Number(groupid) }}).catch((e) => {
-      console.error("Error checking existing workspace:", e);
+    const userid = await getRobloxUserId(username).catch((err) => {
+      console.error("Failed getting Roblox user ID:", err);
       return null;
     });
 
-    console.log(existingWorkspace)
+    if (!userid) {
+      return res.status(404).json({
+        success: false,
+        error: "Username not found",
+      });
+    }
+
+    const existingWorkspace = await prisma.workspace.findUnique({
+      where: {
+        groupId: groupIdNumber,
+      },
+    });
 
     if (existingWorkspace) {
-      return res.status(403).json({ success: false, error: "Workspace already exists" });
+      return res.status(403).json({
+        success: false,
+        error: "Workspace already exists",
+      });
     }
 
-    const hashedPassword = await safeHashPassword(password);
+    const [logo, group, verified] = await Promise.all([
+      noblox.getLogo(groupIdNumber, "420x420").catch(() => ""),
 
-    let groupName = `Group ${groupIdNumber}`;
-    let groupLogo = '';
-    let isVerified = false;
+      noblox.getGroup(groupIdNumber).catch(() => null),
 
-    try {
-      const [logo, group] = await Promise.all([
-        noblox.getLogo(groupIdNumber, '420x420').catch(() => ''),
-        noblox.getGroup(groupIdNumber).catch(() => null)
-      ]);
-      if (group) groupName = group.name;
-      if (logo) groupLogo = logo;
-      if (await isGroupAllied(groupIdNumber)){ isVerified = true };
-    } catch (err) {
-      console.error('Failed to fetch group info during workspace setup:', err);
-    }
-
-    await prisma.workspace.create({
-      data: { groupId: groupIdNumber, groupName, groupLogo, lastSynced: new Date(), isVerified, lastSyncedSuccessful: !!opencloudKey },
-    }).catch((e) => { throw new Error("Failed to create workspace") });
-
-    await prisma.$transaction([
-      prisma.config.create({ data: { key: "customization", workspaceGroupId: groupIdNumber, value: { color } } }),
-      prisma.config.create({ data: { key: "theme", workspaceGroupId: groupIdNumber, value: color } }),
-      prisma.config.create({ data: { key: "guides", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
-      prisma.config.create({ data: { key: "sessions", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
-      prisma.config.create({ data: { key: "allies", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
-      prisma.config.create({ data: { key: "leaderboard", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
-      prisma.config.create({ data: { key: "notices", workspaceGroupId: groupIdNumber, value: { enabled: true } } }),
-      prisma.config.create({ data: { key: "resignations", workspaceGroupId: groupIdNumber, value: { enabled: false } } }),
-      prisma.config.create({ data: { key: "policies", workspaceGroupId: groupIdNumber, value: { enabled: false } } }),
-      prisma.config.create({ data: { key: "home", workspaceGroupId: groupIdNumber, value: { widgets: [] } } }),
+      isGroupAllied(groupIdNumber).catch(() => false),
     ]);
 
-    await prisma.user.create({
-      data: {
-        userid: BigInt(userid),
-        info: { create: { passwordhash: hashedPassword } },
-        isOwner: true,
-      },
-    }).catch((e) => { throw new Error("Failed to create user") });
+    const groupName = group?.name ?? `Group ${groupIdNumber}`;
 
-    const defaultRole = await prisma.role.create({
-      data: { name: "Default", workspaceGroupId: groupIdNumber, permissions: [], groupRoles: [] },
-    }).catch((e) => { throw new Error("Failed to create default role") });
+    const groupLogo = logo ?? "";
 
-    await prisma.user.update({
-      where: { userid: BigInt(userid) },
-      data: { roles: { connect: { id: defaultRole.id } } },
-    }).catch((e) => { throw new Error("Failed to assign role to user") });
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
-    await prisma.workspaceMember.create({
-      data: { workspaceGroupId: groupIdNumber, userId: BigInt(userid), joinDate: new Date(), isAdmin: true },
-    }).catch((e) => { throw new Error("Failed to create workspace member") });
+    await prisma.$transaction(async (tx) => {
+      await tx.workspace.create({
+        data: {
+          groupId: groupIdNumber,
+          groupName,
+          groupLogo,
+          lastSynced: new Date(),
+          isVerified: verified,
+          lastSyncedSuccessful:
+            typeof opencloudKey === "string" && opencloudKey.trim().length > 0,
+        },
+      });
 
-    if (opencloudKey && typeof opencloudKey === "string" && opencloudKey.trim().length > 0) {
-      await prisma.config.create({
-        data: { key: "roblox_opencloud", workspaceGroupId: groupIdNumber, value: { enabled: true, key: opencloudKey.trim() } },
-      }).catch((e) => console.error("Error saving Open Cloud key:", e));
-    }
+      await tx.config.createMany({
+        data: [
+          {
+            key: "customization",
+            workspaceGroupId: groupIdNumber,
+            value: { color },
+          },
+          {
+            key: "theme",
+            workspaceGroupId: groupIdNumber,
+            value: color,
+          },
+          {
+            key: "guides",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: true },
+          },
+          {
+            key: "sessions",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: true },
+          },
+          {
+            key: "allies",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: true },
+          },
+          {
+            key: "leaderboard",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: true },
+          },
+          {
+            key: "notices",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: true },
+          },
+          {
+            key: "resignations",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: false },
+          },
+          {
+            key: "policies",
+            workspaceGroupId: groupIdNumber,
+            value: { enabled: false },
+          },
+          {
+            key: "home",
+            workspaceGroupId: groupIdNumber,
+            value: { widgets: [] },
+          },
+        ],
+      });
 
+      const user = await tx.user.create({
+        data: {
+          userid: BigInt(userid),
+          info: {
+            create: {
+              passwordhash: hashedPassword,
+            },
+          },
+          isOwner: true,
+        },
+      });
+
+      const defaultRole = await tx.role.create({
+        data: {
+          name: "Default",
+          workspaceGroupId: groupIdNumber,
+          permissions: [],
+          groupRoles: [],
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          userid: BigInt(userid),
+        },
+        data: {
+          roles: {
+            connect: {
+              id: defaultRole.id,
+            },
+          },
+        },
+      });
+
+      await tx.workspaceMember.create({
+        data: {
+          workspaceGroupId: groupIdNumber,
+          userId: BigInt(userid),
+          joinDate: new Date(),
+          isAdmin: true,
+        },
+      });
+
+      if (typeof opencloudKey === "string" && opencloudKey.trim().length > 0) {
+        await tx.config.create({
+          data: {
+            key: "roblox_opencloud",
+            workspaceGroupId: groupIdNumber,
+            value: {
+              enabled: true,
+              key: opencloudKey.trim(),
+            },
+          },
+        });
+      }
+    });
     const session = await createSession(
       BigInt(userid),
-      req.headers['x-forwarded-for'] as string ?? req.socket.remoteAddress,
-      req.headers['user-agent']
-    )
+      (req.headers["x-forwarded-for"] as string) ?? req.socket.remoteAddress,
+      req.headers["user-agent"],
+    );
 
-    res.setHeader('Set-Cookie', `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 7}`)
-
-    res.setHeader('Set-Cookie', [
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`,
+    res.setHeader("Set-Cookie", [
+      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${
+        60 * 60 * 24 * 30
+      }`,
       `app_setup=true; Path=/; HttpOnly; SameSite=lax`,
-    ])
+    ]);
 
     await setRegistry(req.headers.host as string);
 
@@ -144,13 +235,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       userId: userid,
       username: await getUsername(userid),
       displayname: await getDisplayName(userid),
-      thumbnail: getThumbnail(userid),
+      thumbnail: await fetchAvatar(userid, {
+        type: "headshot",
+        size: "180x180",
+      }),
       isOwner: true,
     };
 
-    return res.status(200).json({ success: true, user: userInfo });
+    return res.status(200).json({
+      success: true,
+      user: userInfo,
+    });
   } catch (error) {
     console.error("Error in setup workspace:", error);
+
     return res.status(500).json({
       success: false,
       error: "Internal server error",

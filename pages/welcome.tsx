@@ -38,7 +38,6 @@ const Login: NextPage = () => {
     let request: { data: { success: boolean; user: any } } | undefined;
 
     try {
-      // Add timeout to the request
       request = await Promise.race([
         axios.post('/api/setupworkspace', {
           groupid: methods.getValues("groupid"),

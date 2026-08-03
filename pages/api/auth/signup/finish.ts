@@ -4,6 +4,7 @@ import * as noblox from 'noblox.js';
 import bcryptjs from 'bcryptjs';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
+import fetchAvatar from '@/utils/avatar';
 
 type Data = {
   success: boolean
@@ -51,7 +52,7 @@ export default async function handler(
 
   try {
     const hashedPassword = await bcryptjs.hash(password, 10);
-    const thumbnail = (await getRobloxThumbnail(userid).catch(() => undefined)) || undefined;
+    const thumbnail = await fetchAvatar(userid).catch(() => undefined);
     const username = await noblox.getUsernameFromId(userid).catch(() => undefined);
 
     await prisma.user.upsert({

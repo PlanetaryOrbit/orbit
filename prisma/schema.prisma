@@ -207,6 +207,7 @@ model role {
   workspaceGroupId Int
   name             String
   groupRoles       BigInt[]
+  position         Int           @default(0)
   color            String?
   quotaRoles       QuotaRole[]
   workspace        workspace     @relation(fields: [workspaceGroupId], references: [groupId])
@@ -306,7 +307,10 @@ model AuditLog {
   details          Json?
   createdAt        DateTime @default(now())
 
-  @@index([createdAt])
+  @@index([workspaceGroupId, createdAt(sort: Desc)])
+  @@index([workspaceGroupId, action, createdAt(sort: Desc)])
+  @@index([workspaceGroupId, userId, createdAt(sort: Desc)])
+  @@index([workspaceGroupId, entity, createdAt(sort: Desc)])
 }
 
 model SessionType {
