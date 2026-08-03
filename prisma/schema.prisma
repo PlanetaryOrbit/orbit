@@ -32,12 +32,12 @@ model workspace {
   roles                role[]
   departments          department[]
   userBook             userBook[]
-  wallposts            wallPost[]
   externalServices     workspaceExternalServices?
   members              workspaceMember[]
   policyLinks          PolicyShareableLink[]
   stickyAnnouncements  StickyAnnouncement[]
   staffResignations    staffResignation[]
+  wallPosts            WallPost[]
 }
 
 model config {
@@ -88,7 +88,6 @@ model user {
   writtenBooks             userBook[]              @relation("bookAdmin")
   book                     userBook[]              @relation("bookUser")
   info                     userInfo?
-  wallPosts                wallPost[]
   workspaceMemberships     workspaceMember[]
   managedMembers           workspaceMember[]       @relation("LineManager")
   Ally                     Ally[]                  @relation("AllyTouser")
@@ -101,6 +100,9 @@ model user {
   quotaCustomCompletions   QuotaCustomCompletion[] @relation("QuotaCompletionUser")
   quotaCompletionsReviewed QuotaCustomCompletion[] @relation("QuotaCompletionReviewer")
   quotaUsers               QuotaUser[]
+  mediaUploads             media[]
+  wallPosts                WallPost[]
+  wallReactions            WallReaction[]
 }
 
 model AuthSession {
@@ -266,18 +268,6 @@ model QuotaUser {
   user    user   @relation(fields: [userId], references: [userid], onDelete: Cascade)
 
   @@unique([quotaId, userId])
-}
-
-model wallPost {
-  id               Int       @id @default(autoincrement())
-  content          String
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  workspaceGroupId Int
-  authorId         BigInt
-  image            String?
-  author           user      @relation(fields: [authorId], references: [userid])
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
 }
 
 model StickyAnnouncement {
@@ -743,4 +733,63 @@ model PolicyShareableLink {
   @@index([documentId])
   @@index([workspaceGroupId])
   @@index([createdById])
+}
+
+// media
+model media {
+  id         String     @id @default(uuid()) @db.Uuid
+  filename   String
+  url        String
+  mimeType   String     @default("image/webp")
+  size       Int
+  width      Int?
+  height     Int?
+  uploadedBy BigInt
+  createdAt  DateTime   @default(now())
+  uploader   user       @relation(fields: [uploadedBy], references: [userid])
+  posts      WallPost[]
+
+  @@index([uploadedBy])
+}
+
+// Wall System
+model WallPost {
+  id      String @id @default(uuid()) @db.Uuid
+  content String @db.Text
+
+  authorId         BigInt
+  workspaceGroupId Int
+
+  mediaId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pinned   Boolean   @default(false)
+  pinnedAt DateTime?
+
+  author    user      @relation(fields: [authorId], references: [userid])
+  workspace workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  media     media?    @relation(fields: [mediaId], references: [id])
+
+  reactions WallReaction[]
+
+  @@index([workspaceGroupId, createdAt])
+  @@index([authorId])
+  @@index([mediaId])
+}
+
+model WallReaction {
+  id               String   @id @default(uuid()) @db.Uuid
+  postId           String   @db.Uuid
+  userId           BigInt
+  emoji            String
+  createdAt        DateTime @default(now())
+  post             WallPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user             user     @relation(fields: [userId], references: [userid])
+  workspaceGroupId Int?
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+  @@index([userId])
 }

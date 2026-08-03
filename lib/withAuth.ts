@@ -264,3 +264,48 @@ export function withAuthSsr<
     }
   };
 }
+
+export function withInstanceAuth(
+  handler: AuthHandler
+): NextApiHandler {
+  return async (req, res) => {
+    try {
+      const cookies = cookie.parse(req.headers.cookie || "");
+
+      if (!cookies.session_token) {
+        return res.status(401).json({
+          success: false,
+          error: "Not authenticated",
+        });
+      }
+
+      const session = await getSessionByToken(cookies.session_token);
+
+      if (!session) {
+        return res.status(401).json({
+          success: false,
+          error: "Invalid session",
+        });
+      }
+
+      const authReq = req as AuthenticatedRequest;
+
+      authReq.auth = {
+        userId: session.userId,
+        token: cookies.session_token,
+        session,
+      };
+
+      authReq.session = {
+        userid: BigInt(session.userId),
+      };
+
+      return handler(authReq, res);
+    } catch {
+      return res.status(500).json({
+        success:false,
+        error:"Authentication failed",
+      });
+    }
+  };
+}

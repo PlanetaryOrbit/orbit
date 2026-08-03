@@ -7,7 +7,7 @@
  * to in-memory caching.
  *
  * @author BuddyWinte
- * @module utils/v2/cache
+ * @module utils/cache
  */
 
 import redis from "./redis";

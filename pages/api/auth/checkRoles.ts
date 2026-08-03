@@ -1,7 +1,7 @@
 import { NextApiResponse } from "next";
 import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
 import { checkSpecificUser } from "@/utils/permissionsManager";
-import cache from "@/utils/v2/cache";
+import cache from "@/utils/cache";
 
 export default withAuth(handler);
 
