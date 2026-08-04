@@ -40,7 +40,7 @@
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
-    "cookie": "^1.1.1",
+    "cookie": "^2.0.1",
     "cross-env": "^10.1.0",
     "dotenv": "^16.6.1",
     "emoji-picker-react": "^4.19.1",
