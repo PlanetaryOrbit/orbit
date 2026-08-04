@@ -1,5 +1,5 @@
 import hexRgb from "hex-rgb";
-import * as colors from "tailwindcss/colors";
+import * as colors from "tailwindcss/colors.js";
 
 export const DEFAULT_THEME_RGB = "236 72 153";
 
