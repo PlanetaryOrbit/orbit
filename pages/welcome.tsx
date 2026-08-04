@@ -170,7 +170,7 @@ const Login: NextPage = () => {
   ];
 
   return (
-    <div className={`min-h-screen bg-no-repeat bg-cover bg-center flex flex-col`}>
+    <div className={`min-h-screen bg-no-repeat bg-cover bg-center flex flex-col bg-orbit`}>
       <div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
         <p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
           👋 Welcome <br /> to <span style={{ color: selectedColor }}>Orbit</span>

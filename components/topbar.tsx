@@ -17,7 +17,7 @@ import {
   IconTrash,
   IconRefresh,
 } from "@tabler/icons-react";
-import workspacesModalPanelClass from "@/components/workspaces/shell"
+import { workspacesModalPanelClass } from "@/components/workspaces/shell"
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
