@@ -239,7 +239,7 @@ Orbit is built with a modern, fully TypeScript stack:
 
 ## Contributing
 
-View the [contribution guidelines](./CONTRIBUTING.md) for more information on how to contribute to Orbit.
+View the [contribution guidelines](./CONTRIBUTING.md) for more information on how to contribute to Orbit. Failure to follow these guidelines may result in your pull request being rejected.
 
 ---
 
