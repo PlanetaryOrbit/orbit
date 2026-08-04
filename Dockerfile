@@ -1,23 +1,36 @@
-FROM oven/bun:1 AS builder
+FROM node:22-alpine
 
-ARG NODE_OPTIONS="--max-old-space-size=4096"
+ARG NODE_OPTIONS="--max-old-space-size=1536"
 ENV NODE_OPTIONS="${NODE_OPTIONS}"
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install pnpm (version pinned by packageManager in package.json)
+RUN corepack enable
+
+# Create app directory
 WORKDIR /usr/src/app
 
-COPY package.json bun.lock ./
+# Install app dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy Prisma schema
 COPY prisma ./prisma/
 
-RUN bun install --frozen-lockfile
+# Install dependencies (pnpm store cached across builds)
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
-RUN bunx prisma generate
+# Generate Prisma client for the specific platform
+RUN pnpm exec prisma generate
 
+# Bundle app source
 COPY . .
 
+# Build the app (Next.js cache persisted across builds)
 RUN --mount=type=cache,target=/usr/src/app/.next/cache \
-    bun run build
+  pnpm run build
 
+# Expose port 3000
 EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+# Start the app
+CMD ["pnpm", "run", "start"]
