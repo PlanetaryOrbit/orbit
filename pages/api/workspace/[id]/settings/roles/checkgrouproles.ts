@@ -1,9 +1,11 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
   withPermissionCheck,
   checkGroupRoles,
 } from "@/utils/permissionsManager";
+import prisma from "@/utils/database";
+import cache from "@/utils/cache";
+
 type Data = {
   success: boolean;
   error?: string;
@@ -11,11 +13,16 @@ type Data = {
 
 export default withPermissionCheck(handler, "admin");
 
-export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+export async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Data>,
+) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      success: false,
+      error: "Method not allowed",
+    });
+  }
 
   try {
     const workspaceId = parseInt(req.query.id as string);
@@ -27,18 +34,35 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
     }
 
-    checkGroupRoles(workspaceId).catch((error) => {
-      console.error("Error checking group roles:", error);
+    await checkGroupRoles(workspaceId);
+
+    const roleCacheKey = `workspace:${workspaceId}:roles`;
+    await cache.del(roleCacheKey);
+
+    const roles = await prisma.role.findMany({
+      where: {
+        workspaceGroupId: workspaceId,
+      },
+      orderBy: {
+        position: "asc",
+      },
     });
 
-    res.status(200).json({
+    await cache.set(
+      roleCacheKey,
+      roles,
+      300,
+    );
+
+    return res.status(200).json({
       success: true,
     });
   } catch (error) {
     console.error("Error in checkgrouproles handler:", error);
+
     return res.status(500).json({
       success: false,
-      error: "Failed to start role sync",
+      error: "Failed to sync group roles",
     });
   }
 }

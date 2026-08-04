@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import { loginState } from "@/state";
 import { useRecoilState } from "recoil";
 import Router, { useRouter } from "next/router";
@@ -17,6 +17,7 @@ import {
   IconTrash,
   IconRefresh,
 } from "@tabler/icons-react";
+import workspacesModalPanelClass from "@/components/workspaces/shell"
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -49,7 +50,7 @@ type Panel = "main" | "settings" | "sessions";
 
 const Topbar: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
-  const {theme, setTheme, resolvedTheme} = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
   const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
   const [open, setOpen] = useState(false);
@@ -75,7 +76,7 @@ const Topbar: NextPage = () => {
     try {
       const res = await axios.get("/api/user/sessions");
       setSessions(res.data.sessions || []);
-      toast.success("Sessions refreshed")
+      toast.success("Sessions refreshed");
     } catch {
       toast.error("Failed to load sessions");
     } finally {
@@ -163,14 +164,6 @@ const Topbar: NextPage = () => {
     }
   }, [Router.isReady, Router.query]);
 
-  const initials =
-    login?.displayname
-      ?.split(" ")
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "?";
-
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
@@ -178,28 +171,186 @@ const Topbar: NextPage = () => {
           <div className="flex justify-between items-center h-16">
             <img src="/planetary.svg" className="h-8 w-32" alt="Planetary" />
 
-            <button
-              onClick={handleOpen}
-              aria-label="Open account menu"
-              className="group flex items-center gap-2.5 rounded-full p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-700/60 sm:pr-3"
-            >
-              <span className="relative inline-flex shrink-0">
-                <img
-                  src={login?.thumbnail || "/default-avatar.jpg"}
-                  className="h-9 w-9 rounded-full bg-zinc-200 object-cover ring-2 ring-white transition group-hover:ring-zinc-100 dark:bg-zinc-600 dark:ring-zinc-800 dark:group-hover:ring-zinc-700"
-                  alt=""
-                />
-                {login?.canMakeWorkspace && (
-                  <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800">
-                    <CrownIcon className="h-2.5 w-2.5 text-white" />
-                  </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                {resolvedTheme === "dark" ? (
+                  <IconSun className="h-5 w-5" />
+                ) : (
+                  <IconMoon className="h-5 w-5" />
                 )}
-              </span>
-              <span className="hidden text-sm font-medium text-zinc-700 dark:text-zinc-200 sm:block">
-                {login?.displayname}
-              </span>
-              <IconChevronDown className="hidden h-4 w-4 text-zinc-400 sm:block" />
-            </button>
+              </button>
+              <Menu as="div" className="relative">
+                <Menu.Button
+                  type="button"
+                  aria-label="Open account dropdown"
+                  className="group flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  <span className="relative shrink-0">
+                    <img
+                      src={login?.thumbnail || "/default-avatar.jpg"}
+                      alt={login?.displayname ?? "Profile"}
+                      className="h-9 w-9 rounded-full object-cover ring-2 ring-white transition-colors group-hover:ring-zinc-100 dark:ring-zinc-800 dark:group-hover:ring-zinc-700"
+                    />
+                    {login?.isOwner && (
+                      <span className="absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800">
+                        <CrownIcon className="h-2.5 w-2.5 text-white" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="hidden text-sm font-medium text-zinc-800 dark:text-zinc-100 sm:block">
+                    {login?.displayname}
+                  </span>
+                  <IconChevronDown className="hidden h-4 w-4 text-zinc-400 transition-transform group-hover:text-zinc-600 dark:group-hover:text-zinc-300 sm:block" />
+                </Menu.Button>
+                <Menu.Items className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+                  <div className="px-3 py-2">
+                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                      {login?.displayname}
+                    </p>
+                    <p className="truncate text-xs text-zinc-500">
+                      @{login?.username}
+                    </p>
+                  </div>
+
+                  <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
+
+                  {/*<Menu.Item>
+                    {login.canMakeWorkspace && (
+                      <>
+                        <button
+                          onClick={() => { openPanel("settings"); setOpen(true); }}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                          <IconSettings className="h-4 w-4" />
+                          Instance Settings
+                        </button>
+                      </>
+                    )}
+                  </Menu.Item>*/}
+
+                  <Menu.Item>
+                    {login.canMakeWorkspace && (
+                      <>
+                        <button
+                          onClick={() => { openPanel("settings"); setOpen(true); }}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                          <IconSettings className="h-4 w-4" />
+                          Account Settings
+                        </button>
+                      </>
+                    )}
+                  </Menu.Item>
+
+                  <Menu.Item>
+                    <button
+                      onClick={() => { openPanel("sessions"); setOpen(true); fetchSessions(); }}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      <IconDevices className="h-4 w-4" />
+                      Sessions
+                    </button>
+                  </Menu.Item>
+                  {isDiscordOAuth ||
+                    (isGoogleOAuth && (
+                      <>
+                        <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
+                        {isDiscordOAuth && (
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={
+                                  login.discordUser
+                                    ? unlink
+                                    : () =>
+                                        (window.location.href =
+                                          "/api/auth/discord/start")
+                                }
+                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                                  active ? "bg-zinc-100 dark:bg-zinc-800" : ""
+                                }`}
+                              >
+                                <img
+                                  src="/discord.svg"
+                                  className="h-4 w-4 invert dark:invert-0"
+                                  alt=""
+                                />
+                                {login.discordUser
+                                  ? "Unlink Discord"
+                                  : "Link Discord"}
+                              </button>
+                            )}
+                          </Menu.Item>
+                        )}
+                        {isGoogleOAuth && (
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={
+                                  login.googleUser
+                                    ? googleUnlink
+                                    : () =>
+                                        (window.location.href =
+                                          "/api/auth/google/start")
+                                }
+                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                                  active ? "bg-zinc-100 dark:bg-zinc-800" : ""
+                                }`}
+                              >
+                                <img
+                                  src="/google.svg"
+                                  className="h-4 w-4 invert dark:invert-0"
+                                  alt=""
+                                />
+                                {login.googleUser
+                                  ? "Unlink Google"
+                                  : "Link Google"}
+                              </button>
+                            )}
+                          </Menu.Item>
+                        )}
+                      </>
+                    ))}
+                  <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={logout}
+                        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
+                          active ? "bg-red-50 dark:bg-red-500/10" : ""
+                        }`}
+                      >
+                        <IconLogout className="h-4 w-4" />
+                        Logout
+                      </button>
+                    )}
+                  </Menu.Item>
+                  {!login.canMakeWorkspace && (
+                    <>
+                      <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
+
+                      <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            onClick={deleteAccount}
+                            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
+                              active ? "bg-red-50 dark:bg-red-500/10" : ""
+                            }`}
+                          >
+                            <IconTrash className="h-4 w-4" />
+                            Delete Account
+                          </button>
+                        )}
+                      </Menu.Item>
+                    </>
+                  )}
+                </Menu.Items>
+              </Menu>
+            </div>
           </div>
         </div>
       </header>
@@ -263,10 +414,15 @@ const Topbar: NextPage = () => {
                           ) : (
                             <IconMoon className="h-4 w-4 shrink-0 text-zinc-400" />
                           )}
-                          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                          {resolvedTheme === "dark"
+                            ? "Light mode"
+                            : "Dark mode"}
                         </button>
                         <button
-                          onClick={() => { openPanel("sessions"); fetchSessions(); }}
+                          onClick={() => {
+                            openPanel("sessions");
+                            fetchSessions();
+                          }}
                           className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         >
                           <IconDevices className="h-4 w-4 shrink-0 text-zinc-400" />
@@ -278,7 +434,9 @@ const Topbar: NextPage = () => {
                           className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         >
                           <IconSettings className="h-4 w-4 shrink-0 text-zinc-400" />
-                          <span className="flex-1 text-left">Account settings</span>
+                          <span className="flex-1 text-left">
+                            Account settings
+                          </span>
                           <IconChevronDown className="h-3.5 w-3.5 -rotate-90 text-zinc-400" />
                         </button>
                       </div>
@@ -333,14 +491,20 @@ const Topbar: NextPage = () => {
                       ) : (
                         <div className="divide-y divide-zinc-100 px-4 dark:divide-zinc-800/80">
                           {sessions.map((s) => (
-                            <div key={s.id} className="flex items-center gap-3 py-3">
-                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${s.isCurrent ? "bg-primary/10 text-primary" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"}`}>
+                            <div
+                              key={s.id}
+                              className="flex items-center gap-3 py-3"
+                            >
+                              <div
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${s.isCurrent ? "bg-primary/10 text-primary" : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500"}`}
+                              >
                                 <DeviceIcon device={s.device} />
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
                                   <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                    {s.browser || "Unknown"} on {s.os || "Unknown"}
+                                    {s.browser || "Unknown"} on{" "}
+                                    {s.os || "Unknown"}
                                   </p>
                                   {s.isCurrent && (
                                     <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
@@ -349,7 +513,10 @@ const Topbar: NextPage = () => {
                                   )}
                                 </div>
                                 <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
-                                  {[s.region, s.country].filter(Boolean).join(', ') || `${s.ipAddress} · ${moment(s.createdAt).fromNow()}`}
+                                  {[s.region, s.country]
+                                    .filter(Boolean)
+                                    .join(", ") ||
+                                    `${s.ipAddress} · ${moment(s.createdAt).fromNow()}`}
                                 </p>
                               </div>
                               {!s.isCurrent && (
@@ -373,115 +540,161 @@ const Topbar: NextPage = () => {
                     <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3.5 dark:border-zinc-800/80">
                       <button
                         onClick={() => setPanel("main")}
-                        className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        className="rounded-lg p-1 text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <IconChevronLeft className="h-4 w-4" />
                       </button>
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                        Account settings
-                      </p>
+
+                      <div>
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                          Account settings
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          Manage connected accounts and security
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="space-y-4 p-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={login?.thumbnail}
-                          alt=""
-                          className="h-12 w-12 shrink-0 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className="font-semibold text-zinc-900 dark:text-white">
-                            {login?.displayname}
-                          </p>
-                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                            @{login?.username}
-                          </p>
+                    <div className="space-y-5 p-4">
+                      <section className="space-y-2">
+                        <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                          Connected accounts
+                        </h3>
+
+                        <div className="space-y-2">
+                          {isDiscordOAuth &&
+                            (login.discordUser ? (
+                              <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                                <img
+                                  src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
+                                  alt=""
+                                  className="h-9 w-9 rounded-full"
+                                />
+
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                    {login.discordUser.username}
+                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    <p className="text-xs text-zinc-500">
+                                      Discord connected
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={unlink}
+                                  className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                >
+                                  Unlink
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  (window.location.href = "/api/auth/discord/start")
+                                }
+                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                              >
+                                <img
+                                  src="/discord.svg"
+                                  alt=""
+                                  className="h-5 w-5 invert dark:invert-0"
+                                />
+                                Connect Discord
+                              </button>
+                            ))}
+
+                          {isGoogleOAuth &&
+                            (login.googleUser ? (
+                              <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                                <img
+                                  src={
+                                    login.googleUser.avatar
+                                      ? `/api/google/avatar-proxy?url=${encodeURIComponent(
+                                          login.googleUser.avatar
+                                        )}`
+                                      : "/default-avatar.jpg"
+                                  }
+                                  alt=""
+                                  className="h-9 w-9 rounded-full"
+                                />
+
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                    {login.googleUser.email}
+                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    <p className="text-xs text-zinc-500">
+                                      Google connected
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={googleUnlink}
+                                  className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                >
+                                  Unlink
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  (window.location.href = "/api/auth/google/start")
+                                }
+                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                              >
+                                <img src="/google.svg" alt="" className="h-5 w-5" />
+                                Connect Google
+                              </button>
+                            ))}
                         </div>
-                      </div>
+                      </section>
 
-                      {isDiscordOAuth &&
-                        (login.discordUser ? (
-                          <div className="flex items-center gap-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-zinc-800">
-                            <img
-                              src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
-                              alt=""
-                              className="h-7 w-7 shrink-0 rounded-full"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                {login.discordUser.username}
-                              </p>
-                              <p className="text-xs text-zinc-400">Discord linked</p>
-                            </div>
-                            <button
-                              onClick={unlink}
-                              className="text-xs font-medium text-red-500 transition-colors hover:text-red-600"
-                            >
-                              Unlink
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => (window.location.href = "/api/auth/discord/start")}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                          >
-                            <img src="/discord.svg" alt="" className="h-4 w-4 invert dark:invert-0" />
-                            Link Discord
-                          </button>
-                        ))}
 
-                      {isGoogleOAuth &&
-                        (login.googleUser ? (
-                          <div className="flex items-center gap-3 rounded-xl bg-zinc-100 px-3 py-2.5 dark:bg-zinc-800">
-                            <img
-                              src={login.googleUser.avatar ? `/api/google/avatar-proxy?url=${encodeURIComponent(login.googleUser.avatar)}` : "/default-avatar.jpg"}
-                              alt=""
-                              className="h-7 w-7 shrink-0 rounded-full"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                {login.googleUser.email}
-                              </p>
-                              <p className="text-xs text-zinc-400">Google linked</p>
-                            </div>
-                            <button
-                              onClick={googleUnlink}
-                              className="text-xs font-medium text-red-500 transition-colors hover:text-red-600"
-                            >
-                              Unlink
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => (window.location.href = "/api/auth/google/start")}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                          >
-                            <img src="/google.svg" alt="" className="h-4 w-4" />
-                            Link Google
-                          </button>
-                        ))}
-
-                      <div className="space-y-0.5 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
-                        <p className="mb-1 px-1 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      <section className="space-y-2">
+                        <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-red-500">
                           Danger zone
-                        </p>
-                        <button
-                          onClick={revokeAll}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
-                        >
-                          <IconDevices className="h-4 w-4 shrink-0" />
-                          Sign out all devices
-                        </button>
-                        {!login.canMakeWorkspace && (
+                        </h3>
+
+                        <div className="overflow-hidden rounded-xl border border-red-200 bg-red-50/50 dark:border-red-500/20 dark:bg-red-500/5">
                           <button
-                            onClick={deleteAccount}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                            onClick={revokeAll}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-500/10"
                           >
-                            <IconTrash className="h-4 w-4 shrink-0" />
-                            Delete account
+                            <IconDevices className="h-4 w-4" />
+                            <div className="text-left">
+                              <p className="font-medium">
+                                Sign out all devices
+                              </p>
+                              <p className="text-xs text-red-500/70">
+                                Revoke all active sessions
+                              </p>
+                            </div>
                           </button>
-                        )}
-                      </div>
+
+                          {!login.canMakeWorkspace && (
+                            <button
+                              onClick={deleteAccount}
+                              className="flex w-full items-center gap-3 border-t border-red-200 px-4 py-3 text-sm text-red-600 transition hover:bg-red-100/50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                            >
+                              <IconTrash className="h-4 w-4" />
+
+                              <div className="text-left">
+                                <p className="font-medium">
+                                  Delete account
+                                </p>
+                                <p className="text-xs text-red-500/70">
+                                  Permanently remove your account
+                                </p>
+                              </div>
+                            </button>
+                          )}
+                        </div>
+                      </section>
                     </div>
                   </>
                 )}

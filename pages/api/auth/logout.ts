@@ -1,8 +1,9 @@
-import { withAuth, AuthenticatedRequest } from "@/lib/withAuth"
-import { NextApiResponse } from "next"
-import { deleteSession } from "@/utils/session"
+import { withAuth, AuthenticatedRequest } from "@/lib/withAuth";
+import { NextApiResponse } from "next";
+import { deleteSession } from "@/utils/session";
+import cache from "@/utils/cache";
 
-export default withAuth(handler)
+export default withAuth(handler);
 
 export async function handler(
   req: AuthenticatedRequest,
@@ -12,11 +13,17 @@ export async function handler(
     return res.status(405).json({
       success: false,
       error: "Method not allowed",
-    })
+    });
   }
 
   try {
-    await deleteSession(req.auth.token)
+    await deleteSession(req.auth.token);
+
+    // Clear cached session data if present
+    await cache.del(
+      `session:${req.auth.token}`
+    );
+
     res.setHeader(
       "Set-Cookie",
       [
@@ -27,17 +34,17 @@ export async function handler(
         "Max-Age=0;",
         process.env.NODE_ENV === "production" ? "Secure;" : "",
       ].join(" ")
-    )
+    );
 
     return res.status(200).json({
       success: true,
-    })
+    });
   } catch (error) {
-    console.error("Logout error:", error)
+    console.error("Logout error:", error);
 
     return res.status(500).json({
       success: false,
       error: "Failed to logout",
-    })
+    });
   }
 }

@@ -310,9 +310,7 @@ const Settings: pageWithLayout<Props> = ({
   const urlTab = decodeTab(router.query.t as string | null);
 
   const [activeSection, setActiveSection] = useState(
-    urlTab && SECTIONS[urlTab as keyof typeof SECTIONS]
-      ? urlTab
-      : "general",
+    urlTab && SECTIONS[urlTab as keyof typeof SECTIONS] ? urlTab : "general",
   );
 
   const canAccessGeneral = hasPermission("workspace_customisation");
@@ -339,7 +337,11 @@ const Settings: pageWithLayout<Props> = ({
     return false;
   });
 
-  const currentSection = availableSections.find(([key]) => key === activeSection) ? currentSection : availableSections[0]?.[0] ?? "general";
+  const currentSection = availableSections.some(
+    ([key]) => key === activeSection,
+  )
+    ? activeSection
+    : (availableSections[0]?.[0] ?? "general");
 
   const panelClass =
     "rounded-2xl bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/70 dark:shadow-zinc-950/30";
@@ -479,17 +481,17 @@ const Settings: pageWithLayout<Props> = ({
                   <button
                     key={key}
                     onClick={() => {
-                        const encoded = encodeTab(key);
-                        setcurrentSection(key);
-                        router.replace(
-                          {
-                            pathname: router.pathname,
-                            query: { ...router.query, t: encoded },
-                          },
-                          undefined,
-                          { shallow: true }
-                        );
-                      }}
+                      const encoded = encodeTab(key);
+                      setActiveSection(key);
+                      router.replace(
+                        {
+                          pathname: router.pathname,
+                          query: { ...router.query, t: encoded },
+                        },
+                        undefined,
+                        { shallow: true },
+                      );
+                    }}
                     className={clsx(
                       "w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-xl transition-colors text-left",
                       isActive
