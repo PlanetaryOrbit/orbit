@@ -6,19 +6,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 WORKDIR /usr/src/app
 
-#install deps
 COPY package.json bun.lock ./
 COPY prisma ./prisma/
 
 RUN bun install --frozen-lockfile
 
-# generate prisma client
 RUN bunx prisma generate
 
-# copy
 COPY . .
 
-# build next
 RUN --mount=type=cache,target=/usr/src/app/.next/cache \
     bun run build
 
