@@ -25,6 +25,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -44,6 +47,75 @@ jobs:
           fi
           echo "🚀 Releasing tag: $TAG"
 
+      - name: Debug runner environment
+        run: |
+                echo "=== User ==="
+                whoami
+                id
+
+                echo ""
+                echo "=== System ==="
+                uname -a
+                arch
+
+                echo ""
+                echo "=== CPU ==="
+                nproc
+                lscpu | head -30 || true
+
+                echo ""
+                echo "=== Memory ==="
+                free -h
+
+                echo ""
+                echo "=== Disk ==="
+                df -h
+
+            - name: Debug Docker environment
+              run: |
+                echo "=== Docker Version ==="
+                docker version
+
+                echo ""
+                echo "=== Docker Info ==="
+                docker info
+
+                echo ""
+                echo "=== Buildx ==="
+                docker buildx version
+                docker buildx ls
+
+            - name: Debug repository
+              run: |
+                echo "=== Working Directory ==="
+                pwd
+
+                echo ""
+                echo "=== Files ==="
+                ls -lah
+
+                echo ""
+                echo "=== Package versions ==="
+                cat package.json | grep -E '"(next|prisma|@prisma/client|tailwindcss)"'
+
+                echo ""
+                echo "=== Bun ==="
+                bun --version || true
+
+            - name: Debug environment variables
+              run: |
+                echo "=== Non-secret environment ==="
+                env | sort | grep -vE '(TOKEN|SECRET|PASSWORD|PAT|KEY)' || true
+
+            - name: Test Docker ARM64
+              run: |
+                echo "=== ARM64 test ==="
+                docker run --rm --platform linux/arm64 alpine uname -m
+
+            - name: Check BuildKit workers
+              run: |
+                docker buildx inspect --bootstrap
+
       # Build ARM64
       - name: Build and push ARM64 image
         uses: docker/build-push-action@v5
@@ -59,7 +131,6 @@ jobs:
             NODE_OPTIONS=--max-old-space-size=4096
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
-
 
       - name: Summary
         run: |
