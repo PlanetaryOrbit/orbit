@@ -10,7 +10,6 @@
  * @author BuddyWinte
  */
 
-import { JSDOM } from "jsdom";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -40,19 +39,15 @@ async function checkBioFallback(userId: bigint, verificationCode: string) {
       },
     },
   );
-
   if (!response.ok) {
     return false;
   }
-
   const html = await response.text();
-
-  const dom = new JSDOM(html);
-
-  const metadata = Array.from(dom.window.document.querySelectorAll("meta"))
-    .map((meta) => meta.getAttribute("content") ?? "")
+  const metadata = [
+    ...html.matchAll(/<meta[^>]+content=["']([^"']+)["']/gi),
+  ]
+    .map((match) => match[1])
     .join(" ");
-
   return metadata.includes(verificationCode);
 }
 

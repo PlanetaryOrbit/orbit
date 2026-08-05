@@ -10,7 +10,7 @@ import { InformationCircleIcon } from "@heroicons/react/24/solid";
 
 import { useEffect, useState } from "react";
 import Button from "@/components/Button";
-import { useUser } from "../../providers/UserProvider";
+import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
 import AuthBackground from "@/components/AuthBackground";
 
