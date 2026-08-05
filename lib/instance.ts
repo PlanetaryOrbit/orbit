@@ -16,6 +16,7 @@ export type InstanceSettings = {
   logoUrl: string | null;
   faviconUrl: string | null;
   allowPasswordAuth: boolean;
+  allowRobloxAuth: boolean;
   enableRegistration: boolean;
   primaryColor: string;
   darkBackground: string;

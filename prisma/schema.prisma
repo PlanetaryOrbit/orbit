@@ -44,15 +44,16 @@ model SignupAttempt {
 
 // A user. Need I say more?
 model User {
-  id          String      @id @default(cuid())
-  username    String      @unique
-  robloxId    BigInt
-  credentials Credential?
-  sessions    Session[]
-  robloxData  Json? // username, displayName, hasVerifiedBadge, isBanned, avatarUrl, syncedAt
-  isOwner     Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String         @id @default(cuid())
+  username      String         @unique
+  robloxId      BigInt
+  credentials   Credential?
+  sessions      Session[]
+  notifications Notification[]
+  robloxData    Json? // username, displayName, hasVerifiedBadge, isBanned, avatarUrl, syncedAt
+  isOwner       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([robloxData])
   @@index([robloxId])
@@ -76,4 +77,22 @@ model Session {
 
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  icon        String?
+  url         String?
+  sentAt      DateTime  @default(now())
+  expiresAt   DateTime?
+  read        Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }

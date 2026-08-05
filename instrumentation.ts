@@ -16,6 +16,12 @@ export async function register() {
 
   globalState[globalKey] = true;
 
+  if (dev) {
+    const cache = await import("@/utils/cache");
+    await cache.clear();
+    console.log("[STARTUP] Cache cleared.")
+  }
+
   const { getSettings } = await import("@/lib/instance");
   const settings = await getSettings();
   if (dev) {

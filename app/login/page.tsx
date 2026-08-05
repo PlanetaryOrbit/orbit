@@ -22,6 +22,7 @@ interface InstanceSettings {
   darkBackground: string | null;
   lightBackground: string | null;
   allowPasswordAuth: boolean;
+  allowRobloxAuth: boolean | false;
   enableRegistration: boolean;
   isSetup: boolean;
 }
@@ -45,10 +46,10 @@ export default function LoginPage() {
       try {
         const res = await fetch("/api/instance");
         const data = await res.json();
-
         if (data.success) {
           setSettings(data.data);
         }
+        console.log(data.data);
       } catch (err) {
         console.error("Failed to load instance settings:", err);
       } finally {
@@ -168,7 +169,7 @@ export default function LoginPage() {
                   : ""}
             </p>
 
-            {!settingsLoading && settings?.allowPasswordAuth && (
+            {!settingsLoading && !settings?.allowPasswordAuth && settings?.enableRegistration && settings?.allowRobloxAuth && (
               <div className="mt-6">
                 <Button
                   variant="primary"
@@ -180,7 +181,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {!settingsLoading && !settings?.allowPasswordAuth && (
+            {!settingsLoading && settings?.allowPasswordAuth && settings?.enableRegistration && !settings?.allowRobloxAuth && (
               <form className="mt-6 space-y-5" onSubmit={handleLogin}>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-ctp-subtext1">
@@ -275,7 +276,7 @@ export default function LoginPage() {
               </form>
             )}
 
-            {hasBoth && (
+            {!settingsLoading && hasBoth && (
               <>
                 <div className="my-6 flex items-center">
                   <div className="h-px flex-1 bg-ctp-surface0" />
@@ -297,7 +298,7 @@ export default function LoginPage() {
               </>
             )}
 
-            {false && (
+            {!settingsLoading && !settings?.allowPasswordAuth && !settings?.allowRobloxAuth && (
               <div
                 className="
                     mt-6
@@ -320,6 +321,31 @@ export default function LoginPage() {
                 </span>
               </div>
             )}
+
+            {!settingsLoading && !settings?.enableRegistration && (
+              <div
+                className="
+                    mt-6
+                    flex
+                    items-start
+                    gap-3
+                    rounded-xl
+                    border border-ctp-red/40
+                    bg-ctp-red/10
+                    p-4
+                    text-sm
+                    text-ctp-red
+                  "
+              >
+                <InformationCircleIcon className="h-5 w-5 mt-0.5 shrink-0 antialiased" />
+
+                <span>
+                  Registration is currently disabled. Please contact whoever is responsible for your instance.
+                </span>
+              </div>
+            )}
+
+            {settingsLoading && <p className="mt-4 text-sm text-ctp-overlay1">Loading...</p>}
             {error && <p className="mt-4 text-sm text-ctp-red">{error}</p>}
             <p className="mt-4 text-sm text-ctp-overlay1">
               Don't have an account?{" "}
