@@ -20,7 +20,7 @@ export default async function AppLayout({
 
   return (
     <AppProviders user={user}>
-      <header
+      {/* <header
         className="
           sticky
           top-0
@@ -125,7 +125,7 @@ export default async function AppLayout({
             )}
           </div>
         </div>
-      </header>
+      </header>*/}
 
       {children}
     </AppProviders>
