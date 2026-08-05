@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings } from "@/lib/instance";
+import cache from "@/utils/cache";
 
 export async function proxy(req: NextRequest) {
-  const settings = await getSettings();
+  const setupValue = await cache.get("isSetup");
+  const isSetup = setupValue === true || setupValue === "true";
+
   const pathname = req.nextUrl.pathname;
 
   const allowedPaths = [
@@ -11,23 +13,18 @@ export async function proxy(req: NextRequest) {
     "/login",
     "/setup",
     "/public",
+    "/ws-test",
   ];
 
-  const isAllowed = allowedPaths.some((path) =>
-    pathname.startsWith(path)
-  );
+  const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
 
-  if (!settings.isSetup && !isAllowed) {
-    return NextResponse.redirect(
-      new URL("/setup", req.url)
-    );
+  if (!isSetup && !isAllowed) {
+    return NextResponse.redirect(new URL("/setup", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

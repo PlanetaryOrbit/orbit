@@ -1,6 +1,8 @@
 import { Inter } from "next/font/google";
 import "./styles/styles.css";
 import { getSettings } from "@/lib/instance";
+import AppProviders from "./providers/AppProviders";
+import { getMe } from "@/lib/me";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,6 +14,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSettings();
+  const user = await getMe();
 
   return (
     <html
@@ -25,7 +28,9 @@ export default async function RootLayout({
       }
     >
       <body className="bg-ctp-crust text-ctp-text overflow-hidden">
-        {children}
+        <AppProviders user={user}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

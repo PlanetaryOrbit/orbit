@@ -1,6 +1,6 @@
 "use client";
 
-import { ThemeProvider } from "next-themes";
+import ThemeProvider from "./ThemeProvider";
 import { UserProvider } from "./UserProvider";
 
 export default function AppProviders({
@@ -11,13 +11,7 @@ export default function AppProviders({
   user: any;
 }) {
   return (
-    <ThemeProvider
-      storageKey="orbit-theme"
-      defaultTheme="dark"
-      enableColorScheme
-      attribute="class"
-      disableTransitionOnChange
-    >
+    <ThemeProvider>
       <UserProvider user={user}>
         {children}
       </UserProvider>

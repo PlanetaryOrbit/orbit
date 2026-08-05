@@ -1,22 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-
 import ThemeToggle from "@/components/nav/ThemeToggler";
-import { ThemeProvider } from "next-themes";
+import AppProviders from "../providers/AppProviders";
 
 export default function SetupLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+  }) {
   return (
-    <ThemeProvider
-      storageKey="orbit-theme"
-      defaultTheme="dark"
-      enableColorScheme
-      attribute="class"
-      disableTransitionOnChange
-    >
       <div className="min-h-screen overflow-hidden bg-ctp-crust">
         <header
           className="
@@ -45,6 +37,5 @@ export default function SetupLayout({
 
         {children}
       </div>
-    </ThemeProvider>
   );
 }
