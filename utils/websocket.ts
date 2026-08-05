@@ -13,7 +13,7 @@ export function setupWebSocket(server: Server) {
     const url = new URL(request.url ?? "", `http://${request.headers.host}`);
 
     if (url.pathname !== "/api/ws") {
-      socket.destroy();
+      // let next handle there own websocket
       return;
     }
 
