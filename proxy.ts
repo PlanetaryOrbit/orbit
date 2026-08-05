@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import cache from "@/utils/cache";
 
 export async function proxy(req: NextRequest) {
-  const setupValue = await cache.get("isSetup");
-  const isSetup = setupValue === true || setupValue === "true";
 
   const pathname = req.nextUrl.pathname;
 
@@ -18,7 +16,7 @@ export async function proxy(req: NextRequest) {
 
   const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
 
-  if (!isSetup && !isAllowed) {
+  if (await cache.get("isSetup") && !isAllowed) {
     return NextResponse.redirect(new URL("/setup", req.url));
   }
 

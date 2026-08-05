@@ -7,14 +7,10 @@
  *
  * @author BuddyWinte
  */
- import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/auth";
 import { getMe } from "@/lib/me";
- import { prisma } from "@/lib/prisma";
- import {
-   updateSettings,
-   InstanceSettings,
-} from "@/lib/instance";
+import { updateSettings, InstanceSettings } from "@/lib/instance";
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,10 +47,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const settings: Partial<InstanceSettings> = {
-      name:
-        typeof body.name === "string"
-          ? body.name.trim()
-          : undefined,
+      name: typeof body.name === "string" ? body.name.trim() : undefined,
 
       logoUrl:
         typeof body.logoUrl === "string"
@@ -67,9 +60,7 @@ export async function POST(req: NextRequest) {
           : undefined,
 
       primaryColor:
-        typeof body.primaryColor === "string"
-          ? body.primaryColor
-          : undefined,
+        typeof body.primaryColor === "string" ? body.primaryColor : undefined,
 
       allowPasswordAuth:
         typeof body.allowPasswordAuth === "boolean"
@@ -81,8 +72,7 @@ export async function POST(req: NextRequest) {
           ? body.enableRegistration
           : undefined,
 
-      isSetup:
-        true,
+      isSetup: true,
     };
 
     const updated = await updateSettings(settings);
@@ -92,18 +82,14 @@ export async function POST(req: NextRequest) {
       data: updated,
     });
   } catch (err) {
-    console.error(
-      "Instance settings update error:",
-      err,
-    );
+    console.error("Instance settings update error:", err);
 
     return NextResponse.json(
       {
         success: false,
         error: {
           code: "INTERNAL_SERVER_ERROR",
-          message:
-            "An error occurred while updating instance settings.",
+          message: "An error occurred while updating instance settings.",
         },
       },
       {

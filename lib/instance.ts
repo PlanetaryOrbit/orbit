@@ -52,6 +52,8 @@ export async function getSettings(): Promise<InstanceSettings> {
 export async function updateSettings(
   data: Partial<Omit<InstanceSettings, "id" | "createdAt" | "updatedAt">>,
 ) {
+  cache.del("isSetup");
+  cache.set("isSetup", true);
   let settings = await prisma.instanceSettings.findFirst();
 
   if (!settings) {

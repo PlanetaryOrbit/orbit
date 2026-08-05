@@ -22,8 +22,16 @@ export default function SetupPage() {
   const [enableRegistration, setEnableRegistration] = useState(true);
   const [loadingMe, setLoadingMe] = useState(true);
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--instance-primary",
+      primaryColor,
+    );
+  }, [primaryColor]);
+
+
   useEffect(() => {
     async function checkUser() {
       try {
@@ -50,6 +58,8 @@ export default function SetupPage() {
     checkUser();
   }, [router]);
 
+
+
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setLoading(true);
@@ -66,6 +76,7 @@ export default function SetupPage() {
           primaryColor,
           allowPasswordAuth,
           enableRegistration,
+          "done": true,
         }),
       });
 
