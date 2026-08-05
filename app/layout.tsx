@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./styles/styles.css";
 import { getSettings } from "@/lib/instance";
@@ -7,6 +8,18 @@ import { getMe } from "@/lib/me";
 const inter = Inter({
   subsets: ["latin"],
 });
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+
+  return {
+    title: settings.name,
+    icons: {
+      icon: settings.faviconUrl ?? "/favicon.png",
+    },
+    themeColor: settings.primaryColor,
+  };
+}
 
 export default async function RootLayout({
   children,

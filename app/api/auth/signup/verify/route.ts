@@ -10,6 +10,7 @@
  * @author BuddyWinte
  */
 
+import { JSDOM } from "jsdom";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -20,13 +21,39 @@ function createSessionToken() {
 }
 
 async function getRobloxUser(id: bigint) {
-  const response = await fetch(
-    `https://users.roblox.com/v1/users/${id}`,
-  );
+  const response = await fetch(`https://users.roblox.com/v1/users/${id}`);
   if (!response.ok) {
     throw new Error("Roblox lookup failed");
   }
   return response.json();
+}
+
+// i hope you burn in hell roblox
+// check https://devforum.roblox.com/t/getuser-api-will-stop-returning-user-descriptions/4768626/ for more information on why this existingUser
+// this just fetches the user's description from the `description` meta tag
+async function checkBioFallback(userId: bigint, verificationCode: string) {
+  const response = await fetch(
+    `https://www.roblox.com/users/${userId}/profile`,
+    {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const html = await response.text();
+
+  const dom = new JSDOM(html);
+
+  const metadata = Array.from(dom.window.document.querySelectorAll("meta"))
+    .map((meta) => meta.getAttribute("content") ?? "")
+    .join(" ");
+
+  return metadata.includes(verificationCode);
 }
 
 export async function POST(req: NextRequest) {
@@ -87,20 +114,27 @@ export async function POST(req: NextRequest) {
     }
 
     const robloxUser = await getRobloxUser(signup.robloxId);
+    let verified = false;
 
     if (
-      typeof robloxUser.description !== "string" ||
-      !robloxUser.description.includes(
-        signup.verificationCode,
-      )
+      typeof robloxUser.description === "string" &&
+      robloxUser.description.includes(signup.verificationCode)
     ) {
+      verified = true;
+    } else {
+      verified = await checkBioFallback(
+        signup.robloxId,
+        signup.verificationCode,
+      );
+    }
+
+    if (!verified) {
       return NextResponse.json(
         {
           success: false,
           error: {
             code: "VERIFICATION_FAILED",
-            message:
-              "Verification code was not found in Roblox bio.",
+            message: "Verification code was not found in Roblox bio.",
           },
         },
         { status: 400 },
@@ -127,7 +161,7 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionToken = createSessionToken();
-    const isFirstUser = await prisma.user.count() === 0;
+    const isFirstUser = (await prisma.user.count()) === 0;
 
     const user = await prisma.user.create({
       data: {
@@ -149,9 +183,7 @@ export async function POST(req: NextRequest) {
               .update(sessionToken)
               .digest("hex"),
 
-            expiresAt: new Date(
-              Date.now() + 30 * 24 * 60 * 60 * 1000,
-            ),
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           },
         },
       },
@@ -182,7 +214,7 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 30,
     });
 
-    void syncRobloxData(user.id, signup.robloxId)
+    void syncRobloxData(user.id, signup.robloxId);
 
     return response;
   } catch (err) {
