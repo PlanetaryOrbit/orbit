@@ -1,8 +1,16 @@
+/**
+ * Orbit API
+ *
+ * Returns and initializes public instance settings.
+ *
+ * @author BuddyWinte
+ */
 import { NextResponse } from "next/server";
 import {
   getSettings,
   updateSettings,
   serializeSettings,
+  ClientInstanceSettings,
 } from "@/lib/instance";
 
 export type InstanceResponse = {
