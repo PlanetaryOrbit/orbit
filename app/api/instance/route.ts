@@ -1,29 +1,13 @@
-/**
- * Orbit API
- *
- * Returns and initializes public instance settings.
- *
- * @author BuddyWinte
- */
-
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings, serializeSettings } from "@/lib/instance";
+import {
+  getSettings,
+  updateSettings,
+  serializeSettings,
+} from "@/lib/instance";
 
 export type InstanceResponse = {
   success: true;
-  data: {
-    name: string;
-    logoUrl: string | null;
-    faviconUrl: string | null;
-    primaryColor: string;
-    darkBackground: string;
-    lightBackground: string | null;
-    allowPasswordAuth: boolean;
-    allowRobloxAuth: boolean;
-    enableRegistration: boolean;
-    isSetup: boolean;
-    createdAt: string;
-  };
+  data: ClientInstanceSettings;
 };
 
 export async function GET() {
@@ -32,19 +16,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: {
-        name: settings.name,
-        logoUrl: settings.logoUrl,
-        faviconUrl: settings.faviconUrl,
-        primaryColor: settings.primaryColor,
-        darkBackground: settings.darkBackground,
-        lightBackground: settings.lightBackground,
-        allowPasswordAuth: settings.allowPasswordAuth,
-        allowRobloxAuth: settings.allowRobloxAuth,
-        enableRegistration: settings.enableRegistration,
-        isSetup: settings.isSetup,
-        createdAt: settings.createdAt.toISOString(),
-      },
+      data: serializeSettings(settings),
     } satisfies InstanceResponse);
   } catch (err) {
     console.error("Instance settings error:", err);
@@ -57,9 +29,7 @@ export async function GET() {
           message: "An error occurred while fetching instance settings.",
         },
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }
@@ -77,14 +47,11 @@ export async function PATCH(req: Request) {
             message: "This instance has not been configured yet.",
           },
         },
-        {
-          status: 403,
-        },
+        { status: 403 },
       );
     }
 
     const body = await req.json();
-
     const settings = await updateSettings(body);
 
     return NextResponse.json({
@@ -102,9 +69,7 @@ export async function PATCH(req: Request) {
           message: "An error occurred while updating instance settings.",
         },
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }

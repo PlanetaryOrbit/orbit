@@ -10,38 +10,27 @@
 
 import { prisma } from "@/lib/prisma";
 import cache from "@/utils/cache";
-
-export type InstanceSettings = {
-  id: string;
-  name: string;
-  logoUrl: string | null;
-  faviconUrl: string | null;
-  allowPasswordAuth: boolean;
-  allowRobloxAuth: boolean;
-  enableRegistration: boolean;
-  primaryColor: string;
-  darkBackground: string;
-  lightBackground: string | null;
-  isSetup: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import type { InstanceSettings } from "@prisma/client";
 
 export type ClientInstanceSettings = Omit<
   InstanceSettings,
-  "createdAt" | "updatedAt"
+  "id" | "updatedAt"
 > & {
   createdAt: string;
-  updatedAt: string;
 };
 
 export function serializeSettings(
   settings: InstanceSettings,
 ): ClientInstanceSettings {
+  const {
+    id,
+    updatedAt,
+    ...rest
+  } = settings;
+
   return {
-    ...settings,
+    ...rest,
     createdAt: settings.createdAt.toISOString(),
-    updatedAt: settings.updatedAt.toISOString(),
   };
 }
 
@@ -76,8 +65,6 @@ export async function updateSettings(
     Omit<InstanceSettings, "id" | "createdAt" | "updatedAt">
   >,
 ) {
-  await cache.del("isSetup");
-  await cache.set("isSetup", true);
 
   let settings = await prisma.instanceSettings.findFirst();
 

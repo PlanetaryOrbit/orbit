@@ -28,10 +28,13 @@ export function InstanceProvider({
   const refreshSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/instance");
+
       if (!res.ok) {
         return;
       }
+
       const data = await res.json();
+
       if (data.success) {
         setSettings(data.data);
       }

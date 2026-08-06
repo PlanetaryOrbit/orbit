@@ -39,7 +39,7 @@ export default function SetupPage() {
         const data = await res.json();
 
         if (!data.success || !data.data) {
-          router.push("/signup");
+          router.refresh();
           return;
         }
 

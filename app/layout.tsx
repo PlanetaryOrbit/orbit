@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./styles/styles.css";
-import { getSettings } from "@/lib/instance";
+import { getSettings, serializeSettings } from "@/lib/instance";
 import { getMe } from "@/lib/me";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import { cookies } from "next/headers";
 import AuthBackground from "@/components/AuthBackground";
 import { UserProvider } from "./providers/UserProvider";
 import { InstanceProvider } from "./providers/InstanceProvider";
-import { serializeSettings } from "@/lib/instance";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,10 +59,6 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const theme = cookieStore.get("theme")?.value ?? "dark";
-
-  const allowedSettings = {
-    primaryColor: settings.primaryColor,
-  };
 
   return (
     <html
