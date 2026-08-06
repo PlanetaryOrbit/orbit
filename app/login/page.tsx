@@ -110,12 +110,6 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-ctp-base">
-      <AuthBackground
-        darkBackground={settings?.darkBackground}
-        lightBackground={settings?.lightBackground}
-      />
-
       <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
         <section
           className="
@@ -356,6 +350,5 @@ export default function LoginPage() {
           </div>
         </section>
       </div>
-    </main>
   );
 }

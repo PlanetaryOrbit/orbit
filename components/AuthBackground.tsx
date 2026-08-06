@@ -1,48 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
 
 interface Props {
+  theme: "dark" | "light";
   darkBackground?: string | null;
   lightBackground?: string | null;
 }
 
-function useMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
 export default function AuthBackground({
+  theme,
   darkBackground,
   lightBackground,
 }: Props) {
-  const mounted = useMounted();
-  const { resolvedTheme } = useTheme();
-
-  if (!mounted) {
-    return null;
-  }
-
   const background =
-    resolvedTheme === "light"
+    theme === "light"
       ? (lightBackground ?? darkBackground)
       : (darkBackground ?? lightBackground);
 
   if (!background) {
     return (
       <div
-        className="
-          absolute inset-0
-          bg-linear-to-b
-          from-ctp-base/40
-          via-ctp-base/80
-          to-ctp-base
-        "
+        className="absolute inset-0 z-0 bg-linear-to-b from-ctp-base/40 via-ctp-base/80 to-ctp-base"
       />
     );
   }
@@ -53,7 +32,7 @@ export default function AuthBackground({
       alt=""
       fill
       priority
-      className="pointer-events-none object-cover"
+      className="pointer-events-none object-cover z-0"
     />
   );
 }

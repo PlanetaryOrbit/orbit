@@ -1,60 +1,48 @@
-/**
- * Orbit Frontend v2
- *
- * UserProvider is a React context provider that holds the authenticated user's information. This is only used by client components.
- *
- * Server components should use the `getMe` API to retrieve the user's information.
- *
- * @module components/providers/UserProvider
- * @since 3.0.0
- * @author BuddyWinte
- */
-
 "use client";
 
 import {
   createContext,
   useContext,
-  ReactNode,
+  useState,
+  useCallback,
+  useEffect,
 } from "react";
 
-export type OrbitUser = {
-  id: string;
-  username: string;
+import type { MeUser } from "@/lib/me";
 
-  roblox: {
-    id: number;
-    username: string;
-    displayName: string;
-    hasVerifiedBadge: boolean;
-    isBanned: boolean;
-    avatarUrl: string | null;
-    syncedAt: string;
-  } | null;
+interface UserContext {
+  user: MeUser | null;
+  refreshUser: () => Promise<void>;
+}
 
-  createdAt: string;
-  updatedAt: string;
-};
-
-type UserContextValue = {
-  user: OrbitUser | null;
-};
-
-const UserContext = createContext<UserContextValue>({
-  user: null,
-});
+const UserContext = createContext<UserContext | null>(null);
 
 export function UserProvider({
-  user,
+  user: initialUser,
   children,
 }: {
-  user: OrbitUser | null;
-  children: ReactNode;
+  user: MeUser | null;
+  children: React.ReactNode;
 }) {
+  const [user, setUser] = useState<MeUser | null>(initialUser);
+
+  const refreshUser = useCallback(async () => {
+    const res = await fetch("/api/users/me");
+
+    if (!res.ok) {
+      setUser(null);
+      return;
+    }
+
+    const data = await res.json();
+    setUser(data.user);
+  }, []);
+
   return (
     <UserContext.Provider
       value={{
         user,
+        refreshUser,
       }}
     >
       {children}
@@ -63,5 +51,13 @@ export function UserProvider({
 }
 
 export function useUser() {
-  return useContext(UserContext);
+  const context = useContext(UserContext);
+
+  if (!context) {
+    throw new Error(
+      "useUser must be used inside UserProvider"
+    );
+  }
+
+  return context;
 }

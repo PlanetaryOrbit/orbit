@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme inline {
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-jetbrains);
     --color-ctp-instance: var(--instance-primary);
     --color-ctp-instance-secondary: var(--instance-secondary);
     --color-ctp-rosewater: var(--catppuccin-color-rosewater);
@@ -186,6 +188,8 @@
 }
 
 :root {
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-jetbrains);
     --instance-primary: #fb019c;
     --instance-secondary: color-mix(
             in srgb,

@@ -1,13 +1,17 @@
 /**
  * Orbit API
  *
- * Returns public instance settings.
+ * Returns and initializes public instance settings.
  *
  * @author BuddyWinte
  */
 
 import { NextResponse } from "next/server";
-import { getSettings } from "@/lib/instance";
+import {
+  getSettings,
+  updateSettings,
+  serializeSettings,
+} from "@/lib/instance";
 
 export type InstanceResponse = {
   success: true;
@@ -19,6 +23,7 @@ export type InstanceResponse = {
     darkBackground: string;
     lightBackground: string | null;
     allowPasswordAuth: boolean;
+    allowRobloxAuth: boolean;
     enableRegistration: boolean;
     isSetup: boolean;
   };
@@ -38,6 +43,7 @@ export async function GET() {
         darkBackground: settings.darkBackground,
         lightBackground: settings.lightBackground,
         allowPasswordAuth: settings.allowPasswordAuth,
+        allowRobloxAuth: settings.allowRobloxAuth,
         enableRegistration: settings.enableRegistration,
         isSetup: settings.isSetup,
       },

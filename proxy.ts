@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import cache from "@/utils/cache";
+import { getSettings } from "@/lib/instance";
 
 export async function proxy(req: NextRequest) {
-
   const pathname = req.nextUrl.pathname;
 
   const allowedPaths = [
@@ -14,10 +13,15 @@ export async function proxy(req: NextRequest) {
     "/ws-test",
   ];
 
-  const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
+  const isAllowed = allowedPaths.some((path) =>
+    pathname.startsWith(path)
+  );
 
-  if (!(await cache.get("isSetup")) && !isAllowed) {
-    return NextResponse.redirect(new URL("/setup", req.url));
+  const settings = await getSettings();
+  if (!settings.isSetup && !isAllowed) {
+    return NextResponse.redirect(
+      new URL("/setup", req.url)
+    );
   }
 
   return NextResponse.next();

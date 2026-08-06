@@ -7,7 +7,8 @@
  *
  * @author BuddyWinte
  */
- import { prisma } from "@/lib/prisma";
+
+import { prisma } from "@/lib/prisma";
 import cache from "@/utils/cache";
 
 export type InstanceSettings = {
@@ -26,8 +27,28 @@ export type InstanceSettings = {
   updatedAt: Date;
 };
 
+export type ClientInstanceSettings = Omit<
+  InstanceSettings,
+  "createdAt" | "updatedAt"
+> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function serializeSettings(
+  settings: InstanceSettings,
+): ClientInstanceSettings {
+  return {
+    ...settings,
+    createdAt: settings.createdAt.toISOString(),
+    updatedAt: settings.updatedAt.toISOString(),
+  };
+}
+
 export async function getSettings(): Promise<InstanceSettings> {
-  const cached = await cache.get<InstanceSettings>("instance_settings");
+  const cached = await cache.get<InstanceSettings>(
+    "instance_settings",
+  );
 
   if (cached) {
     return cached;
@@ -51,10 +72,13 @@ export async function getSettings(): Promise<InstanceSettings> {
 }
 
 export async function updateSettings(
-  data: Partial<Omit<InstanceSettings, "id" | "createdAt" | "updatedAt">>,
+  data: Partial<
+    Omit<InstanceSettings, "id" | "createdAt" | "updatedAt">
+  >,
 ) {
-  cache.del("isSetup");
-  cache.set("isSetup", true);
+  await cache.del("isSetup");
+  await cache.set("isSetup", true);
+
   let settings = await prisma.instanceSettings.findFirst();
 
   if (!settings) {
@@ -71,11 +95,14 @@ export async function updateSettings(
   }
 
   await cache.del("instance_settings");
-  await cache.set("instance_settings", settings, 60 * 60);
+  await cache.set(
+    "instance_settings",
+    settings,
+    60 * 60,
+  );
 
   return settings;
 }
-
 
 export async function invalidateSettings() {
   await cache.del("instance_settings");

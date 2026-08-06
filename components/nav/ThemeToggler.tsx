@@ -1,39 +1,38 @@
 "use client";
 
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
-import { useTheme } from "next-themes";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 import Button from "@/components/Button";
+import { setThemeAction } from "@/app/actions/theme";
 
-export default function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+export default function ThemeToggle({
+  theme,
+}: {
+  theme: "dark" | "light";
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-  if (!resolvedTheme) {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-9 w-9 rounded-xl p-0"
-        aria-label="Toggle theme"
-      />
-    );
+  const isDark = theme === "dark";
+
+  function toggle() {
+    startTransition(async () => {
+      await setThemeAction(isDark ? "light" : "dark");
+      router.refresh();
+    });
   }
-
-  const isDark = resolvedTheme === "dark";
 
   return (
     <Button
       variant="ghost"
-      size="sm"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      size="md"
+      onClick={toggle}
+      disabled={pending}
       aria-label="Toggle theme"
-      className="h-9 w-9 rounded-xl p-0"
-    >
-      {isDark ? (
-        <SunIcon className="h-5 w-5" />
-      ) : (
-        <MoonIcon className="h-5 w-5" />
-      )}
-    </Button>
+      iconOnly
+      icon={isDark ? SunIcon : MoonIcon}
+    />
   );
 }
