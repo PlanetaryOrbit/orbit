@@ -85,6 +85,9 @@ The fastest and easiest way to run Orbit is through **Planetary Cloud** — our 
 > 
 > Vercel's serverless architecture introduces real limitations that affect Orbit's reliability — including cold starts, execution timeouts, and constraints on long-running processes like session handling and activity tracking. You may run into hard-to-debug issues that simply don't exist on Planetary Cloud.
 >
+> Vercel support ended with v2.1.11beta.1. Version v2.1.10beta21 is the last Vercel-supported release. Later releases do not receive Vercel support because Vercel's serverless infrastructure limits memory caching.
+> More information can be found in the latest update announcement ([Discord Announcement](https://discord.com/channels/1348101138670682156/1363239258659487864/1534022285453951087)).
+>
 > **[Planetary Cloud](https://planetaryapp.us) is free, purpose-built for Orbit, and works out of the box — no configuration needed.** We can't guarantee a great experience on Vercel, and support for Vercel-specific issues is limited.
 
 Prefer to host on your own Vercel account? Deploy in seconds:
