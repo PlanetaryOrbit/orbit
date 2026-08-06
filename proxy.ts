@@ -16,7 +16,7 @@ export async function proxy(req: NextRequest) {
 
   const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
 
-  if (await cache.get("isSetup") && !isAllowed) {
+  if (!(await cache.get("isSetup")) && !isAllowed) {
     return NextResponse.redirect(new URL("/setup", req.url));
   }
 

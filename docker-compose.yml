@@ -3,16 +3,20 @@ services:
     restart: "unless-stopped"
     tty: true
     build: "."
+    command: sh -c "bunx prisma migrate deploy && bun run start"
     environment:
+      NODE_ENV: production
       SESSION_SECRET: ${SESSION_SECRET}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      REDIS_URL: redis://redis:6379
     depends_on:
-      db: # Disable this if you are using an external Postgres database
+      db:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
-      - "3000:3000" # Set these to the port you wish to run Orbit on.
+      - "3000:3000"
 
-  # Comment out everything below this point if you are using an external Postgres database
   db:
     image: "postgres:latest"
     healthcheck:
@@ -30,6 +34,14 @@ services:
     volumes:
       - db:/var/lib/postgresql
 
+  redis:
+    image: "redis:latest"
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
 volumes:
   db:
+    driver: local
+  redis:
     driver: local
