@@ -7,11 +7,7 @@
  */
 
 import { NextResponse } from "next/server";
-import {
-  getSettings,
-  updateSettings,
-  serializeSettings,
-} from "@/lib/instance";
+import { getSettings, updateSettings, serializeSettings } from "@/lib/instance";
 
 export type InstanceResponse = {
   success: true;
@@ -57,6 +53,51 @@ export async function GET() {
         error: {
           code: "INTERNAL_SERVER_ERROR",
           message: "An error occurred while fetching instance settings.",
+        },
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const current = await getSettings();
+
+    if (!current.isSetup) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "NOT_SETUP",
+            message: "This instance has not been configured yet.",
+          },
+        },
+        {
+          status: 403,
+        },
+      );
+    }
+
+    const body = await req.json();
+
+    const settings = await updateSettings(body);
+
+    return NextResponse.json({
+      success: true,
+      data: serializeSettings(settings),
+    });
+  } catch (err) {
+    console.error("Instance settings update error:", err);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An error occurred while updating instance settings.",
         },
       },
       {
