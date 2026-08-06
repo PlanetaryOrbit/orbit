@@ -21,8 +21,6 @@ model InstanceSettings {
   lightBackground    String? @default("/orbitbackground-dark.svg")
   isSetup            Boolean @default(false)
 
-  robloxAuthConfig Json?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

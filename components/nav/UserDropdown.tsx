@@ -8,8 +8,8 @@ import {
   MenuItems,
   MenuItem,
   Transition,
+  MenuButton,
 } from "@headlessui/react";
-import LogoutDialog from "./LogoutDialog";
 import { useState } from "react";
 import {
   ChevronDownIcon,
@@ -31,10 +31,11 @@ interface UserDropdownProps {
 }
 
 export default function UserDropdown({ user }: UserDropdownProps) {
-  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
   return (
     <Menu as="div" className="relative">
-      <Menu.Button as={Button} className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-ctp-surface0">
+      <MenuButton as={Button} className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-ctp-surface0">
         <Image
           src={user.roblox?.avatarUrl ?? "/favicon.png"}
           alt={user.username}
@@ -48,7 +49,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         </span>
 
         <ChevronDownIcon className="h-5 w-5 text-ctp-subtext0 transition-transform ui-open:rotate-180" />
-      </Menu.Button>
+      </MenuButton>
 
       <Transition
         enter="transition ease-out duration-150"
@@ -127,13 +128,11 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           <MenuItem>
             {({ focus }) => (
               <button
-                onClick={() => setLogoutOpen(true)}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-ctp-red transition ${
-                  focus ? "bg-ctp-red/10" : ""
-                }`}
+                onClick={() => setLoggingOut(true)}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-ctp-red transition ${focus ? "bg-ctp-red/10" : ""} ${loggingOut ? "cursor-progress" : "cursor-pointer"}`}
               >
                 <ArrowRightStartOnRectangleIcon className="h-5 w-5" />
-                Logout
+                {loggingOut ? "Logging out..." : "Logout"}
               </button>
             )}
           </MenuItem>
@@ -158,7 +157,6 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           )}
         </MenuItems>
       </Transition>
-      <LogoutDialog open={logoutOpen} setOpen={setLogoutOpen} />
     </Menu>
   );
 }

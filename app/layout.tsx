@@ -32,7 +32,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: settings.name,
     icons: {
-      icon: settings.faviconUrl ?? "/favicon.png",
+      icon: [
+        {
+          url: settings.faviconUrl ?? "/favicon.ico",
+          type: "image/x-icon",
+        },
+      ]
     },
   };
 }
@@ -52,10 +57,13 @@ export default async function RootLayout({
 }>) {
   const user = await getMe();
   const settings = await getSettings();
-  const clientSettings = serializeSettings(settings);
 
   const cookieStore = await cookies();
   const theme = cookieStore.get("theme")?.value ?? "dark";
+
+  const allowedSettings = {
+    primaryColor: settings.primaryColor,
+  };
 
   return (
     <html
@@ -68,7 +76,7 @@ export default async function RootLayout({
       }
     >
       <body className="bg-ctp-crust text-ctp-text overflow-hidden font-sans">
-        <InstanceProvider settings={clientSettings}>
+        <InstanceProvider settings={serializeSettings(settings)}>
           <UserProvider user={user}>
             <header className="sticky top-0 z-50 border-b border-ctp-surface0 bg-ctp-crust/80 backdrop-blur-xl select-none">
               <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">

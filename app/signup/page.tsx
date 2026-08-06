@@ -15,38 +15,34 @@ import Button from "@/components/Button";
 import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
 import AuthBackground from "@/components/AuthBackground";
+import { useInstance } from "../providers/InstanceProvider";
 
-interface AuthConfig {
-  robloxOAuth: boolean;
-  passwordAuth: boolean;
-  darkBackground?: string | null;
-  lightBackground?: string | null;
-  instanceName?: string;
+interface InstanceSettings {
+  name: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  primaryColor: string;
+  darkBackground: string | null;
+  lightBackground: string | null;
+  allowPasswordAuth: boolean;
+  allowRobloxAuth: boolean | false;
+  enableRegistration: boolean;
+  isSetup: boolean;
 }
-
-const authConfig: AuthConfig = {
-  robloxOAuth: true,
-  passwordAuth: true,
-  darkBackground: "/orbitbackground-dark.svg",
-  lightBackground: "/orbitbackground-light.svg",
-  instanceName: "Orbit",
-};
 
 export default function SignupPage() {
   const router = useRouter();
   const { user } = useUser();
-
+  const { settings, refreshSettings } = useInstance();
   const [step, setStep] = useState<"signup" | "verify">("signup");
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
-
   const [signupId, setSignupId] = useState<string | null>(null);
+
+  const hasBoth = false && settings?.allowPasswordAuth;
 
   const [verification, setVerification] = useState<{
     code: string;
@@ -58,8 +54,6 @@ export default function SignupPage() {
     displayName: string;
     avatar: string | null;
   } | null>(null);
-
-  const hasBoth = authConfig.robloxOAuth && authConfig.passwordAuth;
 
   useEffect(() => {
     if (user) {
@@ -149,113 +143,53 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-ctp-base">
-      <AuthBackground
-        darkBackground={authConfig.darkBackground}
-        lightBackground={authConfig.lightBackground}
-      />
+    <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
+      <section className="flex flex-1 items-center px-8 py-16 lg:px-20">
+        <div className="max-w-lg">
+          <h1 className="text-5xl font-bold tracking-tight text-ctp-text">
+            Welcome to{" "}
+            <span className="text-ctp-instance">
+              {settings?.name ?? "Orbit"}
+            </span>
+          </h1>
 
-      <div
-        className="
-        relative z-10
-        flex min-h-screen
-        flex-col
-        lg:flex-row
-      "
-      >
-        <section
-          className="
-          flex flex-1
-          items-center
-          px-8 py-16
-          lg:px-20
-        "
-        >
-          <div className="max-w-lg">
-            <h1
-              className="
-              text-5xl
-              font-bold
-              tracking-tight
-              text-ctp-text
-            "
-            >
-              Welcome to{" "}
-              <span className="text-ctp-instance">
-                {authConfig.instanceName}
-              </span>
-            </h1>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-ctp-subtext0">
+            Create an account to get started.
+          </p>
+        </div>
+      </section>
 
-            <p
-              className="
-              mt-5
-              max-w-md
-              text-lg
-              leading-relaxed
-              text-ctp-subtext0
-            "
-            >
-              Create an account to get started.
-            </p>
-          </div>
-        </section>
+      <section className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md rounded-3xl border border-ctp-surface0 bg-ctp-mantle/80 p-8 shadow-2xl backdrop-blur-xl">
+          {step === "signup" && (
+            <>
+              <h2 className="text-2xl font-bold">Create Account</h2>
 
-        <section
-          className="
-          flex flex-1
-          items-center
-          justify-center
-          px-6 py-12
-        "
-        >
-          <div
-            className="
-            w-full
-            max-w-md
-            rounded-3xl
-            border
-            border-ctp-surface0
-            bg-ctp-mantle/80
-            p-8
-            shadow-2xl
-            backdrop-blur-xl
-          "
-          >
-            {step === "signup" && (
-              <>
-                <h2 className="text-2xl font-bold">Create Account</h2>
+              <p className="mt-2 text-sm text-ctp-subtext0">
+                {settings?.allowRobloxAuth && settings?.allowPasswordAuth
+                  ? "Create an account using your Roblox account or a Roblox username and password."
+                  : settings?.allowRobloxAuth
+                    ? "Create an account using your Roblox account."
+                    : "Create an account using your Roblox username and password."}
+              </p>
 
-                <p
-                  className="
-                  mt-2
-                  text-sm
-                  text-ctp-subtext0
-                "
-                >
-                  {authConfig.robloxOAuth && authConfig.passwordAuth
-                    ? "Create an account using your Roblox account or a Roblox username and password."
-                    : authConfig.robloxOAuth
-                      ? "Create an account using your Roblox account."
-                      : "Create an account using your Roblox username and password."}
-                </p>
-
-                {authConfig.passwordAuth && (
-                  <form className="mt-6 space-y-5" onSubmit={handleSignup}>
-                    <div>
-                      <label
-                        className="
+              {settings?.allowPasswordAuth && settings?.enableRegistration && (
+                <form className="mt-6 space-y-5" onSubmit={handleSignup}>
+                  <div>
+                    <label
+                      className="
                         mb-2
                         block
                         text-sm
                         font-medium
                         text-ctp-subtext1
                       "
-                      >
-                        Roblox Username
-                      </label>
+                    >
+                      Roblox Username
+                    </label>
 
-                      <div
-                        className="
+                    <div
+                      className="
                         flex h-11
                         items-center
                         rounded-xl
@@ -266,46 +200,46 @@ export default function SignupPage() {
                         transition
                         focus-within:border-ctp-instance
                       "
-                      >
-                        <UserIcon
-                          className="
+                    >
+                      <UserIcon
+                        className="
                           mr-2
                           h-5
                           w-5
                           text-ctp-subtext0
                         "
-                        />
+                      />
 
-                        <input
-                          placeholder="Builderman"
-                          className="
+                      <input
+                        placeholder="Builderman"
+                        className="
                             flex-1
                             bg-transparent
                             text-sm
                             outline-none
                             placeholder:text-ctp-overlay0
                           "
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                        />
-                      </div>
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                      />
                     </div>
+                  </div>
 
-                    <div>
-                      <label
-                        className="
+                  <div>
+                    <label
+                      className="
                         mb-2
                         block
                         text-sm
                         font-medium
                         text-ctp-subtext1
                       "
-                      >
-                        Password
-                      </label>
+                    >
+                      Password
+                    </label>
 
-                      <div
-                        className="
+                    <div
+                      className="
                         flex h-11
                         items-center
                         rounded-xl
@@ -316,161 +250,156 @@ export default function SignupPage() {
                         transition
                         focus-within:border-ctp-instance
                       "
-                      >
-                        <LockClosedIcon
-                          className="
+                    >
+                      <LockClosedIcon
+                        className="
                           mr-2
                           h-5
                           w-5
                           text-ctp-subtext0
                         "
-                        />
+                      />
 
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••••"
-                          className="
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••••"
+                        className="
                             flex-1
                             bg-transparent
                             text-sm
                             outline-none
                           "
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
 
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((value) => !value)}
-                          className="
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        className="
                             cursor-pointer
                             text-ctp-subtext0
                             transition
                             hover:text-ctp-text
                           "
-                        >
-                          {showPassword ? (
-                            <EyeSlashIcon className="h-5 w-5" />
-                          ) : (
-                            <EyeIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      </div>
+                      >
+                        {showPassword ? (
+                          <EyeSlashIcon className="h-5 w-5" />
+                        ) : (
+                          <EyeIcon className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
+                  </div>
 
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      className="w-full"
-                      loading={loading}
-                    >
-                      Create Account
-                    </Button>
-                  </form>
-                )}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-full"
+                    loading={loading}
+                  >
+                    Create Account
+                  </Button>
+                </form>
+              )}
 
-                {hasBoth && (
-                  <>
-                    <div
-                      className="
+              {hasBoth && settings?.enableRegistration && (
+                <>
+                  <div
+                    className="
                       my-6
                       flex
                       items-center
                     "
-                    >
-                      <div
-                        className="
+                  >
+                    <div
+                      className="
                         h-px
                         flex-1
                         bg-ctp-surface0
                       "
-                      />
+                    />
 
-                      <span
-                        className="
+                    <span
+                      className="
                         mx-3
                         text-xs
                         uppercase
                         text-ctp-overlay1
                       "
-                      >
-                        Or
-                      </span>
+                    >
+                      Or
+                    </span>
 
-                      <div
-                        className="
+                    <div
+                      className="
                         h-px
                         flex-1
                         bg-ctp-surface0
                       "
-                      />
-                    </div>
+                    />
+                  </div>
 
-                    <Button
-                      variant="secondary"
-                      className="w-full"
-                      iconSrc="/roblox.svg"
-                    >
-                      Continue with Roblox
-                    </Button>
-                  </>
-                )}
-              </>
-            )}
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    iconSrc="/roblox.svg"
+                  >
+                    Continue with Roblox
+                  </Button>
+                </>
+              )}
+            </>
+          )}
 
-            {step === "verify" && robloxUser && verification && (
-              <>
-                <h2 className="text-2xl font-bold">
-                  Verify Roblox Account
-                </h2>
+          {step === "verify" && robloxUser && verification && (
+            <>
+              <h2 className="text-2xl font-bold">Verify Roblox Account</h2>
 
-                <p
-                  className="
+              <p
+                className="
                     mt-2
                     text-sm
                     text-ctp-subtext0
                   "
-                >
-                  Add the verification code below to your Roblox profile bio.
-                </p>
+              >
+                Add the verification code below to your Roblox profile bio.
+              </p>
 
-                <div
-                  className="
+              <div
+                className="
                     mt-6
                     flex
                     items-center
                     gap-4
                   "
-                >
-                  {robloxUser.avatar && (
-                    <Image
-                      src={robloxUser.avatar}
-                      alt={robloxUser.username}
-                      width={64}
-                      height={64}
-                      className="rounded-full"
-                    />
-                  )}
+              >
+                {robloxUser.avatar && (
+                  <Image
+                    src={robloxUser.avatar}
+                    alt={robloxUser.username}
+                    width={64}
+                    height={64}
+                    className="rounded-full"
+                  />
+                )}
 
-                  <div>
-                    <p className="font-semibold">
-                      {robloxUser.displayName}
-                    </p>
+                <div>
+                  <p className="font-semibold">{robloxUser.displayName}</p>
 
-                    <p
-                      className="
+                  <p
+                    className="
                         text-sm
                         text-ctp-subtext0
                       "
-                    >
-                      @{robloxUser.username}
-                    </p>
-                  </div>
+                  >
+                    @{robloxUser.username}
+                  </p>
                 </div>
+              </div>
 
-
-                <div
-                  className="
+              <div
+                className="
                     mt-6
                     rounded-xl
                     border
@@ -478,9 +407,9 @@ export default function SignupPage() {
                     bg-ctp-crust
                     p-5
                   "
-                >
-                  <code
-                    className="
+              >
+                <code
+                  className="
                       block
                       break-all
                       text-center
@@ -488,79 +417,77 @@ export default function SignupPage() {
                       text-lg
                       text-ctp-instance
                     "
-                  >
-                    {verification.code}
-                  </code>
-                </div>
+                    onClick={() => {
+                      navigator.clipboard.writeText(verification.code);
+                    }}
+                >
+                  {verification.code}
+                </code>
+              </div>
 
-
-                <p
-                  className="
+              <p
+                className="
                     mt-3
                     text-xs
                     text-ctp-overlay1
                   "
-                >
-                  Expires{" "}
-                  {new Date(
-                    verification.expiresAt,
-                  ).toLocaleTimeString()}
-                </p>
+              >
+                Expires {new Date(verification.expiresAt).toLocaleTimeString()}
+              </p>
 
+              <Button
+                variant="primary"
+                className="mt-6 w-full"
+                loading={loading}
+                onClick={handleVerify}
+              >
+                Verify Account
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setStep("signup");
+                  setSignupId(null);
+                  setVerification(null);
+                  setRobloxUser(null);
+                }}
+                className="mt-2 w-full"
+              >
+                Use a different account
+              </Button>
+            </>
+          )}
 
-                <Button
-                  variant="primary"
-                  className="mt-6 w-full"
-                  loading={loading}
-                  onClick={handleVerify}
-                >
-                  Verify Account
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setStep("signup");
-                    setSignupId(null);
-                    setVerification(null);
-                    setRobloxUser(null);
-                  }}
-                  className="mt-2 w-full"
-                >
-                  Use a different account
-                </Button>
-              </>
-            )}
-
-            {error && (
-              <p
-                className="
+          {error && (
+            <p
+              className="
                 mt-4
                 text-sm
                 text-ctp-red
               "
-              >
-                {error}
-              </p>
-            )}
+            >
+              {error}
+            </p>
+          )}
 
-            {step === "signup" && (
-              <p
-                className="
+          {step === "signup" && (
+            <p
+              className="
                 mt-4
                 text-sm
                 text-ctp-overlay1
               "
-              >
-                Already have an account?{" "}
-                <a href="/login" className="text-ctp-blue">
-                  Log in
-                </a>
-              </p>
-            )}
+            >
+              Already have an account?{" "}
+              <a href="/login" className="text-ctp-blue">
+                Log in
+              </a>
+            </p>
+          )}
 
-            {!authConfig.robloxOAuth && !authConfig.passwordAuth && (
-              <div
-                className="
+          {!settings?.allowRobloxAuth && !settings?.allowPasswordAuth && settings?.enableRegistration && (
+            <div
+              className="
                 mt-6
                 flex
                 items-start
@@ -573,25 +500,48 @@ export default function SignupPage() {
                 text-sm
                 text-ctp-red
               "
-              >
-                <InformationCircleIcon
-                  className="
+            >
+              <InformationCircleIcon
+                className="
                   mt-0.5
                   h-5
                   w-5
                   shrink-0
                 "
-                />
+              />
 
-                <span>
-                  This instance has no authentication methods enabled. Please
-                  contact the instance administrator.
-                </span>
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
+              <span>
+                This instance has no authentication methods enabled. Please
+                contact the instance administrator.
+              </span>
+            </div>
+          )}
+
+          {!settings?.enableRegistration && (
+            <div
+              className="
+                  mt-6
+                  flex
+                  items-start
+                  gap-3
+                  rounded-xl
+                  border border-ctp-red/40
+                  bg-ctp-red/10
+                  p-4
+                  text-sm
+                  text-ctp-red
+                "
+            >
+              <InformationCircleIcon className="h-5 w-5 mt-0.5 shrink-0 antialiased" />
+
+              <span>
+                Registration is currently disabled. Please contact whoever is
+                responsible for your instance.
+              </span>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }

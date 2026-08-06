@@ -22,6 +22,7 @@ export type InstanceResponse = {
     allowRobloxAuth: boolean;
     enableRegistration: boolean;
     isSetup: boolean;
+    createdAt: string;
   };
 };
 
@@ -42,6 +43,7 @@ export async function GET() {
         allowRobloxAuth: settings.allowRobloxAuth,
         enableRegistration: settings.enableRegistration,
         isSetup: settings.isSetup,
+        createdAt: settings.createdAt.toISOString(),
       },
     } satisfies InstanceResponse);
   } catch (err) {

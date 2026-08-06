@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
-import AuthBackground from "@/components/AuthBackground";
+import { useInstance } from "../providers/InstanceProvider";
 
 interface InstanceSettings {
   name: string;
@@ -40,25 +40,6 @@ export default function LoginPage() {
 
   const { user } = useUser();
   const router = useRouter();
-
-  useEffect(() => {
-    async function loadSettings() {
-      try {
-        const res = await fetch("/api/instance");
-        const data = await res.json();
-        if (data.success) {
-          setSettings(data.data);
-        }
-        console.log(data.data);
-      } catch (err) {
-        console.error("Failed to load instance settings:", err);
-      } finally {
-        setSettingsLoading(false);
-      }
-    }
-
-    loadSettings();
-  }, []);
 
   useEffect(() => {
     if (user) {
