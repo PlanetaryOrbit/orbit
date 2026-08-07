@@ -162,7 +162,6 @@ When preparing your report, include:
 >
 > Issues caused by unsupported environments may be closed without investigation.
 
-````md
 ## How Do I Submit a Good Bug Report?
 
 > ## Security Notice
