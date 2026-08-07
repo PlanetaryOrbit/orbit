@@ -1,166 +1,375 @@
 # Contributing to Orbit
 
-Thanks for your interest in contributing to Orbit! This document covers everything you need to get a local development environment running and to submit changes back to the project.
+First off, thanks for taking the time to contribute! :heart:
+
+All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make things smoother for maintainers and contributors alike. The community looks forward to your contributions! 🐈
+
+> If you like Orbit but don't have time to contribute code, that's okay! There are other ways to support the project:
+>
+> - Star the repository
+> - Share Orbit with others
+> - Mention Orbit in your project's README
+> - Tell friends, colleagues, or local communities about the project
+
+A quick note before you contribute:
+
+> Orbit is an open source project owned by Planetary, a product of Sleepy Lab. Day-to-day development and community management are currently handled by @buddywinte on Planetary's behalf.
+
+---
 
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
-- [Ways to Contribute](#ways-to-contribute)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Making Changes](#making-changes)
-- [Commit Guidelines](#commit-guidelines)
-- [Submitting a Pull Request](#submitting-a-pull-request)
+- [I Have a Question](#i-have-a-question)
+- [I Want To Contribute](#i-want-to-contribute)
 - [Reporting Bugs](#reporting-bugs)
-- [Requesting Features](#requesting-features)
-- [Getting Help](#getting-help)
+- [Suggesting Enhancements](#suggesting-enhancements)
+- [Request For Comment (RFC)](#request-for-comment-rfc)
+- [Your First Code Contribution](#your-first-code-contribution)
+- [Improving The Documentation](#improving-the-documentation)
+- [Styleguides](#styleguides)
+- [Commit Messages](#commit-messages)
+- [Join The Project Team](#join-the-project-team)
 
 ---
 
 ## Code of Conduct
 
-Be respectful, constructive, and patient. We're a small team maintaining this in our spare time, and so are many of our contributors. Harassment, discrimination, or hostility of any kind will not be tolerated in issues, pull requests, or our Discord server.
+This project and everyone participating in it is governed by the
+[Orbit Code of Conduct](https://github.com/PlanetaryOrbit/orbit/blob/main/CODE_OF_CONDUCT.md).
+
+By participating, you are expected to uphold this code.
+
+Please report unacceptable behavior to [contact@sleepylab.ca](mailto:contact@sleepylab.ca).
 
 ---
 
-## Ways to Contribute
+## I Have a Question
 
-You don't have to write code to help out:
+> Before asking a question, please make sure you have read the available [documentation](https://docs.planetaryapp.us/).
 
-- **Report bugs** via our [feedback portal](https://feedback.planetaryapp.us/bugs)
-- **Suggest features** via the same [feedback portal](https://feedback.planetaryapp.us/bugs)
-- **Improve documentation** — typos, unclear instructions, missing sections
-- **Fix bugs or implement features** via pull request
-- **Help other users** in our [Discord server](https://discord.com/invite/mWqdZmEkDc)
-- **Review open pull requests** and leave feedback
+Before asking, check whether your question has already been answered:
+
+- Search existing [GitHub Issues](https://github.com/PlanetaryOrbit/orbit/issues).
+- Check the documentation.
+- Search for existing discussions or solutions online.
+- Ask in our [Discord server](https://discord.gg/M3CX76KQsK).
+
+Orbit does not use GitHub Discussions. Questions should either be asked through Issues or Discord.
+
+If you still need help:
+
+- Open a GitHub Issue.
+- Provide as much context as possible.
+- Include relevant versions and environment details.
+- Explain what you have already tried.
 
 ---
+
+# I Want To Contribute
+
+> ## Contributor Agreement
+>
+> By contributing to Orbit, you confirm that:
+>
+> - You are the original author of your contribution, or have permission to submit it.
+> - You have the necessary rights to submit the contribution.
+> - Your contribution may be distributed, modified, and maintained as part of Orbit under the project's license.
+
+There are many ways to contribute, including:
+
+- Reporting bugs
+- Suggesting improvements
+- Improving documentation
+- Fixing issues
+- Adding features
+- Helping review pull requests
+
+For small changes, normal pull requests are welcome.
+
+For large changes, please read the [Request For Comment (RFC)](#request-for-comment-rfc) section before starting work.
+
+---
+
+# Request For Comment (RFC)
+
+RFCs (Request For Comment) are used for major changes that could significantly affect Orbit.
+
+An RFC is required for changes such as:
+
+- Large new features
+- Major system additions
+- New core functionality
+- Significant architecture changes
+- Database schema changes that affect many systems
+- Replacing major dependencies or technologies
+- Changes that affect how users interact with Orbit
+
+Examples of changes that would require an RFC:
+
+- Adding an entirely new system such as forms, workflows, or permissions.
+- Replacing a major framework or service.
+- Redesigning a core part of Orbit.
+
+The purpose of an RFC is to allow maintainers and contributors to discuss the design before implementation begins.
+
+## Creating an RFC
+
+To create an RFC:
+
+1. Open a pull request containing your RFC document.
+2. Clearly explain:
+   - What problem the change solves.
+   - Why the change is needed.
+   - How the proposed solution works.
+   - Alternatives that were considered.
+   - Any potential drawbacks or risks.
+3. Allow time for community and maintainer feedback.
+
+RFC pull requests are for discussion and feedback. They do not immediately merge the implementation.
+
+After an RFC has been approved, implementation can begin through normal pull requests.
+
+> Small fixes, bug fixes, and minor improvements do not require an RFC. Use your best judgment, or ask a maintainer if you are unsure.
+
+---
+
+# Reporting Bugs
+
+## Before You Submit a Bug Report
+
+Before opening an issue, please make sure the problem has not already been reported and is not caused by your environment.
+
+Please:
+
+- Ensure you are running the latest version of Orbit.
+- Confirm the issue is not caused by unsupported software or configuration.
+- Read the documentation.
+- Search existing issues.
+- Check whether others have experienced the same issue.
+
+When preparing your report, include:
+
+- Whether this is a self-hosted instance.
+- Operating system, platform, and architecture.
+- Orbit version.
+- Steps to reproduce the issue.
+- Whether it occurs on older versions.
+
+> ## Unsupported Platforms
+>
+> Orbit does not officially support Vercel, Cloudflare Workers, or other serverless platforms.
+>
+> Issues caused by unsupported environments may be closed without investigation.
+
+````md
+## How Do I Submit a Good Bug Report?
+
+> ## Security Notice
+>
+> Do **not** report security vulnerabilities, exploits, or issues containing sensitive information publicly through GitHub Issues.
+>
+> Security-related reports should be sent privately to [IT@planetaryapp.us](mailto:IT@planetaryapp.us).
+
+Orbit uses GitHub Issues to track bugs and unexpected behavior.
+
+When opening a bug report:
+
+- Use a clear and descriptive title.
+- Explain what you expected to happen.
+- Explain what actually happened.
+- Include detailed reproduction steps.
+- Include logs, screenshots, or recordings where helpful.
+- Provide a minimal reproduction case if possible.
+
+After submitting:
+
+- A maintainer will review and triage the issue.
+- Issues missing enough information may be marked as `needs-repro`.
+- Confirmed bugs may be labeled `needs-fix`, `critical`, or other relevant labels.
+- Confirmed issues may be picked up by contributors.
+
+---
+
+# Suggesting Enhancements
+
+Enhancement suggestions include new features, improvements to existing functionality, and quality-of-life changes.
+
+Before suggesting an enhancement:
+
+- Make sure you are using the latest version.
+- Read the documentation to ensure the feature does not already exist.
+- Search existing issues to see if the suggestion has already been made.
+- Consider whether the feature fits Orbit's goals and intended use cases.
+
+Features should generally benefit a significant portion of Orbit users.
+
+If your idea only benefits a very specific use case, consider whether it would be better suited as a plugin, extension, or external tool.
+
+## How Do I Submit a Good Enhancement Suggestion?
+
+Enhancement suggestions are tracked through GitHub Issues.
+
+When creating one:
+
+- Use a clear and descriptive title.
+- Explain the problem your suggestion solves.
+- Describe the current behavior.
+- Describe the expected behavior.
+- Explain why this would be useful for Orbit users.
+- Include screenshots, mockups, or examples if applicable.
+- Mention similar solutions from other projects if they exist.
+
+Large feature suggestions may require an [RFC](#request-for-comment-rfc) before implementation.
+
+---
+
+# Your First Code Contribution
+
+Before contributing code, make sure you have:
+
+- [Node.js](https://nodejs.org/)
+- [Bun](https://bun.sh/)
+- [Docker](https://www.docker.com/)
+- Git
+- A Prisma-compatible database (PostgreSQL recommended)
+
+> All pull requests containing code changes must be tested using Docker before being submitted.
+>
+> This ensures changes work in an environment close to how Orbit is deployed.
 
 ## Development Setup
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org) (LTS recommended)
-- [npm](https://www.npmjs.com) or a compatible package manager (eg. pnpm)
-- A Prisma-compatible database (PostgreSQL recommended) — [Supabase](https://supabase.com), [Railway](https://railway.app), or [Neon](https://neon.tech) all work well for local/dev use
-- Git
-
-### Setup Steps
-
-1. **Fork** the repository, then clone your fork:
+### 1. Fork and Clone Orbit
 
 ```bash
-   git clone https://github.com/<your-username>/orbit.git
-   cd orbit
-```
+git clone https://github.com/<your-username>/orbit.git
+cd orbit
+````
 
-2. **Install dependencies:**
-
-```bash
-   npm install
-```
-
-3. **Set up environment variables.** Create a `.env` file in the project root:
-
-```env
-   SESSION_SECRET=          # generate with: openssl rand -base64 32
-   DATABASE_URL=            # your database connection string
-   PUBLIC_URL=              # e.g. http://localhost:3000
-```
-
-4. **Push the database schema and generate the Prisma client:**
+### 2. Install Dependencies
 
 ```bash
-   npx prisma db push
-   npx prisma generate
+bun install
 ```
 
-5. **Run the development server:**
+### 3. Configure Environment Variables
+
+Copy `.env.example` to `.env` and configure the required variables.
+
+### 4. Setup the Database
+
+Generate the Prisma client and apply the database schema:
 
 ```bash
-   npm run dev
+bunx prisma db push
+bunx prisma generate
 ```
 
-   Orbit should now be running at `http://localhost:3000`.
-
----
-
-## Project Structure
-
-Orbit is a TypeScript project built on:
-
-- **Frontend:** Next.js, TailwindCSS
-- **Backend:** Next.js API routes, Prisma ORM
-- **Database:** Any Prisma-compatible database (PostgreSQL recommended)
-
-Familiarize yourself with the existing folder structure before adding new files — try to follow the conventions already in place rather than introducing new patterns.
-
----
-
-## Making Changes
-
-1. Create a new branch off `main` with a descriptive name:
+Alternatively, you can start the database container:
 
 ```bash
-   git checkout -b fix/session-timezone-bug
-   # or
-   git checkout -b feat/bulk-member-export
+docker compose up -d db
 ```
 
-2. Make your changes, following the existing code style (formatting, naming conventions, file organization).
+### 5. Start Orbit
 
-3. Keep changes focused — one bug fix or feature per pull request makes review much faster.
+```bash
+bun run dev
+```
 
-4. Test your changes locally. If you've touched anything Prisma-related, make sure `npx prisma db push` runs cleanly and existing functionality still works.
+Orbit should now be available at:
 
-5. Update documentation (README, code comments, or docs at [docs.planetaryapp.us](https://docs.planetaryapp.us)) if your change affects setup, configuration, or user-facing behavior.
+```
+https://localhost:3000
+```
 
----
-
-## Commit Guidelines
-
-- Write clear, descriptive commit messages (e.g. `Fixed quota calculation for weekly resets`, not `fixed bug`).
-- Keep commits reasonably scoped — avoid bundling unrelated changes together.
-- Reference related issues where relevant (e.g. `Closes #123`).
+(or another configured port)
 
 ---
 
-## Submitting a Pull Request
+# Improving The Documentation
 
-1. Push your branch to your fork and open a pull request against `main`.
-2. Give your PR a clear title and description:
-   - What does this change do?
-   - Why is it needed?
-   - Any screenshots for UI changes are appreciated.
-3. Link any related issues or feedback-portal reports.
-4. Be responsive to review feedback — we may ask for changes before merging.
-5. Once approved, a maintainer will merge your PR.
+Documentation improvements are always welcome.
 
-Note: since Orbit's beta focus is on stability and matching Planetary Cloud's hosting environment, please flag in your PR description if a change has implications for serverless/Vercel deployments specifically.
+Before submitting documentation changes:
 
----
+* Read the existing documentation.
+* Keep documentation accurate and easy to understand.
+* Explain your documentation changes in your pull request.
 
-## Reporting Bugs
-
-Please use the [feedback portal](https://feedback.planetaryapp.us/bugs) rather than opening a GitHub issue directly. When reporting, include:
-
-- Steps to reproduce
-- Expected vs. actual behavior
-- Whether you're using Planetary Cloud, Vercel, or self-hosting
-- Relevant logs or screenshots
+Documentation changes usually do not require an RFC unless they introduce a major change to how Orbit works.
 
 ---
 
-## Requesting Features
+# Pull Request Guidelines
 
-Feature requests also go through the [feedback portal](https://feedback.planetaryapp.us/bugs). This helps us track and prioritize requests in one place alongside bug reports.
+Before opening a pull request:
+
+* Make sure your changes are tested.
+* Keep commits focused and understandable.
+* Update documentation when needed.
+* Follow the project's coding style.
+* Avoid unrelated changes in the same pull request.
+
+For major changes, ensure an RFC has been approved before submitting implementation work.
+
+Maintainers may request changes before a pull request can be merged.
 
 ---
 
-## Getting Help
+# Commit Messages
 
-- **Documentation:** [docs.planetaryapp.us](https://docs.planetaryapp.us)
-- **Discord:** [Join our server](https://discord.com/invite/mWqdZmEkDc) for questions, discussion, and contributor chat
-- **Changelog:** [feedback.planetaryapp.us/changelog](https://feedback.planetaryapp.us/changelog)
+Good commit messages make it easier to understand project history.
 
-Thanks again for helping improve Orbit — we appreciate it!
+Recommended format:
+
+```
+type: short description
+```
+
+Examples:
+
+```
+feat: add workspace forms
+fix: prevent websocket reconnect loop
+docs: update contribution guide
+refactor: simplify cache handling
+```
+
+Keep commit messages:
+
+* Short and descriptive.
+* Written in the present tense.
+* Focused on one change.
+
+---
+
+# Join The Project Team
+
+Orbit contributors who consistently provide helpful contributions may be invited to join the project team.
+
+Maintainer access is given based on:
+
+* Quality of contributions.
+* Understanding of Orbit's goals.
+* Ability to collaborate with other contributors.
+* Long-term involvement.
+
+Becoming a contributor does not automatically grant repository access. Maintainer roles are assigned by the existing project team.
+
+---
+
+# Legal Notice
+
+Orbit is owned by Planetary, a product of Sleepy Lab (a division of Sleepy Lab Innovations Inc.).
+
+© 2026 Sleepy Lab Innovations Inc. All rights reserved.
+
+Planetary and Orbit are not affiliated with or endorsed by Relatio (formerly Tovy). References to the Tovy project are provided for attribution purposes only and do not imply any partnership or sponsorship.
+
+Original Tovy code © 2022 Tovy. Modifications and new features © 2026 Planetary.
+
+Sleepy Lab Innovations Inc. is not affiliated with Roblox Corporation or Discord Inc.
+
+For legal inquiries, contact [contact@sleepylab.ca](mailto:contact@sleepylab.ca).
