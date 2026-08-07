@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ctp-crust);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--instance-primary);
+  border-radius: 999px;
+  border: 3px solid var(--ctp-crust);
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--instance-secondary);
+}
+/* love you but hate you firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--instance-primary) var(--ctp-crust);
+}
+
+/* tailwindcss & root */
+
 @theme inline {
     --font-sans: var(--font-inter);
     --font-mono: var(--font-jetbrains);
