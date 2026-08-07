@@ -1,0 +1,79 @@
+name: Bug Report
+description: Report a problem or unexpected behavior in Orbit
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug!
+
+        Please make sure you are using the latest version and have checked existing issues first.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue and what happened.
+      placeholder: Explain what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps To Reproduce
+      description: Provide steps someone else can follow to reproduce this.
+      placeholder: |
+        1. Start Orbit
+        2. Open...
+        3. Click...
+        4. Observe...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Orbit Version
+      placeholder: "Example: v3.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Type
+      options:
+        - Self-hosted
+        - Development environment
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, architecture, Node/Bun version, database, and other relevant details.
+      placeholder: |
+        OS:
+        Architecture:
+        Bun version:
+        Database:
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Include relevant logs or errors.
+      render: shell

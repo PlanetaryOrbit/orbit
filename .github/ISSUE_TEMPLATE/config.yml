@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Orbit Documentation
+    url: https://docs.planetaryapp.us/
+    about: Read the documentation before opening an issue.
+  - name: Orbit Discord
+    url: https://discord.gg/M3CX76KQsK
+    about: Ask questions and get community help.
