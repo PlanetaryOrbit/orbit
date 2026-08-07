@@ -7,7 +7,13 @@ import {
   useState,
 } from "react";
 
-import type { ClientInstanceSettings } from "@/lib/instance";
+import toast from "react-hot-toast";
+
+import {
+  type ClientInstanceSettings,
+} from "@/lib/instance";
+import { DEFAULTS } from "@/lib/types";
+
 
 interface InstanceContextValue {
   settings: ClientInstanceSettings;
@@ -20,16 +26,20 @@ export function InstanceProvider({
   settings: initialSettings,
   children,
 }: {
-  settings: ClientInstanceSettings;
+  settings?: ClientInstanceSettings;
   children: React.ReactNode;
 }) {
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] =
+    useState<ClientInstanceSettings>(
+      initialSettings ?? DEFAULTS,
+    );
 
   const refreshSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/instance");
 
       if (!res.ok) {
+        toast.error("Failed to refresh instance settings.");
         return;
       }
 
@@ -37,9 +47,23 @@ export function InstanceProvider({
 
       if (data.success) {
         setSettings(data.data);
+        toast.success(
+          "Instance settings refreshed successfully.",
+        );
+        return;
       }
+
+      toast.error(
+        data.error?.message ??
+          "Failed to refresh instance settings.",
+      );
     } catch (error) {
-      console.error("Failed to refresh instance settings:", error);
+      console.error(
+        "Failed to refresh instance settings:",
+        error,
+      );
+
+      toast.error("Unable to connect to the server.");
     }
   }, []);
 

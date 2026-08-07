@@ -13,15 +13,11 @@ export async function proxy(req: NextRequest) {
     "/ws-test",
   ];
 
-  const isAllowed = allowedPaths.some((path) =>
-    pathname.startsWith(path)
-  );
-
+  const isAllowed = allowedPaths.some((path) => pathname.startsWith(path));
   const settings = await getSettings();
-  if (!settings.isSetup && !isAllowed) {
-    return NextResponse.redirect(
-      new URL("/setup", req.url)
-    );
+  const isSetup = settings.isSetup;
+  if (!isAllowed && !isSetup) {
+    return NextResponse.redirect(new URL("/setup", req.url));
   }
 
   return NextResponse.next();

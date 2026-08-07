@@ -14,6 +14,7 @@ import { cookies } from "next/headers";
 import AuthBackground from "@/components/AuthBackground";
 import { UserProvider } from "./providers/UserProvider";
 import { InstanceProvider } from "./providers/InstanceProvider";
+import ToastProvider from "./providers/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -71,6 +72,7 @@ export default async function RootLayout({
       }
     >
       <body className="bg-ctp-crust text-ctp-text overflow-hidden font-sans">
+        <ToastProvider />
         <InstanceProvider settings={serializeSettings(settings)}>
           <UserProvider user={user}>
             <header className="sticky top-0 z-50 border-b border-ctp-surface0 bg-ctp-crust/80 backdrop-blur-xl select-none">

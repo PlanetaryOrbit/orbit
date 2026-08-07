@@ -11,14 +11,13 @@ datasource db {
 model InstanceSettings {
   id                 String  @id @default(cuid())
   name               String  @default("Orbit")
-  logoUrl            String? @default("/favicon.png")
-  faviconUrl         String? @default("/favicon.png")
+  logoUrl            String  @default("/favicon.png")
   allowPasswordAuth  Boolean @default(true)
   allowRobloxAuth    Boolean @default(false)
   enableRegistration Boolean @default(true)
-  primaryColor       String  @default("#ea76cb")
+  primaryColor       String  @default("#fb019c")
   darkBackground     String  @default("/orbitbackground-dark.svg")
-  lightBackground    String? @default("/orbitbackground-dark.svg")
+  lightBackground    String  @default("/orbitbackground-light.svg")
   isSetup            Boolean @default(false)
 
   createdAt DateTime @default(now())

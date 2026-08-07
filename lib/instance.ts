@@ -8,16 +8,12 @@
  * @author BuddyWinte
  */
 
-import { prisma } from "@/lib/prisma";
-import cache from "@/utils/cache";
-import type { InstanceSettings } from "@prisma/client";
+ import { prisma } from "@/lib/prisma";
+ import cache from "@/utils/cache";
+ import type { InstanceSettings } from "@prisma/client";
+ import type { ClientInstanceSettings } from "./types";
 
-export type ClientInstanceSettings = Omit<
-  InstanceSettings,
-  "id" | "updatedAt"
-> & {
-  createdAt: string;
-};
+ export type { ClientInstanceSettings } from "./types";
 
 export function serializeSettings(
   settings: InstanceSettings,
