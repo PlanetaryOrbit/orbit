@@ -3,7 +3,7 @@
 import { Switch } from "@headlessui/react";
 
 interface Props {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType;
   title: string;
   description?: string;
   enabled: boolean;
@@ -21,27 +21,28 @@ export default function SwitchCard({
     <Switch
       checked={enabled}
       onChange={setEnabled}
-      className={`flex w-full items-center justify-between rounded-xl border p-3 transition ${enabled ? "border-ctp-instance bg-ctp-instance/10" : "border-ctp-surface1 bg-ctp-crust"}`}
+      className={`flex w-full items-center justify-between rounded-xl border p-3 transition-all duration-200 ${enabled ? "border-ctp-instance bg-ctp-instance/10" : "border-ctp-surface1 bg-ctp-crust"}`}
     >
       <div className="flex items-center gap-3 text-left">
         <Icon className="h-5 w-5 text-ctp-subtext0" />
+
         <div>
-          <p className="text-sm">
-            {title}
-          </p>
+          <p className="text-sm font-medium text-ctp-text">{title}</p>
+
           {description && (
-            <p className="text-xs text-ctp-subtext0">
-              {description}
-            </p>
+            <p className="mt-0.5 text-xs text-ctp-subtext0">{description}</p>
           )}
         </div>
       </div>
+
       <div
-        className={`flex h-6 w-11 items-center rounded-full p-1 transition cursor-pointer ${enabled ? "bg-ctp-instance justify-end" : "bg-ctp-surface1"}`}
+        className={`flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors duration-200 ${
+          enabled
+            ? "justify-end bg-ctp-instance"
+            : "justify-start bg-ctp-surface1"
+        }`}
       >
-        <span
-          className="h-4 w-4 rounded-full bg-ctp-text"
-        />
+        <div className="h-4 w-4 rounded-full bg-ctp-text shadow-sm transition-transform duration-200" />
       </div>
     </Switch>
   );

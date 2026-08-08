@@ -8,6 +8,7 @@ import {
   LockClosedIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/solid";
+import FormInput from "@/components/ui/FormInput";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "../providers/UserProvider";
@@ -32,15 +33,15 @@ export default function SetupPage() {
   const router = useRouter();
 
   useEffect(() => {
-      if (!user) {
-        router.replace("/signup");
-        return;
-      }
+    if (!user) {
+      router.replace("/signup");
+      return;
+    }
 
-      if (!user.isOwner) {
-        router.replace("/");
-      }
-    }, [user, router]);
+    if (!user.isOwner) {
+      router.replace("/");
+    }
+  }, [user, router]);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -120,22 +121,13 @@ export default function SetupPage() {
           </p>
 
           <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-ctp-subtext1">
-                Instance Name
-              </label>
-
-              <div className="flex h-11 items-center rounded-xl border border-ctp-surface1 bg-ctp-crust px-3 focus-within:border-ctp-instance">
-                <BuildingOffice2Icon className="mr-2 h-5 w-5 text-ctp-subtext0" />
-
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Orbit"
-                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-ctp-overlay0"
-                />
-              </div>
-            </div>
+            <FormInput
+              label="Instance Name"
+              value={name}
+              onChange={setName}
+              placeholder="Orbit"
+              icon={BuildingOffice2Icon}
+            />
 
             <InputWithPreview
               label="Logo"
