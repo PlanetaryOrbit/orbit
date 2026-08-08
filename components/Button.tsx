@@ -7,6 +7,7 @@ import type {
 import Link from "next/link";
 import Image from "next/image";
 import { Transition } from "@headlessui/react";
+import { getTextColor } from "@/utils/color";
 
 type ButtonVariant =
   | "primary"
@@ -39,7 +40,7 @@ const variants: Record<ButtonVariant, string> = {
   primary: [
     "border border-ctp-instance",
     "bg-ctp-instance",
-    "text-ctp-base",
+    "text-ctp-instance-text",
     "shadow-sm",
     "hover:border-ctp-instance-secondary",
     "hover:bg-ctp-instance-secondary",

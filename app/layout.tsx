@@ -16,6 +16,7 @@ import AuthBackground from "@/components/AuthBackground";
 import { UserProvider } from "./providers/UserProvider";
 import { InstanceProvider } from "./providers/InstanceProvider";
 import ToastProvider from "./providers/ToastProvider";
+import { getTextColor } from "@/utils/color";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: settings.faviconUrl ?? "/favicon.ico",
+          url: settings.logoUrl ?? "/favicon.ico",
           type: "image/x-icon",
         },
       ]
@@ -69,6 +70,7 @@ export default async function RootLayout({
       style={
         {
           "--instance-primary": settings.primaryColor,
+          "--instance-primary-text": getTextColor(settings.primaryColor),
         } as React.CSSProperties
       }
     >
