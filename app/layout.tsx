@@ -130,7 +130,6 @@ export default async function RootLayout({
                   >
                     contribute on GitHub
                   </a>
-                  {" meow!"}
                 </p>
               </div>
             </div>
