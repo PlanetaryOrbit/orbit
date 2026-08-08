@@ -13,7 +13,6 @@ local RunService        = game:GetService("RunService")
 local GroupService      = game:GetService("GroupService")
 
 local HttpQueue = require(script.Components.HttpQueue)
-local FastWait  = require(script.Components.FastWait)
 
 local TovyFolder = Instance.new("Folder", ReplicatedStorage)
 TovyFolder.Name = "Orbit Assets"
@@ -29,23 +28,23 @@ local Configuration = {
 	url  = "<url>",
 	auth = "<apikey>",
 
-	privateEnabled = <privateenabled>,      -- Track private servers?
+	privateEnabled = <privateenabled>,       -- Track private servers?
 	studioEnabled  = <studioenabled>,       -- Track Studio sessions?
 
 	-- Feature flags
-	bansEnabled       = false,   -- Let Orbit handle bans?
-	rankChecking      = true,    -- Only track members of the group?
+	bansEnabled       = false,    -- Let Orbit handle bans?
+	rankChecking      = true,     -- Only track members of the group?
 	groupId           = <groupid>, -- Group ID for rank checks
-	minTrackedRank    = <mintrackedrank>,      -- Minimum rank to be tracked (overridable via remote config)
+	minTrackedRank    = <mintrackedrank>,       -- Minimum rank to be tracked (overridable via remote config)
 
 	-- Timing
-	cooldownPeriod       = 30,   -- Seconds between HTTP retries
-	minutesTillAFK       = 2,    -- Idle minutes before AFK flag
-	scanInterval         = 300,  -- Seconds between full player scans (5 min)
-	heartbeatInterval    = 60,   -- Seconds between lightweight heartbeats
-	rankRefreshInterval  = 600,  -- Seconds between per-player rank re-checks (throttles GroupService)
-	serverHeartbeatEvery = 120,  -- Seconds between backend "server alive" pings
-	remoteEventCooldown  = 3,    -- Min seconds between accepted client Activity events per player
+	cooldownPeriod       = 30,    -- Seconds between HTTP retries
+	minutesTillAFK       = 1,     -- Idle minutes before AFK flag
+	afkPollInterval      = 10,    -- Seconds between idle-time checks (AFK detection)
+	scanInterval         = 300,   -- Seconds between full player scans (5 min)
+	heartbeatInterval    = 60,    -- Seconds between lightweight heartbeats
+	rankRefreshInterval  = 600,   -- Seconds between per-player rank re-checks (throttles GroupService)
+	remoteEventCooldown  = 3,     -- Min seconds between accepted client Activity events per player
 
 	-- Chat capture
 	maxStoredChatLines  = 200,
@@ -96,7 +95,6 @@ type PlayerState = {
 	afkStart: number?,
 	isAFK: boolean,
 	afkTimerInstance: NumberValue?,
-	pendingAFKCheck: boolean,
 	lastRankCheck: number,
 	lastRemoteEventAccepted: number,
 }
@@ -114,7 +112,6 @@ end
 local function stripChat(text: string): string
 	return (text:gsub("^%s+", ""):gsub("%s+$", ""))
 end
-
 
 local function setAFK(Player: Player, state: boolean)
 	local st = getState(Player)
@@ -420,32 +417,7 @@ local function MovementDetection(Player: Player)
 	local function onActivity(speed: number)
 		if speed > 0 then
 			bumpActivity(Player)
-			return
 		end
-
-		local myState = getState(Player)
-		if not myState or myState.pendingAFKCheck then
-			return
-		end
-
-		local snapshot = os.clock()
-		myState.lastActivity = snapshot
-		myState.pendingAFKCheck = true
-
-		task.spawn(function()
-			FastWait(60 * Configuration.minutesTillAFK)
-
-			local currentState = getState(Player)
-			if currentState then
-				currentState.pendingAFKCheck = false
-			end
-
-			if isPlayerOnline(Player) and currentState and currentState.lastActivity == snapshot then
-				setAFK(Player, true)
-				log("INFO", Player.Name .. " marked AFK (no movement for "
-					.. Configuration.minutesTillAFK .. " min).")
-			end
-		end)
 	end
 
 	table.insert(connections, Humanoid.Running:Connect(onActivity))
@@ -487,7 +459,7 @@ local function InputChange(Player: Player, isIdle: unknown)
 		bumpActivity(Player)
 	else
 		local idleSeconds = st.lastActivity and (now - st.lastActivity) or math.huge
-		local threshold = 60 * Configuration.minutesTillAFK -- matches MovementDetection's threshold
+		local threshold = 60 * Configuration.minutesTillAFK
 
 		if idleSeconds >= threshold then
 			setAFK(Player, true)
@@ -509,7 +481,6 @@ local function InitiatePlayer(Player: Player): boolean
 		afkStart                = nil,
 		isAFK                   = false,
 		afkTimerInstance        = nil,
-		pendingAFKCheck         = false,
 		lastRankCheck           = os.clock(),
 		lastRemoteEventAccepted = 0,
 	}
@@ -611,6 +582,23 @@ local function fetchRemoteConfig()
 		log("INFO", "Applied remote config overrides: " .. table.concat(changed, ", "))
 	end
 end
+
+task.spawn(function()
+	while true do
+		task.wait(Configuration.afkPollInterval)
+		local threshold = 60 * Configuration.minutesTillAFK
+		for userId, st in pairs(PlayerData) do
+			local Player = Players:GetPlayerByUserId(userId)
+			if Player and isPlayerOnline(Player) and isUserTracked(Player) and not st.isAFK then
+				local idleFor = os.clock() - st.lastActivity
+				if idleFor >= threshold then
+					setAFK(Player, true)
+					log("INFO", Player.Name .. " marked AFK (idle for " .. math.floor(idleFor) .. "s).")
+				end
+			end
+		end
+	end
+end)
 
 task.spawn(function()
 	while true do

@@ -103,7 +103,6 @@ Prefer to host on your own Vercel account? Deploy in seconds:
 | `SESSION_SECRET` | A strong secret string — generate with `openssl rand -base64 32` |
 | `DATABASE_URL` | Your database connection string (e.g. [Supabase](https://supabase.com), [Railway](https://railway.app), [Neon](https://neon.tech)) |
 | `NEXTAUTH_URL` or `PUBLIC_URL` | Your deployment URL, without a trailing slash (e.g. `https://instance.planetaryapp.cloud`) |
-| `ROBLOX_WORKSPACE_REDIRECTID` | Your Roblox Group ID — users with workspace access will be redirected automatically |
 
 ---
 
