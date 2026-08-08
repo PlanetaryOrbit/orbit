@@ -589,7 +589,7 @@ task.spawn(function()
 		local threshold = 60 * Configuration.minutesTillAFK
 		for userId, st in pairs(PlayerData) do
 			local Player = Players:GetPlayerByUserId(userId)
-			if Player and isPlayerOnline(Player) and not st.isAFK then
+			if Player and isPlayerOnline(Player) and isUserTracked(Player) and not st.isAFK then
 				local idleFor = os.clock() - st.lastActivity
 				if idleFor >= threshold then
 					setAFK(Player, true)
