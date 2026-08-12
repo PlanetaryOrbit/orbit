@@ -27,30 +27,34 @@ export default function PasswordStrengthBar({
     4: "text-green-400",
   };
 
+  if (!password) return null;
+
   return (
-    <div className="w-full">
+    <div className="mt-2 space-y-1.5">
       <div className="flex gap-1.5">
         {[1, 2, 3, 4].map((bar) => (
           <div
             key={bar}
             className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-              bar <= score
-                ? colors[score]
-                : "bg-zinc-800"
+              bar <= score ? colors[score] : "bg-zinc-800"
             }`}
           />
         ))}
       </div>
 
-      {password && (
-        <div className="mt-2 flex items-center justify-between">
-          <span
-            className={`text-xs font-medium transition-colors duration-300 ${textColors[score]}`}
-          >
-            {label}
+      <div className="flex items-center justify-between">
+        <span
+          className={`text-xs font-medium transition-colors duration-300 ${textColors[score]}`}
+        >
+          {label}
+        </span>
+
+        {score < 3 && (
+          <span className="text-xs text-zinc-400">
+            Use a stronger password
           </span>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -22,6 +22,8 @@ import {
   sessionPrimaryButtonClass,
   sessionSecondaryButtonClass,
 } from "@/components/sessions/shell";
+import PasswordStrengthBar from "@/components/passwordStrengthBar";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 const oauthButtonClass =
   "w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700";
@@ -166,7 +168,6 @@ const Login: NextPage = () => {
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
-
   useEffect(() => {
     loginMethods.reset();
     signupMethods.reset();
@@ -182,6 +183,9 @@ const Login: NextPage = () => {
     if (usernameCheckTimeout.current)
       clearTimeout(usernameCheckTimeout.current);
   }, [mode]);
+  
+  const signupPassword = signupMethods.watch("password") || "";
+  const passwordStrength = calculatePasswordStrength(signupPassword);
 
   useEffect(() => {
     let isMounted = true;
@@ -772,9 +776,11 @@ const Login: NextPage = () => {
                         <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
                           Set a password
                         </h2>
+
                         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                           Choose a secure password for your account.
                         </p>
+
                         <FormProvider {...signupMethods}>
                           <form
                             onSubmit={submitSignup(onSubmitSignup)}
@@ -791,16 +797,22 @@ const Login: NextPage = () => {
                                 required: "Password is required",
                                 minLength: {
                                   value: 7,
-                                  message:
-                                    "Password must be at least 7 characters",
+                                  message: "Password must be at least 7 characters",
                                 },
-                                pattern: {
-                                  value: /^(?=.*[0-9!@#$%^&*])/,
-                                  message:
-                                    "Password must contain at least one number or special character",
+                                validate: (value) => {
+                                  const { score } = calculatePasswordStrength(value);
+
+                                  if (score < 3) {
+                                    return "Password is not strong enough";
+                                  }
+
+                                  return true;
                                 },
                               })}
                             />
+
+                            <PasswordStrengthBar password={signupPassword} />
+
                             <Input
                               label="Verify password"
                               placeholder="Verify password"
@@ -814,6 +826,7 @@ const Login: NextPage = () => {
                                   "Passwords must match",
                               })}
                             />
+
                             <div className="flex gap-3 pt-4">
                               <button
                                 type="button"
@@ -826,14 +839,16 @@ const Login: NextPage = () => {
                               >
                                 Back
                               </button>
+
                               <AuthSubmitButton
                                 className="flex-1 justify-center"
                                 loading={loading}
-                                disabled={loading}
+                                disabled={loading || passwordStrength.score < 3}
                               >
                                 Continue
                               </AuthSubmitButton>
                             </div>
+
                             {(isRobloxOAuth ||
                               isDiscordOAuth ||
                               isGoogleOAuth) && (
@@ -842,6 +857,7 @@ const Login: NextPage = () => {
                                 <OAuthButtons />
                               </>
                             )}
+
                             <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
                               Don&apos;t share your password. Don&apos;t use the
                               same password as your Roblox account.
