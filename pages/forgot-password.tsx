@@ -8,6 +8,8 @@ import Input from "@/components/input";
 import Button from "@/components/button";
 import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
+import PasswordStrengthBar from "@/components/passwordStrengthBar";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 type FormData = {
 	username: string;
@@ -35,7 +37,7 @@ function getAvatarBgColor(displayName: string): string {
 const ForgotPassword: NextPage = () => {
 	const [selectedSlide, setSelectedSlide] = useState(0);
 	const [code, setCode] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
+  	const [userId, setUserId] = useState<string | null>(null);
 	const [resetDisplayName, setResetDisplayName] = useState("");
 	const [resetThumbnail, setResetThumbnail] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -53,6 +55,9 @@ const ForgotPassword: NextPage = () => {
 
 	const usernameForm = useForm<FormData>();
 	const passwordForm = useForm<ResetPasswordData>();
+	
+	const resetPassword = passwordForm.watch("password") || "";
+	const resetPasswordStrength = calculatePasswordStrength(resetPassword);
 
 	const startReset = async () => {
 		setError(null);
@@ -263,53 +268,82 @@ const ForgotPassword: NextPage = () => {
 							{selectedSlide === 3 && (
 								<>
 									<h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight">
-										Set your new password
+									Set your new password
 									</h2>
+
 									<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-										Enter and confirm your new password.
+									Enter and confirm your new password.
 									</p>
+
 									{error && (
-										<p className="text-center text-red-500 text-sm mb-4">{error}</p>
+									<p className="text-center text-red-500 text-sm mb-4">
+										{error}
+									</p>
 									)}
+
 									<FormProvider {...passwordForm}>
-										<form className="space-y-4" onSubmit={passwordForm.handleSubmit(finishReset)}>
-											<Input
-												type="password"
-												{...passwordForm.register("password", { required: "You must enter a password" })}
-												label="New password"
-											/>
-											<Input
-												type="password"
-												{...passwordForm.register("verifypassword", {
-													required: "Please confirm your password",
-													validate: (value) =>
-														value === passwordForm.getValues("password") || "Passwords must match",
-												})}
-												label="Confirm password"
-											/>
-											<div className="flex gap-3 pt-1">
-												<Button
-													type="button"
-													classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-													onPress={() => setSelectedSlide(2)}
-												>
-													Back
-												</Button>
+									<form
+										className="space-y-4"
+										onSubmit={passwordForm.handleSubmit(finishReset)}
+									>
+										<div>
+										<Input
+											type="password"
+											{...passwordForm.register("password", {
+											required: "You must enter a password",
+											validate: (value) => {
+												const { score } = calculatePasswordStrength(value);
+
+												return (
+												score >= 3 ||
+												"Your password must be at least Strong"
+												);
+											},
+											})}
+											label="New password"
+										/>
+
+										<PasswordStrengthBar password={resetPassword} />
+										</div>
+
+										<Input
+										type="password"
+										{...passwordForm.register("verifypassword", {
+											required: "Please confirm your password",
+											validate: (value) =>
+											value === passwordForm.getValues("password") ||
+											"Passwords must match",
+										})}
+										label="Confirm password"
+										/>
+
+										<div className="flex gap-3 pt-1">
+										<Button
+											type="button"
+											classoverride="flex-1 px-5 py-2.5 text-sm font-medium rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+											onPress={() => setSelectedSlide(2)}
+										>
+											Back
+										</Button>
+
 										<Button
 											type="submit"
-											classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm"
+											disabled={resetPasswordStrength.score < 3}
+											classoverride="flex-1 px-6 py-2.5 text-sm font-medium rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
 											workspace
 										>
 											Reset password
-												</Button>
-											</div>
-											<p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
-												Don’t share your password. Don’t use the same password as your Roblox account.
-											</p>
-										</form>
+										</Button>
+										</div>
+
+										<p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 text-center">
+										Don’t share your password. Don’t use the same password as your
+										Roblox account.
+										</p>
+									</form>
 									</FormProvider>
 								</>
-							)}
+								)}
 						</div>
 					</div>
 				</div>
