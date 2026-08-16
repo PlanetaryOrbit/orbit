@@ -6,7 +6,7 @@ import prisma from "@/utils/database";
 import * as noblox from "noblox.js";
 import bcryptjs from "bcryptjs";
 import { setRegistry } from "@/utils/registryManager";
-import { getRobloxUserId, isGroupAllied } from "@/utils/roblox";
+import { isGroupAllied } from "@/utils/roblox";
 import { createSession } from "@/utils/session";
 
 type Data = {
@@ -53,15 +53,87 @@ export default async function handler(
   }
 
   try {
-    const userid = await getRobloxUserId(username).catch((err) => {
-      console.error("Failed getting Roblox user ID:", err);
-      return null;
-    });
+    const trimmedUsername = username.trim();
 
-    if (!userid) {
-      return res.status(404).json({
+    let userid: number;
+
+    try {
+      const robloxResponse = await fetch(
+        "https://users.roblox.com/v1/usernames/users",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            usernames: [trimmedUsername],
+            excludeBannedUsers: false,
+          }),
+        },
+      );
+
+      const responseText = await robloxResponse.text();
+
+      if (!robloxResponse.ok) {
+        console.error("[Roblox] Username lookup failed:", {
+          username: trimmedUsername,
+          status: robloxResponse.status,
+          statusText: robloxResponse.statusText,
+          body: responseText,
+        });
+
+        if (robloxResponse.status === 400) {
+          return res.status(400).json({
+            success: false,
+            error:
+              "Roblox rejected the username lookup. Please check the username and try again.",
+          });
+        }
+
+        return res.status(502).json({
+          success: false,
+          error: `Roblox could not be reached or returned an error (HTTP ${robloxResponse.status}). Please try again in a moment.`,
+        });
+      }
+
+      let data: {
+        data?: Array<{
+          requestedUsername: string;
+          hasVerifiedBadge: boolean;
+          id: number;
+          name: string;
+          displayName: string;
+        }>;
+      };
+
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        console.error("[Roblox] Invalid JSON response:", responseText);
+        return res.status(502).json({
+          success: false,
+          error:
+            "Roblox returned an invalid response. Please try again in a moment.",
+        });
+      }
+      const robloxUser = data.data?.[0];
+      if (!robloxUser) {
+        return res.status(404).json({
+          success: false,
+          error: `Roblox username "${trimmedUsername}" was not found. Please check that you entered your username correctly.`,
+        });
+      }
+      userid = robloxUser.id;
+    } catch (error) {
+      console.error("[Roblox] Username lookup request failed:", {
+        username: trimmedUsername,
+        error,
+      });
+      return res.status(502).json({
         success: false,
-        error: "Username not found",
+        error:
+          "We couldn't contact Roblox to verify your username. Please try again in a moment.",
       });
     }
 

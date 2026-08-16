@@ -4,7 +4,6 @@ import {
   getThumbnail,
   getDisplayName,
 } from "@/utils/userinfoEngine";
-import { getRobloxUserId } from "@/utils/roblox";
 import bcryptjs from "bcryptjs";
 import * as noblox from "noblox.js";
 import prisma from "@/utils/database";
@@ -12,6 +11,54 @@ import rateLimit from "express-rate-limit";
 import { NextApiHandler } from "next";
 import { createSession } from "@/utils/session";
 import cache from "@/utils/cache";
+
+async function lookupRobloxUserId(username: string): Promise<number | null> {
+  const response = await fetch("https://users.roblox.com/v1/usernames/users", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      usernames: [username.trim()],
+      excludeBannedUsers: false,
+    }),
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    console.error("[Roblox] Username lookup failed:", {
+      username,
+      status: response.status,
+      statusText: response.statusText,
+      body: text,
+    });
+
+    throw new Error(
+      `Roblox username lookup failed with HTTP ${response.status}`,
+    );
+  }
+
+  let data: {
+    data?: Array<{
+      requestedUsername: string;
+      hasVerifiedBadge: boolean;
+      id: number;
+      name: string;
+      displayName: string;
+    }>;
+  };
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.error("[Roblox] Invalid JSON response:", text);
+    throw new Error("Roblox returned invalid JSON");
+  }
+
+  return data.data?.[0]?.id ?? null;
+}
 
 async function getCachedGroupInfo(groupId: number) {
   const cacheKey = `roblox:group:${groupId}`;
@@ -165,13 +212,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     let id = await cache.get<number>(`roblox:id:${usernameKey}`);
 
     if (!id) {
-      id = (await getRobloxUserId(req.body.username).catch((e) => {
-        console.error("Roblox API error:", e);
-        return null;
-      })) as number | undefined;
+      try {
+        id = await lookupRobloxUserId(req.body.username);
 
-      if (id) {
-        await cache.set(`roblox:id:${usernameKey}`, id, 3600);
+        if (id) {
+          await cache.set(`roblox:id:${usernameKey}`, id, 3600);
+        }
+      } catch (error) {
+        console.error("[Roblox] Login username lookup failed:", {
+          username: req.body.username,
+          error,
+        });
+
+
+        if (error instanceof Error && error.message.includes("429")) {
+          return res.status(503).json({
+            success: false,
+            error:
+              "Roblox is temporarily limiting requests. Please wait a moment and try again.",
+          });
+        }
+
+        return res.status(502).json({
+          success: false,
+          error:
+            "We couldn't contact Roblox to verify your username. Please try again in a moment.",
+        });
       }
     }
 
