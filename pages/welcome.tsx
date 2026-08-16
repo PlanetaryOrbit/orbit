@@ -10,6 +10,8 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
 import { getContrastColor } from "@/utils/color";
+import PasswordStrengthBar from "@/components/passwordStrengthBar";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 type FormData = {
   username: string;
@@ -33,6 +35,8 @@ const Login: NextPage = () => {
   const [ocLoading, setOcLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const testedKey = useRef<string | null>(null);
+  const signupPassword = signupform.watch("password") || "";
+  const signupPasswordStrength = calculatePasswordStrength(signupPassword);
 
   async function createAccount() {
     setIsLoading(true);
@@ -350,35 +354,52 @@ const Login: NextPage = () => {
 
             {!isRegistered && (
               <div>
-                <p className="font-bold text-2xl dark:text-white">Make your Orbit account</p>
+                <p className="font-bold text-2xl dark:text-white">
+                  Make your Orbit account
+                </p>
+
                 <p className="text-sm mt-1 text-zinc-500 dark:text-zinc-200">
                   You need to create an Orbit account to continue
                 </p>
+
                 <FormProvider {...signupform}>
-                  <form className="mt-4" onSubmit={signupform.handleSubmit(createAccount)}>
+                  <form
+                    className="mt-4"
+                    onSubmit={signupform.handleSubmit(createAccount)}
+                  >
                     <Input
                       {...signupform.register("username", {
-                        required: "Username is required"
+                        required: "Username is required",
                       })}
                       label="Roblox Username"
                     />
+
                     {signupform.formState.errors.username && (
                       <p className="text-red-500 text-sm mt-1">
                         {signupform.formState.errors.username.message}
                       </p>
                     )}
 
-                    <Input
-                      type="password"
-                      {...signupform.register("password", {
-                        required: "Password is required",
-                        minLength: {
-                          value: 8,
-                          message: "Password must be at least 8 characters"
-                        }
-                      })}
-                      label="Password"
-                    />
+                    <div className="mt-3">
+                      <Input
+                        type="password"
+                        {...signupform.register("password", {
+                          required: "Password is required",
+                          validate: (value) => {
+                            const { score } = calculatePasswordStrength(value);
+
+                            return (
+                              score >= 3 ||
+                              "Password must be at least Strong"
+                            );
+                          },
+                        })}
+                        label="Password"
+                      />
+
+                      <PasswordStrengthBar password={signupPassword} />
+                    </div>
+
                     {signupform.formState.errors.password && (
                       <p className="text-red-500 text-sm mt-1">
                         {signupform.formState.errors.password.message}
@@ -389,12 +410,13 @@ const Login: NextPage = () => {
                       type="password"
                       {...signupform.register("verifypassword", {
                         required: "Please verify your password",
-                        validate: value =>
-                          value === signupform.getValues('password') ||
-                          "Passwords do not match"
+                        validate: (value) =>
+                          value === signupform.getValues("password") ||
+                          "Passwords do not match",
                       })}
                       label="Verify password"
                     />
+
                     {signupform.formState.errors.verifypassword && (
                       <p className="text-red-500 text-sm mt-1">
                         {signupform.formState.errors.verifypassword.message}
@@ -411,14 +433,19 @@ const Login: NextPage = () => {
                   >
                     Back
                   </button>
+
                   <button
                     type="button"
                     onClick={signupform.handleSubmit(createAccount)}
-                    disabled={isLoading}
-                    className={`ml-auto py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isLoading || signupPasswordStrength.score < 3}
+                    className={`ml-auto py-2.5 text-sm rounded-xl px-6 text-white font-bold hover:bg-orbit/80 transition ${
+                      isLoading || signupPasswordStrength.score < 3
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
                     style={{ backgroundColor: selectedColor }}
                   >
-                    {isLoading ? 'Creating...' : 'Continue'}
+                    {isLoading ? "Creating..." : "Continue"}
                   </button>
                 </div>
               </div>
