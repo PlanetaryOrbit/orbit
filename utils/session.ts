@@ -1,180 +1,177 @@
-import * as crypto from 'crypto'
-import prisma from '@/utils/database'
-import { UAParser } from 'ua-parser-js'
-import axios from 'axios'
-import * as net from 'net'
+import * as crypto from "crypto";
+import prisma from "@/utils/database";
+import { UAParser } from "ua-parser-js";
+import axios from "axios";
+import * as net from "net";
+import cache from "@/utils/cache";
 
 interface IpapiRes {
-  country_name: string,
-  region: string
+  country_name: string;
+  region: string;
 }
 
 interface IpapiRes {
-  country_name: string,
-  region: string
+  country_name: string;
+  region: string;
 }
 
 interface GeoResult {
-  country: string | null
-  region: string | null
+  country: string | null;
+  region: string | null;
 }
 
 const SESSION_SECRET = process.env.SESSION_SECRET!;
 
-const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>()
-const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24h
+const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>();
+const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 function normalizeIp(rawIp: string): string {
-  const trimmed = rawIp.trim()
-  const mappedV4Prefix = '::ffff:'
+  const trimmed = rawIp.trim();
+  const mappedV4Prefix = "::ffff:";
   if (trimmed.toLowerCase().startsWith(mappedV4Prefix)) {
-    return trimmed.slice(mappedV4Prefix.length)
+    return trimmed.slice(mappedV4Prefix.length);
   }
-  return trimmed
+  return trimmed;
 }
 
 function isPrivateOrLocalIp(ip: string): boolean {
-  if (ip === '::1' || ip === '127.0.0.1') return true
+  if (ip === "::1" || ip === "127.0.0.1") return true;
 
   if (net.isIP(ip) === 4) {
     return (
-      ip.startsWith('10.') ||
-      ip.startsWith('192.168.') ||
+      ip.startsWith("10.") ||
+      ip.startsWith("192.168.") ||
       /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip) ||
-      ip.startsWith('127.') ||
-      ip.startsWith('169.254.')
-    )
+      ip.startsWith("127.") ||
+      ip.startsWith("169.254.")
+    );
   }
 
   if (net.isIP(ip) === 6) {
-    const lower = ip.toLowerCase()
+    const lower = ip.toLowerCase();
     return (
-      lower === '::1' ||
-      lower.startsWith('fc') ||
-      lower.startsWith('fd') ||
-      lower.startsWith('fe80:')
-    )
+      lower === "::1" ||
+      lower.startsWith("fc") ||
+      lower.startsWith("fd") ||
+      lower.startsWith("fe80:")
+    );
   }
 
-  return true
+  return true;
 }
 
 function sanitizePublicIp(ipAddress?: string): string | null {
-  if (!ipAddress) return null
-  const normalized = normalizeIp(ipAddress)
-  if (!normalized || net.isIP(normalized) === 0) return null
-  if (isPrivateOrLocalIp(normalized)) return null
-  return normalized
+  if (!ipAddress) return null;
+  const normalized = normalizeIp(ipAddress);
+  if (!normalized || net.isIP(normalized) === 0) return null;
+  if (isPrivateOrLocalIp(normalized)) return null;
+  return normalized;
 }
 
 async function lookupGeo(ipAddress?: string): Promise<GeoResult> {
-  const empty: GeoResult = { country: null, region: null }
+  const empty: GeoResult = { country: null, region: null };
 
-  const safeIp = sanitizePublicIp(ipAddress)
+  const safeIp = sanitizePublicIp(ipAddress);
   if (!safeIp) {
-    return empty
+    return empty;
   }
 
-  const cached = geoCache.get(safeIp)
+  const cached = geoCache.get(safeIp);
   if (cached && cached.expiresAt > Date.now()) {
-    return cached.data
+    return cached.data;
   }
 
   try {
-    const geoUrl = new URL(`/${encodeURIComponent(safeIp)}/json/`, 'https://ipapi.co')
-    const res = await axios.get<IpapiRes>(
-      geoUrl.toString(),
-      { timeout: 2000 }
-    )
+    const geoUrl = new URL(
+      `/${encodeURIComponent(safeIp)}/json/`,
+      "https://ipapi.co",
+    );
+    const res = await axios.get<IpapiRes>(geoUrl.toString(), { timeout: 2000 });
 
     if ((res.data as any).error) {
-      console.warn('ipapi.co returned an error payload:', (res.data as any).reason)
-      return empty
+      console.warn(
+        "ipapi.co returned an error payload:",
+        (res.data as any).reason,
+      );
+      return empty;
     }
 
     const geo: GeoResult = {
       country: res.data.country_name ?? null,
       region: res.data.region ?? null,
-    }
+    };
 
-    geoCache.set(safeIp, { data: geo, expiresAt: Date.now() + GEO_CACHE_TTL_MS })
+    geoCache.set(safeIp, {
+      data: geo,
+      expiresAt: Date.now() + GEO_CACHE_TTL_MS,
+    });
 
-    return geo
+    return geo;
   } catch (err) {
-    console.error('ipapi.co lookup failed, continuing without geo data:', err)
-    return empty
+    console.error("ipapi.co lookup failed, continuing without geo data:", err);
+    return empty;
   }
 }
 
 function generateToken(): string {
-  const token = crypto.randomBytes(32).toString('hex')
-  return `DONOTSHARE_${token}`
+  const token = crypto.randomBytes(32).toString("hex");
+  return `DONOTSHARE_${token}`;
 }
 
 function hashToken(token: string): string {
-  const cleanToken = token.replace(/^DONOTSHARE_/i, '')
-  return crypto
-    .createHash('sha256')
-    .update(cleanToken)
-    .digest('hex')
+  const cleanToken = token.replace(/^DONOTSHARE_/i, "");
+  return crypto.createHash("sha256").update(cleanToken).digest("hex");
 }
 
 function getKey() {
-  return crypto
-    .createHash('sha256')
-    .update(SESSION_SECRET)
-    .digest()
+  return crypto.createHash("sha256").update(SESSION_SECRET).digest();
 }
 
 function encrypt(value?: string | null): string | null {
-  if (!value) return null
+  if (!value) return null;
 
-  const iv = crypto.randomBytes(16)
+  const iv = crypto.randomBytes(16);
 
-  const cipher = crypto.createCipheriv(
-    'aes-256-gcm',
-    getKey(),
-    iv
-  )
+  const cipher = crypto.createCipheriv("aes-256-gcm", getKey(), iv);
 
   const encrypted = Buffer.concat([
-    cipher.update(value, 'utf8'),
+    cipher.update(value, "utf8"),
     cipher.final(),
-  ])
+  ]);
 
-  const authTag = cipher.getAuthTag()
+  const authTag = cipher.getAuthTag();
 
   return [
-    iv.toString('hex'),
-    authTag.toString('hex'),
-    encrypted.toString('hex'),
-  ].join(':')
+    iv.toString("hex"),
+    authTag.toString("hex"),
+    encrypted.toString("hex"),
+  ].join(":");
 }
 
 function decrypt(value?: string | null): string | null {
-  if (!value) return null
-  const parts = value.split(':')
-  if (parts.length !== 3) return value
+  if (!value) return null;
+  const parts = value.split(":");
+  if (parts.length !== 3) return value;
 
-  const [ivHex, tagHex, encryptedHex] = parts
+  const [ivHex, tagHex, encryptedHex] = parts;
 
   try {
     const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
+      "aes-256-gcm",
       getKey(),
-      Buffer.from(ivHex, 'hex')
-    )
+      Buffer.from(ivHex, "hex"),
+    );
 
-    decipher.setAuthTag(Buffer.from(tagHex, 'hex'))
+    decipher.setAuthTag(Buffer.from(tagHex, "hex"));
 
     const decrypted = Buffer.concat([
-      decipher.update(Buffer.from(encryptedHex, 'hex')),
+      decipher.update(Buffer.from(encryptedHex, "hex")),
       decipher.final(),
-    ])
+    ]);
 
-    return decrypted.toString('utf8')
+    return decrypted.toString("utf8");
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -184,45 +181,39 @@ function parseUA(userAgent?: string) {
       browser: null,
       os: null,
       device: null,
-    }
+    };
   }
 
-  const parser = new UAParser(userAgent)
-  const result = parser.getResult()
+  const parser = new UAParser(userAgent);
+  const result = parser.getResult();
 
   return {
     browser:
-      [result.browser.name, result.browser.version]
-        .filter(Boolean)
-        .join(' ') || null,
+      [result.browser.name, result.browser.version].filter(Boolean).join(" ") ||
+      null,
 
-    os:
-      [result.os.name, result.os.version]
-        .filter(Boolean)
-        .join(' ') || null,
+    os: [result.os.name, result.os.version].filter(Boolean).join(" ") || null,
 
-    device: result.device.type ?? 'desktop',
-  }
+    device: result.device.type ?? "desktop",
+  };
 }
 
 async function createSession(
   userId: bigint,
   ipAddress?: string,
-  userAgent?: string
+  userAgent?: string,
 ) {
   const rawToken = generateToken();
 
-  const { browser, os, device } = parseUA(userAgent)
-  const geo = await lookupGeo(ipAddress)
+  const { browser, os, device } = parseUA(userAgent);
+  const geo = await lookupGeo(ipAddress);
 
   const session = await prisma.authSession.create({
     data: {
       id: crypto.randomUUID(),
       token: hashToken(rawToken),
       userId,
-      expiresAt: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       ipAddress: encrypt(ipAddress),
       userAgent: encrypt(userAgent),
       browser,
@@ -235,31 +226,50 @@ async function createSession(
     include: {
       user: true,
     },
-  })
+  });
 
   return {
     ...session,
     token: rawToken,
-  }
+  };
 }
 
 async function getSessionByToken(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) return null
+  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token);
+  if (!isValidDontShare) return null;
 
-  const hashedToken = hashToken(token)
+  const hashedToken = hashToken(token);
+  const cacheKey = `session:${hashedToken}`;
+
+  const cached = await cache.get<{
+    session: any;
+    expiresAt: number;
+  }>(cacheKey);
+
+  if (cached) {
+    if (cached.expiresAt < Date.now()) {
+      await cache.del(cacheKey);
+      return null;
+    }
+
+    return {
+      ...cached.session,
+      token,
+    };
+  }
 
   const session = await prisma.authSession.findUnique({
     where: {
       token: hashedToken,
     },
-
     include: {
       user: true,
     },
-  })
+  });
 
-  if (!session) return null
+  if (!session) {
+    return null;
+  }
 
   if (session.expiresAt < new Date()) {
     await prisma.authSession
@@ -268,70 +278,94 @@ async function getSessionByToken(token: string) {
           token: hashedToken,
         },
       })
-      .catch(() => null)
+      .catch(() => null);
 
-    return null
+    await cache.del(cacheKey);
+    return null;
   }
 
-  return {
+  const result = {
     ...session,
-    token: token,
     ipAddress: decrypt(session.ipAddress),
     userAgent: decrypt(session.userAgent),
-  }
+  };
+
+  await cache.set(
+    cacheKey,
+    {
+      session: result,
+      expiresAt: session.expiresAt.getTime(),
+    },
+    Math.max(1, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000)),
+  );
+
+  return {
+    ...result,
+    token,
+  };
 }
 
 async function refreshSession(token: string, days = 30) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) throw new Error('Invalid token format')
+  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token);
+  if (!isValidDontShare) throw new Error("Invalid token format");
+
+  const hashedToken = hashToken(token);
+
+  await cache.del(`session:${hashedToken}`);
 
   return prisma.authSession.update({
     where: {
-      token: hashToken(token),
+      token: hashedToken,
     },
-
     data: {
-      expiresAt: new Date(
-        Date.now() + days * 24 * 60 * 60 * 1000
-      ),
+      expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000),
     },
-  })
+  });
 }
 
 async function rotateSessionToken(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) throw new Error('Invalid token format')
+  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token);
+  if (!isValidDontShare) throw new Error("Invalid token format");
 
-  const newToken = generateToken()
+  const oldHash = hashToken(token);
+  const cacheKey = `session:${oldHash}`;
+
+  await cache.del(cacheKey);
+
+  const newToken = generateToken();
+  const newHash = hashToken(newToken);
 
   const session = await prisma.authSession.update({
     where: {
-      token: hashToken(token),
+      token: oldHash,
     },
-
     data: {
-      token: hashToken(newToken),
+      token: newHash,
       updatedAt: new Date(),
     },
-  })
+  });
 
   return {
     ...session,
     token: newToken,
-  }
+  };
 }
 
 async function deleteSession(token: string) {
-  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token)
-  if (!isValidDontShare) return null
+  const isValidDontShare = /^DONOTSHARE_[a-f0-9]{64}$/i.test(token);
+  if (!isValidDontShare) return null;
+
+  const hashedToken = hashToken(token);
+
+  await cache.del(`session:${hashedToken}`);
 
   return prisma.authSession
     .delete({
       where: {
-        token: hashToken(token),
+        token: hashedToken,
       },
     })
-    .catch(() => null)
+    .catch(() => null);
 }
 
 async function forceDeleteSession(id: string) {
@@ -341,19 +375,18 @@ async function forceDeleteSession(id: string) {
         id: id,
       },
     })
-    .catch((err) => { console.error('Error deleting session:', err) })
+    .catch((err) => {
+      console.error("Error deleting session:", err);
+    });
 }
 
 async function deleteAllUserSessions(userId: bigint) {
   return prisma.authSession.deleteMany({
     where: { userId },
-  })
+  });
 }
 
-async function deleteOtherSessions(
-  userId: bigint,
-  sid: string
-) {
+async function deleteOtherSessions(userId: bigint, sid: string) {
   return prisma.authSession.deleteMany({
     where: {
       userId,
@@ -361,13 +394,13 @@ async function deleteOtherSessions(
         id: sid,
       },
     },
-  })
+  });
 }
 
 async function listActiveSessions(userId: bigint) {
   const sessions = await prisma.authSession.findMany({
     where: { userId, expiresAt: { gt: new Date() } },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       browser: true,
@@ -378,11 +411,11 @@ async function listActiveSessions(userId: bigint) {
       createdAt: true,
       expiresAt: true,
       country: true,
-      region: true
+      region: true,
     },
-  })
+  });
 
-  const results = []
+  const results = [];
 
   for (const session of sessions) {
     try {
@@ -390,13 +423,15 @@ async function listActiveSessions(userId: bigint) {
         ...session,
         ipAddress: decrypt(session.ipAddress),
         userAgent: decrypt(session.userAgent),
-      })
+      });
     } catch {
-      await prisma.authSession.delete({ where: { id: session.id } }).catch(() => null)
+      await prisma.authSession
+        .delete({ where: { id: session.id } })
+        .catch(() => null);
     }
   }
 
-  return results
+  return results;
 }
 
 async function purgeExpiredSessions() {
@@ -406,11 +441,11 @@ async function purgeExpiredSessions() {
         lt: new Date(),
       },
     },
-  })
+  });
 
-  console.log(`Purged ${count} expired sessions.`)
+  console.log(`Purged ${count} expired sessions.`);
 
-  return count
+  return count;
 }
 
 export {
@@ -423,5 +458,5 @@ export {
   deleteOtherSessions,
   deleteAllUserSessions,
   listActiveSessions,
-  purgeExpiredSessions
-}
+  purgeExpiredSessions,
+};

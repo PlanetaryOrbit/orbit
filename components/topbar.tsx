@@ -75,7 +75,6 @@ const Topbar: NextPage = () => {
     try {
       const res = await axios.get("/api/user/sessions");
       setSessions(res.data.sessions || []);
-      toast.success("Sessions refreshed");
     } catch {
       toast.error("Failed to load sessions");
     } finally {
