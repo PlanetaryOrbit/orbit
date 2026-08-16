@@ -10,7 +10,6 @@ import { useRouter } from "next/router";
 import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
 import { useEffect, useState } from "react";
 import clsx from 'clsx';
-import { HelpProvider, HelpFloatingButton } from "@/components/HelpFloatingButton";
 
 const workspace: LayoutProps = ({ children }) => {
 	const [workspace, setWorkspace] = useRecoilState(workspacestate);
@@ -42,8 +41,6 @@ const workspace: LayoutProps = ({ children }) => {
 				<title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : "Loading..."}</title>
 				<link rel="icon" href={`${workspace.groupThumbnail}`} />
 			</Head>
-
-			<HelpProvider>
 				<div className="flex h-screen overflow-hidden">
 					<Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
@@ -61,8 +58,6 @@ const workspace: LayoutProps = ({ children }) => {
 						)}
 					</main>
 				</div>
-				<HelpFloatingButton />
-			</HelpProvider>
 		</div>
 	);
 };

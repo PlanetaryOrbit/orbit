@@ -26,7 +26,9 @@ import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from "@/utils/themeColor";
 import LoadingScreen from "@/components/loading";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider, useTheme } from "next-themes";
-
+import HelpFloatingButton, {
+  HelpProvider,
+} from "@/components/HelpFloatingButton";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const POSTHOG_HOST =
@@ -136,27 +138,27 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
         {!showLoader && (
           <Layout>
-            <div className="pb-8 sm:pb-0">
-              <Toaster position={isMobile ? "top-center" : "bottom-center"} toastOptions={{
-                style: {
-                  borderRadius: '14px',
-                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#22bf54',
-                    secondary: '#ffffff'
-                  },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#bf003d',
-                    secondary: '#ffffff',
-                  },
-                },
-              }} />
-              <Component {...pageProps} />
-            </div>
+            <HelpProvider>
+              <div className="pb-8 sm:pb-0">
+                <Toaster
+                  position={isMobile ? "top-center" : "bottom-center"}
+                  toastOptions={{
+                    style: {
+                      borderRadius: "14px",
+                      boxShadow: "0 8px 30px rgba(0, 0, 0, 0.35)",
+                    },
+                    error: {
+                      iconTheme: {
+                        primary: "#bf003d",
+                        secondary: "#ffffff",
+                      },
+                    },
+                  }}
+                />
+                <Component {...pageProps} />
+              </div>
+              <HelpFloatingButton />
+            </HelpProvider>
           </Layout>
         )}
       </ThemeProvider>
@@ -185,7 +187,7 @@ function Initializer() {
       mounted = false;
       try {
         posthogRef.current?.reset();
-      } catch (e) { }
+      } catch (e) {}
     };
   }, []);
 
@@ -205,7 +207,7 @@ function Initializer() {
         } else {
           try {
             ph.reset();
-          } catch (e) { }
+          } catch (e) {}
         }
       }
     } catch (e) {
