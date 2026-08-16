@@ -5,6 +5,11 @@ import next from "next";
 import { setupWebSocket } from "@/utils/websocket";
 
 const dev = process.env.NODE_ENV !== "production";
+const sessionSecret = process.env.SESSION_SECRET;
+
+if (!sessionSecret || sessionSecret === "EXAMPLE_SESSION_SECRET") {
+  throw new Error("Error: SESSION_SECRET is not set or is set to the example value. Please set a secure secret in your .env file.");
+}
 
 const hostname = "0.0.0.0";
 const port = Number(process.env.PORT ?? 3000);
