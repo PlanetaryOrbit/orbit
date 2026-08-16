@@ -11,14 +11,14 @@ export async function closeActiveSessions() {
       },
     });
 
+    console.log(
+      `[STARTUP] Found ${activeSessions.length} active session(s).`
+    );
+
     if (activeSessions.length === 0) {
       console.log("[STARTUP] No active sessions found.");
       return;
     }
-
-    console.log(
-      `[STARTUP] Found ${activeSessions.length} active session(s). Closing them now...`
-    );
 
     const result = await prisma.activitySession.updateMany({
       where: {
@@ -34,6 +34,7 @@ export async function closeActiveSessions() {
       `[STARTUP] Successfully closed ${result.count} active session(s).`
     );
   } catch (error) {
-    console.error("[STARTUP] Error closing active sessions:", error);
+    console.error("[STARTUP] Error closing active sessions:");
+    console.error(error);
   }
 }

@@ -16,15 +16,17 @@ import {
   IconChevronLeft,
   IconTrash,
   IconRefresh,
+  IconX,
+  IconCrown,
+  IconXd,
 } from "@tabler/icons-react";
-import { workspacesModalPanelClass } from "@/components/workspaces/shell"
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
-import { CrownIcon } from "lucide-react";
 import moment from "moment";
+import Link from "next/link";
 
 type Session = {
   id: string;
@@ -46,7 +48,7 @@ function DeviceIcon({ device }: { device: string | null }) {
   return <IconDeviceLaptop className="w-5 h-5" />;
 }
 
-type Panel = "main" | "settings" | "sessions";
+type Panel = "settings" | "sessions";
 
 const Topbar: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
@@ -54,7 +56,7 @@ const Topbar: NextPage = () => {
   const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
   const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<Panel>("main");
+  const [panel, setPanel] = useState<Panel>("settings");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const router = useRouter();
@@ -62,13 +64,6 @@ const Topbar: NextPage = () => {
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
-  const openPanel = (p: Panel) => setPanel(p);
-
-  const handleOpen = () => {
-    setPanel("main");
-    setOpen(true);
   };
 
   const fetchSessions = async () => {
@@ -169,7 +164,7 @@ const Topbar: NextPage = () => {
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <img src="/planetary.svg" className="h-8 w-32" alt="Planetary" />
+            <Link href="/"><img src="/planetary.svg" className="h-8 w-32" alt="Planetary" /></Link>
 
             <div className="flex items-center gap-2">
               <button
@@ -197,7 +192,7 @@ const Topbar: NextPage = () => {
                     />
                     {login?.isOwner && (
                       <span className="absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800">
-                        <CrownIcon className="h-2.5 w-2.5 text-white" />
+                        <IconCrown className="h-2.5 w-2.5 text-white" />
                       </span>
                     )}
                   </span>
@@ -218,25 +213,11 @@ const Topbar: NextPage = () => {
 
                   <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
 
-                  {/*<Menu.Item>
-                    {login.canMakeWorkspace && (
-                      <>
-                        <button
-                          onClick={() => { openPanel("settings"); setOpen(true); }}
-                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                        >
-                          <IconSettings className="h-4 w-4" />
-                          Instance Settings
-                        </button>
-                      </>
-                    )}
-                  </Menu.Item>*/}
-
                   <Menu.Item>
                     {login.canMakeWorkspace && (
                       <>
                         <button
-                          onClick={() => { openPanel("settings"); setOpen(true); }}
+                          onClick={() => { setPanel("settings"); setOpen(true); }}
                           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         >
                           <IconSettings className="h-4 w-4" />
@@ -248,7 +229,7 @@ const Topbar: NextPage = () => {
 
                   <Menu.Item>
                     <button
-                      onClick={() => { openPanel("sessions"); setOpen(true); fetchSessions(); }}
+                      onClick={() => { setPanel("sessions"); setOpen(true); fetchSessions(); }}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                       <IconDevices className="h-4 w-4" />
@@ -380,87 +361,14 @@ const Topbar: NextPage = () => {
               leaveTo="opacity-0 translate-y-1 scale-95"
             >
               <Dialog.Panel className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl shadow-zinc-900/20 transition-all dark:bg-zinc-900">
-                {panel === "main" && (
-                  <>
-                    <div className="flex items-center gap-3 px-4 py-4">
-                      <img
-                        src={login?.thumbnail}
-                        className="h-10 w-10 shrink-0 rounded-full object-cover"
-                        alt=""
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
-                          {login?.displayname}
-                        </p>
-                        <p className="truncate text-xs text-zinc-400 dark:text-zinc-500">
-                          @{login?.username}
-                        </p>
-                      </div>
-                      {login?.canMakeWorkspace && (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
-                          <CrownIcon className="h-3.5 w-3.5 text-amber-500" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-                      <div>
-                        <button
-                          onClick={toggleTheme}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                        >
-                          {resolvedTheme === "dark" ? (
-                            <IconSun className="h-4 w-4 shrink-0 text-zinc-400" />
-                          ) : (
-                            <IconMoon className="h-4 w-4 shrink-0 text-zinc-400" />
-                          )}
-                          {resolvedTheme === "dark"
-                            ? "Light mode"
-                            : "Dark mode"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            openPanel("sessions");
-                            fetchSessions();
-                          }}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                        >
-                          <IconDevices className="h-4 w-4 shrink-0 text-zinc-400" />
-                          <span className="flex-1 text-left">Sessions</span>
-                          <IconChevronDown className="h-3.5 w-3.5 -rotate-90 text-zinc-400" />
-                        </button>
-                        <button
-                          onClick={() => openPanel("settings")}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                        >
-                          <IconSettings className="h-4 w-4 shrink-0 text-zinc-400" />
-                          <span className="flex-1 text-left">
-                            Account settings
-                          </span>
-                          <IconChevronDown className="h-3.5 w-3.5 -rotate-90 text-zinc-400" />
-                        </button>
-                      </div>
-                      <div>
-                        <button
-                          onClick={logout}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
-                        >
-                          <IconLogout className="h-4 w-4 shrink-0" />
-                          Sign out
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 {panel === "sessions" && (
                   <>
                     <div className="flex items-center gap-2 px-4 py-3.5">
                       <button
-                        onClick={() => setPanel("main")}
+                        onClick={() => setOpen(false)}
                         className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
-                        <IconChevronLeft className="h-4 w-4" />
+                        <IconX className="h-4 w-4" />
                       </button>
                       <p className="flex-1 text-sm font-semibold text-zinc-900 dark:text-white">
                         Active sessions
@@ -539,10 +447,10 @@ const Topbar: NextPage = () => {
                   <>
                     <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3.5 dark:border-zinc-800/80">
                       <button
-                        onClick={() => setPanel("main")}
+                        onClick={() => setOpen(false)}
                         className="rounded-lg p-1 text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
-                        <IconChevronLeft className="h-4 w-4" />
+                        <IconX className="h-4 w-4" />
                       </button>
 
                       <div>
@@ -556,103 +464,105 @@ const Topbar: NextPage = () => {
                     </div>
 
                     <div className="space-y-5 p-4">
-                      <section className="space-y-2">
-                        <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                          Connected accounts
-                        </h3>
+                      {isDiscordOAuth || isGoogleOAuth && (
+                        <section className="space-y-2">
+                          <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                            Connected accounts
+                          </h3>
 
-                        <div className="space-y-2">
-                          {isDiscordOAuth &&
-                            (login.discordUser ? (
-                              <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
-                                <img
-                                  src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
-                                  alt=""
-                                  className="h-9 w-9 rounded-full"
-                                />
+                          <div className="space-y-2">
+                            {isDiscordOAuth &&
+                              (login.discordUser ? (
+                                <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                                  <img
+                                    src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
+                                    alt=""
+                                    className="h-9 w-9 rounded-full"
+                                  />
 
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                    {login.discordUser.username}
-                                  </p>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                    <p className="text-xs text-zinc-500">
-                                      Discord connected
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                      {login.discordUser.username}
                                     </p>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                      <p className="text-xs text-zinc-500">
+                                        Discord connected
+                                      </p>
+                                    </div>
                                   </div>
+
+                                  <button
+                                    onClick={unlink}
+                                    className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                  >
+                                    Unlink
+                                  </button>
                                 </div>
-
+                              ) : (
                                 <button
-                                  onClick={unlink}
-                                  className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                  onClick={() =>
+                                    (window.location.href = "/api/auth/discord/start")
+                                  }
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                 >
-                                  Unlink
+                                  <img
+                                    src="/discord.svg"
+                                    alt=""
+                                    className="h-5 w-5 invert dark:invert-0"
+                                  />
+                                  Connect Discord
                                 </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  (window.location.href = "/api/auth/discord/start")
-                                }
-                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                              >
-                                <img
-                                  src="/discord.svg"
-                                  alt=""
-                                  className="h-5 w-5 invert dark:invert-0"
-                                />
-                                Connect Discord
-                              </button>
-                            ))}
+                              ))}
 
-                          {isGoogleOAuth &&
-                            (login.googleUser ? (
-                              <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
-                                <img
-                                  src={
-                                    login.googleUser.avatar
-                                      ? `/api/google/avatar-proxy?url=${encodeURIComponent(
+                            {isGoogleOAuth &&
+                              (login.googleUser ? (
+                                <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                                  <img
+                                    src={
+                                      login.googleUser.avatar
+                                        ? `/api/google/avatar-proxy?url=${encodeURIComponent(
                                           login.googleUser.avatar
                                         )}`
-                                      : "/default-avatar.jpg"
-                                  }
-                                  alt=""
-                                  className="h-9 w-9 rounded-full"
-                                />
+                                        : "/default-avatar.jpg"
+                                    }
+                                    alt=""
+                                    className="h-9 w-9 rounded-full"
+                                  />
 
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                    {login.googleUser.email}
-                                  </p>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                                    <p className="text-xs text-zinc-500">
-                                      Google connected
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                      {login.googleUser.email}
                                     </p>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                      <p className="text-xs text-zinc-500">
+                                        Google connected
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
 
+                                  <button
+                                    onClick={googleUnlink}
+                                    className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                  >
+                                    Unlink
+                                  </button>
+                                </div>
+                              ) : (
                                 <button
-                                  onClick={googleUnlink}
-                                  className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                                  onClick={() =>
+                                    (window.location.href = "/api/auth/google/start")
+                                  }
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                 >
-                                  Unlink
+                                  <img src="/google.svg" alt="" className="h-5 w-5" />
+                                  Connect Google
                                 </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  (window.location.href = "/api/auth/google/start")
-                                }
-                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                              >
-                                <img src="/google.svg" alt="" className="h-5 w-5" />
-                                Connect Google
-                              </button>
-                            ))}
-                        </div>
-                      </section>
+                              ))}
+                          </div>
+                        </section>
+                      )}
 
 
                       <section className="space-y-2">
@@ -669,9 +579,6 @@ const Topbar: NextPage = () => {
                             <div className="text-left">
                               <p className="font-medium">
                                 Sign out all devices
-                              </p>
-                              <p className="text-xs text-red-500/70">
-                                Revoke all active sessions
                               </p>
                             </div>
                           </button>

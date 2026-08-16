@@ -1,5 +1,5 @@
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { MoonIcon, SunIcon } from "lucide-react";
 
 const ThemeToggle = () => {
   const { theme, setTheme, resolvedTheme } = useTheme();
