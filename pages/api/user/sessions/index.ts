@@ -9,8 +9,6 @@ export async function handler(
   try {
     if (req.method === "GET") {
       const sessions = await listActiveSessions(req.auth.userId)
-      console.log(req)
-
       return res.status(200).json({
         sessions: sessions.map((s) => ({
           id: s.id,
