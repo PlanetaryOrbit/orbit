@@ -4,7 +4,7 @@ import { OpenCloud } from "@relatiohq/opencloud";
 import packageInfo from "@/package.json";
 
 interface groupAlly {
-  relatedGroups: 
+  relatedGroups:
     {
       id: 0;
     }[];
@@ -541,15 +541,6 @@ export async function getUsersWithinAGroupRoleset(
   } catch (err) {
     console.log(`ROBLOX API Error: ${err}`);
     return { success: false, message: err, data: [] };
-  }
-}
-
-export async function getRobloxUserId(username: string): Promise<number> {
-  try {
-    return await withTimeout(noblox.getIdFromUsername(username));
-  } catch (error) {
-    console.error(`Error getting user ID for username ${username}:`, error);
-    throw error;
   }
 }
 
