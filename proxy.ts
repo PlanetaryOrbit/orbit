@@ -17,17 +17,17 @@ function internalUrl(request: NextRequest, path: string): string {
     const base = "http://localhost:3000"; // idk seem to work on cloud instances
     return `${base}${path}`;
   }
-  
+
   if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
     const base = process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL.replace(/\/$/, "") : process.env.PUBLIC_URL!.replace(/\/$/, "");
     return `${base}${path}`;
   }
-  
+
   const host = request.headers.get("host") || "";
   if (host.includes("localhost") || host.includes("127.0.0.1")) {
     return `http://${host}${path}`;
   }
-  
+
   const { protocol, host: reqHost } = request.nextUrl;
   return `${protocol}//${reqHost}${path}`;
 }
@@ -49,7 +49,7 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
 
   try {
     const url = internalUrl(request, "/api/admin/first-setup/config");
-    
+
     const res = await fetch(url, {
       cache: 'no-store',
       headers: {
@@ -79,7 +79,7 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
@@ -142,9 +142,9 @@ export default async function middleware(request: NextRequest) {
 
     try {
       const url = internalUrl(request, "/api/auth/session/validate");
-      
+
       const res = await fetch(url, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
@@ -186,7 +186,7 @@ export default async function middleware(request: NextRequest) {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.posthog.com https://js.posthog.com https://uranus.planetaryapp.cloud",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob:",

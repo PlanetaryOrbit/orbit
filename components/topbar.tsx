@@ -23,8 +23,7 @@ import {
 import axios from "axios";
 import { Fragment, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
-import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
+import { useOAuthConfig } from "@/hooks/useOAuthConfig";
 import moment from "moment";
 import Link from "next/link";
 
@@ -53,8 +52,13 @@ type Panel = "settings" | "sessions";
 const Topbar: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
-  const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
+  const {
+    discord: discordOAuth,
+    google: googleOAuth,
+    loading: oauthLoading,
+  } = useOAuthConfig();
+  const isDiscordOAuth = discordOAuth.available;
+  const isGoogleOAuth = googleOAuth.available;
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>("settings");
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -236,8 +240,7 @@ const Topbar: NextPage = () => {
                       Sessions
                     </button>
                   </Menu.Item>
-                  {isDiscordOAuth ||
-                    (isGoogleOAuth && (
+                  {(isDiscordOAuth || isGoogleOAuth) && (
                       <>
                         <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
                         {isDiscordOAuth && (
@@ -295,7 +298,7 @@ const Topbar: NextPage = () => {
                           </Menu.Item>
                         )}
                       </>
-                    ))}
+                  )}
                   <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
                   <Menu.Item>
                     {({ active }) => (

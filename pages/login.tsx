@@ -12,10 +12,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
 import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
-import { DiscordOAuthAvailable } from "@/hooks/useDiscordOAuth";
 import toast from "react-hot-toast";
-import { GoogleOAuthAvailable } from "@/hooks/useGoogleOAuth";
-import { OAuthAvailable } from "@/hooks/useOAuth";
+import { useDiscordOAuth, useGoogleOAuth } from "@/hooks/useOAuthConfig";
 import clsx from "clsx";
 import {
   sessionFormInputOverride,
@@ -183,7 +181,7 @@ const Login: NextPage = () => {
     if (usernameCheckTimeout.current)
       clearTimeout(usernameCheckTimeout.current);
   }, [mode]);
-  
+
   const signupPassword = signupMethods.watch("password") || "";
   const passwordStrength = calculatePasswordStrength(signupPassword);
 
