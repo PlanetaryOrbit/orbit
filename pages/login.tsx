@@ -458,17 +458,11 @@ const Login: NextPage = () => {
 
       <div className="relative min-h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
         {loginBg ? (
-          <>
-            <div
-              className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${loginBg})` }}
-              aria-hidden
-            />
-            <div
-              className="fixed inset-0 bg-zinc-50/90 dark:bg-zinc-950/88"
-              aria-hidden
-            />
-          </>
+          <div
+            className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${loginBg})` }}
+            aria-hidden
+          />
         ) : null}
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)]"

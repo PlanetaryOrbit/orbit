@@ -501,9 +501,8 @@ export async function checkGroupRoles(groupID: number) {
     console.log(`[update-group] Starting sync for group ${safeGroupId}`);
     const apiKey = await getConfig("roblox_opencloud", groupID);
     if (!apiKey?.key) {
-      throw new Error(
-        `No Roblox Open Cloud API key configured for workspace/group ${groupID}`,
-      );
+      console.log(`No Roblox Open Cloud API key configured for workspace/group ${groupID}`);
+      return;
     }
     let successful = true;
 
