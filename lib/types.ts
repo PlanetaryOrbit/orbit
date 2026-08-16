@@ -2,7 +2,7 @@ import type { InstanceSettings } from "@prisma/client";
 
 export type ClientInstanceSettings = Omit<
   InstanceSettings,
-  "id" | "updatedAt"
+  "id" | "updatedAt" | "createdAt"
 > & {
   createdAt: string;
 };

@@ -1,9 +1,10 @@
 "use client";
 
 import { Switch } from "@headlessui/react";
+import type { ComponentType, SVGProps } from "react";
 
 interface Props {
-  icon: React.ComponentType;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   title: string;
   description?: string;
   enabled: boolean;

@@ -10,7 +10,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/auth";
 import { getMe } from "@/lib/me";
-import { updateSettings, InstanceSettings } from "@/lib/instance";
+import { updateSettings } from "@/lib/instance";
+import { InstanceSettings } from "@prisma/client"
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,11 +53,6 @@ export async function POST(req: NextRequest) {
       logoUrl:
         typeof body.logoUrl === "string"
           ? body.logoUrl.trim() || null
-          : undefined,
-
-      faviconUrl:
-        typeof body.faviconUrl === "string"
-          ? body.faviconUrl.trim() || null
           : undefined,
 
       primaryColor:

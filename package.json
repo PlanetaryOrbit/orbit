@@ -7,9 +7,10 @@
   "scripts": {
     "dev": "bun server.ts --https",
     "start": "bun server.ts",
-    "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" next build --webpack",
+    "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check": "bun test --watch || bun run typecheck",
     "certs": "mkdir -p certs && [ -f certs/key.pem ] && [ -f certs/cert.pem ] || (mkcert -install && mkcert -key-file certs/key.pem -cert-file certs/cert.pem localhost 127.0.0.1 ::1)"
   },
   "dependencies": {

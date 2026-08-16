@@ -24,7 +24,7 @@ type IconComponent = ComponentType<
   SVGProps<SVGSVGElement>
 >;
 
-interface ButtonProps
+export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;

@@ -12,9 +12,7 @@ import type {
   SVGProps,
 } from "react";
 
-import Button, {
-  type ButtonProps,
-} from "./Button";
+import Button, { type ButtonProps } from "./Button";
 
 import {
   XMarkIcon,
