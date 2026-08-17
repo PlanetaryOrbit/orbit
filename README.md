@@ -235,7 +235,7 @@ Orbit is built with a modern, fully TypeScript stack:
 - **Frontend:** [Next.js](https://nextjs.org), [TailwindCSS](https://tailwindcss.com)
 - **Backend:** [Next.js API Routes](https://nextjs.org/docs/api-routes/introduction), [Prisma ORM](https://www.prisma.io)
 - **Database:** Any Prisma-compatible database (PostgreSQL recommended)
-- **Bun** is used as the package manager and build tool.
+- **PNPM** is used as the package manager and build tool.
 
 ---
 

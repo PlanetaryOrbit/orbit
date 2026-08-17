@@ -1,6 +1,6 @@
 # Pull Request
 
-Thank you for contributing to Orbit! 🐈
+Thank you for contributing to Orbit!
 
 Before submitting, please make sure you have read the [Contributing Guide](https://github.com/PlanetaryOrbit/orbit/blob/main/CONTRIBUTING.md).
 

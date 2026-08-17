@@ -64,11 +64,11 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Include OS, architecture, Node/Bun version, database, and other relevant details.
+      description: Include OS, architecture, Node/PNPM version, database, and other relevant details.
       placeholder: |
         OS:
         Architecture:
-        Bun version:
+        Node/PNPM version:
         Database:
 
   - type: textarea

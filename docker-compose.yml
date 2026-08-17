@@ -15,7 +15,7 @@ services:
     ports:
       - "3000:3000"
     command: >
-      sh -c "bunx prisma migrate deploy && bun run start"
+      sh -c "pnpm exec prisma migrate deploy && pnpm run start"
 
   db:
     image: "postgres:latest"

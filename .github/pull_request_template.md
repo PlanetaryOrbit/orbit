@@ -1,10 +1,57 @@
-# Orbit Pull Request
+# Pull Request
 
-Please select the appropriate pull request template:
+Looking for the [RFC Pull Request](?expand=1&template=rfc.md)?
 
-- [Normal Pull Request](?expand=1&template=feature.md)
-- [RFC Pull Request](?expand=1&template=rfc.md)
+Thank you for contributing to Orbit!
 
-If you are unsure which template to use, please read the [Contributing Guide](https://github.com/PlanetaryOrbit/orbit/blob/main/CONTRIBUTING.md).
+Before submitting, please make sure you have read the [Contributing Guide](https://github.com/PlanetaryOrbit/orbit/blob/main/CONTRIBUTING.md).
 
-After selecting a template, go to the **Preview** tab and click the link above.
+## Description
+
+<!--
+Describe what this PR changes and why.
+-->
+
+## Related Issues
+
+<!--
+Examples:
+Closes #123
+Fixes #123
+Related to #123
+-->
+
+## Type of Change
+
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Enhancement
+- [ ] Documentation
+- [ ] Refactor
+- [ ] Performance improvement
+- [ ] Dependency update
+- [ ] Other
+
+## Testing
+
+Describe how you tested your changes.
+
+- [ ] Tested locally
+- [ ] Tested using Docker
+- [ ] Tested database changes (if applicable)
+
+## Screenshots / Videos
+
+<!-- Required for UI changes -->
+
+## Checklist
+
+- [ ] I have read the contributing guidelines.
+- [ ] My changes follow the project's style guidelines.
+- [ ] I have tested my changes.
+- [ ] I have updated documentation if needed.
+- [ ] This PR does not contain unrelated changes.
+
+## Additional Notes
+
+<!-- Anything maintainers should know -->

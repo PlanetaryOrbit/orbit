@@ -228,7 +228,7 @@ Large feature suggestions may require an [RFC](#request-for-comment-rfc) before 
 Before contributing code, make sure you have:
 
 - [Node.js](https://nodejs.org/)
-- [Bun](https://bun.sh/)
+- [PNPM](https://pnpm.io/)
 - [Docker](https://www.docker.com/)
 - Git
 - A Prisma-compatible database (PostgreSQL recommended)
@@ -249,7 +249,7 @@ cd orbit
 ### 2. Install Dependencies
 
 ```bash
-bun install
+pnpm install
 ```
 
 ### 3. Configure Environment Variables
@@ -261,8 +261,8 @@ Copy `.env.example` to `.env` and configure the required variables.
 Generate the Prisma client and apply the database schema:
 
 ```bash
-bunx prisma db push
-bunx prisma generate
+pnpm exec prisma db push
+pnpm exec prisma generate
 ```
 
 Alternatively, you can start the database container:
@@ -274,7 +274,7 @@ docker compose up -d db
 ### 5. Start Orbit
 
 ```bash
-bun run dev
+pnpm run dev
 ```
 
 Orbit should now be available at:
