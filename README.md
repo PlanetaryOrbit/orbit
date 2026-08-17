@@ -110,6 +110,24 @@ Prefer to host on your own Vercel account? Deploy in seconds:
 
 For full self-hosting instructions, refer to the [official documentation](https://docs.planetaryapp.us).
 
+#### System Requirements
+
+Orbit is designed to run on a small Linux server, but we recommend giving it enough resources for Node.js, dependency installation, and Next.js builds.
+
+| Resource | Minimum | Recommended |
+|---|---:|---:|
+| **CPU** | 2 cores | 2–4+ cores |
+| **RAM** | 2 GB | 4 GB+ |
+| **Storage** | 10 GB | 20 GB+ SSD |
+| **Database** | PostgreSQL | PostgreSQL |
+| **Node.js** | 20+ | Latest supported LTS |
+| **OS** | Linux | Linux |
+
+> [!TIP]
+> **An SSD is strongly recommended.** Orbit's dependencies can consume a significant amount of disk space, particularly `node_modules`, and Next.js builds perform a considerable amount of disk I/O. We recommend having at least 20 GB of available storage for a comfortable installation.
+
+The minimum requirements are intended to represent the lowest practical configuration for running Orbit, not a recommended production environment. For production installations, we recommend **4 GB or more of RAM and SSD storage**.
+
 ---
 
 ## Screenshots
@@ -252,5 +270,5 @@ Orbit is licensed under the [GNU General Public License v3.0](./LICENSE). You ar
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://planetaryapp.us">Team Planetary</a></sub>
+  <sub>Built with ❤️ by <a href="https://planetaryapp.us">Team Planetary</a>. meow</sub>.
 </div>
