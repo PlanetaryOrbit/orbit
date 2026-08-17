@@ -5,3 +5,10 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - "@prisma/engines"
+  - "noblox.js"
+  - "prisma"
+  - "sharp"
+  - "unrs-resolver"

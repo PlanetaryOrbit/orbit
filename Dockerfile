@@ -7,6 +7,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /usr/src/app
 
 RUN corepack enable
+RUN corepack prepare pnpm@11.22.0 --activate
 
 COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma/
