@@ -11,9 +11,8 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Dialog } from "@headlessui/react";
 import { IconX } from "@tabler/icons-react";
-import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import toast from "react-hot-toast";
-import { useDiscordOAuth, useGoogleOAuth } from "@/hooks/useOAuthConfig";
+import { useOAuthConfig } from "@/hooks/useOAuthConfig";
 import clsx from "clsx";
 import {
   sessionFormInputOverride,
@@ -122,9 +121,20 @@ function getAvatarBgColor(displayName: string): string {
 const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
   const { isAvailable: isRobloxOAuth } = RobloxOAuthAvailable();
-  const { oauthOnly, isAvailable: isOAuthAvailable } = OAuthAvailable();
-  const { isAvailable: isDiscordOAuth } = DiscordOAuthAvailable();
-  const { isAvailable: isGoogleOAuth } = GoogleOAuthAvailable();
+
+  const {
+    discord,
+    google,
+    oauthOnly,
+    loading: oauthConfigLoading,
+  } = useOAuthConfig();
+
+  const isDiscordOAuth = discord.available;
+  const isGoogleOAuth = google.available;
+
+  const isOAuthAvailable = isRobloxOAuth || isDiscordOAuth || isGoogleOAuth;
+
+  const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
 
   const loginMethods = useForm<LoginForm>();
   const signupMethods = useForm<SignupForm>();
@@ -165,7 +175,6 @@ const Login: NextPage = () => {
   const errorToastShown = useRef(false);
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const effectiveOAuthOnly = oauthOnly && isOAuthAvailable;
   useEffect(() => {
     loginMethods.reset();
     signupMethods.reset();
@@ -789,10 +798,12 @@ const Login: NextPage = () => {
                                 required: "Password is required",
                                 minLength: {
                                   value: 7,
-                                  message: "Password must be at least 7 characters",
+                                  message:
+                                    "Password must be at least 7 characters",
                                 },
                                 validate: (value) => {
-                                  const { score } = calculatePasswordStrength(value);
+                                  const { score } =
+                                    calculatePasswordStrength(value);
 
                                   if (score < 3) {
                                     return "Password is not strong enough";

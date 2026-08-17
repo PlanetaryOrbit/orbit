@@ -10,16 +10,21 @@ services:
       SESSION_SECRET: ${SESSION_SECRET}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
     depends_on:
-      db: # Disable this if you are using an external Postgres database
+      db:
         condition: service_healthy
     ports:
-      - "3000:3000" # Set these to the port you wish to run Orbit on.
+      - "3000:3000"
+    command: >
+      sh -c "bunx prisma migrate deploy && bun run start"
 
-  # Comment out everything below this point if you are using an external Postgres database
   db:
     image: "postgres:latest"
     healthcheck:
-      test: pg_isready -U postgres -h localhost
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -29,7 +34,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - ${POSTGRES_PORT:-5432}:5432
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - db:/var/lib/postgresql
 
