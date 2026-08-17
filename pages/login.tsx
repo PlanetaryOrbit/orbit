@@ -14,6 +14,7 @@ import { IconX } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { useOAuthConfig } from "@/hooks/useOAuthConfig";
 import clsx from "clsx";
+import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
 import {
   sessionFormInputOverride,
   sessionPrimaryButtonClass,
@@ -165,7 +166,6 @@ const Login: NextPage = () => {
     null,
   );
   const [showPassword, setShowPassword] = useState(false);
-  const [showCopyright, setShowCopyright] = useState(false);
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
     null,
@@ -931,65 +931,7 @@ const Login: NextPage = () => {
             </div>
           </div>
         </div>
-
-        <div className="fixed bottom-4 left-4 z-40 sm:bottom-6 sm:left-6">
-          <button
-            onClick={() => setShowCopyright(true)}
-            className="text-xs text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
-            type="button"
-          >
-            © Copyright Notices
-          </button>
-        </div>
       </div>
-
-      <Dialog
-        open={showCopyright}
-        onClose={() => setShowCopyright(false)}
-        className="relative z-50"
-      >
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-          aria-hidden="true"
-        />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel
-            className={clsx(
-              "mx-auto max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-900 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30",
-            )}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
-                Copyright Notices
-              </Dialog.Title>
-              <button
-                onClick={() => setShowCopyright(false)}
-                className="rounded-xl p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                <IconX className="h-5 w-5 text-zinc-500" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h3 className="mb-1 text-sm font-medium text-zinc-900 dark:text-white">
-                  Orbit features, enhancements, and modifications:
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Copyright © 2026 Planetary. All rights reserved.
-                </p>
-              </div>
-              <div>
-                <h3 className="mb-1 text-sm font-medium text-zinc-900 dark:text-white">
-                  Original Tovy features and code:
-                </h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Copyright © 2022 Tovy. All rights reserved.
-                </p>
-              </div>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </>
   );
 };
