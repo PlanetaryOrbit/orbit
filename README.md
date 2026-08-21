@@ -123,7 +123,7 @@ Orbit is designed to run on a small Linux server, but we recommend giving it eno
 | **Node.js** | 20+ | Latest supported LTS |
 | **OS** | Linux | Linux |
 
-> [!NOTE]
+> [!WARNING]
 > You cannot use MongoDB, as MongoDB's database interface is NoSQL, and Orbit was programmed to be in SQL-like interface (such as PostgresSQL), and therefore is not compatible with MongoDB.
 
 > [!TIP]
