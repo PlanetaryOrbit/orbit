@@ -119,7 +119,7 @@ Orbit is designed to run on a small Linux server, but we recommend giving it eno
 | **CPU** | 2 cores | 2–4+ cores |
 | **RAM** | 2 GB | 4 GB+ |
 | **Storage** | 10 GB | 20 GB+ SSD |
-| **Database** | PostgreSQL | PostgreSQL |
+| **Database** | Any Prisma-compatible | PostgreSQL |
 | **Node.js** | 20+ | Latest supported LTS |
 | **OS** | Linux | Linux |
 
