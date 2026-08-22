@@ -54,7 +54,7 @@ export default function SetupPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/setup/instance_settings", {
+      const res = await fetch("/api/v1/setup/instance_settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

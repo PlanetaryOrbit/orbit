@@ -24,6 +24,23 @@ model InstanceSettings {
   updatedAt DateTime @updatedAt
 }
 
+model Media {
+  id          String   @id @default(cuid())
+  filename    String
+  mimeType    String
+  size        Int
+  storageKey  String   @unique
+  hash        String?
+  width       Int?
+  height      Int?
+  alt         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([hash])
+}
+
 // Signup Attempt - Temporary state for non-OAuth signup.
 // Expires after 10 minutes.
 model SignupAttempt {
@@ -48,12 +65,18 @@ model User {
   sessions      Session[]
   notifications Notification[]
   robloxData    Json? // username, displayName, hasVerifiedBadge, isBanned, avatarUrl, syncedAt
+  banned        Boolean        @default(false)
+  bannedAt      DateTime?
+  bannedFor     String?
   isOwner       Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   @@index([robloxData])
   @@index([robloxId])
+  @@index([banned])
+  @@index([bannedAt])
+  @@index([bannedFor])
 }
 
 model Credential {

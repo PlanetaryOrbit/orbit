@@ -36,7 +36,7 @@ export function InstanceProvider({
 
   const refreshSettings = useCallback(async () => {
     try {
-      const res = await fetch("/api/instance");
+      const res = await fetch("/api/v1/instance");
 
       if (!res.ok) {
         toast.error("Failed to refresh instance settings.");

@@ -27,7 +27,7 @@ export function UserProvider({
   const [user, setUser] = useState<MeUser | null>(initialUser);
 
   const refreshUser = useCallback(async () => {
-    const res = await fetch("/api/users/me");
+    const res = await fetch("/api/v1/users/me");
 
     if (!res.ok) {
       setUser(null);

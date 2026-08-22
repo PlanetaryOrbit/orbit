@@ -124,7 +124,7 @@ export default async function RootLayout({
                       Early Access
                     </span>
                     {" — "}
-                    Orbit v3 is still getting its paws ready! The awesome team is
+                    Orbit v3 is still being worked on! The awesome team is
                     building things behind the scenes. Wanna lend a paw? You can{" "}
                     <a
                       href="https://github.com/PlanetaryOrbit/orbit/tree/v3"

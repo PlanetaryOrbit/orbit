@@ -54,7 +54,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/signup/start", {
+      const res = await fetch("/api/v1/auth/signup/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +97,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/signup/verify", {
+      const res = await fetch("/api/v1/auth/signup/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
