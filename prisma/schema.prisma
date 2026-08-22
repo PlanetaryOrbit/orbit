@@ -42,7 +42,7 @@ model Media {
 }
 
 // Signup Attempt - Temporary state for non-OAuth signup.
-// Expires after 10 minutes.
+// Expires after 30 minutes.
 model SignupAttempt {
   id               String   @id @default(cuid())
   username         String
@@ -60,11 +60,13 @@ model SignupAttempt {
 model User {
   id            String         @id @default(cuid())
   username      String         @unique
-  robloxId      BigInt
+  robloxId      BigInt         @unique
   credentials   Credential?
   sessions      Session[]
   notifications Notification[]
   robloxData    Json? // username, displayName, hasVerifiedBadge, isBanned, avatarUrl, syncedAt
+  discordData   Json?
+  googleData    Json?
   banned        Boolean        @default(false)
   bannedAt      DateTime?
   bannedFor     String?
@@ -73,7 +75,8 @@ model User {
   updatedAt     DateTime       @updatedAt
 
   @@index([robloxData])
-  @@index([robloxId])
+  @@index([discordData])
+  @@index([googleData])
   @@index([banned])
   @@index([bannedAt])
   @@index([bannedFor])
