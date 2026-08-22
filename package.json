@@ -35,7 +35,8 @@
     "react-hot-toast": "^2.6.0",
     "sass": "^1.102.0",
     "sharp": "^0.35.3",
-    "ws": "^8.21.2"
+    "ws": "^8.21.2",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

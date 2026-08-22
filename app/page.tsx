@@ -17,7 +17,6 @@ const greetings = [
   "Good to see you again, $!",
   "Hey $, ready to get things done?",
   "Welcome home, $",
-  "Meowdy, $",
 ];
 
 function getGreeting(username: string) {

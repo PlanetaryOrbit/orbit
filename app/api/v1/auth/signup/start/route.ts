@@ -191,6 +191,28 @@ export async function POST(req: NextRequest) {
 
     const robloxId = BigInt(robloxUser.id);
 
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        robloxId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "ACCOUNT_EXISTS",
+            message: "An account already exists for this Roblox account.",
+          },
+        },
+        { status: 409 },
+      );
+    }
+
     await prisma.signupAttempt.deleteMany({
       where: {
         robloxId,

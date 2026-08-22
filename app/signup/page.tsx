@@ -15,6 +15,7 @@ import Button from "@/components/Button";
 import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
 import { useInstance } from "../providers/InstanceProvider";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [signupId, setSignupId] = useState<string | null>(null);
+  const passwordStrength = calculatePasswordStrength(password);
 
   const hasBoth = false && settings?.allowPasswordAuth;
 
@@ -68,7 +70,12 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!data.success) {
-        setError(data.error?.message ?? "Unable to start signup.");
+        if (data.error.code === "ACCOUNT_EXISTS") {
+          router.push("/login");
+          return;
+        } else {
+          setError(data.error?.message ?? "Unable to start signup.");
+        }
 
         return;
       }
@@ -276,6 +283,58 @@ export default function SignupPage() {
                         )}
                       </button>
                     </div>
+                    {password && (
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-ctp-overlay1">
+                            Password strength
+                          </span>
+
+                          <span
+                            className={
+                              passwordStrength.score <= 1
+                                ? "text-ctp-red"
+                                : passwordStrength.score === 2
+                                  ? "text-ctp-yellow"
+                                  : passwordStrength.score === 3
+                                    ? "text-ctp-green"
+                                    : "text-ctp-teal"
+                            }
+                          >
+                            {passwordStrength.label}
+                          </span>
+                        </div>
+
+                        <div className="mt-1.5 grid grid-cols-4 gap-1.5">
+                          {[1, 2, 3, 4].map((segment) => {
+                            const level =
+                              passwordStrength.score <= 1
+                                ? 1
+                                : passwordStrength.score;
+
+                            const activeColor =
+                              passwordStrength.score <= 1
+                                ? "bg-ctp-red"
+                                : passwordStrength.score === 2
+                                  ? "bg-ctp-yellow"
+                                  : passwordStrength.score === 3
+                                    ? "bg-ctp-green"
+                                    : "bg-ctp-teal";
+
+                            return (
+                              <div
+                                key={segment}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  level >= segment
+                                    ? activeColor
+                                    : "bg-ctp-surface0"
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button
@@ -403,9 +462,9 @@ export default function SignupPage() {
                       text-lg
                       text-ctp-instance
                     "
-                    onClick={() => {
-                      navigator.clipboard.writeText(verification.code);
-                    }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(verification.code);
+                  }}
                 >
                   {verification.code}
                 </code>
@@ -471,9 +530,11 @@ export default function SignupPage() {
             </p>
           )}
 
-          {!settings?.allowRobloxAuth && !settings?.allowPasswordAuth && settings?.enableRegistration && (
-            <div
-              className="
+          {!settings?.allowRobloxAuth &&
+            !settings?.allowPasswordAuth &&
+            settings?.enableRegistration && (
+              <div
+                className="
                 mt-6
                 flex
                 items-start
@@ -486,22 +547,22 @@ export default function SignupPage() {
                 text-sm
                 text-ctp-red
               "
-            >
-              <InformationCircleIcon
-                className="
+              >
+                <InformationCircleIcon
+                  className="
                   mt-0.5
                   h-5
                   w-5
                   shrink-0
                 "
-              />
+                />
 
-              <span>
-                This instance has no authentication methods enabled. Please
-                contact the instance administrator.
-              </span>
-            </div>
-          )}
+                <span>
+                  This instance has no authentication methods enabled. Please
+                  contact the instance administrator.
+                </span>
+              </div>
+            )}
 
           {!settings?.enableRegistration && (
             <div
