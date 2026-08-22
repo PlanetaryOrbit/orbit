@@ -13,7 +13,6 @@ export function setupWebSocket(server: Server) {
     const url = new URL(request.url ?? "", `http://${request.headers.host}`);
 
     if (url.pathname !== "/api/ws") {
-      // let next handle there own websocket
       return;
     }
 
@@ -50,7 +49,7 @@ export function setupWebSocket(server: Server) {
     });
   });
 
-  setInterval(() => {
+  const interval = setInterval(() => {
     for (const client of clients) {
       if (!healthStatus.get(client)) {
         client.terminate();
@@ -72,6 +71,19 @@ export function setupWebSocket(server: Server) {
       },
     });
   }, 30_000);
+
+  return () => {
+    clearInterval(interval);
+
+    for (const client of clients) {
+      client.terminate();
+    }
+
+    clients.clear();
+    healthStatus.clear();
+
+    wss.close();
+  };
 }
 
 export function broadcast(event: { type: string; data: unknown }) {

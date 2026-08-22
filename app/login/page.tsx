@@ -14,29 +14,15 @@ import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
 import { useInstance } from "../providers/InstanceProvider";
 
-interface InstanceSettings {
-  name: string;
-  logoUrl: string | null;
-  faviconUrl: string | null;
-  primaryColor: string;
-  darkBackground: string | null;
-  lightBackground: string | null;
-  allowPasswordAuth: boolean;
-  allowRobloxAuth: boolean | false;
-  enableRegistration: boolean;
-  isSetup: boolean;
-}
-
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [settings, setSettings] = useState<InstanceSettings | null>(null);
-  const [settingsLoading, setSettingsLoading] = useState(true);
+  const { settings } = useInstance();
 
-  const hasBoth = false && settings?.allowPasswordAuth;
+  const hasBoth = settings.allowRobloxAuth && settings.allowPasswordAuth;
 
   const { user } = useUser();
   const router = useRouter();
@@ -139,12 +125,12 @@ export default function LoginPage() {
             <p className="mt-2 text-sm text-ctp-subtext0">
               {hasBoth
                 ? "Sign in with your Roblox account or use your username and password."
-                : settings?.allowPasswordAuth
+                : settings.allowPasswordAuth
                   ? "Sign in using your Roblox username and password."
                   : ""}
             </p>
 
-            {!settingsLoading && !settings?.allowPasswordAuth && settings?.enableRegistration && settings?.allowRobloxAuth && (
+            {!settings?.allowPasswordAuth && settings?.enableRegistration && settings?.allowRobloxAuth && (
               <div className="mt-6">
                 <Button
                   variant="primary"
@@ -156,7 +142,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {!settingsLoading && settings?.allowPasswordAuth && settings?.enableRegistration && !settings?.allowRobloxAuth && (
+            {settings?.allowPasswordAuth && settings?.enableRegistration && !settings?.allowRobloxAuth && (
               <form className="mt-6 space-y-5" onSubmit={handleLogin}>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-ctp-subtext1">
@@ -251,7 +237,7 @@ export default function LoginPage() {
               </form>
             )}
 
-            {!settingsLoading && hasBoth && (
+            {hasBoth && (
               <>
                 <div className="my-6 flex items-center">
                   <div className="h-px flex-1 bg-ctp-surface0" />
@@ -273,7 +259,7 @@ export default function LoginPage() {
               </>
             )}
 
-            {!settingsLoading && !settings?.allowPasswordAuth && !settings?.allowRobloxAuth && (
+            {!settings?.allowPasswordAuth && !settings?.allowRobloxAuth && (
               <div
                 className="
                     mt-6
@@ -297,7 +283,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {!settingsLoading && !settings?.enableRegistration && (
+            {!settings?.enableRegistration && (
               <div
                 className="
                     mt-6
@@ -320,7 +306,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {settingsLoading && <p className="mt-4 text-sm text-ctp-overlay1">Loading...</p>}
+            {!settings?.allowPasswordAuth && !settings?.allowRobloxAuth && <p className="mt-4 text-sm text-ctp-overlay1">Loading...</p>}
             {error && <p className="mt-4 text-sm text-ctp-red">{error}</p>}
             <p className="mt-4 text-sm text-ctp-overlay1">
               Don't have an account?{" "}

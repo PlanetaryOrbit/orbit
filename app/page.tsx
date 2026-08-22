@@ -22,6 +22,7 @@ const greetings = [
 
 function getGreeting(username: string) {
   const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+
   return greeting.replace("$", username);
 }
 
@@ -33,13 +34,15 @@ export default function Home() {
   const [greeting, setGreeting] = useState("");
 
   useEffect(() => {
-    if (user) {
-      setGreeting(getGreeting(user.username));
+    if (!user) {
+      router.replace("/login");
+      return;
     }
-  }, [user]);
+
+    setGreeting(getGreeting(user.username));
+  }, [user, router]);
 
   if (!user) {
-    router.replace("/login");
     return null;
   }
 
@@ -58,9 +61,7 @@ export default function Home() {
       <section className="mt-10">
         <div className="flex items-center justify-between border-b border-ctp-surface1 pb-4">
           <div>
-            <h2 className="text-sm font-semibold text-ctp-text">
-              Workspaces
-            </h2>
+            <h2 className="text-sm font-semibold text-ctp-text">Workspaces</h2>
 
             <p className="mt-1 text-xs text-ctp-overlay0">
               1 workspace available

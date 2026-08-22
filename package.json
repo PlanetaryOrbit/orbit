@@ -1,16 +1,16 @@
 {
   "name": "orbit",
-  "version": "2.1.10beta21",
-  "private": true,
+  "version": "3.0.0alpha.1",
+  "private": false,
   "packageManager": "bun@1.3.14",
   "prisma.schema": "prisma/schema.prisma",
   "scripts": {
     "dev": "bun server.ts --https",
-    "start": "bun server.ts",
+    "start": "NODE_ENV=production bun server.ts",
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "check": "bun test --watch || bun run typecheck",
+    "check": "bun test && bun run typecheck",
     "certs": "mkdir -p certs && [ -f certs/key.pem ] && [ -f certs/cert.pem ] || (mkcert -install && mkcert -key-file certs/key.pem -cert-file certs/cert.pem localhost 127.0.0.1 ::1)"
   },
   "dependencies": {
@@ -26,7 +26,6 @@
     "argon2": "^0.45.1",
     "bcryptjs": "^3.0.3",
     "cookie": "^2.0.1",
-    "crypto": "^1.0.1",
     "ioredis": "^6.0.0",
     "next": "^16.3.0",
     "pg": "^8.22.0",
@@ -36,11 +35,11 @@
     "react-hot-toast": "^2.6.0",
     "sass": "^1.102.0",
     "sharp": "^0.35.3",
-    "ua-parser-js": "^2.0.10",
     "ws": "^8.21.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/bun": "^1.3.14",
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",

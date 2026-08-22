@@ -14,26 +14,12 @@ import { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import { useUser } from "../providers/UserProvider";
 import { useRouter } from "next/navigation";
-import AuthBackground from "@/components/AuthBackground";
 import { useInstance } from "../providers/InstanceProvider";
-
-interface InstanceSettings {
-  name: string;
-  logoUrl: string | null;
-  faviconUrl: string | null;
-  primaryColor: string;
-  darkBackground: string | null;
-  lightBackground: string | null;
-  allowPasswordAuth: boolean;
-  allowRobloxAuth: boolean | false;
-  enableRegistration: boolean;
-  isSetup: boolean;
-}
 
 export default function SignupPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { settings, refreshSettings } = useInstance();
+  const { settings } = useInstance();
   const [step, setStep] = useState<"signup" | "verify">("signup");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -149,7 +135,7 @@ export default function SignupPage() {
           <h1 className="text-5xl font-bold tracking-tight text-ctp-text">
             Welcome to{" "}
             <span className="text-ctp-instance">
-              {settings?.name ?? "Orbit"}
+              {settings?.name || "Orbit"}
             </span>
           </h1>
 

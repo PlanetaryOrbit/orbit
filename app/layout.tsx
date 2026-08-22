@@ -17,6 +17,7 @@ import { UserProvider } from "./providers/UserProvider";
 import { InstanceProvider } from "./providers/InstanceProvider";
 import ToastProvider from "./providers/ToastProvider";
 import { getTextColor } from "@/utils/color";
+const isDev = process.env.NODE_ENV === "development";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -114,27 +115,29 @@ export default async function RootLayout({
                 </div>
               </div>
             </header>
-            <div className="sticky top-16 z-40 border-b border-ctp-yellow/30 bg-ctp-yellow/10 backdrop-blur-xl">
-              <div className="relative mx-auto max-w-7xl px-6 py-2.5">
-                <ExclamationTriangleIcon className="absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 text-ctp-yellow" />
-                <p className="text-center text-sm text-ctp-text">
-                  <span className="font-semibold text-ctp-yellow">
-                    Early Access
-                  </span>
-                  {" — "}
-                  Orbit v3 is still getting its paws ready! The awesome team is
-                  building things behind the scenes. Wanna lend a paw? You can{" "}
-                  <a
-                    href="https://github.com/PlanetaryOrbit/orbit/tree/v3"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-ctp-yellow underline-offset-2 transition hover:underline"
-                  >
-                    contribute on GitHub
-                  </a>
-                </p>
+            {isDev && (
+              <div className="sticky top-16 z-40 border-b border-ctp-yellow/30 bg-ctp-yellow/10 backdrop-blur-xl">
+                <div className="relative mx-auto max-w-7xl px-6 py-2.5">
+                  <ExclamationTriangleIcon className="absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 text-ctp-yellow" />
+                  <p className="text-center text-sm text-ctp-text">
+                    <span className="font-semibold text-ctp-yellow">
+                      Early Access
+                    </span>
+                    {" — "}
+                    Orbit v3 is still getting its paws ready! The awesome team is
+                    building things behind the scenes. Wanna lend a paw? You can{" "}
+                    <a
+                      href="https://github.com/PlanetaryOrbit/orbit/tree/v3"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-ctp-yellow underline-offset-2 transition hover:underline"
+                    >
+                      contribute on GitHub
+                    </a>
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
             <main className="relative min-h-screen overflow-hidden bg-ctp-base z-0">
               <AuthBackground
                 theme={theme as "dark" | "light"}
