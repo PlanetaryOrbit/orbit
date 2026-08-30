@@ -1,7 +1,9 @@
+import type { ApiResponse } from '~~/server/utils/types';
+
 const heartbeatInterval = 120000; // 2 minutes - interval between heartbeat pings
-const clientTimeout = heartbeatInterval + 150000; // 2.5 minutes - time before a client is considered inactive
+const clientTimeout = heartbeatInterval + 30000; // 30 seconds - time before a client is considered inactive (after the heartbeat interval)
 const maxMessageSize = 65536; // Maximum message size in bytes
-const maxMessagesPerSecond = 10; // Maximum number of messages per second
+const maxMessagesPerSecond = 50; // Maximum number of messages per second
 const maxInvalidMessages = 10; // Maximum number of invalid messages before a client is terminated
 
 type WebSocketHandler = Parameters<typeof defineWebSocketHandler>[0];
@@ -21,20 +23,44 @@ type OrbitMessage = {
   data?: unknown;
 };
 
+type OrbitResponse<T> = ApiResponse<T>;
+
 const peers = new Map<OrbitPeer, PeerState>();
+
+const clientEventTypes = new Set(['pong', 'subscribe', 'unsubscribe']);
 
 function closePeer(peer: OrbitPeer, code: number, reason: string) {
   peers.delete(peer);
   peer.close(code, reason);
 }
 
-function sendError(peer: OrbitPeer, message: string) {
+function sendError(peer: OrbitPeer, code: string, message: string) {
+  const response: OrbitResponse<never> = {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+
   peer.send(
     JSON.stringify({
       type: 'error',
-      data: {
-        message,
-      },
+      data: response.error,
+    }),
+  );
+}
+
+function sendMessage<T>(peer: OrbitPeer, type: string, data: T) {
+  const response: OrbitResponse<T> = {
+    success: true,
+    data,
+  };
+
+  peer.send(
+    JSON.stringify({
+      type,
+      data: response.data,
     }),
   );
 }
@@ -51,6 +77,16 @@ function isOrbitMessage(payload: unknown): payload is OrbitMessage {
   return typeof payload.type === 'string';
 }
 
+function registerInvalidMessage(peer: OrbitPeer, state: PeerState, code: string, message: string) {
+  state.invalidMessages++;
+
+  sendError(peer, code, message);
+
+  if (state.invalidMessages >= maxInvalidMessages) {
+    closePeer(peer, 1008, 'Too many invalid messages');
+  }
+}
+
 const _heartbeatTimer = setInterval(() => {
   const now = Date.now();
 
@@ -64,23 +100,20 @@ const _heartbeatTimer = setInterval(() => {
       continue;
     }
 
-    peer.send(
-      JSON.stringify({
-        type: 'ping',
-        data: {
-          timestamp: new Date().toISOString(),
-        },
-      }),
-    );
+    sendMessage(peer, 'ping', {
+      timestamp: new Date().toISOString(),
+    });
   }
 }, heartbeatInterval);
 
 export default defineWebSocketHandler({
   open(peer) {
+    const now = Date.now();
+
     peers.set(peer, {
-      lastSeen: Date.now(),
+      lastSeen: now,
       messageCount: 0,
-      messageWindowStart: Date.now(),
+      messageWindowStart: now,
       invalidMessages: 0,
     });
 
@@ -88,14 +121,9 @@ export default defineWebSocketHandler({
       console.log('[WS] Client connected');
     }
 
-    peer.send(
-      JSON.stringify({
-        type: 'connected',
-        data: {
-          message: 'Hello World!',
-        },
-      }),
-    );
+    sendMessage(peer, 'connected', {
+      message: 'Hello World!',
+    });
   },
 
   message(peer, message) {
@@ -129,6 +157,7 @@ export default defineWebSocketHandler({
       if (import.meta.dev) {
         console.warn('[WS] Rate limit exceeded');
       }
+
       closePeer(peer, 1008, 'Rate limit exceeded');
       return;
     }
@@ -138,14 +167,17 @@ export default defineWebSocketHandler({
     try {
       payload = JSON.parse(text);
     } catch {
-      state.invalidMessages++;
+      registerInvalidMessage(peer, state, 'INVALID_JSON', 'Invalid JSON.');
+      return;
+    }
 
-      sendError(peer, 'Invalid JSON.');
+    if (!isOrbitMessage(payload)) {
+      registerInvalidMessage(peer, state, 'INVALID_MESSAGE', 'Invalid message format.');
+      return;
+    }
 
-      if (state.invalidMessages >= maxInvalidMessages) {
-        closePeer(peer, 1008, 'Too many invalid messages');
-      }
-
+    if (!clientEventTypes.has(payload.type)) {
+      registerInvalidMessage(peer, state, 'UNKNOWN_EVENT', 'Unknown event type.');
       return;
     }
 
@@ -153,31 +185,8 @@ export default defineWebSocketHandler({
     // We may want to change this to use a bucket based system in the future
     state.invalidMessages = 0;
 
-    if (!isOrbitMessage(payload)) {
-      state.invalidMessages++;
-
-      sendError(peer, 'Invalid message format.');
-
-      if (state.invalidMessages >= maxInvalidMessages) {
-        closePeer(peer, 1008, 'Too many invalid messages');
-      }
-
-      return;
-    }
-
     if (payload.type === 'pong') {
       state.lastSeen = now;
-      return;
-    }
-
-    const clientEventTypes = new Set(['pong', 'subscribe', 'unsubscribe']);
-
-    if (!clientEventTypes.has(payload.type)) {
-      state.invalidMessages++;
-      sendError(peer, 'Unknown event type.');
-      if (state.invalidMessages >= maxInvalidMessages) {
-        closePeer(peer, 1008, 'Too many invalid messages');
-      }
       return;
     }
 
