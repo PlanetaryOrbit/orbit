@@ -271,6 +271,12 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
               </option>
             ))}
           </select>
+          {!rankingProvider && (
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+              Promotion, demotion, and termination logs will not change ranks in
+              the Roblox group.
+            </p>
+          )}
         </div>
 
         {rankingProvider === "rankgun" && (

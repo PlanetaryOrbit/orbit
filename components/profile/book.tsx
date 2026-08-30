@@ -66,10 +66,12 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
         const response = await axios.get(
           `/api/workspace/${id}/external/ranking`
         );
-        setRankingEnabled(
-          response.data.rankGunEnabled ? response.data.rankGunEnabled : response.data.openCloudEnabled ? response.data.rankGunEnabled : false
+        const enabled = Boolean(
+          response.data.rankingEnabled ??
+            (response.data.rankGunEnabled || response.data.openCloudEnabled)
         );
-        return response.data.rankGunEnabled ? response.data.rankGunEnabled : response.data.openCloudEnabled ? response.data.rankGunEnabled : false;
+        setRankingEnabled(enabled);
+        return enabled;
       } catch (error) {
         return false;
       }
