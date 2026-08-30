@@ -13,7 +13,7 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "typecheck": "nuxt typecheck",
-    "check": "bun run lint && bun run format:check && bun run typecheck",
+    "check": "bun run prisma:generate && bun run lint && bun run format:check && bun run typecheck",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
+    "@types/ws": "^8.18.1",
     "oxfmt": "^0.65.0",
     "oxlint": "^1.80.0",
     "prisma": "7.10.0",
