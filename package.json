@@ -20,8 +20,11 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@nuxt/fonts": "0.14.0",
+    "@nuxt/image": "2.1.0",
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
+    "@tabler/icons-vue": "^3.46.0",
     "@tailwindcss/postcss": "^4.3.3",
     "argon2": "^0.45.1",
     "bcryptjs": "^3.0.3",
@@ -34,9 +37,11 @@
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.41",
     "vue-router": "^5.2.0",
+    "vue-sonner": "^2.0.9",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.4.0",
     "@types/ws": "^8.18.1",
     "oxfmt": "^0.65.0",
