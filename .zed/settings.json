@@ -3,11 +3,7 @@
   "formatter": {
     "external": {
       "command": "bunx",
-      "arguments": [
-        "oxfmt",
-        "--stdin-filepath",
-        "{buffer_path}"
-      ]
+      "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"]
     }
   }
 }
