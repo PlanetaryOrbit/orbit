@@ -1,0 +1,54 @@
+{
+  "name": "orbit",
+  "version": "3.0.0",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "typecheck": "nuxt typecheck",
+    "check": "bun run lint && bun run format:check && bun run typecheck",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "argon2": "^0.45.1",
+    "bcryptjs": "^3.0.3",
+    "ioredis": "^6.0.0",
+    "nuxt": "^4.5.2",
+    "pg": "^8.23.0",
+    "postcss": "^8.5.26",
+    "sass": "^1.103.1",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.3.3",
+    "vue": "^3.5.41",
+    "vue-router": "^5.2.0",
+    "zxcvbn": "^4.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "prisma": "7.10.0"
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@prisma/engines",
+    "argon2",
+    "esbuild",
+    "msgpackr-extract",
+    "prisma",
+    "workerd"
+  ]
+}
