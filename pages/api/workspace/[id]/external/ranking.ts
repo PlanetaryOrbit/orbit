@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { withPermissionCheck } from "@/utils/permissionsManager";
 import { getRankGun } from "@/utils/rankgun";
-import { getConfig } from "@/utils/configEngine";
+import prisma from "@/utils/database";
 
 export default withPermissionCheck(handler, "rank_users");
 
@@ -22,11 +22,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const workspaceGroupId = parseInt(id as string);
     const rankGun = await getRankGun(workspaceGroupId);
-    const openCloudConfig = await getConfig("roblox_opencloud", workspaceGroupId)
+    const external = await prisma.workspaceExternalServices.findFirst({
+      where: { workspaceGroupId },
+    });
+    const openCloudEnabled =
+      external?.rankingProvider === "opencloudranking" &&
+      typeof external.rankingToken === "string" &&
+      external.rankingToken.length > 0;
+    const rankingEnabled = !!rankGun || openCloudEnabled;
     return res.status(200).json({
       success: true,
       rankGunEnabled: !!rankGun,
-      openCloudEnabled: !!openCloudConfig.enabled
+      openCloudEnabled,
+      rankingEnabled,
     });
   } catch (error) {
     return res.status(500).json({

@@ -102,7 +102,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         updatedAt: new Date(),
       };
 
-      if (clearRankingToken) {
+      if (!rankingProvider) {
+        updatePayload.rankingToken = null;
+        updatePayload.rankingWorkspaceId = null;
+        updatePayload.rankingMaxRank = null;
+      } else if (clearRankingToken) {
         updatePayload.rankingToken = null;
       } else if (tokenTrim !== "") {
         updatePayload.rankingToken = tokenTrim;
