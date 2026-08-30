@@ -12,6 +12,9 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
 
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orbit
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
