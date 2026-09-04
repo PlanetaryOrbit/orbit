@@ -20,7 +20,11 @@ jobs:
 
       - name: Update neko corner
         run: |
-          urls=$(curl -fsSL 'https://nekos.best/api/v2/neko?amount=3' | jq -r '.results[].url')
+          urls=$(curl -fsSL \
+            -A "Orbit (https://github.com/${{ github.repository }})" \
+            'https://nekos.best/api/v2/neko?amount=3' |
+            jq -r '.results[].url')
+
           mapfile -t urls <<< "$urls"
 
           [ "${#urls[@]}" -eq 3 ] || exit 1
@@ -39,6 +43,7 @@ jobs:
           section = s[a:b]
 
           urls = sys.argv[1:]
+
           section, n = re.subn(
               r'(?<=<img src=")[^"]+',
               lambda _: urls.pop(0),
