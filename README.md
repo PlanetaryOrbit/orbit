@@ -6,10 +6,10 @@ Orbit v3 is currently in **Nightly development**. Things are expected to change 
 
 ### Release Cycle
 
-- **Nightly** — Development builds containing the latest changes. They may include experimental features, bugs, breaking changes, or database changes. Nightly builds are automatically built on every commit, but are not normally published to avoid unnecessary registry rate limits.
-- **Beta** — More complete builds intended for wider testing. Major features should be in place, but bugs and changes may still occur.
-- **Release Candidate** — Feature-complete builds undergoing final testing. Major API and database changes are frozen, with only necessary fixes being made.
-- **Stable** — Production-ready releases recommended for general use and Orbit Cloud. These releases have completed the full testing and stabilization process.
+- **Nightly** - Development builds containing the latest changes. They may include experimental features, bugs, breaking changes, small bug fixes, etc. Nightly builds are automatically built on **every commit**, but are only published every 24 hours.
+- **Beta** - More complete builds intended for wider testing. Major features should be in place, but bugs and changes may still occur.
+- **Release Candidate** - Feature-complete builds undergoing final testing. Major API and database changes are frozen, with only necessary fixes being made. This is basically stable.
+- **Stable** - Production-ready releases recommended for general use and Orbit Cloud. These releases have completed the full testing and stabilization process.
 
 Releases move between stages based on their readiness rather than a fixed schedule. Stable releases are expected to be published approximately every **3–4 weeks** once the project reaches the Stable release cycle.
 
