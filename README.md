@@ -5,6 +5,8 @@
     <strong>A modern, cute, open-source staff management platform for Roblox communities.</strong>
     <br>
     <sub>Discord · Roblox · Fluxxer · Google · Support — all in one place.</sub>
+    <br>
+    <sub>meow</sub>
   </p>
   <p>
     <strong>Release cycle:</strong>
