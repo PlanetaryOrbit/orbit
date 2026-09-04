@@ -1,0 +1,128 @@
+// use prisma-next
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
+
+model User {
+  id            String         @id(map: "User_pkey")
+  username      String
+  robloxId      BigInt
+  robloxData    Jsonb?
+  discordData   Jsonb?
+  googleData    Jsonb?
+  banned        Boolean        @default(false)
+  bannedAt      Timestamp(3)?
+  bannedFor     String?
+  isOwner       Boolean        @default(false)
+  createdAt     Timestamp(3)   @default(now())
+  updatedAt     Timestamp(3)
+  credential    Credential?
+  notifications Notification[]
+  sessions      Session[]
+
+  @@index([bannedAt], map: "User_bannedAt_idx")
+  @@index([bannedFor], map: "User_bannedFor_idx")
+  @@index([banned], map: "User_banned_idx")
+  @@index([discordData], map: "User_discordData_idx")
+  @@index([googleData], map: "User_googleData_idx")
+  @@index([robloxData], map: "User_robloxData_idx")
+  @@index([robloxId], map: "User_robloxId_key", unique: true)
+  @@index([username], map: "User_username_key", unique: true)
+}
+
+model Credential {
+  id           String       @id(map: "Credential_pkey")
+  userId       String
+  passwordHash String
+  createdAt    Timestamp(3) @default(now())
+  updatedAt    Timestamp(3)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Credential_userId_fkey")
+
+  @@index([userId], map: "Credential_userId_key", unique: true)
+}
+
+model InstanceSettings {
+  id                 String       @id(map: "InstanceSettings_pkey")
+  name               String       @default("Orbit")
+  logoUrl            String       @default("/favicon.png")
+  allowPasswordAuth  Boolean      @default(true)
+  allowRobloxAuth    Boolean      @default(false)
+  enableRegistration Boolean      @default(true)
+  primaryColor       String       @default("#fb019c")
+  darkBackground     String       @default("/orbitbackground-dark.svg")
+  lightBackground    String       @default("/orbitbackground-light.svg")
+  isSetup            Boolean      @default(false)
+  createdAt          Timestamp(3) @default(now())
+  updatedAt          Timestamp(3)
+}
+
+model Media {
+  id         String       @id(map: "Media_pkey")
+  filename   String
+  mimeType   String
+  size       Int
+  storageKey String
+  hash       String?
+  width      Int?
+  height     Int?
+  alt        String?
+  createdAt  Timestamp(3) @default(now())
+  updatedAt  Timestamp(3)
+
+  @@index([createdAt], map: "Media_createdAt_idx")
+  @@index([hash], map: "Media_hash_idx")
+  @@index([storageKey], map: "Media_storageKey_key", unique: true)
+}
+
+model Notification {
+  id          String        @id(map: "Notification_pkey")
+  userId      String
+  title       String
+  description String?
+  icon        String?
+  url         String?
+  sentAt      Timestamp(3)  @default(now())
+  expiresAt   Timestamp(3)?
+  read        Boolean       @default(false)
+  readAt      Timestamp(3)?
+  createdAt   Timestamp(3)  @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Notification_userId_fkey")
+
+  @@index([createdAt], map: "Notification_createdAt_idx")
+  @@index([userId], map: "Notification_userId_idx")
+}
+
+model PrismaMigrations {
+  id                VarChar(36)  @id(map: "_prisma_migrations_pkey")
+  checksum          VarChar(64)
+  finishedAt        Timestamptz? @map("finished_at")
+  migrationName     VarChar(255) @map("migration_name")
+  logs              String?
+  rolledBackAt      Timestamptz? @map("rolled_back_at")
+  startedAt         Timestamptz  @default(now()) @map("started_at")
+  appliedStepsCount Int          @default(0) @map("applied_steps_count")
+
+  @@map("_prisma_migrations")
+}
+
+model Session {
+  id        String       @id(map: "Session_pkey")
+  tokenHash String
+  userId    String
+  expiresAt Timestamp(3)
+  createdAt Timestamp(3) @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Session_userId_fkey", index: false)
+
+  @@index([tokenHash], map: "Session_tokenHash_key", unique: true)
+}
+
+model SignupAttempt {
+  id               String       @id(map: "SignupAttempt_pkey")
+  username         String
+  passwordHash     String
+  robloxId         BigInt
+  verificationCode String
+  expiresAt        Timestamp(3)
+  createdAt        Timestamp(3) @default(now())
+  updatedAt        Timestamp(3)
+
+  @@index([robloxId], map: "SignupAttempt_robloxId_idx")
+}
