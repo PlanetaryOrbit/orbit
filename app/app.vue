@@ -2,7 +2,7 @@
 import { IconMoon, IconSun, IconUserPlus } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
-import Button from '~/components/Button.vue';
+import Button from '~/components/ui/Button.vue';
 
 const { isDark, toggle } = useTheme();
 
@@ -38,13 +38,13 @@ const user = null;
           />
 
           <div v-if="user">
-            <span>{{ user.name }}</span>
+            <!-- nothing -->
           </div>
 
           <div v-else class="flex items-center gap-3">
-            <Button variant="ghost" href="/login"> Log in </Button>
+            <Button variant="ghost" href="/login">Log in</Button>
 
-            <Button variant="primary" href="/signup" :icon="IconUserPlus"> Sign Up </Button>
+            <Button variant="primary" href="/signup" :icon="IconUserPlus">Sign Up</Button>
           </div>
         </div>
       </div>

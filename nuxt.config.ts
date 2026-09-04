@@ -7,6 +7,10 @@ export default defineNuxtConfig({
     enabled: false,
   },
 
+  runtimeConfig: {
+    redisUrl: '',
+  },
+
   nitro: {
     experimental: {
       websocket: true,
@@ -50,6 +54,7 @@ export default defineNuxtConfig({
   },
 
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: {
         lang: 'en',
@@ -72,14 +77,15 @@ export default defineNuxtConfig({
 
       script: [
         {
-          children: `
-                (() => {
-                  const theme = localStorage.getItem('theme') || 'dark';
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  }
-                })();
-              `,
+          innerHTML: `
+            (() => {
+              const theme = localStorage.getItem('theme') || 'dark';
+
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+              }
+            })();
+          `,
         },
       ],
     },

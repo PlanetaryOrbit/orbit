@@ -31,8 +31,6 @@
     "ioredis": "^6.0.0",
     "nuxt": "^4.5.2",
     "pg": "^8.23.0",
-    "postcss": "^8.5.26",
-    "sass": "^1.103.1",
     "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.41",
@@ -41,7 +39,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.4.0",
     "@types/ws": "^8.18.1",
     "oxfmt": "^0.65.0",
