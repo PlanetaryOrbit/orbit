@@ -25,6 +25,7 @@
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "@tabler/icons-vue": "^3.46.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
     "argon2": "^0.45.1",
     "bcryptjs": "^3.0.3",
     "ioredis": "^6.0.0",
