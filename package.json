@@ -13,11 +13,12 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "typecheck": "nuxt typecheck",
-    "check": "bun run prisma:generate && bun run lint && bun run format:check && bun run typecheck",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio"
+    "check": "bun run lint && bun run format:check && bun run typecheck",
+    "prisma:emit": "prisma contract emit",
+    "prisma:plan": "prisma migration plan",
+    "prisma:migrate": "prisma db migrate",
+    "prisma:update": "prisma db update",
+    "prisma:status": "prisma migration status"
   },
   "dependencies": {
     "@nuxt/fonts": "0.14.0",
