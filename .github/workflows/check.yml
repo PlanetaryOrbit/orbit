@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: bun run prisma:generate
+      - name: Emit Prisma contract
+        run: bun run prisma:emit
 
       - name: Type check
         run: bun run typecheck
