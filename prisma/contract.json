@@ -49,8 +49,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "passwordHash": {
@@ -154,8 +157,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "isSetup": {
@@ -285,8 +291,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "mimeType": {
@@ -399,8 +408,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "read": {
@@ -522,8 +534,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "tokenHash": {
@@ -599,8 +614,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "passwordHash": {
@@ -718,8 +736,11 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 24
+                  }
                 }
               },
               "isOwner": {
@@ -869,9 +890,12 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "passwordHash": {
                   "codecId": "pg/text@1",
@@ -952,9 +976,12 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "isSetup": {
                   "codecId": "pg/bool@1",
@@ -1048,9 +1075,12 @@
                   "nullable": true
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "mimeType": {
                   "codecId": "pg/text@1",
@@ -1120,9 +1150,12 @@
                   "nullable": true
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "read": {
                   "codecId": "pg/bool@1",
@@ -1189,9 +1222,12 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "tokenHash": {
                   "codecId": "pg/text@1",
@@ -1236,9 +1272,12 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "passwordHash": {
                   "codecId": "pg/text@1",
@@ -1316,9 +1355,12 @@
                   "nullable": true
                 },
                 "id": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
+                  "codecId": "sql/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 24
+                  }
                 },
                 "isOwner": {
                   "codecId": "pg/bool@1",
@@ -1376,12 +1418,23 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a3d0314c386764b5aab8d8554ec910194836e185c0919cd605ddaf0c30538928"
+    "storageHash": "d65fc7864bae52454243788c484ce869cbf3a47ceb988cdf4cda9ac53c18b738"
   },
   "execution": {
-    "executionHash": "ef0ce7944e7197587387fcb6f2487a2800209898985d6fc1acab168af68ac5d4",
+    "executionHash": "18e4077ff6169bff4afe7a40dbdfba0a821210256ea8f0eadf66b1a8c2571efb",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "Credential"
+          }
+        },
         {
           "onCreate": {
             "id": "instantNow",
@@ -1395,6 +1448,17 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "Credential"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "InstanceSettings"
           }
         },
         {
@@ -1414,15 +1478,11 @@
         },
         {
           "onCreate": {
-            "id": "instantNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "instantNow",
+            "id": "cuid2",
             "kind": "generator"
           },
           "ref": {
-            "column": "updatedAt",
+            "column": "id",
             "namespace": "public",
             "table": "Media"
           }
@@ -1439,7 +1499,66 @@
           "ref": {
             "column": "updatedAt",
             "namespace": "public",
+            "table": "Media"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "Notification"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "Session"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
             "table": "SignupAttempt"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "SignupAttempt"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "cuid2",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "User"
           }
         },
         {

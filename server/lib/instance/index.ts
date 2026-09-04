@@ -1,9 +1,11 @@
-import type { InstanceSettings } from '~~/server/generated/prisma/client';
+import type { FieldOutputTypes } from '@@/prisma/contract.d';
+import { db } from '~~/server/database/client';
 import cache from '~~/server/utils/cache';
-import { prisma } from '~~/server/utils/prisma';
 
 const cacheTTL = 3600;
 const cacheKey = 'instance_settings';
+
+type InstanceSettings = FieldOutputTypes['public']['InstanceSettings'];
 
 export type ClientInstanceSettings = Omit<InstanceSettings, 'id' | 'updatedAt' | 'createdAt'> & {
   createdAt: string;
@@ -27,7 +29,7 @@ export function serializeSettings(settings: InstanceSettings): ClientInstanceSet
 
   return {
     ...rest,
-    createdAt: settings.createdAt.toISOString(),
+    createdAt: settings.createdAt.toString(),
   };
 }
 
@@ -38,11 +40,19 @@ export async function getSettings(): Promise<InstanceSettings> {
     return cached;
   }
 
-  let settings = await prisma.instanceSettings.findFirst();
+  let settings = await db.orm.public.InstanceSettings.first();
 
   if (!settings) {
-    settings = await prisma.instanceSettings.create({
-      data: {},
+    settings = await db.orm.public.InstanceSettings.create({
+      name: DEFAULTS.name,
+      logoUrl: DEFAULTS.logoUrl,
+      allowPasswordAuth: DEFAULTS.allowPasswordAuth,
+      allowRobloxAuth: DEFAULTS.allowRobloxAuth,
+      enableRegistration: DEFAULTS.enableRegistration,
+      primaryColor: DEFAULTS.primaryColor,
+      darkBackground: DEFAULTS.darkBackground,
+      lightBackground: DEFAULTS.lightBackground,
+      isSetup: DEFAULTS.isSetup,
     });
   }
 
@@ -54,19 +64,29 @@ export async function getSettings(): Promise<InstanceSettings> {
 export async function updateSettings(
   data: Partial<Omit<InstanceSettings, 'id' | 'createdAt' | 'updatedAt'>>,
 ): Promise<InstanceSettings> {
-  let settings = await prisma.instanceSettings.findFirst();
+  let settings = await db.orm.public.InstanceSettings.first();
 
   if (!settings) {
-    settings = await prisma.instanceSettings.create({
-      data,
+    settings = await db.orm.public.InstanceSettings.create({
+      name: DEFAULTS.name,
+      logoUrl: DEFAULTS.logoUrl,
+      allowPasswordAuth: DEFAULTS.allowPasswordAuth,
+      allowRobloxAuth: DEFAULTS.allowRobloxAuth,
+      enableRegistration: DEFAULTS.enableRegistration,
+      primaryColor: DEFAULTS.primaryColor,
+      darkBackground: DEFAULTS.darkBackground,
+      lightBackground: DEFAULTS.lightBackground,
+      isSetup: DEFAULTS.isSetup,
+      ...data,
     });
   } else {
-    settings = await prisma.instanceSettings.update({
-      where: {
-        id: settings.id,
-      },
-      data,
-    });
+    const updated = await db.orm.public.InstanceSettings.where({ id: settings.id }).update(data);
+
+    if (!updated) {
+      throw new Error('Failed to update instance settings');
+    }
+
+    settings = updated;
   }
 
   await cache.del(cacheKey);
