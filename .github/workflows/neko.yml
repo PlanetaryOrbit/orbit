@@ -2,7 +2,7 @@ name: Update Neko Corner
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 0 * * *'
   push:
     branches: [v3-vue]
   workflow_dispatch:
@@ -10,16 +10,31 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: neko-corner
+  cancel-in-progress: false
+
 jobs:
   update:
     if: github.ref == 'refs/heads/v3-vue'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: meow checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Update neko corner
+      - name: meow git
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: meow
+        run: |
+          git fetch origin v3-vue
+          git reset --hard origin/v3-vue
+
           urls=$(curl -fsSL \
             -A "Orbit (https://github.com/${{ github.repository }})" \
             'https://nekos.best/api/v2/neko?amount=3' |
@@ -27,38 +42,85 @@ jobs:
 
           mapfile -t urls <<< "$urls"
 
-          [ "${#urls[@]}" -eq 3 ] || exit 1
+          if [ "${#urls[@]}" -ne 3 ]; then
+            echo "Expected 3 Neko URLs, got ${#urls[@]}"
+            exit 1
+          fi
 
           python3 - "${urls[@]}" <<'PY'
-          import sys, re
+          import sys
+          import re
           from pathlib import Path
 
-          p = Path("README.md")
-          s = p.read_text()
+          path = Path("README.md")
+          text = path.read_text()
 
-          start = "<!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
-          end = "<!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
+          start_marker = "<!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
+          end_marker = "<!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
 
-          a, b = s.index(start), s.index(end)
-          section = s[a:b]
+          start = text.find(start_marker)
+          end = text.find(end_marker)
+
+          if start == -1 or end == -1:
+              raise SystemExit("Neko Corner markers not found")
+
+          if end <= start:
+              raise SystemExit("Invalid Neko Corner marker order")
+
+          section_end = end + len(end_marker)
+          section = text[start:section_end]
 
           urls = sys.argv[1:]
 
-          section, n = re.subn(
-              r'(?<=<img src=")[^"]+',
-              lambda _: urls.pop(0),
-              section,
-              count=3
+          for i, url in enumerate(urls, start=1):
+              pattern = (
+                  rf'(<img\s+data-neko="NEKO_{i}"'
+                  rf'[^>]*?)\s+src="[^"]*"'
+                  rf'([^>]*>)'
+              )
+
+              replacement = rf'\1 src="{url}"\2'
+
+              section, count = re.subn(
+                  pattern,
+                  replacement,
+                  section,
+                  count=1,
+              )
+
+              if count != 1:
+                  # Allow the initial placeholder-only version.
+                  placeholder_pattern = (
+                      rf'(<img\s+data-neko="NEKO_{i}"'
+                      rf'[^>]*)(>)'
+                  )
+
+                  section, count = re.subn(
+                      placeholder_pattern,
+                      rf'\1 src="{url}"\2',
+                      section,
+                      count=1,
+                  )
+
+              if count != 1:
+                  raise SystemExit(
+                      f"Could not find NEKO_{i} in Neko Corner"
+                  )
+
+          path.write_text(
+              text[:start] +
+              section +
+              text[section_end:]
           )
-
-          if n != 3:
-              raise SystemExit("Expected 3 neko images")
-
-          p.write_text(s[:a] + section + s[b:])
           PY
 
-      - name: Commit
+      - name: commit meow
         run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git diff --quiet || (git add README.md && git commit -m "chore: update neko corner" && git push)
+          if git diff --quiet; then
+            echo "No Neko changes."
+            exit 0
+          fi
+
+          git add README.md
+          git commit -m "chore: meow neko corner"
+          git push origin HEAD:v3-vue
