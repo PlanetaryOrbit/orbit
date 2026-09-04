@@ -1,5 +1,5 @@
 <div align="center">
-  <img src=".github/assets/logo.png" alt="Orbit" width="110">
+  <img src=".github/assets/logo.png" alt="Orbit" height="90">
 
   <h1>Orbit</h1>
 
@@ -10,62 +10,111 @@
   </p>
 
   <p>
-    <sub>made by cats and pawesome contributers</sub>
-    <br>
-    <code>ฅ^•ﻌ•^ฅ</code> &nbsp; <strong>meow!</strong>
+    <img src="https://img.shields.io/github/contributors/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" alt="Contributors">
+    <img src="https://img.shields.io/github/license/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" alt="License">
+    <img src="https://img.shields.io/github/forks/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" alt="Forks">
+    <img src="https://img.shields.io/github/last-commit/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" alt="Last commit">
+    <a href="https://discord.gg/mWqdZmEkDc">
+      <img src="https://img.shields.io/discord/1348101138670682156?style=for-the-badge&logo=discord&logoColor=white&label=Discord&color=7289da" alt="Discord">
+    </a>
   </p>
 
   <p>
-    <strong>Nightly</strong> → Beta → Release Candidate → Stable
+    <sub>made by cats &amp; pawesome contributors</sub>
+  </p>
+
+  <p>
+    <strong>Nightly</strong> <sub>(current)</sub>
+    → Beta → Release Candidate → Stable
   </p>
 </div>
 
----
+<br>
 
-## Orbit v3
+<div align="center">
+  <sub>
+    Orbit v3 is currently in <strong>Nightly development</strong>.
+    Things are expected to change frequently, and v3 is not close to a stable release yet.
+  </sub>
+  <br>
+  <sub>
+    Using Orbit v2? Check out the <a href="../../tree/main"><code>main</code></a> branch.
+  </sub>
+</div>
 
-Orbit v3 is currently in **Nightly development**. Things are expected to change frequently, and v3 is not close to a stable release yet.
-
-> **Using Orbit v2?** Please use the [`main`](../../tree/main) branch.
+<br>
 
 ## Release Cycle
 
-**Nightly**
-Development builds containing the latest changes. Experimental features, bugs, breaking changes, and small fixes may be present.
+<div align="center">
+  <p>
+    <strong>Nightly</strong>
+    <br>
+    <sub>
+      Development builds containing the latest changes.
+      Experimental features, bugs, breaking changes, and small fixes may be present.
+    </sub>
+  </p>
 
-<sub>Built every commit · Published every 24 hours</sub>
+  <p>
+    <strong>Beta</strong>
+    <br>
+    <sub>
+      More complete builds intended for wider testing.
+      Major features should be in place, but bugs and changes may still occur.
+    </sub>
+  </p>
 
-**Beta**
-More complete builds intended for wider testing. Major features should be in place, but bugs and changes may still occur.
+  <p>
+    <strong>Release Candidate</strong>
+    <br>
+    <sub>
+      Feature-complete builds undergoing final testing.
+      Major API and database changes are frozen, with only necessary fixes being made.
+    </sub>
+  </p>
 
-**Release Candidate**
-Feature-complete builds undergoing final testing. Major API and database changes are frozen, with only necessary fixes being made.
+  <p>
+    <strong>Stable</strong>
+    <br>
+    <sub>
+      Production-ready releases recommended for general use and Orbit Cloud.
+    </sub>
+  </p>
+</div>
 
-**Stable**
-Production-ready releases recommended for general use and Orbit Cloud.
+<div align="center">
+  <sub>
+    Releases move between stages based on readiness rather than a fixed schedule.
+    Stable releases are expected approximately every <strong>3–4 weeks</strong>
+    once Orbit reaches the Stable release cycle.
+  </sub>
+</div>
 
-<sub>
-Releases move between stages based on readiness rather than a fixed schedule.
-Stable releases are expected approximately every <strong>3–4 weeks</strong>
-once Orbit reaches the Stable release cycle.
-</sub>
+<br>
 
 ## API Migration
 
 Orbit v3 introduces a new API that is **not backward compatible with v2**. Applications using the v2 API will need to be updated for v3.
 
-APIs are located under `/api/`, with each feature using its own versioned endpoint. For example, the Forms API is available at `/api/v1/forms/`.
+APIs are located under <code>/api/</code>, with each feature using its own versioned endpoint. For example, the Forms API is available at <code>/api/v1/forms/</code>.
 
 API versions allow breaking changes to be introduced without immediately breaking existing clients. The latest API version should generally be used for new integrations.
+
+<br>
+
+<div align="center">
 
 ## Neko Corner
 
 <!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
 
-<p align="center">
+<p>
   <img src="https://nekos.best/api/v2/neko/73b3fa86-168b-4946-9c04-1ef2bbc9e9c9.png" width="150" alt="Neko">
   <img src="https://nekos.best/api/v2/neko/9f6d806e-37a3-43c7-bbb0-24f54d3f756d.png" width="150" alt="Neko">
   <img src="https://nekos.best/api/v2/neko/563815b1-9138-4ec3-9a11-8984805fc36f.png" width="150" alt="Neko">
 </p>
 
 <!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
+
+</div>
