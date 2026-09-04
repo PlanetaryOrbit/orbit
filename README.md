@@ -33,9 +33,9 @@ API versions allow breaking changes to be introduced without immediately breakin
 <div align="center">
   <table>
     <tr>
-      <td><img src="https://nekos.best/api/v2/neko/73b3fa86-168b-4946-9c04-1ef2bbc9e9c9.png" width="150"></td>
-      <td><img src="https://nekos.best/api/v2/neko/9f6d806e-37a3-43c7-bbb0-24f54d3f756d.png" width="150"></td>
-      <td><img src="https://nekos.best/api/v2/neko/563815b1-9138-4ec3-9a11-8984805fc36f.png" width="150"></td>
+      <td><img src="https://nekos.best/api/v2/neko/5005b597-1181-4a23-8517-f5a6b0855b82.png" width="150"></td>
+      <td><img src="https://nekos.best/api/v2/neko/92aa3b12-1c2f-443c-9025-faba62dd0efd.png" width="150"></td>
+      <td><img src="https://nekos.best/api/v2/neko/713bb95d-324b-4a12-9725-ae3c99fe6895.png" width="150"></td>
     </tr>
   </table>
 </div>
