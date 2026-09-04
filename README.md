@@ -21,7 +21,13 @@ APIs are located under `/api/`, with each feature using its own versioned endpoi
 
 API versions allow breaking changes to be introduced without immediately breaking existing clients. The latest API version should generally be used for new integrations.
 
-## neko corner
+## Contributors
+
+<p align="center">
+  <img src="assets/contributor-map.svg" alt="Contributor map">
+</p>
+
+## Neko Corner
 
 <!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
 <div align="center">
