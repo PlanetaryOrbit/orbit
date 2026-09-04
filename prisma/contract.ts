@@ -106,34 +106,102 @@ export const contract = defineContract({}, ({ field, model }) => {
         credential: rel.hasOne(Credential, { by: 'userId' }),
         notifications: rel.hasMany(Notification, { by: 'userId' }),
         sessions: rel.hasMany(Session, { by: 'userId' }),
-      }),
+      }).sql(({ cols, constraints }) => ({
+        indexes: [
+          constraints.index([cols.bannedAt], {
+            name: 'User_bannedAt_idx',
+          }),
+          constraints.index([cols.bannedFor], {
+            name: 'User_bannedFor_idx',
+          }),
+          constraints.index([cols.banned], {
+            name: 'User_banned_idx',
+          }),
+          constraints.index([cols.discordData], {
+            name: 'User_discordData_idx',
+          }),
+          constraints.index([cols.googleData], {
+            name: 'User_googleData_idx',
+          }),
+          constraints.index([cols.robloxData], {
+            name: 'User_robloxData_idx',
+          }),
+        ],
+      })),
 
       Credential: Credential.relations({
         user: rel.belongsTo(User, {
           from: 'userId',
           to: 'id',
         }),
-      }),
+      }).sql(({ cols, constraints }) => ({
+        foreignKeys: [
+          constraints.foreignKey(cols.userId, User.refs.id, {
+            name: 'Credential_userId_fkey',
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+          }),
+        ],
+      })),
 
       InstanceSettings,
 
-      Media,
+      Media: Media.sql(({ cols, constraints }) => ({
+        indexes: [
+          constraints.index([cols.createdAt], {
+            name: 'Media_createdAt_idx',
+          }),
+          constraints.index([cols.hash], {
+            name: 'Media_hash_idx',
+          }),
+        ],
+      })),
 
       Notification: Notification.relations({
         user: rel.belongsTo(User, {
           from: 'userId',
           to: 'id',
         }),
-      }),
+      }).sql(({ cols, constraints }) => ({
+        indexes: [
+          constraints.index([cols.createdAt], {
+            name: 'Notification_createdAt_idx',
+          }),
+          constraints.index([cols.userId], {
+            name: 'Notification_userId_idx',
+          }),
+        ],
+        foreignKeys: [
+          constraints.foreignKey(cols.userId, User.refs.id, {
+            name: 'Notification_userId_fkey',
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+          }),
+        ],
+      })),
 
       Session: Session.relations({
         user: rel.belongsTo(User, {
           from: 'userId',
           to: 'id',
         }),
-      }),
+      }).sql(({ cols, constraints }) => ({
+        foreignKeys: [
+          constraints.foreignKey(cols.userId, User.refs.id, {
+            name: 'Session_userId_fkey',
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+          }),
+        ],
+      })),
 
-      SignupAttempt,
+      SignupAttempt: SignupAttempt.sql(({ cols, constraints }) => ({
+        indexes: [
+          constraints.index([cols.robloxId], {
+            name: 'SignupAttempt_robloxId_idx',
+          }),
+        ],
+      })),
     },
   };
 });

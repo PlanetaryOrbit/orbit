@@ -5,5 +5,8 @@ import { definePrismaConfig } from 'prisma/config';
 export default definePrismaConfig({
   orm: definePostgresConfig({
     contract: './prisma/contract.ts',
+    db: {
+      connection: process.env.DATABASE_URL!,
+    },
   }),
 });
