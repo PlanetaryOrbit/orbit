@@ -1,0 +1,59 @@
+name: Update Neko Corner
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  push:
+    branches: [v3-vue]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/v3-vue'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update neko corner
+        run: |
+          urls=$(curl -fsSL 'https://nekos.best/api/v2/neko?amount=3' | jq -r '.results[].url')
+          mapfile -t urls <<< "$urls"
+
+          [ "${#urls[@]}" -eq 3 ] || exit 1
+
+          python3 - "${urls[@]}" <<'PY'
+          import sys, re
+          from pathlib import Path
+
+          p = Path("README.md")
+          s = p.read_text()
+
+          start = "<!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
+          end = "<!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->"
+
+          a, b = s.index(start), s.index(end)
+          section = s[a:b]
+
+          urls = sys.argv[1:]
+          section, n = re.subn(
+              r'(?<=<img src=")[^"]+',
+              lambda _: urls.pop(0),
+              section,
+              count=3
+          )
+
+          if n != 3:
+              raise SystemExit("Expected 3 neko images")
+
+          p.write_text(s[:a] + section + s[b:])
+          PY
+
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git diff --quiet || (git add README.md && git commit -m "chore: update neko corner" && git push)

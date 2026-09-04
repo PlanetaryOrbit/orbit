@@ -1,21 +1,29 @@
 # Orbit v3
 
-> Release cycle: Nightly → Beta → Release Candidate → Stable
->
-> Stable releases are typically published once per month (or every 3–4 weeks). Orbit Cloud instances use the Stable channel and are recommended for users who want the most reliable and thoroughly tested experience. Stable releases include new features, stability improvements, and bug fixes that have completed the release cycle.
->
-> If you are self-hosting Orbit and want access to new features sooner, we recommend the Release Candidate channel. Release Candidates are generally stable, but may still contain bugs or stability issues that are resolved before the next Stable release.
+> **Release cycle:** Nightly → Beta → Release Candidate → Stable
+
+Orbit v3 is currently in **Nightly development**. Things are expected to change frequently, orbit v3 is not close to a stable release yet. Please use the `main` branch for Orbit v2.
+
+### Release Cycle
+
+- **Nightly** — Development builds containing the latest changes. They may include experimental features, bugs, breaking changes, or database changes. Nightly builds are automatically built on every commit, but are not normally published to avoid unnecessary registry rate limits.
+- **Beta** — More complete builds intended for wider testing. Major features should be in place, but bugs and changes may still occur.
+- **Release Candidate** — Feature-complete builds undergoing final testing. Major API and database changes are frozen, with only necessary fixes being made.
+- **Stable** — Production-ready releases recommended for general use and Orbit Cloud. These releases have completed the full testing and stabilization process.
+
+Releases move between stages based on their readiness rather than a fixed schedule. Stable releases are expected to be published approximately every **3–4 weeks** once the project reaches the Stable release cycle.
 
 ## API Migration
 
-Orbit v3 introduces a new API that is not backward compatible with v2. If you are migrating from v2, you will need to update your client code to use the new API.
+Orbit v3 introduces a new API that is **not backward compatible with v2**. Applications using the v2 API will need to be updated for v3.
 
-All APIs are located under `/api/`, with each feature having its own versioned subdirectory. For example, the Forms API is available at `/api/v1/forms/`.
+APIs are located under `/api/`, with each feature using its own versioned endpoint. For example, the Forms API is available at `/api/v1/forms/`.
 
-We recommend using the latest available version of each API to ensure compatibility with future releases. API versions allow us to make major changes without unexpectedly breaking clients that rely on older versions. When a breaking change is required, we can introduce a new API version while (not really) continuing to support the previous version.
+API versions allow breaking changes to be introduced without immediately breaking existing clients. The latest API version should generally be used for new integrations.
 
 ## neko corner
 
+<!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
 <div align="center">
   <table>
     <tr>
@@ -25,3 +33,4 @@ We recommend using the latest available version of each API to ensure compatibil
     </tr>
   </table>
 </div>
+<!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->

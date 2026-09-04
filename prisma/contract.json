@@ -913,7 +913,27 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "name": "Credential_userId_fkey",
+                  "onDelete": "cascade",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Credential"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -1109,7 +1129,24 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "Media_createdAt_idx_9575dbd7",
+                  "prefix": "Media_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "hash"
+                  ],
+                  "name": "Media_hash_idx_d25bc543",
+                  "prefix": "Media_hash_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1196,8 +1233,45 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "name": "Notification_userId_fkey",
+                  "onDelete": "cascade",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Notification"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "Notification_createdAt_idx_9575dbd7",
+                  "prefix": "Notification_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "Notification_userId_idx_a489d58a",
+                  "prefix": "Notification_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1240,8 +1314,37 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "name": "Session_userId_fkey",
+                  "onDelete": "cascade",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Session"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "Session_userId_idx_a489d58a",
+                  "prefix": "Session_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1306,7 +1409,16 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "robloxId"
+                  ],
+                  "name": "SignupAttempt_robloxId_idx_9d4b92fd",
+                  "prefix": "SignupAttempt_robloxId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1393,7 +1505,56 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "bannedAt"
+                  ],
+                  "name": "User_bannedAt_idx_96bb11de",
+                  "prefix": "User_bannedAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "bannedFor"
+                  ],
+                  "name": "User_bannedFor_idx_c25c792c",
+                  "prefix": "User_bannedFor_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "banned"
+                  ],
+                  "name": "User_banned_idx_072711b2",
+                  "prefix": "User_banned_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "discordData"
+                  ],
+                  "name": "User_discordData_idx_c262f1a1",
+                  "prefix": "User_discordData_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "googleData"
+                  ],
+                  "name": "User_googleData_idx_7b9fee95",
+                  "prefix": "User_googleData_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "robloxData"
+                  ],
+                  "name": "User_robloxData_idx_a4d2198c",
+                  "prefix": "User_robloxData_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1418,7 +1579,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d65fc7864bae52454243788c484ce869cbf3a47ceb988cdf4cda9ac53c18b738"
+    "storageHash": "6dff90f9a1f074ce4f5ca78e36892052b44ba5d54c12ae04d2814b5103c82fd4"
   },
   "execution": {
     "executionHash": "18e4077ff6169bff4afe7a40dbdfba0a821210256ea8f0eadf66b1a8c2571efb",

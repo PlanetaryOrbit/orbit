@@ -27,3 +27,4 @@ certs
 node_modules/
 dist/
 server/generated/prisma
+migrations/

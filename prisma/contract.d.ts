@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d65fc7864bae52454243788c484ce869cbf3a47ceb988cdf4cda9ac53c18b738'>;
+  StorageHashBase<'6dff90f9a1f074ce4f5ca78e36892052b44ba5d54c12ae04d2814b5103c82fd4'>;
 export type ExecutionHash =
   ExecutionHashBase<'18e4077ff6169bff4afe7a40dbdfba0a821210256ea8f0eadf66b1a8c2571efb'>;
 export type ProfileHash =
@@ -618,7 +618,21 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['userId'] }];
               indexes: readonly [];
-              foreignKeys: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Credential';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'Credential_userId_fkey';
+                },
+              ];
             };
             readonly InstanceSettings: {
               columns: {
@@ -788,7 +802,20 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['storageKey'] }];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Media_createdAt_idx_9575dbd7';
+                  readonly prefix: 'Media_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Media_hash_idx_d25bc543';
+                  readonly prefix: 'Media_hash_idx';
+                  readonly columns: readonly ['hash'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly Notification: {
@@ -858,8 +885,35 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Notification_createdAt_idx_9575dbd7';
+                  readonly prefix: 'Notification_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Notification_userId_idx_a489d58a';
+                  readonly prefix: 'Notification_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Notification';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'Notification_userId_fkey';
+                },
+              ];
             };
             readonly Session: {
               columns: {
@@ -893,8 +947,29 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['tokenHash'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Session_userId_idx_a489d58a';
+                  readonly prefix: 'Session_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Session';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly name: 'Session_userId_fkey';
+                },
+              ];
             };
             readonly SignupAttempt: {
               columns: {
@@ -943,7 +1018,14 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'SignupAttempt_robloxId_idx_9d4b92fd';
+                  readonly prefix: 'SignupAttempt_robloxId_idx';
+                  readonly columns: readonly ['robloxId'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly User: {
@@ -1024,7 +1106,44 @@ type ContractBase = Omit<
                 { readonly columns: readonly ['username'] },
                 { readonly columns: readonly ['robloxId'] },
               ];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'User_bannedAt_idx_96bb11de';
+                  readonly prefix: 'User_bannedAt_idx';
+                  readonly columns: readonly ['bannedAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'User_bannedFor_idx_c25c792c';
+                  readonly prefix: 'User_bannedFor_idx';
+                  readonly columns: readonly ['bannedFor'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'User_banned_idx_072711b2';
+                  readonly prefix: 'User_banned_idx';
+                  readonly columns: readonly ['banned'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'User_discordData_idx_c262f1a1';
+                  readonly prefix: 'User_discordData_idx';
+                  readonly columns: readonly ['discordData'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'User_googleData_idx_7b9fee95';
+                  readonly prefix: 'User_googleData_idx';
+                  readonly columns: readonly ['googleData'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'User_robloxData_idx_a4d2198c';
+                  readonly prefix: 'User_robloxData_idx';
+                  readonly columns: readonly ['robloxData'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };
