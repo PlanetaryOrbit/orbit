@@ -107,12 +107,10 @@ API versions allow breaking changes to be introduced without immediately breakin
 
 ## Neko Corner
 
-<!-- GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
 <p>
-  <img data-neko="NEKO_1" width="150" alt="Neko">
-  <img data-neko="NEKO_2" width="150" alt="Neko">
-  <img data-neko="NEKO_3" width="150" alt="Neko">
+  <img src="https://nekos.best/api/v2/neko/2b5e8a4b-3039-4026-9dca-065a33771761.png" width="150" alt="Neko">
+  <img src="https://nekos.best/api/v2/neko/60e207cd-42f2-48c5-99fb-92aadf998c13.png" width="150" alt="Neko">
+  <img src="https://nekos.best/api/v2/neko/4a128c75-ac7f-4d12-a105-10bc6676ad76.png" width="150" alt="Neko">
 </p>
-<!-- END_GITHUB_ACTION_NEKO_CORNER_AUTO_REFRESH -->
 
 </div>
