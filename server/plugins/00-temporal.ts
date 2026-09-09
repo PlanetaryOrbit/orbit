@@ -7,10 +7,4 @@ export default defineNitroPlugin(() => {
     configurable: true,
     enumerable: true,
   });
-
-  console.log(
-    '[TEMPORAL]',
-    typeof globalThis.Temporal,
-    globalThis.Temporal.Now.instant().toString(),
-  );
 });
