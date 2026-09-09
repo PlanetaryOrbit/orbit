@@ -1,25 +1,102 @@
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export type User = {
+  id: string;
+  username: string;
+  robloxId: string;
+  robloxData: JsonValue | null;
+  discordData: JsonValue | null;
+  googleData: JsonValue | null;
+  banned: boolean;
+  bannedAt: string | null;
+  bannedFor: string | null;
+  isOwner: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Credential = {
+  id: string;
+  userId: string;
+  passwordHash: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InstanceSettings = {
+  id: string;
+  name: string;
+  logoUrl: string;
+  allowPasswordAuth: boolean;
+  allowRobloxAuth: boolean;
+  enableRegistration: boolean;
+  primaryColor: string;
+  darkBackground: string;
+  lightBackground: string;
+  isSetup: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Media = {
+  id: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  storageKey: string;
+  hash: string | null;
+  width: number | null;
+  height: number | null;
+  alt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+  url: string | null;
+  sentAt: string;
+  expiresAt: string | null;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type Session = {
+  id: string;
+  tokenHash: string;
+  userId: string;
+  expiresAt: string;
+  createdAt: string;
+};
+
+export type SignupAttempt = {
+  id: string;
+  username: string;
+  passwordHash: string;
+  robloxId: string;
+  verificationCode: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ErrorBody = {
   code: string;
   message: string;
   details?: unknown;
   fields?: Record<string, string[]>;
 };
-
-export type User = {
-  id: string;
-  username: string;
-  robloxId: number; // BigInt
-  notifications: Notification[];
-  robloxData: RobloxData;
-}
-
-export type RobloxData = {
-  
-}
-
-export type Notification = {
-  
-}
 
 export type PaginationMeta = {
   page: number;

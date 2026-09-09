@@ -2,16 +2,11 @@ import type { FieldOutputTypes } from '@@/prisma/contract.d';
 import { db } from '~~/server/database/client';
 import cache from '~~/server/utils/cache';
 
-const cacheTTL = 3600;
-const cacheKey = 'instance_settings';
+export type InstanceSettings = FieldOutputTypes['public']['InstanceSettings'];
 
-type InstanceSettings = FieldOutputTypes['public']['InstanceSettings'];
+type InstanceSettingsData = Omit<InstanceSettings, 'id' | 'createdAt' | 'updatedAt'>;
 
-export type ClientInstanceSettings = Omit<InstanceSettings, 'id' | 'updatedAt' | 'createdAt'> & {
-  createdAt: string;
-};
-
-export const DEFAULTS: ClientInstanceSettings = {
+export const DEFAULTS: InstanceSettingsData = {
   name: 'Orbit',
   logoUrl: '/favicon.png',
   allowPasswordAuth: true,
@@ -21,16 +16,16 @@ export const DEFAULTS: ClientInstanceSettings = {
   darkBackground: '/orbitbackground-dark.svg',
   lightBackground: '/orbitbackground-light.svg',
   isSetup: false,
-  createdAt: new Date(0).toISOString(),
 };
 
-export function serializeSettings(settings: InstanceSettings): ClientInstanceSettings {
-  const { id, updatedAt, ...rest } = settings;
+const cacheKey = 'instance_settings';
+const cacheTTL = 3600;
 
-  return {
-    ...rest,
-    createdAt: settings.createdAt.toString(),
-  };
+async function createSettings(data: Partial<InstanceSettingsData> = {}): Promise<InstanceSettings> {
+  return db.orm.public.InstanceSettings.create({
+    ...DEFAULTS,
+    ...data,
+  });
 }
 
 export async function getSettings(): Promise<InstanceSettings> {
@@ -40,21 +35,9 @@ export async function getSettings(): Promise<InstanceSettings> {
     return cached;
   }
 
-  let settings = await db.orm.public.InstanceSettings.first();
+  const existing = await db.orm.public.InstanceSettings.first();
 
-  if (!settings) {
-    settings = await db.orm.public.InstanceSettings.create({
-      name: DEFAULTS.name,
-      logoUrl: DEFAULTS.logoUrl,
-      allowPasswordAuth: DEFAULTS.allowPasswordAuth,
-      allowRobloxAuth: DEFAULTS.allowRobloxAuth,
-      enableRegistration: DEFAULTS.enableRegistration,
-      primaryColor: DEFAULTS.primaryColor,
-      darkBackground: DEFAULTS.darkBackground,
-      lightBackground: DEFAULTS.lightBackground,
-      isSetup: DEFAULTS.isSetup,
-    });
-  }
+  const settings = existing ?? (await createSettings());
 
   await cache.set(cacheKey, settings, cacheTTL);
 
@@ -62,34 +45,24 @@ export async function getSettings(): Promise<InstanceSettings> {
 }
 
 export async function updateSettings(
-  data: Partial<Omit<InstanceSettings, 'id' | 'createdAt' | 'updatedAt'>>,
+  data: Partial<InstanceSettingsData>,
 ): Promise<InstanceSettings> {
-  let settings = await db.orm.public.InstanceSettings.first();
+  const existing = await db.orm.public.InstanceSettings.first();
 
-  if (!settings) {
-    settings = await db.orm.public.InstanceSettings.create({
-      name: DEFAULTS.name,
-      logoUrl: DEFAULTS.logoUrl,
-      allowPasswordAuth: DEFAULTS.allowPasswordAuth,
-      allowRobloxAuth: DEFAULTS.allowRobloxAuth,
-      enableRegistration: DEFAULTS.enableRegistration,
-      primaryColor: DEFAULTS.primaryColor,
-      darkBackground: DEFAULTS.darkBackground,
-      lightBackground: DEFAULTS.lightBackground,
-      isSetup: DEFAULTS.isSetup,
-      ...data,
-    });
-  } else {
-    const updated = await db.orm.public.InstanceSettings.where({ id: settings.id }).update(data);
+  if (!existing) {
+    const settings = await createSettings(data);
 
-    if (!updated) {
-      throw new Error('Failed to update instance settings');
-    }
+    await cache.set(cacheKey, settings, cacheTTL);
 
-    settings = updated;
+    return settings;
   }
 
-  await cache.del(cacheKey);
+  const settings = await db.orm.public.InstanceSettings.where({ id: existing.id }).update(data);
+
+  if (!settings) {
+    throw new Error('Failed to update instance settings');
+  }
+
   await cache.set(cacheKey, settings, cacheTTL);
 
   return settings;

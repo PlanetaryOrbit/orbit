@@ -5,7 +5,7 @@ import { Toaster } from 'vue-sonner';
 import Button from '~/components/ui/Button.vue';
 
 const { isDark, toggle } = useTheme();
-
+const { settings } = useInstance();
 const user = null;
 </script>
 
@@ -15,16 +15,20 @@ const user = null;
       class="sticky top-0 z-50 border-b border-ctp-surface0 bg-ctp-crust/80 backdrop-blur-xl select-none"
     >
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <NuxtLink to="/">
+        <NuxtLink to="/" :aria-label="settings.name" class="flex items-center gap-3">
           <img
-            src="/planetary.svg"
-            alt="Planetary"
-            width="125"
-            height="60"
-            class="h-[60px] w-[125px]"
+            :src="settings.logoUrl"
+            :alt="settings.name"
+            width="40"
+            height="40"
+            class="h-10 w-10 object-contain"
             loading="eager"
             fetchpriority="high"
           />
+
+          <span class="text-lg font-semibold text-ctp-text">
+            {{ settings.name }}
+          </span>
         </NuxtLink>
 
         <div class="flex items-center gap-3">
@@ -38,13 +42,22 @@ const user = null;
           />
 
           <div v-if="user">
-            <!-- nothing -->
+            <!-- User menu -->
           </div>
 
           <div v-else class="flex items-center gap-3">
-            <Button variant="ghost" href="/login">Log in</Button>
+            <Button v-if="settings.allowPasswordAuth" variant="ghost" href="/login">
+              Log in
+            </Button>
 
-            <Button variant="primary" href="/signup" :icon="IconUserPlus">Sign Up</Button>
+            <Button
+              v-if="settings.enableRegistration"
+              variant="primary"
+              href="/signup"
+              :icon="IconUserPlus"
+            >
+              Sign Up
+            </Button>
           </div>
         </div>
       </div>
