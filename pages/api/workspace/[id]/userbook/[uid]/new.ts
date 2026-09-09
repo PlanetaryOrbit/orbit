@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getConfig } from "@/utils/configEngine";
 import prisma from "@/utils/database";
-import * as rbx from '@/utils/roblox'
+import * as rbx from "@/utils/roblox";
 import { logAudit } from "@/utils/logs";
 import { RankGunAPI, getRankGun } from "@/utils/rankgun";
 import formidable, { File as FormidableFile } from "formidable";
@@ -34,14 +34,14 @@ function rankingFailureMessage(result: RankingResultLike): string {
 
 async function syncWorkspaceMemberRankFromRobloxNoblox(
   workspaceGroupId: number,
-  userId: number
+  userId: number,
 ): Promise<{ rankAfter: number; rankNameAfter: string | null } | null> {
   try {
     const ocConf = await getConfig("roblox_opencloud", workspaceGroupId);
     const newRank = await rbx.getUserRank(
       BigInt(userId),
       BigInt(workspaceGroupId),
-      ocConf.key
+      ocConf.key,
     );
 
     if (!newRank) {
@@ -146,12 +146,8 @@ async function syncWorkspaceMemberRankFromRobloxNoblox(
       rankAfter: rankValue,
       rankNameAfter,
     };
-
   } catch (rankUpdateError) {
-    console.error(
-      "Error updating user rank in database:",
-      rankUpdateError
-    );
+    console.error("Error updating user rank in database:", rankUpdateError);
     return null;
   }
 }
@@ -208,7 +204,8 @@ async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
     allowEmptyFiles: false,
     maxFileSize: MAX_ATTACHMENT_SIZE,
     maxFiles: MAX_ATTACHMENTS,
-    filter: ({ mimetype }) => !!(mimetype && ALLOWED_ATTACHMENT_MIMES.has(mimetype)),
+    filter: ({ mimetype }) =>
+      !!(mimetype && ALLOWED_ATTACHMENT_MIMES.has(mimetype)),
   });
 
   const [fields, files] = await form.parse(req);
@@ -219,7 +216,9 @@ async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
     : fields.targetRank;
 
   const parsedFiles = files.attachments
-    ? (Array.isArray(files.attachments) ? files.attachments : [files.attachments])
+    ? Array.isArray(files.attachments)
+      ? files.attachments
+      : [files.attachments]
     : [];
 
   if (parsedFiles.length > MAX_ATTACHMENTS) {
@@ -233,7 +232,9 @@ async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
       throw new Error("Only PDF, JPG, PNG, WEBP, and GIF files are supported.");
     }
     if (file.size > MAX_ATTACHMENT_SIZE) {
-      throw new Error(`Each file must be under ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB.`);
+      throw new Error(
+        `Each file must be under ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB.`,
+      );
     }
 
     const buffer = fs.readFileSync(file.filepath);
@@ -255,7 +256,11 @@ async function parseRequestBody(req: NextApiRequest): Promise<ParsedBody> {
   };
 }
 
-async function checkPermissionForType(req: AuthenticatedRequest, type: string, workspaceGroupId: number) {
+async function checkPermissionForType(
+  req: AuthenticatedRequest,
+  type: string,
+  workspaceGroupId: number,
+) {
   const permissionMap: Record<string, string> = {
     note: "logbook_note",
     warning: "logbook_warning",
@@ -284,7 +289,10 @@ async function checkPermissionForType(req: AuthenticatedRequest, type: string, w
   return user.roles[0].permissions.includes(requiredPermission);
 }
 
-async function hasRankUsersPermission(req: AuthenticatedRequest, workspaceGroupId: number): Promise<boolean> {
+async function hasRankUsersPermission(
+  req: AuthenticatedRequest,
+  workspaceGroupId: number,
+): Promise<boolean> {
   const user = await prisma.user.findFirst({
     where: { userid: BigInt(req.auth.userId) },
     include: {
@@ -298,7 +306,7 @@ async function hasRankUsersPermission(req: AuthenticatedRequest, workspaceGroupI
   const isAdmin = membership?.isAdmin || false;
   if (isAdmin) return true;
 
-  return user.roles.some(role => role.permissions.includes("rank_users"));
+  return user.roles.some((role) => role.permissions.includes("rank_users"));
 }
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
@@ -338,9 +346,15 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
       .json({ success: false, error: "Missing required fields" });
 
   const workspaceGroupId = parseInt(id as string);
-  const hasPermission = await checkPermissionForType(req, type, workspaceGroupId);
+  const hasPermission = await checkPermissionForType(
+    req,
+    type,
+    workspaceGroupId,
+  );
   if (!hasPermission) {
-    return res.status(403).json({ success: false, error: "Insufficient permissions" });
+    return res
+      .status(403)
+      .json({ success: false, error: "Insufficient permissions" });
   }
   const userId = parseInt(uid as string);
 
@@ -350,41 +364,32 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
       error: "You cannot perform actions on yourself.",
     });
   }
-  const opencloudKey = await getConfig("roblox_opencloud", workspaceGroupId);
-  const configOpenCloudApiKey =
-    opencloudKey &&
-      typeof (opencloudKey as { key?: string }).key === "string" &&
-      (opencloudKey as { key: string }).key.length > 0
-      ? (opencloudKey as { key: string }).key
-      : null;
   const externalRanking = await prisma.workspaceExternalServices.findFirst({
     where: { workspaceGroupId },
   });
-  const integratedRankingKey =
+  // Only rank when a provider is explicitly selected.
+  const rankingRobloxApiKey =
     externalRanking?.rankingProvider === "opencloudranking" &&
-      typeof externalRanking?.rankingToken === "string" &&
-      externalRanking.rankingToken.length > 0
+    typeof externalRanking?.rankingToken === "string" &&
+    externalRanking.rankingToken.length > 0
       ? externalRanking.rankingToken
       : null;
   const promotionRankCap =
     typeof externalRanking?.rankingMaxRank === "number" &&
-      externalRanking.rankingMaxRank >= 1
+    externalRanking.rankingMaxRank >= 1
       ? externalRanking.rankingMaxRank
       : null;
-  const rankingRobloxApiKey =
-    integratedRankingKey ??
-    ((externalRanking?.rankingProvider || "") !== "opencloudranking"
-      ? configOpenCloudApiKey
-      : null);
   const rankGun = await getRankGun(workspaceGroupId);
   const canUseRankGun = await hasRankUsersPermission(req, workspaceGroupId);
+  const rankingConfigured = !!(rankGun || rankingRobloxApiKey);
   let rankBefore: number | null = null;
   let rankAfter: number | null = null;
   let rankNameBefore: string | null = null;
   let rankNameAfter: string | null = null;
 
   if (
-    (rankGun && canUseRankGun) &&
+    rankingConfigured &&
+    canUseRankGun &&
     (type === "promotion" ||
       type === "demotion" ||
       type === "rank_change" ||
@@ -402,7 +407,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
         rankBefore = Number(targetUserRank.rankId);
         const currentRankInfo = await noblox.getRole(
           workspaceGroupId,
-          rankBefore
+          rankBefore,
         );
         rankNameBefore = currentRankInfo?.name || null;
       }
@@ -447,7 +452,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   }
 
   if (
-    ((rankGun && canUseRankGun) || rankingRobloxApiKey) &&
+    rankingConfigured &&
+    canUseRankGun &&
     (type === "promotion" ||
       type === "demotion" ||
       type === "rank_change" ||
@@ -462,13 +468,18 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
           if (rankGunAPI && rankGun) {
             result = await rankGunAPI.promoteUser(userId, rankGun.workspaceId);
           } else if (rankingRobloxApiKey) {
-            result = await rbx.promoteUser(userId, workspaceGroupId, rankingRobloxApiKey, {
-              maxPromotionRank: promotionRankCap,
-            });
+            result = await rbx.promoteUser(
+              userId,
+              workspaceGroupId,
+              rankingRobloxApiKey,
+              {
+                maxPromotionRank: promotionRankCap,
+              },
+            );
           } else {
             return res.status(400).json({
               success: false,
-              error: "No ranking provider configured."
+              error: "No ranking provider configured.",
             });
           }
           break;
@@ -479,28 +490,31 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
             result = await rbx.demoteUser(
               userId,
               workspaceGroupId,
-              rankingRobloxApiKey
+              rankingRobloxApiKey,
             );
           } else {
             return res.status(400).json({
               success: false,
-              error: "No ranking provider configured."
+              error: "No ranking provider configured.",
             });
           }
           break;
         case "termination":
           if (rankGunAPI && rankGun) {
-            result = await rankGunAPI.terminateUser(userId, rankGun.workspaceId);
+            result = await rankGunAPI.terminateUser(
+              userId,
+              rankGun.workspaceId,
+            );
           } else if (rankingRobloxApiKey) {
             result = await rbx.terminateUser(
               userId,
               workspaceGroupId,
-              rankingRobloxApiKey
+              rankingRobloxApiKey,
             );
           } else {
             return res.status(400).json({
               success: false,
-              error: "No ranking provider configured."
+              error: "No ranking provider configured.",
             });
           }
           break;
@@ -551,7 +565,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
           } catch (rankCheckError) {
             console.error(
               "Error checking admin rank for rank_change:",
-              rankCheckError
+              rankCheckError,
             );
           }
 
@@ -559,7 +573,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
             result = await rankGunAPI.setUserRank(
               userId,
               rankGun ? rankGun.workspaceId : "",
-              parsedTargetRank
+              parsedTargetRank,
             );
           } else if (rankingRobloxApiKey) {
             result = await rbx.rankChange(
@@ -567,12 +581,12 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
               workspaceGroupId,
               parsedTargetRank,
               rankingRobloxApiKey,
-              { maxPromotionRank: promotionRankCap }
+              { maxPromotionRank: promotionRankCap },
             );
           } else {
             return res.status(400).json({
               success: false,
-              error: "No ranking provider configured."
+              error: "No ranking provider configured.",
             });
             break;
           }
@@ -598,7 +612,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
 
           const syncedRank = await syncWorkspaceMemberRankFromRobloxNoblox(
             workspaceGroupId,
-            userId
+            userId,
           );
           if (syncedRank) {
             rankAfter = syncedRank.rankAfter;
@@ -611,9 +625,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
         result &&
         typeof result === "object" &&
         "success" in result &&
-        (type === "promotion" ||
-          type === "demotion" ||
-          type === "termination")
+        (type === "promotion" || type === "demotion" || type === "termination")
       ) {
         const r = result as RankingResultLike;
         if (!r.success) {
@@ -634,14 +646,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
       ) {
         const synced = await syncWorkspaceMemberRankFromRobloxNoblox(
           workspaceGroupId,
-          userId
+          userId,
         );
         if (synced) {
           rankAfter = synced.rankAfter;
           rankNameAfter = synced.rankNameAfter;
         }
       }
-
     } catch (error: any) {
       let errorMessage =
         error?.response?.data?.error ||
@@ -695,16 +706,16 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
         rankAfter,
         rankNameBefore,
         rankNameAfter,
-      }
+      },
     );
-  } catch (e) { }
+  } catch (e) {}
 
   res.status(200).json({
     success: true,
     log: JSON.parse(
       JSON.stringify(userbook, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      )
+        typeof value === "bigint" ? value.toString() : value,
+      ),
     ),
   });
 }

@@ -119,9 +119,12 @@ Orbit is designed to run on a small Linux server, but we recommend giving it eno
 | **CPU** | 2 cores | 2–4+ cores |
 | **RAM** | 2 GB | 4 GB+ |
 | **Storage** | 10 GB | 20 GB+ SSD |
-| **Database** | PostgreSQL | PostgreSQL |
+| **Database** | Any Prisma-compatible DB | PostgreSQL |
 | **Node.js** | 20+ | Latest supported LTS |
 | **OS** | Linux | Linux |
+
+> [!WARNING]
+> You cannot use MongoDB, as MongoDB's database interface is NoSQL, and Orbit was programmed to be in SQL-like interface (such as PostgresSQL), and therefore is not compatible with MongoDB.
 
 > [!TIP]
 > **An SSD is strongly recommended.** Orbit's dependencies can consume a significant amount of disk space, particularly `node_modules`, and Next.js builds perform a considerable amount of disk I/O. We recommend having at least 20 GB of available storage for a comfortable installation.
