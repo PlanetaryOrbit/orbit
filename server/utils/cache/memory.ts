@@ -30,11 +30,7 @@ export class MemoryCache implements CacheProvider {
     return item.value as T;
   }
 
-  async set(
-    key: string,
-    value: unknown,
-    ttl = 300,
-  ): Promise<void> {
+  async set(key: string, value: unknown, ttl = 300): Promise<void> {
     this.cache.set(key, {
       value,
       expires: Date.now() + ttl * 1000,
@@ -49,10 +45,7 @@ export class MemoryCache implements CacheProvider {
     return (await this.get(key)) !== null;
   }
 
-  async increment(
-    key: string,
-    ttl = 60,
-  ): Promise<number> {
+  async increment(key: string, ttl = 60): Promise<number> {
     const current = await this.get<number>(key);
 
     const value = (current ?? 0) + 1;

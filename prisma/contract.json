@@ -82,12 +82,8 @@
               "user": {
                 "cardinality": "N:1",
                 "on": {
-                  "localFields": [
-                    "userId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
+                  "localFields": ["userId"],
+                  "targetFields": ["id"]
                 },
                 "to": {
                   "model": "User",
@@ -462,12 +458,8 @@
               "user": {
                 "cardinality": "N:1",
                 "on": {
-                  "localFields": [
-                    "userId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
+                  "localFields": ["userId"],
+                  "targetFields": ["id"]
                 },
                 "to": {
                   "model": "User",
@@ -560,12 +552,8 @@
               "user": {
                 "cardinality": "N:1",
                 "on": {
-                  "localFields": [
-                    "userId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
+                  "localFields": ["userId"],
+                  "targetFields": ["id"]
                 },
                 "to": {
                   "model": "User",
@@ -783,12 +771,8 @@
               "credential": {
                 "cardinality": "1:1",
                 "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "userId"
-                  ]
+                  "localFields": ["id"],
+                  "targetFields": ["userId"]
                 },
                 "to": {
                   "model": "Credential",
@@ -798,12 +782,8 @@
               "notifications": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "userId"
-                  ]
+                  "localFields": ["id"],
+                  "targetFields": ["userId"]
                 },
                 "to": {
                   "model": "Notification",
@@ -813,12 +793,8 @@
               "sessions": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "userId"
-                  ]
+                  "localFields": ["id"],
+                  "targetFields": ["userId"]
                 },
                 "to": {
                   "model": "Session",
@@ -919,16 +895,12 @@
                   "onDelete": "cascade",
                   "onUpdate": "cascade",
                   "source": {
-                    "columns": [
-                      "userId"
-                    ],
+                    "columns": ["userId"],
                     "namespaceId": "public",
                     "tableName": "Credential"
                   },
                   "target": {
-                    "columns": [
-                      "id"
-                    ],
+                    "columns": ["id"],
                     "namespaceId": "public",
                     "tableName": "User"
                   }
@@ -936,15 +908,11 @@
               ],
               "indexes": [],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": [
                 {
-                  "columns": [
-                    "userId"
-                  ]
+                  "columns": ["userId"]
                 }
               ]
             },
@@ -1057,9 +1025,7 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": []
             },
@@ -1131,32 +1097,24 @@
               "foreignKeys": [],
               "indexes": [
                 {
-                  "columns": [
-                    "createdAt"
-                  ],
+                  "columns": ["createdAt"],
                   "name": "Media_createdAt_idx_9575dbd7",
                   "prefix": "Media_createdAt_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "hash"
-                  ],
+                  "columns": ["hash"],
                   "name": "Media_hash_idx_d25bc543",
                   "prefix": "Media_hash_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": [
                 {
-                  "columns": [
-                    "storageKey"
-                  ]
+                  "columns": ["storageKey"]
                 }
               ]
             },
@@ -1239,16 +1197,12 @@
                   "onDelete": "cascade",
                   "onUpdate": "cascade",
                   "source": {
-                    "columns": [
-                      "userId"
-                    ],
+                    "columns": ["userId"],
                     "namespaceId": "public",
                     "tableName": "Notification"
                   },
                   "target": {
-                    "columns": [
-                      "id"
-                    ],
+                    "columns": ["id"],
                     "namespaceId": "public",
                     "tableName": "User"
                   }
@@ -1256,26 +1210,20 @@
               ],
               "indexes": [
                 {
-                  "columns": [
-                    "createdAt"
-                  ],
+                  "columns": ["createdAt"],
                   "name": "Notification_createdAt_idx_9575dbd7",
                   "prefix": "Notification_createdAt_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "userId"
-                  ],
+                  "columns": ["userId"],
                   "name": "Notification_userId_idx_a489d58a",
                   "prefix": "Notification_userId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": []
             },
@@ -1320,16 +1268,12 @@
                   "onDelete": "cascade",
                   "onUpdate": "cascade",
                   "source": {
-                    "columns": [
-                      "userId"
-                    ],
+                    "columns": ["userId"],
                     "namespaceId": "public",
                     "tableName": "Session"
                   },
                   "target": {
-                    "columns": [
-                      "id"
-                    ],
+                    "columns": ["id"],
                     "namespaceId": "public",
                     "tableName": "User"
                   }
@@ -1337,24 +1281,18 @@
               ],
               "indexes": [
                 {
-                  "columns": [
-                    "userId"
-                  ],
+                  "columns": ["userId"],
                   "name": "Session_userId_idx_a489d58a",
                   "prefix": "Session_userId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": [
                 {
-                  "columns": [
-                    "tokenHash"
-                  ]
+                  "columns": ["tokenHash"]
                 }
               ]
             },
@@ -1411,18 +1349,14 @@
               "foreignKeys": [],
               "indexes": [
                 {
-                  "columns": [
-                    "robloxId"
-                  ],
+                  "columns": ["robloxId"],
                   "name": "SignupAttempt_robloxId_idx_9d4b92fd",
                   "prefix": "SignupAttempt_robloxId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": []
             },
@@ -1507,69 +1441,51 @@
               "foreignKeys": [],
               "indexes": [
                 {
-                  "columns": [
-                    "bannedAt"
-                  ],
+                  "columns": ["bannedAt"],
                   "name": "User_bannedAt_idx_96bb11de",
                   "prefix": "User_bannedAt_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "bannedFor"
-                  ],
+                  "columns": ["bannedFor"],
                   "name": "User_bannedFor_idx_c25c792c",
                   "prefix": "User_bannedFor_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "banned"
-                  ],
+                  "columns": ["banned"],
                   "name": "User_banned_idx_072711b2",
                   "prefix": "User_banned_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "discordData"
-                  ],
+                  "columns": ["discordData"],
                   "name": "User_discordData_idx_c262f1a1",
                   "prefix": "User_discordData_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "googleData"
-                  ],
+                  "columns": ["googleData"],
                   "name": "User_googleData_idx_7b9fee95",
                   "prefix": "User_googleData_idx",
                   "unique": false
                 },
                 {
-                  "columns": [
-                    "robloxData"
-                  ],
+                  "columns": ["robloxData"],
                   "name": "User_robloxData_idx_a4d2198c",
                   "prefix": "User_robloxData_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": [
-                  "id"
-                ]
+                "columns": ["id"]
               },
               "uniques": [
                 {
-                  "columns": [
-                    "username"
-                  ]
+                  "columns": ["username"]
                 },
                 {
-                  "columns": [
-                    "robloxId"
-                  ]
+                  "columns": ["robloxId"]
                 }
               ]
             }

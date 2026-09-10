@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import type { H3Event } from 'h3';
 
+import type { H3Event } from 'h3';
 import type { FieldOutputTypes } from '~~/prisma/contract.d';
 import { db } from '~~/server/database/client';
 
