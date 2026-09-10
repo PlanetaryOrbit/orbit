@@ -7,6 +7,12 @@ import Button from '~/components/ui/Button.vue';
 const { isDark, toggle } = useTheme();
 const { settings } = useInstance();
 const user = null;
+
+const authBackground = computed(() => {
+  return isDark.value
+    ? (settings.value.darkBackground ?? settings.value.lightBackground)
+    : (settings.value.lightBackground ?? settings.value.darkBackground);
+});
 </script>
 
 <template>
@@ -64,7 +70,21 @@ const user = null;
     </header>
 
     <main class="relative z-0 min-h-screen overflow-hidden bg-ctp-base">
-      <NuxtPage />
+      <div
+        v-if="!authBackground"
+        class="absolute inset-0 z-0 bg-linear-to-b from-ctp-base/40 via-ctp-base/80 to-ctp-base"
+      />
+
+      <img
+        v-else
+        :src="authBackground"
+        alt=""
+        class="pointer-events-none absolute inset-0 z-0 size-full object-cover"
+      />
+
+      <div class="relative z-10">
+        <NuxtPage />
+      </div>
     </main>
   </NuxtLayout>
 

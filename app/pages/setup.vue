@@ -126,7 +126,7 @@ async function handleSubmit() {
           <ColorInput v-model="primaryColor" label="Primary Color" />
 
           <div>
-            <label class="mb-2 block text-sm font-medium text-ctp-subtext1"> Authentication </label>
+            <label class="mb-2 block text-sm font-medium text-ctp-subtext1">Authentication</label>
 
             <div class="space-y-3">
               <SwitchCard
