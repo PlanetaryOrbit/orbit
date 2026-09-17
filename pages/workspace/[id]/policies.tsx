@@ -37,6 +37,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import PolicyLinkManager from "@/components/PolicyLinkManager";
 import UserPolicyDashboard from "@/components/UserPolicyDashboard";
+import {
+  DocsPageShell,
+  DocsPageHeader,
+  DocsPanel,
+  DocsEmptyState,
+} from "@/components/docs/shell";
 
 const BG_COLORS = [
   "bg-rose-300",
@@ -656,48 +662,48 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-medium text-zinc-900 dark:text-white">
-              Policies
-            </h1>
-          </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            {viewMode === "user"
+    <DocsPageShell>
+        <DocsPageHeader
+          title="Policies"
+          subtitle={
+            viewMode === "user"
               ? "Review and acknowledge required policies"
-              : "Manage workspace policies and track acknowledgments"}
-          </p>
-          <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg mt-4">
-            <button
-              onClick={() => setViewMode("user")}
-              className={clsx(
-                "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                viewMode === "user"
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-              )}
-            >
-              <IconUser className="w-4 h-4" />
-              <span>My Policies</span>
-            </button>
-            {canViewPolicyManagement && (
+              : "Manage workspace policies and track acknowledgments"
+          }
+          workspaceLabel={workspace.customName || workspace.groupName}
+          action={
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => setViewMode("admin")}
+                type="button"
+                onClick={() => setViewMode("user")}
                 className={clsx(
-                  "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                  viewMode === "admin"
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                    : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                  "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+                  viewMode === "user"
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                 )}
               >
-                <IconSettings className="w-4 h-4" />
-                <span>Manage Policies</span>
+                <IconUser className="h-4 w-4" stroke={1.75} />
+                <span>My Policies</span>
               </button>
-            )}
-          </div>
-        </div>
+              {canViewPolicyManagement && (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("admin")}
+                  className={clsx(
+                    "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+                    viewMode === "admin"
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                  )}
+                >
+                  <IconSettings className="h-4 w-4" stroke={1.75} />
+                  <span>Manage Policies</span>
+                </button>
+              )}
+            </div>
+          }
+        />
 
         {viewMode === "user" && (
           <UserPolicyDashboard
@@ -707,46 +713,47 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         )}
         {viewMode === "admin" && canViewPolicyManagement && (
           <>
-            <div className="flex items-center mb-6">
-              <div className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+            <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setSelectedView("overview")}
+                className={clsx(
+                  "inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  selectedView === "overview"
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                )}
+              >
+                Overview
+              </button>
+              {hasViewCompliancePermission && (
                 <button
-                  onClick={() => setSelectedView("overview")}
+                  type="button"
+                  onClick={() => setSelectedView("compliance")}
                   className={clsx(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                    selectedView === "overview"
-                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
-                      : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
+                    "inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors",
+                    selectedView === "compliance"
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   )}
                 >
-                  Overview
+                  Compliance
                 </button>
-                {hasViewCompliancePermission && (
-                  <button
-                    onClick={() => setSelectedView("compliance")}
-                    className={clsx(
-                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                      selectedView === "compliance"
-                        ? "bg-primary text-white"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                    )}
-                  >
-                    Compliance
-                  </button>
-                )}
-                {hasCreatePermission && (
-                  <button
-                    onClick={() => setSelectedView("create")}
-                    className={clsx(
-                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                      selectedView === "create"
-                        ? "bg-primary text-white"
-                        : "text-zinc-600 dark:text-zinc-300 hover:bg-white/70 dark:hover:bg-zinc-800/80"
-                    )}
-                  >
-                    Create Policy
-                  </button>
-                )}
-              </div>
+              )}
+              {hasCreatePermission && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedView("create")}
+                  className={clsx(
+                    "inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors",
+                    selectedView === "create"
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  )}
+                >
+                  Create Policy
+                </button>
+              )}
             </div>
             {selectedView === "overview" && (
               <div>
@@ -762,7 +769,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-sm">
+                      <DocsPanel className="p-4">
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                             <IconFileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -776,9 +783,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </DocsPanel>
 
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-sm">
+                      <DocsPanel className="p-4">
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                             <IconCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -798,9 +805,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </DocsPanel>
 
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-sm">
+                      <DocsPanel className="p-4">
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
                             <IconClock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
@@ -821,7 +828,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </DocsPanel>
                     </div>
 
                     <div className="space-y-4">
@@ -833,9 +840,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           new Date(document.acknowledgmentDeadline);
 
                         return (
-                          <div
+                          <DocsPanel
                             key={document.id}
-                            className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-4"
+                            className="p-4"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-start space-x-4">
@@ -948,31 +955,28 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 )}
                               </div>
                             </div>
-                          </div>
+                          </DocsPanel>
                         );
                       })}
 
                       {documents.length === 0 && (
-                        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-8 text-center">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                            <IconShield className="w-8 h-8 text-primary" />
-                          </div>
-                          <h3 className="text-lg font-medium text-zinc-900 dark:text-white mb-1">
-                            No policies yet
-                          </h3>
-                          <p className="text-sm text-zinc-500 dark:text-zinc-300 mb-4">
-                            Create your first policy to get started
-                          </p>
-                          {hasCreatePermission && (
-                            <button
-                              onClick={() => setSelectedView("create")}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-colors"
-                            >
-                              <IconPlus className="w-4 h-4" />
-                              Create Policy
-                            </button>
-                          )}
-                        </div>
+                        <DocsEmptyState
+                          icon={IconShield}
+                          title="No policies yet"
+                          description="Create your first policy to get started"
+                          action={
+                            hasCreatePermission ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedView("create")}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                              >
+                                <IconPlus className="h-4 w-4" />
+                                Create Policy
+                              </button>
+                            ) : undefined
+                          }
+                        />
                       )}
                     </div>
                   </>
@@ -985,42 +989,42 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 {complianceData ? (
                   <div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                      <DocsPanel className="p-4">
                         <div className="text-2xl font-bold text-zinc-900 dark:text-white">
                           {complianceData.overallStats.averageComplianceRate}%
                         </div>
                         <div className="text-sm text-zinc-500 dark:text-zinc-400">
                           Average Compliance
                         </div>
-                      </div>
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                      </DocsPanel>
+                      <DocsPanel className="p-4">
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {complianceData.overallStats.fullyCompliantCount}
                         </div>
                         <div className="text-sm text-zinc-500 dark:text-zinc-400">
                           Fully Compliant
                         </div>
-                      </div>
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                      </DocsPanel>
+                      <DocsPanel className="p-4">
                         <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {complianceData.overallStats.overdueCount}
                         </div>
                         <div className="text-sm text-zinc-500 dark:text-zinc-400">
                           Overdue
                         </div>
-                      </div>
-                      <div className="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                      </DocsPanel>
+                      <DocsPanel className="p-4">
                         <div className="text-2xl font-bold text-zinc-900 dark:text-white">
                           {complianceData.totalPolicies}
                         </div>
                         <div className="text-sm text-zinc-500 dark:text-zinc-400">
                           Total Policies
                         </div>
-                      </div>
+                      </DocsPanel>
                     </div>
 
-                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm overflow-hidden">
-                      <div className="p-4 border-b border-zinc-200 dark:border-zinc-700">
+                    <DocsPanel className="overflow-hidden">
+                      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
                             Detailed Compliance Report
@@ -1145,7 +1149,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                    </DocsPanel>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-12">
@@ -1161,7 +1165,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             )}
 
             {selectedView === "create" && (
-              <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
+              <DocsPanel>
                 <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1922,13 +1926,13 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         )}
                       </button>
                     )}
-                  </div>
+                    </div>
                 </div>
-              </div>
+              </DocsPanel>
             )}
 
             {selectedView === "edit" && (
-              <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm">
+              <DocsPanel>
                 <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2615,7 +2619,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
+              </DocsPanel>
             )}
           </>
         )}
@@ -2904,8 +2908,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </DocsPageShell>
   );
 };
 
