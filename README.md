@@ -100,17 +100,3 @@ Orbit v3 introduces a new API that is **not backward compatible with v2**. Appli
 APIs are located under <code>/api/</code>, with each feature using its own versioned endpoint. For example, the Forms API is available at <code>/api/v1/forms/</code>.
 
 API versions allow breaking changes to be introduced without immediately breaking existing clients. The latest API version should generally be used for new integrations.
-
-<br>
-
-<div align="center">
-
-## Neko Corner
-
-<p>
-  <img src="https://nekos.best/api/v2/neko/2b5e8a4b-3039-4026-9dca-065a33771761.png" width="150" alt="Neko">
-  <img src="https://nekos.best/api/v2/neko/60e207cd-42f2-48c5-99fb-92aadf998c13.png" width="150" alt="Neko">
-  <img src="https://nekos.best/api/v2/neko/4a128c75-ac7f-4d12-a105-10bc6676ad76.png" width="150" alt="Neko">
-</p>
-
-</div>
