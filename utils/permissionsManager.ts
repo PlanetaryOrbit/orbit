@@ -1165,12 +1165,16 @@ export async function checkUserRolesOnLogin(
 
     await checkSpecificUser(userID);
 
-    await Promise.allSettled([
+    const invalidations = await Promise.allSettled([
       cache.del(`user:workspaces:${userID}`),
       cache.del(`user:${userID}:workspaces`),
       cache.del(`user:${userID}:profile`),
       cache.del(`login:user:${userID}`),
     ]);
+    if (invalidations.some((result) => result.status === "rejected")) {
+      console.error(`[update-group] Cache invalidation failed for ${userID}`);
+      return;
+    }
     await cache.set(throttleKey, true, ROLE_SYNC_THROTTLE_SECONDS);
   } catch (err) {
     console.error(
