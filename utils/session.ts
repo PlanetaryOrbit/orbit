@@ -228,6 +228,17 @@ async function createSession(
     },
   });
 
+  setImmediate(async () => {
+    try {
+      const { checkUserRolesOnLogin } = await import(
+        "@/utils/permissionsManager"
+      );
+      await checkUserRolesOnLogin(userId);
+    } catch (err) {
+      console.error("[createSession] Role sync on login failed:", err);
+    }
+  });
+
   return {
     ...session,
     token: rawToken,

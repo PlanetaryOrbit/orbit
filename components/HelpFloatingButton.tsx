@@ -17,7 +17,6 @@ import {
   IconX,
   IconLicense,
 } from "@tabler/icons-react";
-import { marked } from "marked";
 import clsx from "clsx";
 
 type ChangelogRelease = {
@@ -25,6 +24,72 @@ type ChangelogRelease = {
   date: string;
   changes: string[];
 };
+
+type ChangeCategory = {
+  label: string;
+  badge: string;
+};
+
+const CHANGE_CATEGORIES: Record<string, ChangeCategory> = {
+  added: {
+    label: "Added",
+    badge:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+  },
+  fixed: {
+    label: "Fixed",
+    badge: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+  },
+  updated: {
+    label: "Updated",
+    badge: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+  },
+  removed: {
+    label: "Removed",
+    badge: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+  },
+  remade: {
+    label: "Remade",
+    badge:
+      "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
+  },
+  changed: {
+    label: "Changed",
+    badge:
+      "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+  },
+  switched: {
+    label: "Switched",
+    badge: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+  },
+  reverted: {
+    label: "Reverted",
+    badge: "bg-zinc-100 text-zinc-600 dark:bg-zinc-500/15 dark:text-zinc-300",
+  },
+  improved: {
+    label: "Improved",
+    badge:
+      "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300",
+  },
+};
+
+function parseChange(change: string): {
+  category: ChangeCategory | null;
+  text: string;
+} {
+  const text = change.trim();
+  const match = text.match(/^\*{1,2}([A-Za-z]+)\*{1,2}:?\s+/);
+
+  if (match) {
+    const category = CHANGE_CATEGORIES[match[1].toLowerCase()];
+
+    if (category) {
+      return { category, text: text.slice(match[0].length).trim() };
+    }
+  }
+
+  return { category: null, text };
+}
 
 type VersionResponse = {
   current: string;
@@ -364,7 +429,7 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
 
               {!versionLoading && changelog.length > 0 && (
                 <div className="space-y-4">
-                  {changelog.map((release, index) => (
+                  {changelog.map((release) => (
                     <article
                       key={`${release.version}-${release.date}`}
                       className={clsx(
@@ -391,31 +456,40 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                         </div>
                       </header>
 
-                      <div
-                        className={clsx(
-                          "prose prose-sm mt-3 max-w-none",
-                          "prose-zinc dark:prose-invert",
-                          "prose-p:my-2",
-                          "prose-ul:my-2",
-                          "prose-ol:my-2",
-                          "prose-li:my-0.5",
-                          "prose-headings:my-3",
-                          "prose-a:font-medium prose-a:text-primary",
-                          "prose-a:underline-offset-2",
-                          "prose-a:hover:underline",
-                          "prose-a:focus:outline-none",
-                          "prose-a:focus-visible:ring-2",
-                          "prose-a:focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]",
-                          "prose-a:focus-visible:rounded-sm",
-                        )}
-                        dangerouslySetInnerHTML={{
-                          __html: marked.parse(
-                            release.changes
-                              .map((change) => `- ${change}`)
-                              .join("\n"),
-                          ),
-                        }}
-                      />
+                      <div className="mt-3 space-y-2">
+                        {release.changes.map((change, changeIndex) => {
+                          const { category, text } = parseChange(change);
+
+                          return (
+                            <div
+                              key={`${release.version}-${changeIndex}`}
+                              className="flex items-start gap-2.5"
+                            >
+                              {category ? (
+                                <span
+                                  className={clsx(
+                                    "mt-px inline-flex shrink-0 items-center rounded-md",
+                                    "px-1.5 py-0.5",
+                                    "text-[10px] font-semibold uppercase tracking-wide",
+                                    category.badge,
+                                  )}
+                                >
+                                  {category.label}
+                                </span>
+                              ) : (
+                                <span
+                                  className="mt-2 inline-block h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600"
+                                  aria-hidden="true"
+                                />
+                              )}
+
+                              <span className="min-w-0 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                                {text}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </article>
                   ))}
                 </div>

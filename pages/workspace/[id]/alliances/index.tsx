@@ -21,6 +21,8 @@ import {
   IconPlus,
   IconTrash,
   IconClipboardList,
+  IconSearch,
+  IconX,
 } from "@tabler/icons-react";
 import {
   AlliancesPageShell,
@@ -31,6 +33,7 @@ import {
   alliancePrimaryButtonClass,
   allianceSecondaryButtonClass,
   allianceFormInputOverride,
+  allianceFormInputClass,
   allianceFormLabelClass,
   alliancesPanelShadow,
 } from "@/components/alliances/shell";
@@ -39,6 +42,8 @@ type Form = {
   group: string;
   notes: string;
 };
+
+const REP_RESULT_LIMIT = 20;
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ req, res, params }) => {
@@ -54,16 +59,15 @@ export const getServerSideProps = withPermissionCheckSsr(
           },
         },
       },
+      orderBy: { username: "asc" },
+      take: REP_RESULT_LIMIT,
     });
-    const infoUsers: any = await Promise.all(
-      users.map(async (user: any) => {
-        return {
-          ...user,
-          userid: Number(user.userid),
-          thumbnail: getThumbnail(user.userid),
-        };
-      })
-    );
+    const infoUsers: any = users.map((user: any) => ({
+      userid: Number(user.userid),
+      username: user.username,
+      thumbnail: getThumbnail(user.userid),
+      canRep: true,
+    }));
 
     const allies: any = await prisma.ally.findMany({
       where: {
@@ -137,6 +141,9 @@ const Allies: pageWithLayout<pageProps> = (props) => {
   };
 
   const [reps, setReps] = useState<string[]>([]);
+  const [repSearch, setRepSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [searching, setSearching] = useState(false);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = event.target;
@@ -146,6 +153,49 @@ const Allies: pageWithLayout<pageProps> = (props) => {
       setReps(reps.filter((r) => r !== value));
     }
   };
+
+  const openCreateModal = () => {
+    setRepSearch("");
+    setIsOpen(true);
+  };
+
+  useEffect(() => {
+    const query = repSearch.trim();
+
+    if (!query) {
+      setSearchResults(null);
+      setSearching(false);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    setSearching(true);
+    setSearchResults(null);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `/api/workspace/${id}/allies/rep-search`,
+          { params: { q: query }, signal: controller.signal }
+        );
+        if (!cancelled) setSearchResults(res.data.users ?? []);
+      } catch (error) {
+        if (!cancelled && !axios.isCancel(error)) {
+          console.error("Failed to search members:", error);
+          setSearchResults([]);
+        }
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [repSearch, id]);
 
   const onSubmit: SubmitHandler<Form> = async ({ group, notes }) => {
     const axiosPromise = axios
@@ -246,6 +296,16 @@ const Allies: pageWithLayout<pageProps> = (props) => {
   const allies: any = props.infoAllies;
   const users: any = props.infoUsers;
 
+  const filteredUsers = useMemo(() => {
+    const isSelected = (user: any) => reps.includes(String(user.userid));
+    const pool = repSearch.trim() ? searchResults ?? [] : users;
+
+    const selected = users.filter(isSelected);
+    const rest = pool.filter((user: any) => !isSelected(user));
+
+    return [...selected, ...rest].slice(0, REP_RESULT_LIMIT);
+  }, [users, searchResults, reps, repSearch]);
+
   return (
     <>
       <AlliancesPageShell>
@@ -257,7 +317,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
             canManageAlliances ? (
               <button
                 type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={openCreateModal}
                 className={alliancePrimaryButtonClass}
               >
                 <IconPlus className="h-4 w-4" />
@@ -282,7 +342,7 @@ const Allies: pageWithLayout<pageProps> = (props) => {
               canManageAlliances ? (
                 <button
                   type="button"
-                  onClick={() => setIsOpen(true)}
+                  onClick={openCreateModal}
                   className={alliancePrimaryButtonClass}
                 >
                   <IconPlus className="h-4 w-4" />
@@ -441,41 +501,113 @@ const Allies: pageWithLayout<pageProps> = (props) => {
                             </label>
                             {users.length < 1 ? (
                               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                No users with rep permissions yet
+                                No members found in this workspace
                               </p>
                             ) : (
                               <>
-                                <p className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
-                                  {reps.length} selected (minimum 1)
-                                </p>
-                                <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40">
-                                  {users.map((user: any) => (
-                                    <label
-                                      key={user.userid}
-                                      className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                <div className="relative mb-2">
+                                  <IconSearch
+                                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                                    stroke={1.75}
+                                    aria-hidden="true"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={repSearch}
+                                    onChange={(e) => setRepSearch(e.target.value)}
+                                    placeholder="Search members..."
+                                    autoComplete="off"
+                                    spellCheck={false}
+                                    aria-label="Search members"
+                                    className={`${allianceFormInputClass} !pl-9 !pr-9`}
+                                  />
+                                  {repSearch && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setRepSearch("")}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                                      aria-label="Clear search"
                                     >
-                                      <input
-                                        type="checkbox"
-                                        value={user.userid}
-                                        onChange={handleCheckboxChange}
-                                        className="rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-600"
-                                      />
-                                      <div
-                                        className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full ${getRandomBg(
-                                          user.userid
-                                        )}`}
+                                      <IconX className="h-3.5 w-3.5" stroke={2} />
+                                    </button>
+                                  )}
+                                </div>
+
+                                <div className="mb-2 flex items-center justify-between gap-2">
+                                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {reps.length} selected (minimum 1)
+                                  </p>
+                                  <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                                    {searching
+                                      ? "Searching…"
+                                      : repSearch.trim()
+                                        ? `${filteredUsers.length} shown`
+                                        : `${users.length} available`}
+                                  </p>
+                                </div>
+
+                                <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40">
+                                  {filteredUsers.map((user: any) => {
+                                    const canRep = Boolean(user.canRep);
+
+                                    return (
+                                      <label
+                                        key={user.userid}
+                                        title={
+                                          canRep
+                                            ? undefined
+                                            : "This user doesn't have permission to represent alliances"
+                                        }
+                                        className={`flex items-center gap-3 rounded-lg p-2 transition ${
+                                          canRep
+                                            ? "cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                            : "cursor-not-allowed opacity-60"
+                                        }`}
                                       >
-                                        <img
-                                          src={user.thumbnail}
-                                          className="h-full w-full object-cover"
-                                          alt={user.username}
+                                        <input
+                                          type="checkbox"
+                                          value={user.userid}
+                                          disabled={!canRep}
+                                          checked={reps.includes(String(user.userid))}
+                                          onChange={handleCheckboxChange}
+                                          className="rounded border-zinc-300 text-primary focus:ring-primary disabled:cursor-not-allowed dark:border-zinc-600"
                                         />
-                                      </div>
-                                      <span className="text-sm text-zinc-900 dark:text-white">
-                                        {user.username}
-                                      </span>
-                                    </label>
-                                  ))}
+                                        <div
+                                          className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full ${getRandomBg(
+                                            user.userid
+                                          )}`}
+                                        >
+                                          <img
+                                            src={user.thumbnail}
+                                            className="h-full w-full object-cover"
+                                            alt={user.username}
+                                          />
+                                        </div>
+                                        <span className="min-w-0 flex-1 truncate text-sm text-zinc-900 dark:text-white">
+                                          {user.username}
+                                        </span>
+                                        {!canRep && (
+                                          <span className="shrink-0 rounded-md bg-zinc-200/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-700/60 dark:text-zinc-400">
+                                            Can&apos;t rep
+                                          </span>
+                                        )}
+                                      </label>
+                                    );
+                                  })}
+
+                                  {searching && filteredUsers.length === 0 && (
+                                    <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                                      Searching…
+                                    </p>
+                                  )}
+
+                                  {!searching && filteredUsers.length === 0 && (
+                                    <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                                      {repSearch.trim()
+                                        ? `No members match “${repSearch}”`
+                                        : "No users can represent alliances yet"}
+                                    </p>
+                                  )}
                                 </div>
                               </>
                             )}

@@ -18,6 +18,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import PolicyAcknowledgmentModal from "./PolicyAcknowledgmentModal";
 import clsx from 'clsx';
+import { docsPanelShadow } from "./docs/shell";
 
 interface PolicyDocument {
 	id: string;
@@ -127,7 +128,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 
 	if (isLoading) {
 		return (
-			<div className={clsx("bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-6", className)}>
+			<div className={clsx("rounded-2xl bg-white p-6 dark:bg-zinc-900/70", docsPanelShadow, className)}>
 				<div className="flex items-center justify-center py-8">
 					<div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
 				</div>
@@ -143,9 +144,9 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 	const totalPolicies = pendingPolicies.length + acknowledgedPolicies.length;
 
 	return (
-		<div className={clsx("bg-white dark:bg-zinc-800 rounded-lg shadow-sm", className)}>
+		<div className={clsx("rounded-2xl bg-white dark:bg-zinc-900/70", docsPanelShadow, className)}>
 			{/* Header */}
-			<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+			<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center space-x-3">
 						<div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -193,7 +194,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 
 			{/* Urgent Policies Alert */}
 			{urgentPolicies.length > 0 && (
-				<div className="px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-zinc-200 dark:border-zinc-700">
+				<div className="px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-zinc-200 dark:border-zinc-800">
 					<div className="flex items-start space-x-3">
 						<IconAlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
 						<div>
@@ -228,7 +229,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 										"p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm",
 										isUrgent
 											? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10"
-											: "border-zinc-200 dark:border-zinc-700 hover:border-primary/30"
+											: "border-zinc-200 dark:border-zinc-800 hover:border-primary/30"
 									)}
 									onClick={() => handleAcknowledgeClick(policy)}
 								>
@@ -281,7 +282,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 
 			{/* Recently Acknowledged */}
 			{acknowledgedPolicies.length > 0 && (
-				<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+				<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800">
 					<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center justify-between">
 						<span className="flex items-center">
 							<IconCheck className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
@@ -363,7 +364,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 						className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col"
 					>
 						{/* Modal Header */}
-						<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+						<div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
 							<div className="flex items-center space-x-3">
 								<div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
 									<IconCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -435,7 +436,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 							)}
 
 							{/* Acknowledgment Details */}
-							<div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-700">
+							<div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
 								<h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
 									Acknowledgment Details
 								</h4>
@@ -468,7 +469,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({ workspaceId, classN
 						</div>
 
 						{/* Modal Footer */}
-						<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex justify-end">
+						<div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
 							<button
 								onClick={() => {
 									setViewingAcknowledgedPolicy(null);

@@ -1,4 +1,5 @@
 import prisma from "./database";
+import cache from "./cache";
 import type {
   NextApiRequest,
   NextApiResponse,
@@ -1115,6 +1116,27 @@ export async function checkSpecificUser(userID: number | bigint) {
         },
       },
     });
+    await prisma.workspaceMember
+      .upsert({
+        where: {
+          workspaceGroupId_userId: {
+            workspaceGroupId: w.groupId,
+            userId: BigInt(userID),
+          },
+        },
+        update: {},
+        create: {
+          workspaceGroupId: w.groupId,
+          userId: BigInt(userID),
+          joinDate: new Date(),
+        },
+      })
+      .catch((err: any) =>
+        console.error(
+          `[update-group] WorkspaceMember upsert failed for ${userID} in ${w.groupId}:`,
+          err,
+        ),
+      );
   }
   const workspaces = await prisma.workspace.findMany({
     where: {
@@ -1127,4 +1149,37 @@ export async function checkSpecificUser(userID: number | bigint) {
   });
 
   return workspaces;
+}
+
+const ROLE_SYNC_THROTTLE_SECONDS = 3600;
+
+export async function checkUserRolesOnLogin(
+  userID: number | bigint,
+): Promise<void> {
+  try {
+    const throttleKey = `roles:newsync:${userID}`;
+    const alreadyRan = await cache.has(throttleKey);
+    if (alreadyRan) {
+      return;
+    }
+
+    await checkSpecificUser(userID);
+
+    const invalidations = await Promise.allSettled([
+      cache.del(`user:workspaces:${userID}`),
+      cache.del(`user:${userID}:workspaces`),
+      cache.del(`user:${userID}:profile`),
+      cache.del(`login:user:${userID}`),
+    ]);
+    if (invalidations.some((result) => result.status === "rejected")) {
+      console.error(`[update-group] Cache invalidation failed for ${userID}`);
+      return;
+    }
+    await cache.set(throttleKey, true, ROLE_SYNC_THROTTLE_SECONDS);
+  } catch (err) {
+    console.error(
+      `[update-group] Role sync on login failed for ${userID}:`,
+      err,
+    );
+  }
 }
