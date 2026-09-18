@@ -60,6 +60,7 @@ export const getServerSideProps = withPermissionCheckSsr(
         },
       },
       orderBy: { username: "asc" },
+      take: REP_RESULT_LIMIT,
     });
     const infoUsers: any = users.map((user: any) => ({
       userid: Number(user.userid),
