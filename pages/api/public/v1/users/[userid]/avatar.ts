@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+/*import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
 import axios from 'axios';
@@ -277,4 +277,57 @@ async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Pro
     console.warn('Roblox Thumbnails API request failed for', userId, e);
   }
   return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=${clampedRes}&height=${clampedRes}&format=png`;
+}*/
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import cache from '@/utils/cache';
+import axios from 'axios';
+
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { userid } = req.query;
+
+  if (!userid || Array.isArray(userid) || !/^[0-9]+$/.test(userid)) {
+    return res.status(400).json({ error: 'Invalid userid' });
+  }
+
+  const userId = Number(userid);
+
+  if (!Number.isSafeInteger(userId) || userId <= 0) {
+      return res.status(400).end('Invalid userId');
+  }
+
+  const cacheKey = `avatar:${userId}`;
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
+      res.end(cached);
+      return;
+    }
+
+    const response = await axios.get("https://thumbnails.roblox.com/v1/users/avatar-headshot", { params: { userIds: userId, size: '180x180', format: 'Png', isCircular: false }, timeout: 10000 });
+
+    const imageUrl = response.data?.data?.[0]?.imageUrl;
+
+    if (!imageUrl) {
+      return res.status(404).end('Avatar not found');
+    }
+
+    const image = await axios.get<ArrayBuffer>(imageUrl, {
+          responseType: 'arraybuffer',
+          timeout: 10000
+        });
+
+    const buffer = Buffer.from(image.data);
+    await cache.set(cacheKey, buffer);
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
+    res.setHeader("Content-Length", buffer.length.toString());
+    res.end(buffer);
+  } catch (error) {
+    console.error('Avatar error:', error);
+        res.status(500).end('Internal server error');
+  }
 }
