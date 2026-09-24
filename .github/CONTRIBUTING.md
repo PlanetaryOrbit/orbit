@@ -1,8 +1,8 @@
-# Contributing to Orbit
+# Contributing
 
 First off, thanks for taking the time to contribute! :heart:
 
-All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make things smoother for maintainers and contributors alike. The community looks forward to your contributions! 🐈
+All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make things smoother for maintainers and contributors alike. The community looks forward to your contributions!
 
 > If you like Orbit but don't have time to contribute code, that's okay! There are other ways to support the project:
 >

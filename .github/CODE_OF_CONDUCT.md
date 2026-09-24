@@ -1,4 +1,5 @@
-# Code of Conduct - Orbit
+# Code of Conduct
+*Last Updated / Effective Date:* September 24th, 2026
 
 ## Our Pledge
 
