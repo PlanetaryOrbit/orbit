@@ -30,6 +30,7 @@ A quick note before you contribute:
 - [Styleguides](#styleguides)
 - [Commit Messages](#commit-messages)
 - [Join The Project Team](#join-the-project-team)
+- [Translating Orbit](#translating-orbit)
 
 ---
 
@@ -356,6 +357,12 @@ Maintainer access is given based on:
 * Long-term involvement.
 
 Becoming a contributor does not automatically grant repository access. Maintainer roles are assigned by the existing project team.
+
+---
+
+# Translating Orbit
+
+Please read [./TRANSLATIONS.md](./TRANSLATIONS.md) for information on how to help us translate Orbit.
 
 ---
 
