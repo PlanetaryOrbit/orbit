@@ -58,12 +58,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       isAdmin || user?.roles.some((role) => role.permissions.includes('manage_notices'));
 
     if (!hasManagePermission) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          error: 'Insufficient permissions. Canceling notices requires manage_notices permission.',
-        });
+      return res.status(403).json({
+        success: false,
+        error: 'Insufficient permissions. Canceling notices requires manage_notices permission.',
+      });
     }
   }
 

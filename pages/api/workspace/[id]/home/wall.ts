@@ -30,14 +30,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     },
   });
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      posts: JSON.parse(
-        JSON.stringify(sessions, (key, value) =>
-          typeof value === 'bigint' ? value.toString() : value,
-        ),
+  res.status(200).json({
+    success: true,
+    posts: JSON.parse(
+      JSON.stringify(sessions, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
       ),
-    });
+    ),
+  });
 }

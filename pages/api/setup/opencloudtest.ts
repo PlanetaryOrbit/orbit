@@ -50,13 +50,11 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
     const ops = groupScope.operations ?? [];
     if (!ops.includes('read') || !ops.includes('write')) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          code: 2,
-          error: "API key requires both read and write operations on the 'group' scope",
-        });
+      return res.status(400).json({
+        success: false,
+        code: 2,
+        error: "API key requires both read and write operations on the 'group' scope",
+      });
     }
 
     return res.status(200).json({ success: true, message: 'API key is valid.' });

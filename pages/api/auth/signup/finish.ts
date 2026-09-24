@@ -29,12 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   if (!/[0-9!@#$%^&*]/.test(password)) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        error: 'Password must contain at least one number or special character.',
-      });
+    return res.status(400).json({
+      success: false,
+      error: 'Password must contain at least one number or special character.',
+    });
   }
 
   const validationState = await prisma.validationState.findFirst({
@@ -42,34 +40,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   });
 
   if (!validationState) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        error: 'Verification session not found or expired. Please start again.',
-      });
+    return res.status(400).json({
+      success: false,
+      error: 'Verification session not found or expired. Please start again.',
+    });
   }
 
   let blurb: string;
   try {
     blurb = await noblox.getBlurb(userid);
   } catch {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        error: 'Unable to verify your Roblox profile. Please ensure your profile is public.',
-      });
+    return res.status(400).json({
+      success: false,
+      error: 'Unable to verify your Roblox profile. Please ensure your profile is public.',
+    });
   }
 
   if (!blurb.trim().normalize('NFC').includes(code.trim().normalize('NFC'))) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        error:
-          'Verification code not found in your Roblox bio. Please paste the exact code and try again.',
-      });
+    return res.status(400).json({
+      success: false,
+      error:
+        'Verification code not found in your Roblox bio. Please paste the exact code and try again.',
+    });
   }
 
   try {

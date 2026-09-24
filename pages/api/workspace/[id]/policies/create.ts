@@ -122,14 +122,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     );
   } catch (e) {}
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      document: JSON.parse(
-        JSON.stringify(document, (key, value) =>
-          typeof value === 'bigint' ? value.toString() : value,
-        ),
+  res.status(200).json({
+    success: true,
+    document: JSON.parse(
+      JSON.stringify(document, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
       ),
-    });
+    ),
+  });
 }

@@ -52,16 +52,14 @@ export default async function handler(req, res) {
       let items = rawItems.map(normalizeItem);
       items.sort((a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime());
       if (metaMode) {
-        return res
-          .status(200)
-          .json({
-            channel: {
-              title: data.title,
-              description: data.description,
-              link: data.home_page_url || data.link,
-            },
-            items,
-          });
+        return res.status(200).json({
+          channel: {
+            title: data.title,
+            description: data.description,
+            link: data.home_page_url || data.link,
+          },
+          items,
+        });
       }
       return res.status(200).json(items);
     }
@@ -75,17 +73,15 @@ export default async function handler(req, res) {
     let items = rawItems.map(normalizeItem);
     items.sort((a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime());
     if (metaMode) {
-      return res
-        .status(200)
-        .json({
-          channel: {
-            title: feed.title,
-            description: feed.description,
-            link: feed.link,
-            lastBuildDate: feed.lastBuildDate,
-          },
-          items,
-        });
+      return res.status(200).json({
+        channel: {
+          title: feed.title,
+          description: feed.description,
+          link: feed.link,
+          lastBuildDate: feed.lastBuildDate,
+        },
+        items,
+      });
     }
     return res.status(200).json(items);
   } catch (err) {
