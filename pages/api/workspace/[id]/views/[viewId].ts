@@ -1,16 +1,17 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);
   const viewId = String(req.query.viewId as string);
-  if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" });
-  if (!viewId) return res.status(400).json({ success: false, error: "Missing view ID" });
+  if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
+  if (!viewId) return res.status(400).json({ success: false, error: 'Missing view ID' });
 
   try {
-    if (req.method === "DELETE") {
-      if (!req.auth.userId) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (req.method === 'DELETE') {
+      if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
       const user = await prisma.user.findFirst({
         where: { userid: BigInt(req.auth.userId) },
         include: {
@@ -18,18 +19,24 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
         },
       });
-      if (!user || !user.roles.length) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!user || !user.roles.length)
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
       const membership = user.workspaceMemberships[0];
       const isAdmin = membership?.isAdmin || false;
-      const hasDeletePermission = isAdmin || user.roles[0].permissions.includes("delete_views");
-      if (!hasDeletePermission) return res.status(401).json({ success: false, error: "Unauthorized" });
-      const deleted = await prisma.savedView.deleteMany({ where: { id: viewId, workspaceGroupId: workspaceId } });
-      if (deleted.count === 0) return res.status(404).json({ success: false, error: "View not found" });
+      const hasDeletePermission = isAdmin || user.roles[0].permissions.includes('delete_views');
+      if (!hasDeletePermission)
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      const deleted = await prisma.savedView.deleteMany({
+        where: { id: viewId, workspaceGroupId: workspaceId },
+      });
+      if (deleted.count === 0)
+        return res.status(404).json({ success: false, error: 'View not found' });
       return res.status(200).json({ success: true });
     }
 
-    if (req.method === "PATCH") {
-      if (!req.session?.userid) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (req.method === 'PATCH') {
+      if (!req.session?.userid)
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
       const user = await prisma.user.findFirst({
         where: { userid: BigInt(req.auth.userId) },
         include: {
@@ -37,20 +44,24 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           workspaceMemberships: { where: { workspaceGroupId: workspaceId } },
         },
       });
-      if (!user || !user.roles.length) return res.status(401).json({ success: false, error: "Unauthorized" });
+      if (!user || !user.roles.length)
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
       const membership = user.workspaceMemberships[0];
       const isAdmin = membership?.isAdmin || false;
-      const hasEditPermission = isAdmin || user.roles[0].permissions.includes("edit_views");
-      if (!hasEditPermission) return res.status(401).json({ success: false, error: "Unauthorized" });
+      const hasEditPermission = isAdmin || user.roles[0].permissions.includes('edit_views');
+      if (!hasEditPermission)
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
       const { filters, columnVisibility } = req.body;
       if (!filters && !columnVisibility) {
-        return res.status(400).json({ success: false, error: "Missing filters or columnVisibility" });
+        return res
+          .status(400)
+          .json({ success: false, error: 'Missing filters or columnVisibility' });
       }
       const existingView = await prisma.savedView.findFirst({
         where: { id: viewId, workspaceGroupId: workspaceId },
       });
       if (!existingView) {
-        return res.status(404).json({ success: false, error: "View not found" });
+        return res.status(404).json({ success: false, error: 'View not found' });
       }
       const updated = await prisma.savedView.update({
         where: { id: viewId },
@@ -63,10 +74,10 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       return res.status(200).json({ success: true, view: updated });
     }
 
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   } catch (e) {
-    console.error("Saved view API error:", e);
-    return res.status(500).json({ success: false, error: "Internal server error" });
+    console.error('Saved view API error:', e);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }
 

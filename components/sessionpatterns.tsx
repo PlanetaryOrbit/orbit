@@ -1,11 +1,11 @@
-import { Dialog, Transition, RadioGroup } from "@headlessui/react";
-import { Fragment, useState } from "react";
-import { IconCalendarRepeat, IconCalendar, IconCalendarEvent, IconX } from "@tabler/icons-react";
+import { Dialog, Transition, RadioGroup } from '@headlessui/react';
+import { IconCalendarRepeat, IconCalendar, IconCalendarEvent, IconX } from '@tabler/icons-react';
+import { Fragment, useState } from 'react';
 
 interface PatternEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (scope: "single" | "future" | "all") => void;
+  onConfirm: (scope: 'single' | 'future' | 'all') => void;
   session: any;
 }
 
@@ -15,19 +15,19 @@ export default function PatternEditDialog({
   onConfirm,
   session,
 }: PatternEditDialogProps) {
-  const [selectedScope, setSelectedScope] = useState<"single" | "future" | "all">("single");
+  const [selectedScope, setSelectedScope] = useState<'single' | 'future' | 'all'>('single');
 
   const handleConfirm = () => {
     onConfirm(selectedScope);
     onClose();
   };
 
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const sessionDate = new Date(session.date);
   const dayOfWeek = dayNames[sessionDate.getDay()];
   const timeString = sessionDate.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
+    hour: '2-digit',
+    minute: '2-digit',
     hour12: true,
   });
 
@@ -95,12 +95,12 @@ export default function PatternEditDialog({
                           <div
                             className={`cursor-pointer rounded-lg p-4 transition-all ${
                               checked
-                                ? "bg-primary/10 border-2 border-primary"
-                                : "bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600"
+                                ? 'bg-primary/10 border-2 border-primary'
+                                : 'bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className={`mt-1 ${checked ? "text-primary" : "text-zinc-400"}`}>
+                              <div className={`mt-1 ${checked ? 'text-primary' : 'text-zinc-400'}`}>
                                 <IconCalendar className="w-5 h-5" />
                               </div>
                               <div className="flex-1">
@@ -108,9 +108,7 @@ export default function PatternEditDialog({
                                   <span className="font-medium text-zinc-900 dark:text-white">
                                     Only this session
                                   </span>
-                                  {checked && (
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                  )}
+                                  {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
                                 </div>
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                                   Edit only the session on {sessionDate.toLocaleDateString()}
@@ -126,12 +124,12 @@ export default function PatternEditDialog({
                           <div
                             className={`cursor-pointer rounded-lg p-4 transition-all ${
                               checked
-                                ? "bg-primary/10 border-2 border-primary"
-                                : "bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600"
+                                ? 'bg-primary/10 border-2 border-primary'
+                                : 'bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className={`mt-1 ${checked ? "text-primary" : "text-zinc-400"}`}>
+                              <div className={`mt-1 ${checked ? 'text-primary' : 'text-zinc-400'}`}>
                                 <IconCalendarEvent className="w-5 h-5" />
                               </div>
                               <div className="flex-1">
@@ -139,9 +137,7 @@ export default function PatternEditDialog({
                                   <span className="font-medium text-zinc-900 dark:text-white">
                                     This and future {dayOfWeek}s
                                   </span>
-                                  {checked && (
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                  )}
+                                  {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
                                 </div>
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                                   Edit all future sessions on {dayOfWeek} at {timeString}
@@ -157,12 +153,12 @@ export default function PatternEditDialog({
                           <div
                             className={`cursor-pointer rounded-lg p-4 transition-all ${
                               checked
-                                ? "bg-primary/10 border-2 border-primary"
-                                : "bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600"
+                                ? 'bg-primary/10 border-2 border-primary'
+                                : 'bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className={`mt-1 ${checked ? "text-primary" : "text-zinc-400"}`}>
+                              <div className={`mt-1 ${checked ? 'text-primary' : 'text-zinc-400'}`}>
                                 <IconCalendarRepeat className="w-5 h-5" />
                               </div>
                               <div className="flex-1">
@@ -170,9 +166,7 @@ export default function PatternEditDialog({
                                   <span className="font-medium text-zinc-900 dark:text-white">
                                     All sessions in pattern
                                   </span>
-                                  {checked && (
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                  )}
+                                  {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
                                 </div>
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                                   Edit all sessions at {timeString} across all selected days

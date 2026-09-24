@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 
 interface WorkspaceBirthdayPromptProps {
   workspaceId: number | string;
   visible?: boolean;
 }
 
-export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = ({ workspaceId, visible }) => {
+export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = ({
+  workspaceId,
+  visible,
+}) => {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
@@ -37,20 +40,30 @@ export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = (
         if (!cancelled) setInitialLoaded(true);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [workspaceId, visible]);
 
   const daysInMonth = (m: number) => {
     if (m === 2) return 28;
-    if ([4,6,9,11].includes(m)) return 30;
+    if ([4, 6, 9, 11].includes(m)) return 30;
     return 31;
   };
 
   const months = [
-    { name: 'January', value: 1 }, { name: 'February', value: 2 }, { name: 'March', value: 3 },
-    { name: 'April', value: 4 }, { name: 'May', value: 5 }, { name: 'June', value: 6 },
-    { name: 'July', value: 7 }, { name: 'August', value: 8 }, { name: 'September', value: 9 },
-    { name: 'October', value: 10 }, { name: 'November', value: 11 }, { name: 'December', value: 12 }
+    { name: 'January', value: 1 },
+    { name: 'February', value: 2 },
+    { name: 'March', value: 3 },
+    { name: 'April', value: 4 },
+    { name: 'May', value: 5 },
+    { name: 'June', value: 6 },
+    { name: 'July', value: 7 },
+    { name: 'August', value: 8 },
+    { name: 'September', value: 9 },
+    { name: 'October', value: 10 },
+    { name: 'November', value: 11 },
+    { name: 'December', value: 12 },
   ];
 
   const days = month ? Array.from({ length: daysInMonth(Number(month)) }, (_, i) => i + 1) : [];
@@ -61,7 +74,11 @@ export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = (
       if (skip) {
         await axios.post(`/api/workspace/${workspaceId}/birthday`, { day: 0, month: 0, timezone });
       } else {
-        await axios.post(`/api/workspace/${workspaceId}/birthday`, { day: Number(day), month: Number(month), timezone });
+        await axios.post(`/api/workspace/${workspaceId}/birthday`, {
+          day: Number(day),
+          month: Number(month),
+          timezone,
+        });
       }
       setOpen(false);
     } finally {
@@ -91,37 +108,62 @@ export const WorkspaceBirthdayPrompt: React.FC<WorkspaceBirthdayPromptProps> = (
             </div>
 
             <div className="flex-1">
-              <h2 id="bday-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Set your birthday</h2>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Sharing your birthday helps with celebrations — you can skip if you'd prefer not to.</p>
+              <h2
+                id="bday-title"
+                className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+              >
+                Set your birthday
+              </h2>
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                Sharing your birthday helps with celebrations — you can skip if you'd prefer not to.
+              </p>
             </div>
           </div>
 
           <form
-            onSubmit={(e) => { e.preventDefault(); save(false); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              save(false);
+            }}
             className="mt-5"
           >
             <div className="grid grid-cols-2 gap-3">
-              <label className="sr-only" htmlFor="bday-month">Month</label>
+              <label className="sr-only" htmlFor="bday-month">
+                Month
+              </label>
               <select
                 id="bday-month"
                 value={month}
-                onChange={e => { setMonth(e.target.value); setDay(''); }}
+                onChange={(e) => {
+                  setMonth(e.target.value);
+                  setDay('');
+                }}
                 className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
               >
                 <option value="">Month</option>
-                {months.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
+                {months.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.name}
+                  </option>
+                ))}
               </select>
 
-              <label className="sr-only" htmlFor="bday-day">Day</label>
+              <label className="sr-only" htmlFor="bday-day">
+                Day
+              </label>
               <select
                 id="bday-day"
                 value={day}
-                onChange={e => setDay(e.target.value)}
+                onChange={(e) => setDay(e.target.value)}
                 className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#ff0099]/40"
                 disabled={!month}
               >
                 <option value="">Day</option>
-                {days.map(d => <option key={d} value={d}>{d}</option>)}
+                {days.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
               </select>
             </div>
 

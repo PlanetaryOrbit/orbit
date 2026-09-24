@@ -1,5 +1,3 @@
-import React, { FC, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   IconShare,
   IconCopy,
@@ -15,10 +13,12 @@ import {
   IconPlus,
   IconRefresh,
   IconEdit,
-} from "@tabler/icons-react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import clsx from "clsx";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
+import React, { FC, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface PolicyLink {
   id: string;
@@ -58,8 +58,8 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newLinkForm, setNewLinkForm] = useState({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
     expiresInHours: 0,
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -80,12 +80,12 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `/api/workspace/${workspaceId}/policies/${document.id}/links`
+        `/api/workspace/${workspaceId}/policies/${document.id}/links`,
       );
       setLinks(response.data.links || []);
     } catch (error: any) {
-      toast.error("Failed to load links");
-      console.error("Failed to fetch links:", error);
+      toast.error('Failed to load links');
+      console.error('Failed to fetch links:', error);
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +93,7 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
 
   const createLink = async () => {
     if (!newLinkForm.name.trim()) {
-      toast.error("Please enter a name for the link");
+      toast.error('Please enter a name for the link');
       return;
     }
 
@@ -105,15 +105,15 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
           name: newLinkForm.name.trim(),
           description: newLinkForm.description.trim(),
           expiresInHours: newLinkForm.expiresInHours,
-        }
+        },
       );
 
       setLinks([response.data.link, ...links]);
-      setNewLinkForm({ name: "", description: "", expiresInHours: 0 });
+      setNewLinkForm({ name: '', description: '', expiresInHours: 0 });
       setShowCreateForm(false);
-      toast.success("Link created successfully");
+      toast.success('Link created successfully');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to create link");
+      toast.error(error.response?.data?.error || 'Failed to create link');
     } finally {
       setIsCreating(false);
     }
@@ -128,19 +128,16 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
     if (!linkToDelete) return;
 
     try {
-      await axios.delete(
-        `/api/workspace/${workspaceId}/policies/${document.id}/links`,
-        {
-          data: { linkId: linkToDelete.id },
-        }
-      );
+      await axios.delete(`/api/workspace/${workspaceId}/policies/${document.id}/links`, {
+        data: { linkId: linkToDelete.id },
+      });
 
       setLinks(links.filter((link) => link.id !== linkToDelete.id));
-      toast.success("Link deleted successfully");
+      toast.success('Link deleted successfully');
       setShowDeleteModal(false);
       setLinkToDelete(null);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to delete link");
+      toast.error(error.response?.data?.error || 'Failed to delete link');
     }
   };
 
@@ -151,15 +148,13 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
         {
           linkId,
           isActive,
-        }
+        },
       );
 
-      setLinks(
-        links.map((link) => (link.id === linkId ? { ...link, isActive } : link))
-      );
-      toast.success(isActive ? "Link activated" : "Link deactivated");
+      setLinks(links.map((link) => (link.id === linkId ? { ...link, isActive } : link)));
+      toast.success(isActive ? 'Link activated' : 'Link deactivated');
     } catch (error: any) {
-      toast.error("Failed to update link status");
+      toast.error('Failed to update link status');
     }
   };
 
@@ -167,15 +162,15 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
     try {
       await navigator.clipboard.writeText(url);
       setCopiedLinkId(linkId);
-      toast.success("Link copied to clipboard");
+      toast.success('Link copied to clipboard');
       setTimeout(() => setCopiedLinkId(null), 2000);
     } catch (error) {
-      toast.error("Failed to copy link");
+      toast.error('Failed to copy link');
     }
   };
 
   const openLink = (url: string) => {
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   };
 
   if (!isOpen) return null;
@@ -199,9 +194,7 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                   Manage Policy Links
                 </h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {document.name}
-                </p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">{document.name}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -235,7 +228,7 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
             {showCreateForm && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
+                animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50"
               >
@@ -357,10 +350,10 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
                     <div
                       key={link.id}
                       className={clsx(
-                        "p-4 rounded-lg border transition-colors",
+                        'p-4 rounded-lg border transition-colors',
                         link.isActive && !link.isExpired
-                          ? "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800"
-                          : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 opacity-75"
+                          ? 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800'
+                          : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 opacity-75',
                       )}
                     >
                       <div className="flex items-start justify-between">
@@ -389,21 +382,18 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
 
                           <div className="text-xs text-zinc-500 dark:text-zinc-400 space-y-1">
                             <p>
-                              Created by {link.createdBy.username} on{" "}
+                              Created by {link.createdBy.username} on{' '}
                               {new Date(link.createdAt).toLocaleDateString()}
                             </p>
                             {link.expiresAt && (
                               <p>
-                                {link.isExpired ? "Expired" : "Expires"} on{" "}
+                                {link.isExpired ? 'Expired' : 'Expires'} on{' '}
                                 {new Date(link.expiresAt).toLocaleDateString()}
                               </p>
                             )}
                             <p>Access count: {link.accessCount}</p>
                             {link.lastAccessed && (
-                              <p>
-                                Last accessed:{" "}
-                                {new Date(link.lastAccessed).toLocaleString()}
-                              </p>
+                              <p>Last accessed: {new Date(link.lastAccessed).toLocaleString()}</p>
                             )}
                           </div>
                         </div>
@@ -412,10 +402,10 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
                           <button
                             onClick={() => copyToClipboard(link.url, link.id)}
                             className={clsx(
-                              "p-2 rounded-md border transition-colors",
+                              'p-2 rounded-md border transition-colors',
                               copiedLinkId === link.id
-                                ? "bg-green-50 border-green-200 text-green-600"
-                                : "border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                                ? 'bg-green-50 border-green-200 text-green-600'
+                                : 'border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700',
                             )}
                             title="Copy to clipboard"
                           >
@@ -435,11 +425,9 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
                           </button>
 
                           <button
-                            onClick={() =>
-                              toggleLinkStatus(link.id, !link.isActive)
-                            }
+                            onClick={() => toggleLinkStatus(link.id, !link.isActive)}
                             className="p-2 rounded-md border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                            title={link.isActive ? "Deactivate" : "Activate"}
+                            title={link.isActive ? 'Deactivate' : 'Activate'}
                           >
                             {link.isActive ? (
                               <IconEyeOff className="w-4 h-4" />
@@ -473,9 +461,8 @@ const PolicyLinkManager: FC<PolicyLinkManagerProps> = ({
               Confirm Deletion
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
-              Are you sure you want to delete the link{" "}
-              <strong>{linkToDelete.name}</strong>? This action cannot be
-              undone.
+              Are you sure you want to delete the link <strong>{linkToDelete.name}</strong>? This
+              action cannot be undone.
             </p>
             <div className="flex justify-center gap-4">
               <button

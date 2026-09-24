@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withPermissionCheck } from '@/utils/permissionsManager';
+
 import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {

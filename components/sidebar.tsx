@@ -1,10 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import type { NextPage } from "next";
-import { loginState, workspacestate } from "@/state";
-import { useTheme } from "next-themes";
-import { useRecoilState } from "recoil";
-import { Menu, Listbox } from "@headlessui/react";
-import { useRouter } from "next/router";
+import { Menu, Listbox } from '@headlessui/react';
 import {
   IconHome,
   IconHomeFilled,
@@ -35,9 +29,16 @@ import {
   IconTarget,
   IconGridDots,
   IconChevronRight,
-} from "@tabler/icons-react";
-import axios from "axios";
-import clsx from "clsx";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import type { NextPage } from 'next';
+import { useTheme } from 'next-themes';
+import { useRouter } from 'next/router';
+import { useState, useEffect, useRef } from 'react';
+import { useRecoilState } from 'recoil';
+
+import { loginState, workspacestate } from '@/state';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -61,13 +62,12 @@ function MobileWorkspaceSwitcher({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const otherWorkspaces = login?.workspaces?.filter(
-    (ws: any) => ws.groupId !== workspace.groupId
-  ) ?? [];
+  const otherWorkspaces =
+    login?.workspaces?.filter((ws: any) => ws.groupId !== workspace.groupId) ?? [];
 
   const currentName = resolveWorkspaceName(
     login?.workspaces?.find((ws: any) => ws.groupId === workspace.groupId)?.customName,
-    workspace.groupName
+    workspace.groupName,
   );
 
   return (
@@ -79,7 +79,7 @@ function MobileWorkspaceSwitcher({
         className="w-full min-w-0 flex items-center gap-2.5 px-3 py-2.5 outline-none transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70"
       >
         <img
-          src={workspace.groupThumbnail || "/favicon.png"}
+          src={workspace.groupThumbnail || '/favicon.png'}
           alt=""
           className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-zinc-700 shrink-0"
         />
@@ -88,13 +88,13 @@ function MobileWorkspaceSwitcher({
             {currentName}
           </p>
           <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
-            {expanded ? "Choose a workspace" : "Tap to switch workspace"}
+            {expanded ? 'Choose a workspace' : 'Tap to switch workspace'}
           </p>
         </div>
         <IconChevronDown
           className={clsx(
-            "w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-300",
-            expanded && "rotate-180"
+            'w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-300',
+            expanded && 'rotate-180',
           )}
           stroke={2}
         />
@@ -102,8 +102,8 @@ function MobileWorkspaceSwitcher({
 
       <div
         className={clsx(
-          "grid transition-all duration-300 ease-out",
-          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          'grid transition-all duration-300 ease-out',
+          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
         )}
       >
         <div className="overflow-hidden">
@@ -113,11 +113,14 @@ function MobileWorkspaceSwitcher({
                 <button
                   key={ws.groupId}
                   type="button"
-                  onClick={() => { setExpanded(false); onSelect(ws); }}
+                  onClick={() => {
+                    setExpanded(false);
+                    onSelect(ws);
+                  }}
                   className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
                 >
                   <img
-                    src={ws.groupThumbnail || "/favicon.svg"}
+                    src={ws.groupThumbnail || '/favicon.svg'}
                     alt=""
                     className="w-8 h-8 rounded-lg object-cover bg-white dark:bg-zinc-700 shrink-0"
                   />
@@ -134,7 +137,10 @@ function MobileWorkspaceSwitcher({
 
             <button
               type="button"
-              onClick={() => { setExpanded(false); onGoHome(); }}
+              onClick={() => {
+                setExpanded(false);
+                onGoHome();
+              }}
               className="w-full flex items-center gap-3 p-2 mt-0.5 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
             >
               <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 shrink-0">
@@ -174,9 +180,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsStandalone(true);
     }
     const vv = (window as any).visualViewport as VisualViewport | undefined;
@@ -188,27 +194,27 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     };
 
     if (vv) {
-      vv.addEventListener("resize", applyVisualViewport);
-      vv.addEventListener("scroll", applyVisualViewport);
+      vv.addEventListener('resize', applyVisualViewport);
+      vv.addEventListener('scroll', applyVisualViewport);
       applyVisualViewport();
     }
 
     const readSafeArea = () => {
-      const el = document.createElement("div");
+      const el = document.createElement('div');
       el.style.cssText =
-        "position:fixed;bottom:0;left:0;width:1px;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;";
+        'position:fixed;bottom:0;left:0;width:1px;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
       document.body.appendChild(el);
       setSafeAreaBottom(el.getBoundingClientRect().height);
       document.body.removeChild(el);
     };
     readSafeArea();
-    window.addEventListener("resize", readSafeArea);
+    window.addEventListener('resize', readSafeArea);
 
     return () => {
-      window.removeEventListener("resize", readSafeArea);
+      window.removeEventListener('resize', readSafeArea);
       if (vv) {
-        vv.removeEventListener("resize", applyVisualViewport);
-        vv.removeEventListener("scroll", applyVisualViewport);
+        vv.removeEventListener('resize', applyVisualViewport);
+        vv.removeEventListener('scroll', applyVisualViewport);
       }
     };
   }, []);
@@ -226,15 +232,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   useEffect(() => {
-    if (isMobileMenuOpen) document.body.classList.add("overflow-hidden");
-    else document.body.classList.remove("overflow-hidden");
-    return () => document.body.classList.remove("overflow-hidden");
+    if (isMobileMenuOpen) document.body.classList.add('overflow-hidden');
+    else document.body.classList.remove('overflow-hidden');
+    return () => document.body.classList.remove('overflow-hidden');
   }, [isMobileMenuOpen]);
 
   const navBadgeCount = (pageName: string) => {
-    if (pageName === "Policies") return pendingPolicyCount;
-    if (pageName === "Notices")
-      return pendingNoticesCount + pendingResignationsCount;
+    if (pageName === 'Policies') return pendingPolicyCount;
+    if (pageName === 'Notices') return pendingNoticesCount + pendingResignationsCount;
     return 0;
   };
 
@@ -245,19 +250,115 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     filledIcon?: React.ElementType;
     accessible?: boolean;
   }[] = [
-      { name: "Home", href: `/workspace/${workspace.groupId}`, icon: IconHome, filledIcon: IconHomeFilled },
-      { name: "Wall", href: `/workspace/${workspace.groupId}/wall`, icon: IconMessage2, filledIcon: IconMessage2Filled, accessible: workspace.yourPermission.includes("view_wall") },
-      { name: "Activity", href: `/workspace/${workspace.groupId}/activity`, icon: IconClipboardList, filledIcon: IconClipboardListFilled, accessible: true },
-      { name: "Quotas", href: `/workspace/${workspace.groupId}/quotas`, icon: IconTarget, accessible: true },
-      ...(noticesEnabled ? [{ name: "Notices", href: `/workspace/${workspace.groupId}/notices`, icon: IconClock, filledIcon: IconClockFilled, accessible: true }] : []),
-      ...(alliesEnabled ? [{ name: "Alliances", href: `/workspace/${workspace.groupId}/alliances`, icon: IconRosetteDiscountCheck, filledIcon: IconRosetteDiscountCheckFilled, accessible: true }] : []),
-      ...(sessionsEnabled ? [{ name: "Sessions", href: `/workspace/${workspace.groupId}/sessions`, icon: IconBell, filledIcon: IconBellFilled, accessible: true }] : []),
-      { name: "Staff", href: `/workspace/${workspace.groupId}/views`, icon: IconUser, filledIcon: IconUserFilled, accessible: workspace.yourPermission.includes("view_members") },
-      ...(docsEnabled ? [{ name: "Docs", href: `/workspace/${workspace.groupId}/docs`, icon: IconFileText, filledIcon: IconFileTextFilled, accessible: true }] : []),
-      ...(policiesEnabled ? [{ name: "Policies", href: `/workspace/${workspace.groupId}/policies`, icon: IconShield, filledIcon: IconShieldFilled, accessible: true }] : []),
-      { name: "Settings", href: `/workspace/${workspace.groupId}/settings`, icon: IconSettings, filledIcon: IconSettingsFilled, accessible: ["admin", "workspace_customisation", "reset_activity", "manage_features", "manage_apikeys", "view_audit_logs"].some((perm) => workspace.yourPermission.includes(perm)) },
-      { name: "My Profile", href: `/workspace/${workspace.groupId}/profile/${login.userId}`, icon: IconUser, accessible: true },
-    ];
+    {
+      name: 'Home',
+      href: `/workspace/${workspace.groupId}`,
+      icon: IconHome,
+      filledIcon: IconHomeFilled,
+    },
+    {
+      name: 'Wall',
+      href: `/workspace/${workspace.groupId}/wall`,
+      icon: IconMessage2,
+      filledIcon: IconMessage2Filled,
+      accessible: workspace.yourPermission.includes('view_wall'),
+    },
+    {
+      name: 'Activity',
+      href: `/workspace/${workspace.groupId}/activity`,
+      icon: IconClipboardList,
+      filledIcon: IconClipboardListFilled,
+      accessible: true,
+    },
+    {
+      name: 'Quotas',
+      href: `/workspace/${workspace.groupId}/quotas`,
+      icon: IconTarget,
+      accessible: true,
+    },
+    ...(noticesEnabled
+      ? [
+          {
+            name: 'Notices',
+            href: `/workspace/${workspace.groupId}/notices`,
+            icon: IconClock,
+            filledIcon: IconClockFilled,
+            accessible: true,
+          },
+        ]
+      : []),
+    ...(alliesEnabled
+      ? [
+          {
+            name: 'Alliances',
+            href: `/workspace/${workspace.groupId}/alliances`,
+            icon: IconRosetteDiscountCheck,
+            filledIcon: IconRosetteDiscountCheckFilled,
+            accessible: true,
+          },
+        ]
+      : []),
+    ...(sessionsEnabled
+      ? [
+          {
+            name: 'Sessions',
+            href: `/workspace/${workspace.groupId}/sessions`,
+            icon: IconBell,
+            filledIcon: IconBellFilled,
+            accessible: true,
+          },
+        ]
+      : []),
+    {
+      name: 'Staff',
+      href: `/workspace/${workspace.groupId}/views`,
+      icon: IconUser,
+      filledIcon: IconUserFilled,
+      accessible: workspace.yourPermission.includes('view_members'),
+    },
+    ...(docsEnabled
+      ? [
+          {
+            name: 'Docs',
+            href: `/workspace/${workspace.groupId}/docs`,
+            icon: IconFileText,
+            filledIcon: IconFileTextFilled,
+            accessible: true,
+          },
+        ]
+      : []),
+    ...(policiesEnabled
+      ? [
+          {
+            name: 'Policies',
+            href: `/workspace/${workspace.groupId}/policies`,
+            icon: IconShield,
+            filledIcon: IconShieldFilled,
+            accessible: true,
+          },
+        ]
+      : []),
+    {
+      name: 'Settings',
+      href: `/workspace/${workspace.groupId}/settings`,
+      icon: IconSettings,
+      filledIcon: IconSettingsFilled,
+      accessible: [
+        'admin',
+        'workspace_customisation',
+        'reset_activity',
+        'manage_features',
+        'manage_apikeys',
+        'view_audit_logs',
+      ].some((perm) => workspace.yourPermission.includes(perm)),
+    },
+    {
+      name: 'My Profile',
+      href: `/workspace/${workspace.groupId}/profile/${login.userId}`,
+      icon: IconUser,
+      accessible: true,
+    },
+  ];
 
   const visiblePages = pages.filter((p) => p.accessible === undefined || p.accessible);
   const bottomBarPages = visiblePages.slice(0, 4);
@@ -270,22 +371,22 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   const logout = async () => {
-    await axios.post("/api/auth/logout");
+    await axios.post('/api/auth/logout');
     setLogin({
       userId: 1,
-      username: "",
-      displayname: "",
+      username: '',
+      displayname: '',
       canMakeWorkspace: false,
-      thumbnail: "",
+      thumbnail: '',
       workspaces: [],
       isOwner: false,
-      isFirstLogin: false
+      isFirstLogin: false,
     });
-    router.push("/login");
+    router.push('/login');
   };
 
   const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   useEffect(() => {
@@ -312,7 +413,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   }, [workspace.groupId, policiesEnabled]);
 
   useEffect(() => {
-    if (noticesEnabled && (workspace.yourPermission?.includes("approve_notices") || workspace.yourPermission?.includes("manage_notices") || workspace.yourPermission?.includes("admin"))) {
+    if (
+      noticesEnabled &&
+      (workspace.yourPermission?.includes('approve_notices') ||
+        workspace.yourPermission?.includes('manage_notices') ||
+        workspace.yourPermission?.includes('admin'))
+    ) {
       fetch(`/api/workspace/${workspace.groupId}/activity/notices/count`)
         .then((res) => res.json())
         .then((data) => data.success && setPendingNoticesCount(data.count || 0))
@@ -324,9 +430,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     if (
       noticesEnabled &&
       resignationsEnabled &&
-      (workspace.yourPermission?.includes("approve_resignations") ||
-        workspace.yourPermission?.includes("manage_resignations") ||
-        workspace.yourPermission?.includes("admin"))
+      (workspace.yourPermission?.includes('approve_resignations') ||
+        workspace.yourPermission?.includes('manage_resignations') ||
+        workspace.yourPermission?.includes('admin'))
     ) {
       fetch(`/api/workspace/${workspace.groupId}/resignations/count`)
         .then((res) => res.json())
@@ -335,27 +441,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     } else {
       setPendingResignationsCount(0);
     }
-  }, [
-    workspace.groupId,
-    noticesEnabled,
-    resignationsEnabled,
-    workspace.yourPermission,
-  ]);
+  }, [workspace.groupId, noticesEnabled, resignationsEnabled, workspace.yourPermission]);
 
   return (
     <>
       <div
         className={clsx(
-          "hidden fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out",
-          !isStandalone && "lg:flex",
-          isCollapsed ? "w-[72px]" : "w-56"
+          'hidden fixed lg:static top-0 left-0 h-screen z-[99999] flex-col transition-[transform,width] duration-300 ease-out',
+          !isStandalone && 'lg:flex',
+          isCollapsed ? 'w-[72px]' : 'w-56',
         )}
       >
         <aside
-          className={clsx(
-            "h-full flex flex-col flex-1 min-w-0",
-            "bg-zinc-50 dark:bg-zinc-950"
-          )}
+          className={clsx('h-full flex flex-col flex-1 min-w-0', 'bg-zinc-50 dark:bg-zinc-950')}
         >
           <div className="flex flex-col h-full min-h-0 py-4 px-3 pb-4">
             <div className="shrink-0 overflow-visible px-0">
@@ -369,7 +467,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       groupId: selected.groupId,
                       groupName: selected.groupName,
                       groupThumbnail: selected.groupThumbnail,
-                      customName: selected.customName
+                      customName: selected.customName,
                     });
                     router.push(`/workspace/${selected.groupId}`);
                   }
@@ -378,14 +476,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <div className="relative" ref={workspaceListboxWrapperRef}>
                   <Listbox.Button
                     className={clsx(
-                      "w-full flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 outline-none",
-                      "text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60",
-                      isCollapsed && "justify-center p-2"
+                      'w-full flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 outline-none',
+                      'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60',
+                      isCollapsed && 'justify-center p-2',
                     )}
                   >
-                    <span className={clsx("flex shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800", isCollapsed ? "w-9 h-9" : "w-10 h-10")}>
+                    <span
+                      className={clsx(
+                        'flex shrink-0 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800',
+                        isCollapsed ? 'w-9 h-9' : 'w-10 h-10',
+                      )}
+                    >
                       <img
-                        src={workspace.groupThumbnail || "/favicon-32x32.png"}
+                        src={workspace.groupThumbnail || '/favicon-32x32.png'}
                         alt=""
                         width={isCollapsed ? 36 : 40}
                         height={isCollapsed ? 36 : 40}
@@ -396,9 +499,15 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       <>
                         <div className="flex-1 min-w-0 text-left">
                           <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
-                            {resolveWorkspaceName(login?.workspaces?.find((ws) => ws.groupId === workspace.groupId)?.customName, workspace.groupName)}
+                            {resolveWorkspaceName(
+                              login?.workspaces?.find((ws) => ws.groupId === workspace.groupId)
+                                ?.customName,
+                              workspace.groupName,
+                            )}
                           </p>
-                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Workspace</p>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                            Workspace
+                          </p>
                         </div>
                         <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={1.5} />
                       </>
@@ -408,8 +517,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        workspaceListboxWrapperRef.current?.querySelector("button")?.click();
-                        router.push("/");
+                        workspaceListboxWrapperRef.current?.querySelector('button')?.click();
+                        router.push('/');
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl mx-2 transition-colors duration-150"
                     >
@@ -426,22 +535,35 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             value={ws.groupId}
                             className={({ active }) =>
                               clsx(
-                                "flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl cursor-pointer transition-colors duration-150",
-                                active && "bg-zinc-100/80 dark:bg-zinc-800/60"
+                                'flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl cursor-pointer transition-colors duration-150',
+                                active && 'bg-zinc-100/80 dark:bg-zinc-800/60',
                               )
                             }
                           >
                             {({ selected }) => (
                               <>
-                                <img src={ws.groupThumbnail || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                                <span className="flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">{resolveWorkspaceName(ws.customName, ws.groupName)}</span>
-                                {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))] shrink-0" stroke={2} />}
+                                <img
+                                  src={ws.groupThumbnail || '/placeholder.svg'}
+                                  alt=""
+                                  className="w-8 h-8 rounded-lg object-cover shrink-0"
+                                />
+                                <span className="flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">
+                                  {resolveWorkspaceName(ws.customName, ws.groupName)}
+                                </span>
+                                {selected && (
+                                  <IconCheck
+                                    className="w-4 h-4 text-[color:rgb(var(--group-theme))] shrink-0"
+                                    stroke={2}
+                                  />
+                                )}
                               </>
                             )}
                           </Listbox.Option>
                         ))
                     ) : (
-                      <div className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">No other workspaces</div>
+                      <div className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                        No other workspaces
+                      </div>
                     )}
                   </Listbox.Options>
                 </div>
@@ -450,8 +572,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
             <nav className="flex-1 mt-5 space-y-0.5 min-h-0 overflow-y-auto overflow-x-hidden">
               {visiblePages.map((page) => {
-                const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
-                const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
+                const isActive =
+                  router.asPath === page.href.replace('[id]', workspace.groupId.toString());
+                const IconComponent = isActive ? page.filledIcon || page.icon : page.icon;
                 const badge = navBadgeCount(page.name);
                 return (
                   <button
@@ -459,15 +582,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     type="button"
                     onClick={() => gotopage(page.href)}
                     className={clsx(
-                      "w-full flex items-center gap-2.5 rounded-xl py-2 px-2.5 text-left outline-none select-none transition-all duration-150",
+                      'w-full flex items-center gap-2.5 rounded-xl py-2 px-2.5 text-left outline-none select-none transition-all duration-150',
                       isActive
-                        ? "bg-[color:rgb(var(--group-theme)/0.08)] text-[color:rgb(var(--group-theme))] font-semibold"
-                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/50",
-                      isCollapsed && "justify-center px-2 relative",
+                        ? 'bg-[color:rgb(var(--group-theme)/0.08)] text-[color:rgb(var(--group-theme))] font-semibold'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/50',
+                      isCollapsed && 'justify-center px-2 relative',
                     )}
-                    style={{ WebkitTapHighlightColor: "transparent" }}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
-                    <IconComponent className={clsx("w-[18px] h-[18px] shrink-0", isActive && "drop-shadow-sm")} stroke={isActive ? 2 : 1.75} />
+                    <IconComponent
+                      className={clsx('w-[18px] h-[18px] shrink-0', isActive && 'drop-shadow-sm')}
+                      stroke={isActive ? 2 : 1.75}
+                    />
                     {!isCollapsed && (
                       <span className="flex-1 truncate text-[13px]">{page.name}</span>
                     )}
@@ -491,29 +617,42 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="hidden lg:flex items-center justify-center rounded-xl py-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors outline-none w-full"
-                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
-                <IconChevronLeft className={clsx("w-3.5 h-3.5 transition-transform duration-300", isCollapsed && "rotate-180")} stroke={2} />
+                <IconChevronLeft
+                  className={clsx(
+                    'w-3.5 h-3.5 transition-transform duration-300',
+                    isCollapsed && 'rotate-180',
+                  )}
+                  stroke={2}
+                />
               </button>
 
               <Menu as="div" className="relative">
                 <Menu.Button
                   className={clsx(
-                    "w-full flex items-center gap-3 rounded-2xl p-2.5 outline-none transition-colors duration-200",
-                    "text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60",
-                    isCollapsed && "justify-center p-2"
+                    'w-full flex items-center gap-3 rounded-2xl p-2.5 outline-none transition-colors duration-200',
+                    'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60',
+                    isCollapsed && 'justify-center p-2',
                   )}
                 >
                   <img
-                    src={login?.thumbnail || "/placeholder.svg"}
+                    src={login?.thumbnail || '/placeholder.svg'}
                     alt=""
-                    className={clsx("rounded-xl object-cover shrink-0", isCollapsed ? "w-9 h-9" : "w-10 h-10")}
+                    className={clsx(
+                      'rounded-xl object-cover shrink-0',
+                      isCollapsed ? 'w-9 h-9' : 'w-10 h-10',
+                    )}
                   />
                   {!isCollapsed && (
                     <>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">{login?.displayname}</p>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Account</p>
+                        <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
+                          {login?.displayname}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                          Account
+                        </p>
                       </div>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={1.5} />
                     </>
@@ -523,13 +662,17 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   <div className="px-3 pt-3 pb-2.5">
                     <div className="flex items-center gap-2.5">
                       <img
-                        src={login?.thumbnail || "/placeholder.svg"}
+                        src={login?.thumbnail || '/placeholder.svg'}
                         alt=""
                         className="w-9 h-9 rounded-xl object-cover shrink-0 ring-2 ring-zinc-100 dark:ring-zinc-800"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">{login?.displayname}</p>
-                        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">@{login?.username}</p>
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                          {login?.displayname}
+                        </p>
+                        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                          @{login?.username}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -543,21 +686,27 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           type="button"
                           onClick={toggleTheme}
                           className={clsx(
-                            "w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left",
+                            'w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left',
                             active
-                              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                              : "text-zinc-700 dark:text-zinc-300"
+                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white'
+                              : 'text-zinc-700 dark:text-zinc-300',
                           )}
                         >
-                          <span className={clsx(
-                            "flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
-                            active ? "bg-zinc-200/70 dark:bg-zinc-700" : "bg-zinc-100 dark:bg-zinc-800"
-                          )}>
-                            {resolvedTheme === "dark"
-                              ? <IconSun className="w-3.5 h-3.5" stroke={2} />
-                              : <IconMoon className="w-3.5 h-3.5" stroke={2} />}
+                          <span
+                            className={clsx(
+                              'flex items-center justify-center w-7 h-7 rounded-lg shrink-0',
+                              active
+                                ? 'bg-zinc-200/70 dark:bg-zinc-700'
+                                : 'bg-zinc-100 dark:bg-zinc-800',
+                            )}
+                          >
+                            {resolvedTheme === 'dark' ? (
+                              <IconSun className="w-3.5 h-3.5" stroke={2} />
+                            ) : (
+                              <IconMoon className="w-3.5 h-3.5" stroke={2} />
+                            )}
                           </span>
-                          {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                          {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
                         </button>
                       )}
                     </Menu.Item>
@@ -572,15 +721,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           type="button"
                           onClick={logout}
                           className={clsx(
-                            "w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left",
-                            "text-red-600 dark:text-red-400",
-                            active && "bg-red-50 dark:bg-red-950/40"
+                            'w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left',
+                            'text-red-600 dark:text-red-400',
+                            active && 'bg-red-50 dark:bg-red-950/40',
                           )}
                         >
-                          <span className={clsx(
-                            "flex items-center justify-center w-7 h-7 rounded-lg shrink-0",
-                            active ? "bg-red-100 dark:bg-red-900/40" : "bg-red-50 dark:bg-red-950/30"
-                          )}>
+                          <span
+                            className={clsx(
+                              'flex items-center justify-center w-7 h-7 rounded-lg shrink-0',
+                              active
+                                ? 'bg-red-100 dark:bg-red-900/40'
+                                : 'bg-red-50 dark:bg-red-950/30',
+                            )}
+                          >
                             <IconLogout className="w-3.5 h-3.5" stroke={2} />
                           </span>
                           Sign out
@@ -597,19 +750,20 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <nav
         ref={navRef}
         className={clsx(
-          "fixed bottom-0 inset-x-0 z-[99990]",
-          "bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl",
-          "border-t border-zinc-200/60 dark:border-zinc-800/60",
-          isStandalone ? "flex flex-col" : "lg:hidden flex flex-col"
+          'fixed bottom-0 inset-x-0 z-[99990]',
+          'bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl',
+          'border-t border-zinc-200/60 dark:border-zinc-800/60',
+          isStandalone ? 'flex flex-col' : 'lg:hidden flex flex-col',
         )}
         style={{
-          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
         <div className="flex items-stretch h-16 w-full">
           {bottomBarPages.map((page) => {
-            const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
-            const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
+            const isActive =
+              router.asPath === page.href.replace('[id]', workspace.groupId.toString());
+            const IconComponent = isActive ? page.filledIcon || page.icon : page.icon;
             const hasBadge = navBadgeCount(page.name) > 0;
             const badgeCount = navBadgeCount(page.name);
 
@@ -618,12 +772,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 key={page.name}
                 type="button"
                 onClick={() => gotopage(page.href)}
-                style={{ WebkitTapHighlightColor: "transparent" }}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={clsx(
-                  "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
+                  'flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150',
                   isActive
-                    ? "text-[color:rgb(var(--group-theme))]"
-                    : "text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300"
+                    ? 'text-[color:rgb(var(--group-theme))]'
+                    : 'text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300',
                 )}
               >
                 <div className="relative">
@@ -634,7 +788,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </span>
                   )}
                 </div>
-                <span className={clsx("text-[10px] font-medium leading-none", isActive ? "opacity-100" : "opacity-70")}>
+                <span
+                  className={clsx(
+                    'text-[10px] font-medium leading-none',
+                    isActive ? 'opacity-100' : 'opacity-70',
+                  )}
+                >
                   {page.name}
                 </span>
                 {isActive && (
@@ -647,31 +806,36 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           <button
             type="button"
             onClick={openMoreSheet}
-            style={{ WebkitTapHighlightColor: "transparent" }}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
             aria-label="Open menu"
             className={clsx(
-              "flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150",
+              'flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150',
               mobileMoreOpen
-                ? "text-[color:rgb(var(--group-theme))]"
-                : "text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300"
+                ? 'text-[color:rgb(var(--group-theme))]'
+                : 'text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300',
             )}
           >
             <span
               className={clsx(
-                "relative flex items-center justify-center rounded-full transition-all duration-200",
-                "ring-2 ring-zinc-50 dark:ring-zinc-950",
+                'relative flex items-center justify-center rounded-full transition-all duration-200',
+                'ring-2 ring-zinc-50 dark:ring-zinc-950',
                 mobileMoreOpen
-                  ? "ring-offset-2 ring-offset-[color:rgb(var(--group-theme))]"
-                  : "ring-offset-2 ring-offset-transparent"
+                  ? 'ring-offset-2 ring-offset-[color:rgb(var(--group-theme))]'
+                  : 'ring-offset-2 ring-offset-transparent',
               )}
             >
               <img
-                src={login?.thumbnail || "/default-avatar.jpg"}
+                src={login?.thumbnail || '/default-avatar.jpg'}
                 alt=""
                 className="w-6 h-6 rounded-full object-cover bg-zinc-200 dark:bg-zinc-700"
               />
             </span>
-            <span className={clsx("text-[10px] font-medium leading-none", mobileMoreOpen ? "opacity-100" : "opacity-70")}>
+            <span
+              className={clsx(
+                'text-[10px] font-medium leading-none',
+                mobileMoreOpen ? 'opacity-100' : 'opacity-70',
+              )}
+            >
               Menu
             </span>
             {mobileMoreOpen && (
@@ -681,16 +845,16 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         </div>
       </nav>
       <div
-        className={clsx(isStandalone ? "block" : "lg:hidden block")}
-        style={{ height: "64px" }}
+        className={clsx(isStandalone ? 'block' : 'lg:hidden block')}
+        style={{ height: '64px' }}
       />
       {mobileMoreOpen && (
         <>
           <div
             className={clsx(
-              "fixed inset-0 z-[99995] bg-black/30 backdrop-blur-sm",
-              "transition-opacity duration-300 ease-out",
-              mobileMoreVisible ? "opacity-100" : "opacity-0"
+              'fixed inset-0 z-[99995] bg-black/30 backdrop-blur-sm',
+              'transition-opacity duration-300 ease-out',
+              mobileMoreVisible ? 'opacity-100' : 'opacity-0',
             )}
             onClick={closeMoreSheet}
             aria-hidden
@@ -698,15 +862,19 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
           <div
             className={clsx(
-              "fixed bottom-0 inset-x-0 z-[99999]",
-              "bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl",
-              "transition-transform duration-300 ease-out",
-              mobileMoreVisible ? "translate-y-0" : "translate-y-full"
+              'fixed bottom-0 inset-x-0 z-[99999]',
+              'bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl',
+              'transition-transform duration-300 ease-out',
+              mobileMoreVisible ? 'translate-y-0' : 'translate-y-full',
             )}
             style={{
-              paddingBottom: "env(safe-area-inset-bottom, 0px)",
-              WebkitTransform: mobileMoreVisible ? "translateY(0) translateZ(0)" : "translateY(100%) translateZ(0)",
-              transform: mobileMoreVisible ? "translateY(0) translateZ(0)" : "translateY(100%) translateZ(0)",
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              WebkitTransform: mobileMoreVisible
+                ? 'translateY(0) translateZ(0)'
+                : 'translateY(100%) translateZ(0)',
+              transform: mobileMoreVisible
+                ? 'translateY(0) translateZ(0)'
+                : 'translateY(100%) translateZ(0)',
             }}
           >
             <div className="pt-3 pb-1 flex justify-center">
@@ -716,7 +884,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800 space-y-2">
               <div className="flex items-center gap-3 px-2 py-1.5">
                 <img
-                  src={login?.thumbnail || "/default-avatar.jpg"}
+                  src={login?.thumbnail || '/default-avatar.jpg'}
                   alt=""
                   className="w-10 h-10 rounded-full object-cover shrink-0 bg-zinc-200 dark:bg-zinc-700 ring-2 ring-zinc-100 dark:ring-zinc-800"
                 />
@@ -739,14 +907,14 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     groupId: ws.groupId,
                     groupName: ws.groupName,
                     groupThumbnail: ws.groupThumbnail,
-                    customName: ws.customName
+                    customName: ws.customName,
                   });
                   router.push(`/workspace/${ws.groupId}`);
                   closeMoreSheet();
                 }}
                 onGoHome={() => {
                   closeMoreSheet();
-                  router.push("/");
+                  router.push('/');
                 }}
               />
             </div>
@@ -758,8 +926,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 </p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {morePages.map((page) => {
-                    const isActive = router.asPath === page.href.replace("[id]", workspace.groupId.toString());
-                    const IconComponent = isActive ? (page.filledIcon || page.icon) : page.icon;
+                    const isActive =
+                      router.asPath === page.href.replace('[id]', workspace.groupId.toString());
+                    const IconComponent = isActive ? page.filledIcon || page.icon : page.icon;
                     const hasBadge = navBadgeCount(page.name) > 0;
                     const badgeCount = navBadgeCount(page.name);
 
@@ -768,20 +937,20 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         key={page.name}
                         type="button"
                         onClick={() => gotopage(page.href)}
-                        style={{ WebkitTapHighlightColor: "transparent" }}
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                         className={clsx(
-                          "flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none",
+                          'flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none',
                           isActive
-                            ? "bg-[color:rgb(var(--group-theme)/0.1)]"
-                            : "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800"
+                            ? 'bg-[color:rgb(var(--group-theme)/0.1)]'
+                            : 'hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800',
                         )}
                       >
                         <span
                           className={clsx(
-                            "relative flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-colors",
+                            'relative flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-colors',
                             isActive
-                              ? "bg-[color:rgb(var(--group-theme))] text-white"
-                              : "bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400"
+                              ? 'bg-[color:rgb(var(--group-theme))] text-white'
+                              : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400',
                           )}
                         >
                           <IconComponent className="w-5 h-5" stroke={1.5} />
@@ -793,13 +962,18 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                         </span>
                         <span
                           className={clsx(
-                            "flex-1 text-[15px] font-medium truncate",
-                            isActive ? "text-[color:rgb(var(--group-theme))]" : "text-zinc-800 dark:text-zinc-200"
+                            'flex-1 text-[15px] font-medium truncate',
+                            isActive
+                              ? 'text-[color:rgb(var(--group-theme))]'
+                              : 'text-zinc-800 dark:text-zinc-200',
                           )}
                         >
                           {page.name}
                         </span>
-                        <IconChevronRight className="w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0" stroke={2} />
+                        <IconChevronRight
+                          className="w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0"
+                          stroke={2}
+                        />
                       </button>
                     );
                   })}
@@ -815,26 +989,32 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                   className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800"
                 >
                   <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400">
-                    {resolvedTheme === "dark" ? <IconSun className="w-5 h-5" stroke={1.5} /> : <IconMoon className="w-5 h-5" stroke={1.5} />}
+                    {resolvedTheme === 'dark' ? (
+                      <IconSun className="w-5 h-5" stroke={1.5} />
+                    ) : (
+                      <IconMoon className="w-5 h-5" stroke={1.5} />
+                    )}
                   </span>
                   <span className="flex-1 text-[15px] font-medium text-zinc-800 dark:text-zinc-200">
-                    {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                    {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={logout}
-                  style={{ WebkitTapHighlightColor: "transparent" }}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                   className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-red-50/80 dark:hover:bg-red-950/30 active:bg-red-100/80 dark:active:bg-red-950/50"
                 >
                   <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400">
                     <IconLogout className="w-5 h-5" stroke={1.5} />
                   </span>
-                  <span className="flex-1 text-[15px] font-medium text-red-600 dark:text-red-400">Logout</span>
+                  <span className="flex-1 text-[15px] font-medium text-red-600 dark:text-red-400">
+                    Logout
+                  </span>
                 </button>
               </div>
             </div>

@@ -1,20 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const workspaceId = Number.parseInt(req.query.id as string);
-  if (!workspaceId)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
+  if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
 
   const {
     endDate,
@@ -48,22 +44,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       })();
 
   if (isNaN(start.getTime()) || isNaN(end.getTime()))
-    return res
-      .status(400)
-      .json({ success: false, error: "Invalid date format" });
+    return res.status(400).json({ success: false, error: 'Invalid date format' });
 
   if (start >= end)
-    return res
-      .status(400)
-      .json({ success: false, error: "startDate must be before endDate" });
+    return res.status(400).json({ success: false, error: 'startDate must be before endDate' });
 
   const take = Math.min(Number(limit) || 50, 10000);
   const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
 
-  if (hideClaimed === "true" && showClaimed === "true")
+  if (hideClaimed === 'true' && showClaimed === 'true')
     return res.status(400).json({
       success: false,
-      error: "hideClaimed and showClaimed cannot both be true",
+      error: 'hideClaimed and showClaimed cannot both be true',
     });
 
   try {
@@ -74,38 +66,36 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (category) where.type = category as string;
 
-    if (hideClaimed === "true") {
+    if (hideClaimed === 'true') {
       where.users = { none: {} };
-    } else if (showClaimed === "true") {
+    } else if (showClaimed === 'true') {
       where.users = { some: {} };
     }
 
     if (status) {
       switch (status) {
-        case "scheduled":
+        case 'scheduled':
           where.ended = false;
           where.startedAt = null;
           where.date = { ...where.date, gte: new Date() };
           break;
-        case "in-progress":
+        case 'in-progress':
           where.ended = false;
           where.startedAt = { not: null };
           break;
-        case "ended":
+        case 'ended':
           where.ended = true;
           break;
-        case "missed":
+        case 'missed':
           where.ended = false;
           where.startedAt = null;
           where.date = { ...where.date, lte: new Date() };
           break;
         default:
-          return res
-            .status(400)
-            .json({
-              success: false,
-              error: `Invalid status filter: ${status}`,
-            });
+          return res.status(400).json({
+            success: false,
+            error: `Invalid status filter: ${status}`,
+          });
       }
     }
 
@@ -130,7 +120,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
           notes: true,
         },
-        orderBy: { date: "asc" },
+        orderBy: { date: 'asc' },
         take,
         skip,
       }),
@@ -150,9 +140,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         name: session.sessionType.name,
         description: session.sessionType.description,
         category: session.type,
-        gameId: session.sessionType.gameId
-          ? Number(session.sessionType.gameId)
-          : null,
+        gameId: session.sessionType.gameId ? Number(session.sessionType.gameId) : null,
         slots: session.sessionType.slots,
       },
       host: session.owner
@@ -170,12 +158,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         role: u.roleID,
       })),
       status: session.ended
-        ? "ended"
+        ? 'ended'
         : session.startedAt
-          ? "in-progress"
+          ? 'in-progress'
           : session.date < new Date()
-            ? "missed"
-            : "scheduled",
+            ? 'missed'
+            : 'scheduled',
       notes: session.notes.map((note) => ({
         id: note.id,
         authorId: note.authorId,
@@ -185,13 +173,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       })),
     }));
 
-    const sessionsByDate = formattedSessions.reduce<
-      Record<string, typeof formattedSessions>
-    >((acc, session) => {
-      const key = session.date.toISOString().split("T")[0];
-      (acc[key] ??= []).push(session);
-      return acc;
-    }, {});
+    const sessionsByDate = formattedSessions.reduce<Record<string, typeof formattedSessions>>(
+      (acc, session) => {
+        const key = session.date.toISOString().split('T')[0];
+        (acc[key] ??= []).push(session);
+        return acc;
+      },
+      {},
+    );
 
     return res.status(200).json({
       success: true,
@@ -210,9 +199,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   } catch (error) {
-    console.error("Error fetching sessions:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    console.error('Error fetching sessions:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

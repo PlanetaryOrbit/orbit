@@ -1,11 +1,12 @@
-import axios from "axios";
-import React, { useState } from "react";
-import type { document, user } from "@/utils/database";
-import { useRouter } from "next/router";
-import { IconFileText, IconLink } from "@tabler/icons-react";
-import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
-import { ExternalLinkModal, useExternalLinkModal } from "@/components/docs/modals";
-import { isExternalContent } from "@/components/docs/content";
+import { IconFileText, IconLink } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+
+import { isExternalContent } from '@/components/docs/content';
+import { ExternalLinkModal, useExternalLinkModal } from '@/components/docs/modals';
+import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
+import type { document, user } from '@/utils/database';
 
 const Docs: React.FC = () => {
   const [docs, setDocs] = useState<(document & { owner: user })[]>([]);
@@ -32,7 +33,7 @@ const Docs: React.FC = () => {
     return (
       <HomeEmpty
         action={{
-          label: "Browse documents",
+          label: 'Browse documents',
           onClick: () => router.push(`/workspace/${workspaceId}/docs`),
         }}
       >
@@ -57,7 +58,10 @@ const Docs: React.FC = () => {
                   {external ? (
                     <IconLink className="h-4 w-4 text-zinc-500 dark:text-zinc-400" stroke={1.75} />
                   ) : (
-                    <IconFileText className="h-4 w-4 text-zinc-500 dark:text-zinc-400" stroke={1.75} />
+                    <IconFileText
+                      className="h-4 w-4 text-zinc-500 dark:text-zinc-400"
+                      stroke={1.75}
+                    />
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -65,7 +69,7 @@ const Docs: React.FC = () => {
                     {doc.name}
                   </p>
                   <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                    {doc.owner?.username ? `By ${doc.owner.username}` : "Unknown author"}
+                    {doc.owner?.username ? `By ${doc.owner.username}` : 'Unknown author'}
                   </p>
                 </div>
               </button>

@@ -1,21 +1,19 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getConfig, setConfig } from '@/utils/configEngine'
-import { withPermissionCheck } from '@/utils/permissionsManager'
-import { withAuth } from '@/lib/withAuth'
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withAuth } from '@/lib/withAuth';
+import { getConfig, setConfig } from '@/utils/configEngine';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
-  success: boolean
-  error?: string
-  value?: any
-}
+  success: boolean;
+  error?: string;
+  value?: any;
+};
 
 export default withAuth(handler);
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const userId = (req as any).auth?.userId;
   if (!userId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -31,12 +29,22 @@ async function handler(
 
   if (req.method === 'PATCH') {
     return withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse<Data>) => {
-      await setConfig('notices', {
-        enabled: req.body.enabled
-      }, parseInt(req.query.id as string));
+      await setConfig(
+        'notices',
+        {
+          enabled: req.body.enabled,
+        },
+        parseInt(req.query.id as string),
+      );
       try {
         const { logAudit } = await import('@/utils/logs');
-        await logAudit(parseInt(req.query.id as string), (req as any).auth?.userId || null, 'settings.update', 'notices', { enabled: req.body.enabled });
+        await logAudit(
+          parseInt(req.query.id as string),
+          (req as any).auth?.userId || null,
+          'settings.update',
+          'notices',
+          { enabled: req.body.enabled },
+        );
       } catch (e) {}
       return res.status(200).json({ success: true });
     }, 'manage_features')(req, res);

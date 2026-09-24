@@ -1,36 +1,36 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 const messages = [
-  "Hold tight while we load everything for you...",
-  "Good things are coming towards you.",
-  "Did you know? Honey never spoils. Archaeologists found 3,000-year-old honey in Egyptian tombs.",
-  "The Eiffel Tower grows about 15cm taller in summer due to thermal expansion.",
+  'Hold tight while we load everything for you...',
+  'Good things are coming towards you.',
+  'Did you know? Honey never spoils. Archaeologists found 3,000-year-old honey in Egyptian tombs.',
+  'The Eiffel Tower grows about 15cm taller in summer due to thermal expansion.',
   "You're doing great. Really.",
   "A group of flamingos is called a 'flamboyance'.",
-  "Your next favourite thing might be just around the corner.",
+  'Your next favourite thing might be just around the corner.',
   "Otters hold hands while sleeping so they don't drift apart.",
-  "Something wonderful is on its way.",
-  "Crows can recognise human faces and remember them for years.",
+  'Something wonderful is on its way.',
+  'Crows can recognise human faces and remember them for years.',
   "A day you'll always remember might be just ahead.",
-  "Bananas are technically berries. Strawberries are not.",
-  "The shortest war in history lasted 38 to 45 minutes.",
+  'Bananas are technically berries. Strawberries are not.',
+  'The shortest war in history lasted 38 to 45 minutes.',
   "You've already made it through 100% of your bad days.",
-  "Wombats produce cube-shaped droppings. No other animal does this.",
-  "The universe is under no obligation to make sense to you — and yet, here you are.",
+  'Wombats produce cube-shaped droppings. No other animal does this.',
+  'The universe is under no obligation to make sense to you — and yet, here you are.',
   "Scotland's national animal is the unicorn.",
   "A small act of kindness you've forgotten probably meant the world to someone.",
-  "Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.",
-  "Trees can communicate and share nutrients through underground fungal networks.",
+  'Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.',
+  'Trees can communicate and share nutrients through underground fungal networks.',
   "The dot above a lowercase 'i' is called a tittle.",
-  "You are made of stardust. Literally.",
+  'You are made of stardust. Literally.',
   "Sharks are older than trees. They've been around for about 450 million years.",
-  "The best is not behind you.",
-  "Almost there. Good things take a moment.",
-  "We are almost ready.",
-  "Maybe consider taking a coffee while we load everything.",
-  "The Egyptians believed the most significant thing you could do in your life was die.",
+  'The best is not behind you.',
+  'Almost there. Good things take a moment.',
+  'We are almost ready.',
+  'Maybe consider taking a coffee while we load everything.',
+  'The Egyptians believed the most significant thing you could do in your life was die.',
 ];
 
 export default function LoadingScreen({ done }: { done: boolean }) {
@@ -39,7 +39,7 @@ export default function LoadingScreen({ done }: { done: boolean }) {
 
   useEffect(() => {
     setIndex(Math.floor(Math.random() * messages.length));
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (done) return;
@@ -60,10 +60,10 @@ export default function LoadingScreen({ done }: { done: boolean }) {
         xmlns="http://www.w3.org/2000/svg"
         fill="currentColor"
         style={{
-          transition: "color 1.2s ease",
-          color: done ? `rgb(var(--group-theme, 236, 72, 153))` : "rgb(156 163 175 / 0.7)",
+          transition: 'color 1.2s ease',
+          color: done ? `rgb(var(--group-theme, 236, 72, 153))` : 'rgb(156 163 175 / 0.7)',
         }}
-        className={`w-40 h-40 ${!done ? "animate-pulse" : ""}`}
+        className={`w-40 h-40 ${!done ? 'animate-pulse' : ''}`}
       >
         <g clipPath="url(#clip0)">
           <path d="M845.333 0.799618C638 12.6663 446.933 92.133 294 230C263.6 257.333 231.333 290.533 236.666 288.933C240.933 287.6 301.6 281.6 335.333 279.333C404.533 274.533 503.6 274.8 569.333 280C772 296 950.8 350.933 1110 446L1132.67 459.466L1145.33 456.533C1152.27 454.8 1205.73 442 1264 428C1322.27 414 1406.4 393.866 1450.8 383.333C1495.33 372.666 1537.87 361.866 1545.47 359.2C1561.33 353.733 1590.4 341.466 1591.33 340C1593.47 336.533 1537.07 273.866 1504 242.933C1419.6 164.266 1328.67 106 1225.33 64.2663C1143.07 31.1996 1064.13 12.133 971.466 3.19962C951.066 1.19962 866.133 -0.400382 845.333 0.799618Z" />
@@ -77,9 +77,9 @@ export default function LoadingScreen({ done }: { done: boolean }) {
 
       <p
         style={{
-          transition: "opacity 0.5s ease, transform 0.5s ease",
+          transition: 'opacity 0.5s ease, transform 0.5s ease',
           opacity: done || !visible ? 0 : 1,
-          transform: visible && !done ? "translateY(0)" : "translateY(3px)",
+          transform: visible && !done ? 'translateY(0)' : 'translateY(3px)',
         }}
         className="text-sm text-black/50 dark:text-white/50 text-center max-w-xs"
       >

@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import crypto from "crypto";
+import crypto from 'crypto';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 function getAllowedOrigins(): string[] {
   const origins: string[] = [];
@@ -8,9 +9,7 @@ function getAllowedOrigins(): string[] {
   }
 
   if (process.env.ALLOWED_ORIGINS) {
-    origins.push(
-      ...process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-    );
+    origins.push(...process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()));
   }
 
   return origins;
@@ -19,17 +18,17 @@ function getAllowedOrigins(): string[] {
 export function validateOrigin(req: NextApiRequest): boolean {
   const origin = req.headers.origin as string | undefined;
   const referer = req.headers.referer as string | undefined;
-  const forwardedHost = req.headers["x-forwarded-host"] as string | undefined;
-  const forwardedProto = req.headers["x-forwarded-proto"] as string | undefined;
+  const forwardedHost = req.headers['x-forwarded-host'] as string | undefined;
+  const forwardedProto = req.headers['x-forwarded-proto'] as string | undefined;
   const host = forwardedHost || (req.headers.host as string | undefined);
-  
-  if (process.env.NODE_ENV === "development") {
-    if (host?.includes("localhost") || host?.includes("127.0.0.1")) {
+
+  if (process.env.NODE_ENV === 'development') {
+    if (host?.includes('localhost') || host?.includes('127.0.0.1')) {
       return true;
     }
   }
 
-  if (host?.endsWith(".planetaryapp.cloud")) {
+  if (host?.endsWith('.planetaryapp.cloud')) {
     return true;
   }
 
@@ -41,7 +40,7 @@ export function validateOrigin(req: NextApiRequest): boolean {
     }
 
     if (host) {
-      const protocol = forwardedProto || (process.env.NODE_ENV === "production" ? "https" : "http");
+      const protocol = forwardedProto || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
       const expectedOrigin = `${protocol}://${host}`;
       if (origin === expectedOrigin) {
         return true;
@@ -89,25 +88,22 @@ export function validateOrigin(req: NextApiRequest): boolean {
     }
   }
 
-  console.warn("[CSRF] Request missing origin, referer, and host headers");
+  console.warn('[CSRF] Request missing origin, referer, and host headers');
   return false;
 }
 
-export function validateCsrf(
-  req: NextApiRequest,
-  res: NextApiResponse
-): boolean {
+export function validateCsrf(req: NextApiRequest, res: NextApiResponse): boolean {
   const method = req.method?.toUpperCase();
-  if (!method || ["GET", "HEAD", "OPTIONS"].includes(method)) {
+  if (!method || ['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     return true;
   }
 
-  if (req.headers["x-planetary-cloud-service-key"]) {
+  if (req.headers['x-planetary-cloud-service-key']) {
     return true;
   }
 
   if (!validateOrigin(req)) {
-    console.error("[CSRF] Origin/Referer validation failed", {
+    console.error('[CSRF] Origin/Referer validation failed', {
       method: req.method,
       url: req.url,
       origin: req.headers.origin,
@@ -123,15 +119,13 @@ export function validateCsrf(
 export function generateCsrfToken(sessionId: string | number): string {
   const secret = process.env.SESSION_SECRET || process.env.SECRET_KEY;
   if (!secret) {
-    throw new Error(
-      "SESSION_SECRET or SECRET_KEY must be configured for CSRF token generation"
-    );
+    throw new Error('SESSION_SECRET or SECRET_KEY must be configured for CSRF token generation');
   }
 
   const timestamp = Date.now();
   const data = `${sessionId}:${timestamp}`;
 
-  const token = crypto.createHmac("sha256", secret).update(data).digest("hex");
+  const token = crypto.createHmac('sha256', secret).update(data).digest('hex');
 
   return `${token}:${timestamp}`;
 }
@@ -139,13 +133,13 @@ export function generateCsrfToken(sessionId: string | number): string {
 export function validateCsrfToken(
   token: string,
   sessionId: string | number,
-  maxAge: number = 60 * 60 * 1000
+  maxAge: number = 60 * 60 * 1000,
 ): boolean {
-  if (!token || typeof token !== "string") {
+  if (!token || typeof token !== 'string') {
     return false;
   }
 
-  const parts = token.split(":");
+  const parts = token.split(':');
   if (parts.length !== 2) {
     return false;
   }
@@ -168,13 +162,7 @@ export function validateCsrfToken(
   }
 
   const data = `${sessionId}:${timestamp}`;
-  const expectedToken = crypto
-    .createHmac("sha256", secret)
-    .update(data)
-    .digest("hex");
+  const expectedToken = crypto.createHmac('sha256', secret).update(data).digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(tokenHash),
-    Buffer.from(expectedToken)
-  );
+  return crypto.timingSafeEqual(Buffer.from(tokenHash), Buffer.from(expectedToken));
 }

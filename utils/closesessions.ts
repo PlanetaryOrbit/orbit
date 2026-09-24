@@ -1,8 +1,8 @@
-import prisma from "@/utils/database";
+import prisma from '@/utils/database';
 
 export async function closeActiveSessions() {
   try {
-    console.log("[STARTUP] Checking for active sessions to close...");
+    console.log('[STARTUP] Checking for active sessions to close...');
 
     const activeSessions = await prisma.activitySession.findMany({
       where: {
@@ -11,12 +11,10 @@ export async function closeActiveSessions() {
       },
     });
 
-    console.log(
-      `[STARTUP] Found ${activeSessions.length} active session(s).`
-    );
+    console.log(`[STARTUP] Found ${activeSessions.length} active session(s).`);
 
     if (activeSessions.length === 0) {
-      console.log("[STARTUP] No active sessions found.");
+      console.log('[STARTUP] No active sessions found.');
       return;
     }
 
@@ -30,11 +28,9 @@ export async function closeActiveSessions() {
       },
     });
 
-    console.log(
-      `[STARTUP] Successfully closed ${result.count} active session(s).`
-    );
+    console.log(`[STARTUP] Successfully closed ${result.count} active session(s).`);
   } catch (error) {
-    console.error("[STARTUP] Error closing active sessions:");
+    console.error('[STARTUP] Error closing active sessions:');
     console.error(error);
   }
 }

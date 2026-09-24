@@ -1,8 +1,8 @@
-import React, { FC, useState } from "react";
-import { IconAlertTriangle, IconX } from "@tabler/icons-react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import clsx from "clsx";
+import { IconAlertTriangle, IconX } from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import React, { FC, useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface DeleteWorkspaceProps {
   isOpen: boolean;
@@ -19,32 +19,28 @@ const DeleteWorkspace: FC<DeleteWorkspaceProps> = ({
   workspaceName,
   onSuccess,
 }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (inputValue !== workspaceName) {
-      toast.error("Workspace name does not match");
+      toast.error('Workspace name does not match');
       return;
     }
 
     setIsDeleting(true);
     try {
-      const res = await axios.delete(
-        `/api/workspace/${workspaceId}/settings/general/deletews`
-      );
+      const res = await axios.delete(`/api/workspace/${workspaceId}/settings/general/deletews`);
 
       if (res.status === 200) {
-        toast.success("Workspace deleted successfully");
-        setInputValue("");
+        toast.success('Workspace deleted successfully');
+        setInputValue('');
         onClose();
         onSuccess();
       }
     } catch (error: any) {
-      console.error("Failed to delete workspace:", error);
-      toast.error(
-        error?.response?.data?.error || "Failed to delete workspace"
-      );
+      console.error('Failed to delete workspace:', error);
+      toast.error(error?.response?.data?.error || 'Failed to delete workspace');
     } finally {
       setIsDeleting(false);
     }
@@ -76,7 +72,8 @@ const DeleteWorkspace: FC<DeleteWorkspaceProps> = ({
               This action is <strong>permanent and cannot be undone</strong>.
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              All workspace data, including members, sessions, documents, and settings will be completely removed.
+              All workspace data, including members, sessions, documents, and settings will be
+              completely removed.
             </p>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -92,13 +89,13 @@ const DeleteWorkspace: FC<DeleteWorkspaceProps> = ({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type workspace name to confirm"
               className={clsx(
-                "w-full px-3 py-2 border rounded-md text-sm transition-colors",
-                "bg-white dark:bg-zinc-800 text-gray-900 dark:text-white",
-                "border-gray-300 dark:border-zinc-600",
-                "focus:outline-none focus:ring-2",
+                'w-full px-3 py-2 border rounded-md text-sm transition-colors',
+                'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white',
+                'border-gray-300 dark:border-zinc-600',
+                'focus:outline-none focus:ring-2',
                 inputValue === workspaceName
-                  ? "focus:ring-red-500 border-red-500 dark:border-red-500"
-                  : "focus:ring-zinc-500"
+                  ? 'focus:ring-red-500 border-red-500 dark:border-red-500'
+                  : 'focus:ring-zinc-500',
               )}
             />
           </div>
@@ -109,11 +106,11 @@ const DeleteWorkspace: FC<DeleteWorkspaceProps> = ({
             onClick={onClose}
             disabled={isDeleting}
             className={clsx(
-              "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-              "border border-gray-300 dark:border-zinc-600",
-              "text-gray-700 dark:text-gray-300",
-              "hover:bg-gray-50 dark:hover:bg-zinc-800",
-              isDeleting && "opacity-50 cursor-not-allowed"
+              'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
+              'border border-gray-300 dark:border-zinc-600',
+              'text-gray-700 dark:text-gray-300',
+              'hover:bg-gray-50 dark:hover:bg-zinc-800',
+              isDeleting && 'opacity-50 cursor-not-allowed',
             )}
           >
             Cancel
@@ -122,15 +119,15 @@ const DeleteWorkspace: FC<DeleteWorkspaceProps> = ({
             onClick={handleDelete}
             disabled={inputValue !== workspaceName || isDeleting}
             className={clsx(
-              "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-              "text-white",
+              'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
+              'text-white',
               inputValue === workspaceName
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-gray-400 cursor-not-allowed",
-              isDeleting && "opacity-70 cursor-not-allowed"
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-gray-400 cursor-not-allowed',
+              isDeleting && 'opacity-70 cursor-not-allowed',
             )}
           >
-            {isDeleting ? "Deleting..." : "Delete Workspace"}
+            {isDeleting ? 'Deleting...' : 'Delete Workspace'}
           </button>
         </div>
       </div>

@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { FC } from "@/types/settingsComponent";
 import {
   IconPencil,
   IconX,
@@ -12,17 +10,20 @@ import {
   IconPhoto,
   IconFileDescription,
   IconArrowRight,
-} from "@tabler/icons-react";
-import axios from "axios";
-import { useRouter } from "next/router";
-import { toast } from "react-hot-toast";
-import moment from "moment";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+
 import {
   ProfileEmptyState,
   profileInputClass,
   profilePrimaryButtonClass,
   profileSecondaryButtonClass,
-} from "@/components/profile/shell";
+} from '@/components/profile/shell';
+import { FC } from '@/types/settingsComponent';
 
 interface Props {
   userBook: any[];
@@ -44,15 +45,13 @@ interface Props {
 const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) => {
   const router = useRouter();
   const { id } = router.query;
-  const [text, setText] = useState("");
-  const [type, setType] = useState("note");
+  const [text, setText] = useState('');
+  const [type, setType] = useState('note');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rankingEnabled, setRankingEnabled] = useState(false);
-  const [targetRank, setTargetRank] = useState("");
+  const [targetRank, setTargetRank] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [ranks, setRanks] = useState<
-    Array<{ id: number; name: string; rank: number }>
-  >([]);
+  const [ranks, setRanks] = useState<Array<{ id: number; name: string; rank: number }>>([]);
   const [loadingRanks, setLoadingRanks] = useState(false);
   const [localBook, setLocalBook] = useState<any[]>(userBook || []);
 
@@ -63,12 +62,10 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
   useEffect(() => {
     const checkRankGunStatus = async () => {
       try {
-        const response = await axios.get(
-          `/api/workspace/${id}/external/ranking`
-        );
+        const response = await axios.get(`/api/workspace/${id}/external/ranking`);
         const enabled = Boolean(
           response.data.rankingEnabled ??
-            (response.data.rankGunEnabled || response.data.openCloudEnabled)
+          (response.data.rankGunEnabled || response.data.openCloudEnabled),
         );
         setRankingEnabled(enabled);
         return enabled;
@@ -85,7 +82,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
           setRanks(response.data.ranks);
         }
       } catch (error) {
-        console.error("Error fetching ranks:", error);
+        console.error('Error fetching ranks:', error);
       } finally {
         setLoadingRanks(false);
       }
@@ -101,78 +98,71 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
   }, [id]);
 
   useEffect(() => {
-    if (type !== "rank_change") {
-      setTargetRank("");
+    if (type !== 'rank_change') {
+      setTargetRank('');
     }
   }, [type]);
 
   const addNote = async () => {
     if (!text) {
-      toast.error("Please enter a note.");
+      toast.error('Please enter a note.');
       return;
     }
 
-    if (type === "rank_change" && !targetRank) {
-      toast.error("Please select a target rank.");
+    if (type === 'rank_change' && !targetRank) {
+      toast.error('Please select a target rank.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append("notes", text);
-      formData.append("type", type);
+      formData.append('notes', text);
+      formData.append('type', type);
 
-      if (type === "rank_change") {
-        const selectedRank = ranks.find(
-          (rank) => rank.id.toString() === targetRank
-        );
+      if (type === 'rank_change') {
+        const selectedRank = ranks.find((rank) => rank.id.toString() === targetRank);
         if (selectedRank) {
-          formData.append("targetRank", selectedRank.rank.toString());
+          formData.append('targetRank', selectedRank.rank.toString());
         } else {
-          toast.error("Invalid rank selected.");
+          toast.error('Invalid rank selected.');
           setIsSubmitting(false);
           return;
         }
       }
 
       attachments.forEach((file) => {
-        formData.append("attachments", file);
+        formData.append('attachments', file);
       });
 
       const response = await axios.post(
         `/api/workspace/${id}/userbook/${router.query.uid}/new`,
-        formData
+        formData,
       );
 
-      setText("");
-      setTargetRank("");
+      setText('');
+      setTargetRank('');
       setAttachments([]);
 
       if (response.data.terminated) {
-        toast.success("User terminated successfully!");
+        toast.success('User terminated successfully!');
       } else {
         const isRankGunAction =
-          rankingEnabled &&
-          (type === "promotion" ||
-            type === "demotion" ||
-            type === "rank_change");
+          rankingEnabled && (type === 'promotion' || type === 'demotion' || type === 'rank_change');
         toast.success(
-          isRankGunAction
-            ? "Note added and rank updated successfully!"
-            : "Note added successfully"
+          isRankGunAction ? 'Note added and rank updated successfully!' : 'Note added successfully',
         );
       }
 
       router.reload();
     } catch (error: any) {
-      console.error("Error adding note:", error);
+      console.error('Error adding note:', error);
       // log server response body for debugging
       try {
-        console.error("Server response:", error?.response?.data);
+        console.error('Server response:', error?.response?.data);
       } catch (e) {}
-      const raw = error?.response?.data?.error || error?.message || "Failed to add note";
-      const errorMessage = typeof raw === "object" ? JSON.stringify(raw) : String(raw);
+      const raw = error?.response?.data?.error || error?.message || 'Failed to add note';
+      const errorMessage = typeof raw === 'object' ? JSON.stringify(raw) : String(raw);
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -184,51 +174,50 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
     if (selected.length === 0) return;
 
     const allowedTypes = new Set([
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
     ]);
 
     const validFiles = selected.filter((file) => allowedTypes.has(file.type));
     if (validFiles.length !== selected.length) {
-      toast.error("Only PDF and image files are supported.");
+      toast.error('Only PDF and image files are supported.');
     }
 
     const combined = [...attachments, ...validFiles];
     if (combined.length > 5) {
-      toast.error("You can upload up to 5 files per entry.");
+      toast.error('You can upload up to 5 files per entry.');
       setAttachments(combined.slice(0, 5));
     } else {
       setAttachments(combined);
     }
 
-    event.target.value = "";
+    event.target.value = '';
   };
 
   const removeAttachment = (name: string, size: number) => {
-    setAttachments((prev) =>
-      prev.filter((file) => !(file.name === name && file.size === size))
-    );
+    setAttachments((prev) => prev.filter((file) => !(file.name === name && file.size === size)));
   };
 
-  const parseEntryReason = (rawReason: string): {
+  const parseEntryReason = (
+    rawReason: string,
+  ): {
     text: string;
     attachments: Array<{ name: string; mime: string; size: number; dataUrl: string }>;
   } => {
     try {
       const parsed = JSON.parse(rawReason);
-      if (parsed && typeof parsed === "object") {
-        const textValue =
-          typeof parsed.text === "string" ? parsed.text : rawReason;
+      if (parsed && typeof parsed === 'object') {
+        const textValue = typeof parsed.text === 'string' ? parsed.text : rawReason;
         const parsedAttachments = Array.isArray(parsed.attachments)
           ? parsed.attachments.filter(
               (a: any) =>
                 a &&
-                typeof a.name === "string" &&
-                typeof a.mime === "string" &&
-                typeof a.dataUrl === "string"
+                typeof a.name === 'string' &&
+                typeof a.mime === 'string' &&
+                typeof a.dataUrl === 'string',
             )
           : [];
         return { text: textValue, attachments: parsedAttachments };
@@ -239,43 +228,39 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "note":
-        return (
-          <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />
-        );
-      case "warning":
+      case 'note':
+        return <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />;
+      case 'warning':
         return <IconAlertTriangle className="w-5 h-5 text-yellow-500" />;
-      case "promotion":
+      case 'promotion':
         return <IconStar className="w-5 h-5 text-primary" />;
-      case "demotion":
+      case 'demotion':
         return <IconX className="w-5 h-5 text-red-500" />;
-      case "rank_change":
+      case 'rank_change':
         return <IconRocket className="w-5 h-5 text-blue-500" />;
-      case "termination":
+      case 'termination':
         return <IconX className="w-5 h-5 text-red-500" />;
       default:
-        return (
-          <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />
-        );
+        return <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />;
     }
   };
 
   const getEntryTitle = (type: string) => {
     switch (type) {
-      case "note":
-        return "Note";
-      case "warning":
-        return "Warning";
-      case "promotion":
-        return "Promotion";
-      case "demotion":
-        return "Demotion";
-      case "rank_change":
-        return "Rank Change";
-      case "termination":
-        return "Termination";
+      case 'note':
+        return 'Note';
+      case 'warning':
+        return 'Warning';
+      case 'promotion':
+        return 'Promotion';
+      case 'demotion':
+        return 'Demotion';
+      case 'rank_change':
+        return 'Rank Change';
+      case 'termination':
+        return 'Termination';
       default:
-        return "Note";
+        return 'Note';
     }
   };
 
@@ -299,20 +284,16 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
     try {
       const response = await axios.post(
         `/api/workspace/${id}/userbook/${router.query.uid}/${redactTarget.id}/redact`,
-        { redacted: !redactTarget.redacted }
+        { redacted: !redactTarget.redacted },
       );
       if (response.data.success) {
-        toast.success(
-          response.data.entry?.redacted ? "Entry redacted!" : "Entry unredacted!"
-        );
+        toast.success(response.data.entry?.redacted ? 'Entry redacted!' : 'Entry unredacted!');
         const updatedEntry = response.data.entry;
-        setLocalBook((prev) =>
-          prev.map((e) => (e.id === updatedEntry.id ? updatedEntry : e))
-        );
+        setLocalBook((prev) => prev.map((e) => (e.id === updatedEntry.id ? updatedEntry : e)));
         if (onRefetch) onRefetch();
       }
     } catch (error: any) {
-      toast.error("Failed to redact entry.");
+      toast.error('Failed to redact entry.');
     } finally {
       setShowRedactModal(false);
       setRedactTarget(null);
@@ -323,15 +304,15 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
     if (!deleteTarget) return;
     try {
       const response = await axios.delete(
-        `/api/workspace/${id}/userbook/${router.query.uid}/${deleteTarget.id}/delete`
+        `/api/workspace/${id}/userbook/${router.query.uid}/${deleteTarget.id}/delete`,
       );
       if (response.data.success) {
-        toast.success("Entry deleted!");
+        toast.success('Entry deleted!');
         setLocalBook((prev) => prev.filter((e) => e.id !== deleteTarget.id));
         if (onRefetch) onRefetch();
       }
     } catch (error: any) {
-      toast.error("Failed to delete entry.");
+      toast.error('Failed to delete entry.');
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget(null);
@@ -340,10 +321,10 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
 
   const getRankChangeText = (entry: any) => {
     if (
-      (entry.type === "promotion" ||
-        entry.type === "demotion" ||
-        entry.type === "rank_change" ||
-        entry.type === "termination") &&
+      (entry.type === 'promotion' ||
+        entry.type === 'demotion' ||
+        entry.type === 'rank_change' ||
+        entry.type === 'termination') &&
       entry.rankBefore !== null &&
       entry.rankAfter !== null
     ) {
@@ -359,34 +340,36 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
   };
 
   const entryAccent: Record<string, string> = {
-    note: "border-l-zinc-400 dark:border-l-zinc-500",
-    warning: "border-l-amber-400 dark:border-l-amber-500",
-    promotion: "border-l-primary",
-    demotion: "border-l-red-400 dark:border-l-red-500",
-    rank_change: "border-l-blue-400 dark:border-l-blue-500",
-    termination: "border-l-red-600 dark:border-l-red-600",
+    note: 'border-l-zinc-400 dark:border-l-zinc-500',
+    warning: 'border-l-amber-400 dark:border-l-amber-500',
+    promotion: 'border-l-primary',
+    demotion: 'border-l-red-400 dark:border-l-red-500',
+    rank_change: 'border-l-blue-400 dark:border-l-blue-500',
+    termination: 'border-l-red-600 dark:border-l-red-600',
   };
 
   const entryBadge: Record<string, string> = {
-    note: "bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300",
-    warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-    promotion: "bg-primary/10 text-primary",
-    demotion: "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300",
-    rank_change: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300",
-    termination: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+    note: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300',
+    warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    promotion: 'bg-primary/10 text-primary',
+    demotion: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+    rank_change: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+    termination: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
   };
 
-  const isRankAction = type === "promotion" || type === "demotion" || type === "rank_change" || type === "termination";
+  const isRankAction =
+    type === 'promotion' || type === 'demotion' || type === 'rank_change' || type === 'termination';
 
   const submitLabel = isSubmitting
-    ? (rankingEnabled && isRankAction ? "Executing…" : "Adding…")
+    ? rankingEnabled && isRankAction
+      ? 'Executing…'
+      : 'Adding…'
     : rankingEnabled && logbookPermissions?.rank && isRankAction
-      ? `Add note & ${type === "rank_change" ? "change rank" : type}`
-      : "Add note";
+      ? `Add note & ${type === 'rank_change' ? 'change rank' : type}`
+      : 'Add note';
 
   return (
     <div className="space-y-6">
-
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Add entry</h3>
 
@@ -397,32 +380,50 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
             </p>
             <div className="flex flex-wrap gap-1.5">
               {logbookPermissions?.note && (
-                <button onClick={() => setType("note")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "note" ? "bg-primary text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('note')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'note' ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconClipboardList className="h-3.5 w-3.5" /> Note
                 </button>
               )}
               {logbookPermissions?.warning && (
-                <button onClick={() => setType("warning")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "warning" ? "bg-amber-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('warning')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'warning' ? 'bg-amber-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconAlertTriangle className="h-3.5 w-3.5" /> Warning
                 </button>
               )}
               {logbookPermissions?.promotion && (
-                <button onClick={() => setType("promotion")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "promotion" ? "bg-primary text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('promotion')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'promotion' ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconStar className="h-3.5 w-3.5" /> Promotion
                 </button>
               )}
               {logbookPermissions?.demotion && (
-                <button onClick={() => setType("demotion")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "demotion" ? "bg-red-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('demotion')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'demotion' ? 'bg-red-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconX className="h-3.5 w-3.5" /> Demotion
                 </button>
               )}
               {rankingEnabled && logbookPermissions?.rank && (
-                <button onClick={() => setType("rank_change")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "rank_change" ? "bg-blue-500 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('rank_change')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'rank_change' ? 'bg-blue-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconRocket className="h-3.5 w-3.5" /> Rank Change
                 </button>
               )}
               {logbookPermissions?.termination && (
-                <button onClick={() => setType("termination")} className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === "termination" ? "bg-red-600 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"}`}>
+                <button
+                  onClick={() => setType('termination')}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'termination' ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                >
                   <IconX className="h-3.5 w-3.5" /> Termination
                 </button>
               )}
@@ -430,34 +431,47 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
           </div>
         ) : (
           <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/50">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">You can&apos;t add entries to yourself.</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              You can&apos;t add entries to yourself.
+            </p>
           </div>
         )}
 
         {!isSelf && rankingEnabled && isRankAction && (
-          <div className={`flex items-start gap-2.5 rounded-xl px-4 py-3 ${logbookPermissions?.rank ? "bg-blue-500/10" : "bg-amber-500/10"}`}>
+          <div
+            className={`flex items-start gap-2.5 rounded-xl px-4 py-3 ${logbookPermissions?.rank ? 'bg-blue-500/10' : 'bg-amber-500/10'}`}
+          >
             {logbookPermissions?.rank ? (
               <IconRocket className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
             ) : (
               <IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
             )}
             <div>
-              <p className={`text-xs font-semibold mb-0.5 ${logbookPermissions?.rank ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"}`}>
-                {logbookPermissions?.rank ? "Ranking integration active" : "Entry only — no rank action"}
-              </p>
-              <p className={`text-xs ${logbookPermissions?.rank ? "text-blue-600/80 dark:text-blue-400/80" : "text-amber-600/80 dark:text-amber-400/80"}`}>
+              <p
+                className={`text-xs font-semibold mb-0.5 ${logbookPermissions?.rank ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}
+              >
                 {logbookPermissions?.rank
-                  ? type === "promotion" ? "This will automatically promote the user in the Roblox group."
-                    : type === "demotion" ? "This will automatically demote the user in the Roblox group."
-                    : type === "rank_change" ? "This will change the user's rank to the specified rank."
-                    : "This will terminate the user and remove them from the workspace."
-                  : "You need the \"Logbook — Use Ranking\" permission to execute automatic rank changes."}
+                  ? 'Ranking integration active'
+                  : 'Entry only — no rank action'}
+              </p>
+              <p
+                className={`text-xs ${logbookPermissions?.rank ? 'text-blue-600/80 dark:text-blue-400/80' : 'text-amber-600/80 dark:text-amber-400/80'}`}
+              >
+                {logbookPermissions?.rank
+                  ? type === 'promotion'
+                    ? 'This will automatically promote the user in the Roblox group.'
+                    : type === 'demotion'
+                      ? 'This will automatically demote the user in the Roblox group.'
+                      : type === 'rank_change'
+                        ? "This will change the user's rank to the specified rank."
+                        : 'This will terminate the user and remove them from the workspace.'
+                  : 'You need the "Logbook — Use Ranking" permission to execute automatic rank changes.'}
               </p>
             </div>
           </div>
         )}
 
-        {!isSelf && type === "rank_change" && (
+        {!isSelf && type === 'rank_change' && (
           <div>
             <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
               Target rank
@@ -468,11 +482,19 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                 Loading ranks…
               </div>
             ) : (
-              <select value={targetRank} onChange={(e) => setTargetRank(e.target.value)} className={profileInputClass}>
+              <select
+                value={targetRank}
+                onChange={(e) => setTargetRank(e.target.value)}
+                className={profileInputClass}
+              >
                 <option value="">Select a rank…</option>
-                {ranks.filter((r) => r.rank > 0).map((r) => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
+                {ranks
+                  .filter((r) => r.rank > 0)
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
               </select>
             )}
           </div>
@@ -480,7 +502,10 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
 
         {!isSelf && (
           <div>
-            <label htmlFor="note" className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <label
+              htmlFor="note"
+              className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500"
+            >
               Note
             </label>
             <textarea
@@ -500,7 +525,9 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               Attachments
             </label>
             <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
-              <label className={`inline-flex cursor-pointer items-center gap-2 ${profileSecondaryButtonClass}`}>
+              <label
+                className={`inline-flex cursor-pointer items-center gap-2 ${profileSecondaryButtonClass}`}
+              >
                 <IconPaperclip className="h-3.5 w-3.5" />
                 Add files
                 <input
@@ -518,14 +545,21 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               {attachments.length > 0 && (
                 <div className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-700/60">
                   {attachments.map((file) => {
-                    const isImage = file.type.startsWith("image/");
+                    const isImage = file.type.startsWith('image/');
                     return (
-                      <div key={`${file.name}-${file.size}`} className="flex items-center justify-between gap-2 py-2">
+                      <div
+                        key={`${file.name}-${file.size}`}
+                        className="flex items-center justify-between gap-2 py-2"
+                      >
                         <div className="flex min-w-0 items-center gap-2">
-                          {isImage
-                            ? <IconPhoto className="h-4 w-4 shrink-0 text-zinc-400" />
-                            : <IconFileDescription className="h-4 w-4 shrink-0 text-zinc-400" />}
-                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">{file.name}</span>
+                          {isImage ? (
+                            <IconPhoto className="h-4 w-4 shrink-0 text-zinc-400" />
+                          ) : (
+                            <IconFileDescription className="h-4 w-4 shrink-0 text-zinc-400" />
+                          )}
+                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">
+                            {file.name}
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -600,13 +634,15 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                           </span>
                         )}
                       </div>
-                      <p className={`text-sm leading-relaxed ${entry.redacted ? "line-through opacity-50 text-zinc-500 dark:text-zinc-400" : "text-zinc-900 dark:text-white"}`}>
+                      <p
+                        className={`text-sm leading-relaxed ${entry.redacted ? 'line-through opacity-50 text-zinc-500 dark:text-zinc-400' : 'text-zinc-900 dark:text-white'}`}
+                      >
                         {parsedReason.text}
                       </p>
                       {parsedReason.attachments.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {parsedReason.attachments.map((att) => {
-                            const isImage = att.mime.startsWith("image/");
+                            const isImage = att.mime.startsWith('image/');
                             return (
                               <a
                                 key={`${entry.id}-${att.name}-${att.size}`}
@@ -615,7 +651,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                                 rel="noreferrer"
                                 className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors"
                               >
-                                {isImage ? <IconPhoto className="h-3.5 w-3.5" /> : <IconFileDescription className="h-3.5 w-3.5" />}
+                                {isImage ? (
+                                  <IconPhoto className="h-3.5 w-3.5" />
+                                ) : (
+                                  <IconFileDescription className="h-3.5 w-3.5" />
+                                )}
                                 <span className="max-w-[12rem] truncate">{att.name}</span>
                               </a>
                             );
@@ -623,9 +663,16 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                         </div>
                       )}
                       <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-                        {moment(entry.createdAt).format("D MMM YYYY")} · Logged by {entry.admin?.username || "Unknown"}
+                        {moment(entry.createdAt).format('D MMM YYYY')} · Logged by{' '}
+                        {entry.admin?.username || 'Unknown'}
                         {entry.redacted && entry.redactedByUser?.username && (
-                          <> · Redacted by {entry.redactedByUser.username}{entry.redactedAt ? ` on ${moment(entry.redactedAt).format("D MMM YYYY")}` : ""}</>
+                          <>
+                            {' '}
+                            · Redacted by {entry.redactedByUser.username}
+                            {entry.redactedAt
+                              ? ` on ${moment(entry.redactedAt).format('D MMM YYYY')}`
+                              : ''}
+                          </>
                         )}
                       </p>
                     </div>
@@ -637,7 +684,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                             onClick={() => redactEntry(entry)}
                             className="rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
                           >
-                            {entry.redacted ? "Undo" : "Redact"}
+                            {entry.redacted ? 'Undo' : 'Redact'}
                           </button>
                         )}
                         {logbookPermissions?.delete && (
@@ -666,16 +713,19 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               <IconAlertTriangle className="h-5 w-5 text-amber-500" />
             </div>
             <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
-              {redactTarget.redacted ? "Undo redaction" : "Redact entry"}
+              {redactTarget.redacted ? 'Undo redaction' : 'Redact entry'}
             </h2>
             <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
               {redactTarget.redacted
-                ? "This will make the entry visible again."
-                : "This will cross out the entry for all viewers."}
+                ? 'This will make the entry visible again.'
+                : 'This will cross out the entry for all viewers.'}
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => { setShowRedactModal(false); setRedactTarget(null); }}
+                onClick={() => {
+                  setShowRedactModal(false);
+                  setRedactTarget(null);
+                }}
                 className={`flex-1 justify-center ${profileSecondaryButtonClass}`}
               >
                 Cancel
@@ -684,7 +734,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                 onClick={confirmRedact}
                 className="flex-1 rounded-xl bg-amber-500 py-2 text-sm font-medium text-white transition hover:bg-amber-600"
               >
-                {redactTarget.redacted ? "Undo" : "Redact"}
+                {redactTarget.redacted ? 'Undo' : 'Redact'}
               </button>
             </div>
           </div>
@@ -697,13 +747,18 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
             <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
               <IconTrash className="h-5 w-5 text-red-500" />
             </div>
-            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">Delete entry</h2>
+            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
+              Delete entry
+            </h2>
             <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
               This action is permanent and cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
                 className={`flex-1 justify-center ${profileSecondaryButtonClass}`}
               >
                 Cancel

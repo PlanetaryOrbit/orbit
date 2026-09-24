@@ -1,19 +1,25 @@
 import type { NextApiResponse } from 'next';
-import prisma from '@/utils/database';
+
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceGroupId = parseInt(req.query.id as string, 10);
-  if (!workspaceGroupId) return res.status(400).json({ success: false, error: 'Invalid workspace id' });
+  if (!workspaceGroupId)
+    return res.status(400).json({ success: false, error: 'Invalid workspace id' });
   const userid = req.auth.userId ? Number(req.auth.userId) : null;
   if (!userid) return res.status(401).json({ success: false, error: 'Not logged in' });
 
   if (req.method === 'GET') {
     const member = await prisma.workspaceMember.findUnique({
       where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },
-      select: { birthdayDay: true, birthdayMonth: true }
+      select: { birthdayDay: true, birthdayMonth: true },
     });
-    return res.json({ success: true, birthdayDay: member?.birthdayDay ?? null, birthdayMonth: member?.birthdayMonth ?? null });
+    return res.json({
+      success: true,
+      birthdayDay: member?.birthdayDay ?? null,
+      birthdayMonth: member?.birthdayMonth ?? null,
+    });
   }
 
   if (req.method === 'POST') {
@@ -27,19 +33,19 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     const now = new Date();
     await prisma.workspaceMember.upsert({
       where: { workspaceGroupId_userId: { workspaceGroupId, userId: userid } },
-      update: { 
-        birthdayDay: day, 
+      update: {
+        birthdayDay: day,
         birthdayMonth: month,
         ...(timezone && { timezone }),
-        joinDate: now
+        joinDate: now,
       },
-      create: { 
-        workspaceGroupId, 
-        userId: userid, 
-        birthdayDay: day, 
+      create: {
+        workspaceGroupId,
+        userId: userid,
+        birthdayDay: day,
         birthdayMonth: month,
         timezone: timezone || 'UTC',
-        joinDate: now
+        joinDate: now,
       },
     });
     return res.json({ success: true });

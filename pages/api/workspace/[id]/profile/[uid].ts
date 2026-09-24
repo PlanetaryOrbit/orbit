@@ -1,17 +1,13 @@
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { getThumbnail } from "@/utils/userinfoEngine";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default withAuth(async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
+import { getThumbnail } from '@/utils/userinfoEngine';
+
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id, uid } = req.query;
   const workspaceGroupId = parseInt(id as string);
@@ -19,7 +15,7 @@ export default withAuth(async function handler(
   const sessionUserId = req.auth.userId;
 
   if (!sessionUserId) {
-    return res.status(401).json({ success: false, error: "Unauthorized" });
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
   const isOwnProfile = BigInt(sessionUserId) === userId;
@@ -44,21 +40,18 @@ export default withAuth(async function handler(
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     const membership = user.workspaceMemberships[0];
     const isAdmin = membership?.isAdmin || false;
     const userRole = user.roles[0];
     if (!userRole) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    if (
-      !isAdmin &&
-      !userRole.permissions?.includes("view_activity")
-    ) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!isAdmin && !userRole.permissions?.includes('view_activity')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
   }
 
@@ -66,9 +59,9 @@ export default withAuth(async function handler(
     const currentDate = new Date();
     const lastReset = await prisma.activityReset.findFirst({
       where: { workspaceGroupId },
-      orderBy: { resetAt: "desc" },
+      orderBy: { resetAt: 'desc' },
     });
-    const startDate = lastReset?.resetAt || new Date("2025-01-01");
+    const startDate = lastReset?.resetAt || new Date('2025-01-01');
 
     const user = await prisma.user.findFirst({
       where: { userid: userId },
@@ -85,7 +78,7 @@ export default withAuth(async function handler(
     });
 
     if (!user) {
-      return res.status(404).json({ success: false, error: "User not found" });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
     const sessions = await prisma.activitySession.findMany({
@@ -103,7 +96,7 @@ export default withAuth(async function handler(
           select: { picture: true },
         },
       },
-      orderBy: [{ active: "desc" }, { endTime: "desc" }, { startTime: "desc" }],
+      orderBy: [{ active: 'desc' }, { endTime: 'desc' }, { startTime: 'desc' }],
     });
 
     const adjustments = await prisma.activityAdjustment.findMany({
@@ -112,7 +105,7 @@ export default withAuth(async function handler(
         workspaceGroupId,
         archived: { not: true },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       include: {
         actor: {
           select: { userid: true, username: true },
@@ -125,7 +118,7 @@ export default withAuth(async function handler(
         userId,
         workspaceGroupId,
       },
-      orderBy: { id: "desc" },
+      orderBy: { id: 'desc' },
     });
 
     const hostedSessions = await prisma.session.findMany({
@@ -138,7 +131,7 @@ export default withAuth(async function handler(
         },
         archived: { not: true },
       },
-      orderBy: { date: "desc" },
+      orderBy: { date: 'desc' },
     });
 
     const ownedSessions = await prisma.session.findMany({
@@ -182,68 +175,65 @@ export default withAuth(async function handler(
     });
 
     const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
-    const roleBasedHostedParticipations = allSessionParticipations.filter(
-      (participation) => {
-        if (ownedSessionIds.has(participation.sessionid)) {
-          return false;
-        }
-
-        const slots = participation.session.sessionType.slots as any[];
-        const slotIndex = participation.slot;
-        const slotName = slots[slotIndex]?.name || "";
-        return (
-          participation.roleID.toLowerCase().includes("host") ||
-          participation.roleID.toLowerCase().includes("co-host") ||
-          slotName.toLowerCase().includes("host") ||
-          slotName.toLowerCase().includes("co-host")
-        );
+    const roleBasedHostedParticipations = allSessionParticipations.filter((participation) => {
+      if (ownedSessionIds.has(participation.sessionid)) {
+        return false;
       }
-    );
-    const roleBasedSessionsHosted =
-      ownedSessions.length + roleBasedHostedParticipations.length;
-    const roleBasedSessionsAttended = allSessionParticipations.filter(
-      (participation) => {
-        if (ownedSessionIds.has(participation.sessionid)) {
-          return false;
-        }
 
-        const slots = participation.session.sessionType.slots as any[];
-        const slotIndex = participation.slot;
-        const slotName = slots[slotIndex]?.name || "";
-        const isHosting =
-          participation.roleID.toLowerCase().includes("host") ||
-          participation.roleID.toLowerCase().includes("co-host") ||
-          slotName.toLowerCase().includes("host") ||
-          slotName.toLowerCase().includes("co-host");
-
-        return !isHosting;
+      const slots = participation.session.sessionType.slots as any[];
+      const slotIndex = participation.slot;
+      const slotName = slots[slotIndex]?.name || '';
+      return (
+        participation.roleID.toLowerCase().includes('host') ||
+        participation.roleID.toLowerCase().includes('co-host') ||
+        slotName.toLowerCase().includes('host') ||
+        slotName.toLowerCase().includes('co-host')
+      );
+    });
+    const roleBasedSessionsHosted = ownedSessions.length + roleBasedHostedParticipations.length;
+    const roleBasedSessionsAttended = allSessionParticipations.filter((participation) => {
+      if (ownedSessionIds.has(participation.sessionid)) {
+        return false;
       }
-    ).length;
+
+      const slots = participation.session.sessionType.slots as any[];
+      const slotIndex = participation.slot;
+      const slotName = slots[slotIndex]?.name || '';
+      const isHosting =
+        participation.roleID.toLowerCase().includes('host') ||
+        participation.roleID.toLowerCase().includes('co-host') ||
+        slotName.toLowerCase().includes('host') ||
+        slotName.toLowerCase().includes('co-host');
+
+      return !isHosting;
+    }).length;
 
     const sessionsLogged = {
       all: new Set([
-        ...ownedSessions.map(s => s.id),
-        ...allSessionParticipations.map(p => p.sessionid)
+        ...ownedSessions.map((s) => s.id),
+        ...allSessionParticipations.map((p) => p.sessionid),
       ]).size,
       byType: {} as Record<string, number>,
       byRole: {
         host: ownedSessions.length,
         cohost: allSessionParticipations.filter((p) => {
           const slots = p.session.sessionType.slots as any[];
-          const slotName = slots[p.slot]?.name || "";
-          return p.roleID.toLowerCase().includes("co-host") || slotName.toLowerCase().includes("co-host");
+          const slotName = slots[p.slot]?.name || '';
+          return (
+            p.roleID.toLowerCase().includes('co-host') || slotName.toLowerCase().includes('co-host')
+          );
         }).length,
-      }
+      },
     };
 
     const allUserSessions = [
-      ...ownedSessions.map(s => ({ id: s.id, type: s.type })),
-      ...allSessionParticipations.map(p => ({ 
-        id: p.sessionid, 
-        type: (p.session as any).type 
-      }))
+      ...ownedSessions.map((s) => ({ id: s.id, type: s.type })),
+      ...allSessionParticipations.map((p) => ({
+        id: p.sessionid,
+        type: (p.session as any).type,
+      })),
     ];
-    const uniqueSessionsById = new Map(allUserSessions.map(s => [s.id, s.type]));
+    const uniqueSessionsById = new Map(allUserSessions.map((s) => [s.id, s.type]));
     for (const [, sessionType] of uniqueSessionsById) {
       const type = sessionType || 'other';
       sessionsLogged.byType[type] = (sessionsLogged.byType[type] || 0) + 1;
@@ -258,28 +248,23 @@ export default withAuth(async function handler(
           gte: startDate,
           lte: currentDate,
         },
-        OR: [
-          { hostId: userId },
-          { participants: { has: userId } }
-        ]
+        OR: [{ hostId: userId }, { participants: { has: userId } }],
       },
       include: {
         ally: {
           select: {
             id: true,
             name: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     const allianceVisitsCount = allianceVisits.length;
 
     const avatar = getThumbnail(user.userid);
 
-    const quotas = user.roles
-      .flatMap((role) => role.quotaRoles)
-      .map((qr) => qr.quota);
+    const quotas = user.roles.flatMap((role) => role.quotaRoles).map((qr) => qr.quota);
 
     const serializedSessions = sessions.map((session) => ({
       ...session,
@@ -331,9 +316,7 @@ export default withAuth(async function handler(
       },
     });
   } catch (error) {
-    console.error("Profile fetch error:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch profile data" });
+    console.error('Profile fetch error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch profile data' });
   }
 });

@@ -1,8 +1,8 @@
-import clsx from "clsx";
-import type { ReactNode } from "react";
+import clsx from 'clsx';
+import type { ReactNode } from 'react';
 
 export const viewsPanelShadow =
-  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
+  'shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30';
 
 export function ViewsPageShell({
   children,
@@ -13,7 +13,7 @@ export function ViewsPageShell({
 }) {
   return (
     <div className="pagePadding pb-10">
-      <div className={clsx("mx-auto w-full max-w-7xl", className)}>{children}</div>
+      <div className={clsx('mx-auto w-full max-w-7xl', className)}>{children}</div>
     </div>
   );
 }
@@ -34,9 +34,9 @@ export function ViewsPageHeader({
   const label =
     dateLabel ??
     new Date().toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
     });
 
   return (
@@ -60,21 +60,9 @@ export function ViewsPageHeader({
   );
 }
 
-export function ViewsPanel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function ViewsPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div
-      className={clsx(
-        "rounded-2xl bg-white dark:bg-zinc-900/70",
-        viewsPanelShadow,
-        className
-      )}
-    >
+    <div className={clsx('rounded-2xl bg-white dark:bg-zinc-900/70', viewsPanelShadow, className)}>
       {children}
     </div>
   );
@@ -94,13 +82,13 @@ export function ViewsToolbarButton({
       type="button"
       disabled={disabled}
       className={clsx(
-        "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+        'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
         disabled
-          ? "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+          ? 'cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600'
           : active
-          ? "bg-primary/10 text-primary"
-          : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white",
-        className
+            ? 'bg-primary/10 text-primary'
+            : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white',
+        className,
       )}
       {...props}
     >

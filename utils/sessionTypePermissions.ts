@@ -1,19 +1,19 @@
-import prisma from "@/utils/database";
+import prisma from '@/utils/database';
 
 export type SessionPermissionType =
-  | "see"
-  | "assign"
-  | "claim"
-  | "host"
-  | "unscheduled"
-  | "scheduled"
-  | "manage";
+  | 'see'
+  | 'assign'
+  | 'claim'
+  | 'host'
+  | 'unscheduled'
+  | 'scheduled'
+  | 'manage';
 
 export async function hasSessionTypePermission(
   userId: bigint,
   workspaceId: number,
   sessionType: string,
-  permission: SessionPermissionType
+  permission: SessionPermissionType,
 ): Promise<boolean> {
   const user = await prisma.user.findFirst({
     where: { userid: userId },
@@ -40,7 +40,7 @@ export async function hasSessionTypePermission(
 
 export async function getUserVisibleSessionTypes(
   userId: bigint,
-  workspaceId: number
+  workspaceId: number,
 ): Promise<string[]> {
   const user = await prisma.user.findFirst({
     where: { userid: userId },
@@ -57,20 +57,18 @@ export async function getUserVisibleSessionTypes(
   if (!user || !user.roles.length) return [];
 
   const membership = user.workspaceMemberships[0];
-  if (membership?.isAdmin) return ["shift", "training", "event", "other"];
+  if (membership?.isAdmin) return ['shift', 'training', 'event', 'other'];
 
   const role = user.roles[0];
-  const sessionTypes = ["shift", "training", "event", "other"];
+  const sessionTypes = ['shift', 'training', 'event', 'other'];
 
-  return sessionTypes.filter((type) =>
-    role.permissions.includes(`sessions_${type}_see`)
-  );
+  return sessionTypes.filter((type) => role.permissions.includes(`sessions_${type}_see`));
 }
 
 export async function canPerformAnySessionAction(
   userId: bigint,
   workspaceId: number,
-  permission: SessionPermissionType
+  permission: SessionPermissionType,
 ): Promise<boolean> {
   const user = await prisma.user.findFirst({
     where: { userid: userId },
@@ -90,9 +88,7 @@ export async function canPerformAnySessionAction(
   if (membership?.isAdmin) return true;
 
   const role = user.roles[0];
-  const sessionTypes = ["shift", "training", "event", "other"];
+  const sessionTypes = ['shift', 'training', 'event', 'other'];
 
-  return sessionTypes.some((type) =>
-    role.permissions.includes(`sessions_${type}_${permission}`)
-  );
+  return sessionTypes.some((type) => role.permissions.includes(`sessions_${type}_${permission}`));
 }

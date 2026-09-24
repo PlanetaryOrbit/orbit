@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import * as noblox from "noblox.js";
-import cache from "@/utils/cache";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
+
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
 
 type Data = {
   success: boolean;
@@ -9,14 +10,11 @@ type Data = {
   available?: boolean;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "POST") {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -25,7 +23,7 @@ export default async function handler(
   if (!username) {
     return res.status(400).json({
       success: false,
-      error: "Missing username",
+      error: 'Missing username',
     });
   }
 
@@ -35,13 +33,12 @@ export default async function handler(
     let userid = await cache.get<number>(`roblox:id:${usernameKey}`);
 
     if (!userid) {
-      userid = (await noblox.getIdFromUsername(username).catch(() => null)) as
-        number | undefined;
+      userid = (await noblox.getIdFromUsername(username).catch(() => null)) as number | undefined;
 
       if (!userid) {
         return res.status(404).json({
           success: false,
-          error: "Roblox username not found",
+          error: 'Roblox username not found',
         });
       }
 
@@ -91,11 +88,11 @@ export default async function handler(
       available: true,
     });
   } catch (error) {
-    console.error("Username check error:", error);
+    console.error('Username check error:', error);
 
     return res.status(500).json({
       success: false,
-      error: "Internal server error",
+      error: 'Internal server error',
     });
   }
 }

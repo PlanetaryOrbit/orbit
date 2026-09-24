@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 type Data = {
   success: boolean;
   error?: string;
@@ -10,15 +11,11 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "DELETE")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'DELETE')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   const { id, sid } = req.query;
   if (!id || !sid)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   const user = await prisma.user.findUnique({
     where: {
       userid: BigInt(req.auth.userId),
@@ -53,21 +50,16 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     },
   });
-  if (!session)
-    return res.status(400).json({ success: false, error: "Invalid session" });
+  if (!session) return res.status(400).json({ success: false, error: 'Invalid session' });
   if (
-    !session?.sessionType.hostingRoles.find(
-      (r) => r.id === user?.roles[0].id
-    ) &&
+    !session?.sessionType.hostingRoles.find((r) => r.id === user?.roles[0].id) &&
     !isAdmin &&
-    !user?.roles[0].permissions.includes("admin")
+    !user?.roles[0].permissions.includes('admin')
   )
-    return res
-      .status(403)
-      .json({
-        success: false,
-        error: "You do not have permission to claim this session",
-      });
+    return res.status(403).json({
+      success: false,
+      error: 'You do not have permission to claim this session',
+    });
 
   await prisma.session.update({
     where: {

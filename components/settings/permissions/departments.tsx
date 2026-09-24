@@ -1,17 +1,14 @@
-import React, { FC, useRef } from "react";
-import { Disclosure, Transition } from "@headlessui/react";
-import {
-  IconChevronDown,
-  IconPlus,
-  IconTrash,
-} from "@tabler/icons-react";
-import Btn from "@/components/button";
-import { workspacestate } from "@/state";
-import { useRecoilState } from "recoil";
-import { useRouter } from "next/router";
-import toast from "react-hot-toast";
-import axios from "axios";
-import clsx from "clsx";
+import { Disclosure, Transition } from '@headlessui/react';
+import { IconChevronDown, IconPlus, IconTrash } from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { useRouter } from 'next/router';
+import React, { FC, useRef } from 'react';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import Btn from '@/components/button';
+import { workspacestate } from '@/state';
 
 export interface Department {
   id: string;
@@ -35,11 +32,11 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
   const newDepartment = async () => {
     const res = await axios.post(
       `/api/workspace/${workspace.groupId}/settings/departments/new`,
-      {}
+      {},
     );
     if (res.status === 200) {
       setDepartments([...departments, res.data.department]);
-      toast.success("New department created");
+      toast.success('New department created');
     }
   };
 
@@ -50,7 +47,7 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
 
     rdepartments[index].name = value;
     setDepartments(rdepartments);
-    
+
     // Debounce the save
     if (saveTimeouts.current[id]) {
       clearTimeout(saveTimeouts.current[id]);
@@ -66,7 +63,7 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
     const rdepartments = Object.assign([] as typeof departments, departments);
     rdepartments[index].color = color;
     setDepartments(rdepartments);
-    
+
     // Debounce the save
     if (saveTimeouts.current[id]) {
       clearTimeout(saveTimeouts.current[id]);
@@ -86,11 +83,11 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
     try {
       await axios.post(
         `/api/workspace/${workspace.groupId}/settings/departments/${id}/update`,
-        payload
+        payload,
       );
-      toast.success("Department saved!");
+      toast.success('Department saved!');
     } catch (e) {
-      toast.error("Failed to save department.");
+      toast.error('Failed to save department.');
     }
   };
 
@@ -101,18 +98,16 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
         router.reload();
       });
     toast.promise(res, {
-      loading: "Deleting department...",
-      success: "Department deleted!",
-      error: "Error deleting department",
+      loading: 'Deleting department...',
+      success: 'Department deleted!',
+      error: 'Error deleting department',
     });
   };
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-          Departments
-        </h3>
+        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">Departments</h3>
         <div className="flex items-center space-x-3">
           <button
             onClick={newDepartment}
@@ -142,8 +137,8 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
                     </div>
                     <IconChevronDown
                       className={clsx(
-                        "w-5 h-5 text-zinc-500 transition-transform",
-                        open ? "transform rotate-180" : ""
+                        'w-5 h-5 text-zinc-500 transition-transform',
+                        open ? 'transform rotate-180' : '',
                       )}
                     />
                   </div>
@@ -177,13 +172,13 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
                           <input
                             type="color"
                             className="w-12 h-8 rounded border border-zinc-300 dark:border-zinc-700 cursor-pointer"
-                            value={department.color || "#6b7280"}
+                            value={department.color || '#6b7280'}
                             onChange={(e) => updateDepartmentColor(e.target.value, department.id)}
                           />
                           <input
                             type="text"
                             className="flex-1 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            value={department.color || "#6b7280"}
+                            value={department.color || '#6b7280'}
                             onChange={(e) => updateDepartmentColor(e.target.value, department.id)}
                             placeholder="#6b7280"
                           />
@@ -220,7 +215,6 @@ const DepartmentsManager: FC<Props> = ({ departments, setDepartments }) => {
           <p className="text-sm mt-1">Click "New Department" to get started.</p>
         </div>
       )}
-
     </div>
   );
 };

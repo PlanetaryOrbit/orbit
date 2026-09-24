@@ -1,11 +1,7 @@
-import React, { Fragment } from "react";
-import { Tab } from "@headlessui/react";
-import {
-  IconChartBar,
-  IconCalendarEvent,
-  IconTarget,
-} from "@tabler/icons-react";
-import type { ActivitySession, Quota, inactivityNotice } from "@prisma/client";
+import { Tab } from '@headlessui/react';
+import type { ActivitySession, Quota, inactivityNotice } from '@prisma/client';
+import { IconChartBar, IconCalendarEvent, IconTarget } from '@tabler/icons-react';
+import React, { Fragment } from 'react';
 
 type Props = {
   timeSpent: number;
@@ -48,8 +44,8 @@ export function ActivityTabs(props: Props) {
             className={({ selected }) =>
               `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors flex-1 justify-center ${
                 selected
-                  ? "bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                  ? 'bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white'
               }`
             }
           >
@@ -60,8 +56,8 @@ export function ActivityTabs(props: Props) {
             className={({ selected }) =>
               `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors flex-1 justify-center ${
                 selected
-                  ? "bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                  ? 'bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white'
               }`
             }
           >
@@ -72,8 +68,8 @@ export function ActivityTabs(props: Props) {
             className={({ selected }) =>
               `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors flex-1 justify-center ${
                 selected
-                  ? "bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                  ? 'bg-white dark:bg-zinc-800 text-[#ff0099] shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white'
               }`
             }
           >
@@ -88,9 +84,7 @@ export function ActivityTabs(props: Props) {
             </div>
           </Tab.Panel>
           <Tab.Panel>
-            <div className="text-zinc-600 dark:text-zinc-400">
-              Sessions History - Basic metrics
-            </div>
+            <div className="text-zinc-600 dark:text-zinc-400">Sessions History - Basic metrics</div>
           </Tab.Panel>
           <Tab.Panel>
             <div className="text-zinc-600 dark:text-zinc-400">

@@ -1,24 +1,22 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { logAudit } from "@/utils/logs";
-import cache from "@/utils/cache";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
   error?: string;
 };
 
-export default withPermissionCheck(handler, "admin");
+export default withPermissionCheck(handler, 'admin');
 
-export async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "POST") {
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -28,14 +26,14 @@ export async function handler(
   if (!roleId) {
     return res.status(400).json({
       success: false,
-      error: "Role ID not provided",
+      error: 'Role ID not provided',
     });
   }
 
   if (isNaN(workspaceId)) {
     return res.status(400).json({
       success: false,
-      error: "Invalid workspace ID",
+      error: 'Invalid workspace ID',
     });
   }
 
@@ -44,14 +42,14 @@ export async function handler(
       workspaceGroupId: workspaceId,
     },
     orderBy: {
-      position: "asc",
+      position: 'asc',
     },
   });
 
   if (roles.length <= 1) {
     return res.status(400).json({
       success: false,
-      error: "You cannot delete the only role",
+      error: 'You cannot delete the only role',
     });
   }
 
@@ -60,7 +58,7 @@ export async function handler(
   if (!oldRole) {
     return res.status(404).json({
       success: false,
-      error: "Role not found",
+      error: 'Role not found',
     });
   }
 
@@ -81,7 +79,7 @@ export async function handler(
   if (adminMembers.length > 0) {
     return res.status(403).json({
       success: false,
-      error: "Cannot delete a role assigned to an admin user",
+      error: 'Cannot delete a role assigned to an admin user',
     });
   }
 
@@ -90,7 +88,7 @@ export async function handler(
   if (!fallbackRole) {
     return res.status(400).json({
       success: false,
-      error: "No fallback role available",
+      error: 'No fallback role available',
     });
   }
 
@@ -137,7 +135,7 @@ export async function handler(
     await logAudit(
       workspaceId,
       (req as any).auth?.userId || null,
-      "settings.roles.delete",
+      'settings.roles.delete',
       `role:${oldRole.name}`,
       {
         id: roleId,
@@ -155,15 +153,11 @@ export async function handler(
       workspaceGroupId: workspaceId,
     },
     orderBy: {
-      position: "asc",
+      position: 'asc',
     },
   });
 
-  await cache.set(
-    roleCacheKey,
-    updatedRoles,
-    300,
-  );
+  await cache.set(roleCacheKey, updatedRoles, 300);
 
   return res.status(200).json({
     success: true,

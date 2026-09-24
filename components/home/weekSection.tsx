@@ -1,13 +1,7 @@
-import type { ReactNode } from "react";
-import { Children } from "react";
+import type { ReactNode } from 'react';
+import { Children } from 'react';
 
-export function WeekSubsection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+export function WeekSubsection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
       <h3 className="mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">{title}</h3>

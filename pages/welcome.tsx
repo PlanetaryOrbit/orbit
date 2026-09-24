@@ -1,18 +1,19 @@
-import type { NextPage } from "next";
-import React, { useEffect, useRef, useState } from "react";
-import { loginState } from "@/state";
-import { useRecoilState } from "recoil";
-import { useForm, FormProvider } from "react-hook-form";
-import Router from "next/router";
-import Slider from "@/components/slider";
-import Input from "@/components/input";
-import axios from "axios";
-import { toast } from "react-hot-toast";
-import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from "@tabler/icons-react";
-import { getContrastColor } from "@/utils/color";
-import PasswordStrengthBar from "@/components/passwordStrengthBar";
-import { calculatePasswordStrength } from "@/utils/passwordStrength";
-import packageinfo from "@/package.json";
+import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from '@tabler/icons-react';
+import axios from 'axios';
+import type { NextPage } from 'next';
+import Router from 'next/router';
+import React, { useEffect, useRef, useState } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import Input from '@/components/input';
+import PasswordStrengthBar from '@/components/passwordStrengthBar';
+import Slider from '@/components/slider';
+import packageinfo from '@/package.json';
+import { loginState } from '@/state';
+import { getContrastColor } from '@/utils/color';
+import { calculatePasswordStrength } from '@/utils/passwordStrength';
 
 type FormData = {
   username: string;
@@ -20,13 +21,7 @@ type FormData = {
   verifypassword: string;
 };
 
-const StepIndicator = ({
-  step,
-  color,
-}: {
-  step: number;
-  color: string;
-}) => (
+const StepIndicator = ({ step, color }: { step: number; color: string }) => (
   <div className="mb-6 flex items-center justify-between">
     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
       Step {step} of 3
@@ -36,7 +31,7 @@ const StepIndicator = ({
         <span
           key={value}
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            value <= step ? "" : "bg-zinc-200 dark:bg-zinc-600"
+            value <= step ? '' : 'bg-zinc-200 dark:bg-zinc-600'
           }`}
           style={{
             backgroundColor: value <= step ? color : undefined,
@@ -49,22 +44,26 @@ const StepIndicator = ({
 );
 
 const Login: NextPage = () => {
-  const [selectedColor, setSelectedColor] = useState("#9d8fff");
+  const [selectedColor, setSelectedColor] = useState('#9d8fff');
   const [login, setLogin] = useRecoilState(loginState);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false);
   const methods = useForm<{ groupid: string }>();
   const signupform = useForm<FormData>();
-  const { register, handleSubmit, formState: { errors } } = methods;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = methods;
   const [selectedSlide, setSelectedSlide] = useState(0);
   const [ocEnabled, setOcEnabled] = useState(false);
-  const [ockey, setOckey] = useState("");
-  const [ocKeyStatus, setOcKeyStatus] = useState<"verified" | "failed" | "Saved" | null>(null);
+  const [ockey, setOckey] = useState('');
+  const [ocKeyStatus, setOcKeyStatus] = useState<'verified' | 'failed' | 'Saved' | null>(null);
   const [ocTesting, setOcTesting] = useState(false);
   const [ocLoading, setOcLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const testedKey = useRef<string | null>(null);
-  const signupPassword = signupform.watch("password") || "";
+  const signupPassword = signupform.watch('password') || '';
   const signupPasswordStrength = calculatePasswordStrength(signupPassword);
 
   async function createAccount() {
@@ -72,35 +71,33 @@ const Login: NextPage = () => {
     let request: { data: { success: boolean; user: any } } | undefined;
 
     try {
-      request = await Promise.race([
+      request = (await Promise.race([
         axios.post('/api/setupworkspace', {
-          groupid: methods.getValues("groupid"),
-          username: signupform.getValues("username"),
-          password: signupform.getValues("password"),
+          groupid: methods.getValues('groupid'),
+          username: signupform.getValues('username'),
+          password: signupform.getValues('password'),
           color: selectedColor,
-          ...(ocKeyStatus === "verified" && ockey.trim() ? { opencloudKey: ockey.trim() } : {}),
+          ...(ocKeyStatus === 'verified' && ockey.trim() ? { opencloudKey: ockey.trim() } : {}),
         }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timeout')), 30000)
-        )
-      ]) as { data: { success: boolean; user: any } };
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 30000)),
+      ])) as { data: { success: boolean; user: any } };
 
       if (request?.data.success) {
         toast.success('Workspace created successfully!');
-        setLogin(prev => ({
+        setLogin((prev) => ({
           ...prev,
           ...request?.data.user,
-          isOwner: true
+          isOwner: true,
         }));
         setTimeout(() => {
-          Router.replace("/");
+          Router.replace('/');
         }, 1000);
       }
     } catch (e: any) {
       if (e?.response?.status === 404) {
-        signupform.setError("username", {
-          type: "custom",
-          message: e.response.data.error
+        signupform.setError('username', {
+          type: 'custom',
+          message: e.response.data.error,
         });
         toast.error('Username not found');
       } else if (e?.response?.status === 403) {
@@ -120,43 +117,40 @@ const Login: NextPage = () => {
   const testOcKey = async (keyToTest: string | null): Promise<boolean> => {
     const errorMessages: Record<number, string> = {
       1: "API key is missing the 'group' scope",
-      2: "API key needs both read and write permissions",
-      3: "API key has expired",
-      4: "API key is disabled",
-      5: "Invalid API key",
-      400: "API key is not provided in a valid format.",
+      2: 'API key needs both read and write permissions',
+      3: 'API key has expired',
+      4: 'API key is disabled',
+      5: 'Invalid API key',
+      400: 'API key is not provided in a valid format.',
     };
     try {
-      const payload = keyToTest && keyToTest.trim() !== "" ? { key: keyToTest } : {};
-      const response = await axios.post(
-        `/api/setup/opencloudtest`,
-        payload
-      );
+      const payload = keyToTest && keyToTest.trim() !== '' ? { key: keyToTest } : {};
+      const response = await axios.post(`/api/setup/opencloudtest`, payload);
       if (response.data.success) {
-        testedKey.current = keyToTest && keyToTest.trim() !== "" ? keyToTest.trim() : "•";
-        setOcKeyStatus("verified");
+        testedKey.current = keyToTest && keyToTest.trim() !== '' ? keyToTest.trim() : '•';
+        setOcKeyStatus('verified');
         return true;
       }
-      setOcKeyStatus("failed");
-      toast.error("API key is invalid");
+      setOcKeyStatus('failed');
+      toast.error('API key is invalid');
       return false;
     } catch (error: any) {
       const code = error?.response?.data?.code;
       const message = error?.response?.data?.message;
-      setOcKeyStatus("failed");
-      toast.error(errorMessages[code] || message || "Failed to test key");
+      setOcKeyStatus('failed');
+      toast.error(errorMessages[code] || message || 'Failed to test key');
       return false;
     }
   };
 
   const handleOcTest = async () => {
     if (!ockey.trim()) {
-      toast.error("Please enter an Open Cloud API key first");
+      toast.error('Please enter an Open Cloud API key first');
       return;
     }
     setOcTesting(true);
     const valid = await testOcKey(ockey);
-    if (valid) toast.success("API key is valid");
+    if (valid) toast.success('API key is valid');
     setOcTesting(false);
   };
 
@@ -165,36 +159,36 @@ const Login: NextPage = () => {
   };
 
   const colors = [
-    "#fce7f3", // pink-100
-    "#ffe4e6", // rose-100
-    "#ffedd5", // orange-100
-    "#fef3c7", // amber-100
-    "#ecfccb", // lime-100
-    "#d1fae5", // emerald-100
-    "#cffafe", // cyan-100
-    "#e0f2fe", // sky-100
-    "#e0e7ff", // indigo-100
-    "#f3e8ff", // purple-100
-    "#f9a8d4", // pink-400
-    "#fb7185", // rose-400
-    "#fb923c", // orange-400
-    "#fbbf24", // amber-400
-    "#a3e635", // lime-400
-    "#34d399", // emerald-400
-    "#22d3ee", // cyan-400
-    "#38bdf8", // sky-400
-    "#818cf8", // indigo-400
-    "#a78bfa", // violet-400
-    "#9d8fff", // orbit
-    "#e11d48", // rose-600
-    "#ea580c", // orange-600
-    "#d97706", // amber-600
-    "#65a30d", // lime-600
-    "#059669", // emerald-600
-    "#0891b2", // cyan-600
-    "#0284c7", // sky-600
-    "#4f46e5", // indigo-600
-    "#7c3aed", // violet-600
+    '#fce7f3', // pink-100
+    '#ffe4e6', // rose-100
+    '#ffedd5', // orange-100
+    '#fef3c7', // amber-100
+    '#ecfccb', // lime-100
+    '#d1fae5', // emerald-100
+    '#cffafe', // cyan-100
+    '#e0f2fe', // sky-100
+    '#e0e7ff', // indigo-100
+    '#f3e8ff', // purple-100
+    '#f9a8d4', // pink-400
+    '#fb7185', // rose-400
+    '#fb923c', // orange-400
+    '#fbbf24', // amber-400
+    '#a3e635', // lime-400
+    '#34d399', // emerald-400
+    '#22d3ee', // cyan-400
+    '#38bdf8', // sky-400
+    '#818cf8', // indigo-400
+    '#a78bfa', // violet-400
+    '#9d8fff', // orbit
+    '#e11d48', // rose-600
+    '#ea580c', // orange-600
+    '#d97706', // amber-600
+    '#65a30d', // lime-600
+    '#059669', // emerald-600
+    '#0891b2', // cyan-600
+    '#0284c7', // sky-600
+    '#4f46e5', // indigo-600
+    '#7c3aed', // violet-600
   ];
 
   return (
@@ -222,15 +216,15 @@ const Login: NextPage = () => {
                     placeholder="35724790"
                     label="Group ID"
                     id="groupid"
-                    {...register("groupid", {
+                    {...register('groupid', {
                       required: {
                         value: true,
-                        message: "This field is required"
+                        message: 'This field is required',
                       },
                       pattern: {
                         value: /^\d+$/,
-                        message: "Group ID must be a number"
-                      }
+                        message: 'Group ID must be a number',
+                      },
                     })}
                   />
                 </form>
@@ -244,10 +238,11 @@ const Login: NextPage = () => {
                       key={i}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`aspect-square rounded-lg transform transition-all ease-in-out ${selectedColor === color
-                        ? "ring-2 ring-black dark:ring-white ring-offset-2"
-                        : "hover:scale-105"
-                        }`}
+                      className={`aspect-square rounded-lg transform transition-all ease-in-out ${
+                        selectedColor === color
+                          ? 'ring-2 ring-black dark:ring-white ring-offset-2'
+                          : 'hover:scale-105'
+                      }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -255,11 +250,12 @@ const Login: NextPage = () => {
               </div>
               {/* input a hex color */}
 
-
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => window.open("https://docs.planetaryapp.us/", "_blank", "noopener,noreferrer")}
+                  onClick={() =>
+                    window.open('https://docs.planetaryapp.us/', '_blank', 'noopener,noreferrer')
+                  }
                   className="border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition"
                   style={{ borderColor: selectedColor }}
                 >
@@ -282,7 +278,8 @@ const Login: NextPage = () => {
               <StepIndicator step={2} color={selectedColor} />
               <p className="text-2xl font-bold text-zinc-900 dark:text-white">Open Cloud</p>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                Optionally connect Roblox Open Cloud for deeper integration with your group. You can always set this up later in Settings.
+                Optionally connect Roblox Open Cloud for deeper integration with your group. You can
+                always set this up later in Settings.
               </p>
 
               <div className="mt-5 space-y-4">
@@ -293,7 +290,7 @@ const Login: NextPage = () => {
                     </label>
                     <div className="relative">
                       <input
-                        type={showApiKey ? "text" : "password"}
+                        type={showApiKey ? 'text' : 'password'}
                         value={ockey}
                         onChange={(e) => {
                           setOckey(e.target.value);
@@ -308,12 +305,13 @@ const Login: NextPage = () => {
                         type="button"
                         onClick={() => setShowApiKey((v) => !v)}
                         className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200"
-                        aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                        aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
                       >
-                        {showApiKey
-                          ? <IconEye className="h-4 w-4" stroke={1.5} />
-                          : <IconEyeOff className="h-4 w-4" stroke={1.5} />
-                        }
+                        {showApiKey ? (
+                          <IconEye className="h-4 w-4" stroke={1.5} />
+                        ) : (
+                          <IconEyeOff className="h-4 w-4" stroke={1.5} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -325,19 +323,19 @@ const Login: NextPage = () => {
                       disabled={ocTesting || ocLoading || !ockey.trim()}
                       className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
                     >
-                      {ocTesting ? "Testing…" : "Test key"}
+                      {ocTesting ? 'Testing…' : 'Test key'}
                     </button>
-                    {ocKeyStatus === "verified" && (
+                    {ocKeyStatus === 'verified' && (
                       <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
                         <IconCheck className="h-4 w-4" stroke={2} /> Verified
                       </span>
                     )}
-                    {ocKeyStatus === "Saved" && (
+                    {ocKeyStatus === 'Saved' && (
                       <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
                         <IconCheck className="h-4 w-4" stroke={2} /> Saved
                       </span>
                     )}
-                    {ocKeyStatus === "failed" && (
+                    {ocKeyStatus === 'failed' && (
                       <span className="inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
                         <IconX className="h-4 w-4" stroke={2} /> Invalid
                       </span>
@@ -345,17 +343,21 @@ const Login: NextPage = () => {
                   </div>
 
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Requires{" "}
-                    <b className="text-zinc-700 dark:text-zinc-200">group:read</b> and{" "}
-                    <b className="text-zinc-700 dark:text-zinc-200">group:write</b> permissions. Must be a USER API key.
+                    Requires <b className="text-zinc-700 dark:text-zinc-200">group:read</b> and{' '}
+                    <b className="text-zinc-700 dark:text-zinc-200">group:write</b> permissions.
+                    Must be a USER API key.
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-                <IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400" stroke={2} />
+                <IconInfoCircle
+                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400"
+                  stroke={2}
+                />
                 <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
-                  <b>Recommended:</b> An API key unlocks deeper Roblox group features in Orbit. You can skip this and configure it later in Settings.
+                  <b>Recommended:</b> An API key unlocks deeper Roblox group features in Orbit. You
+                  can skip this and configure it later in Settings.
                 </p>
               </div>
 
@@ -370,12 +372,15 @@ const Login: NextPage = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedSlide(2)}
-                  disabled={ocTesting || (ockey.length > 0 && ocKeyStatus !== "verified")}
-                  className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${ocTesting || (ockey.length > 0 && ocKeyStatus !== "verified") ? 'cursor-not-allowed opacity-50' : ''
-                    }`}
-                    style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
+                  disabled={ocTesting || (ockey.length > 0 && ocKeyStatus !== 'verified')}
+                  className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
+                    ocTesting || (ockey.length > 0 && ocKeyStatus !== 'verified')
+                      ? 'cursor-not-allowed opacity-50'
+                      : ''
+                  }`}
+                  style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
                 >
-                  {ockey.length === 0 ? "Skip this" : "Continue"}
+                  {ockey.length === 0 ? 'Skip this' : 'Continue'}
                 </button>
               </div>
             </div>
@@ -392,13 +397,10 @@ const Login: NextPage = () => {
                 </p>
 
                 <FormProvider {...signupform}>
-                  <form
-                    className="mt-4"
-                    onSubmit={signupform.handleSubmit(createAccount)}
-                  >
+                  <form className="mt-4" onSubmit={signupform.handleSubmit(createAccount)}>
                     <Input
-                      {...signupform.register("username", {
-                        required: "Username is required",
+                      {...signupform.register('username', {
+                        required: 'Username is required',
                       })}
                       label="Roblox Username"
                     />
@@ -412,15 +414,12 @@ const Login: NextPage = () => {
                     <div className="mt-3">
                       <Input
                         type="password"
-                        {...signupform.register("password", {
-                          required: "Password is required",
+                        {...signupform.register('password', {
+                          required: 'Password is required',
                           validate: (value) => {
                             const { score } = calculatePasswordStrength(value);
 
-                            return (
-                              score >= 3 ||
-                              "Password must be at least Strong"
-                            );
+                            return score >= 3 || 'Password must be at least Strong';
                           },
                         })}
                         label="Password"
@@ -437,11 +436,10 @@ const Login: NextPage = () => {
 
                     <Input
                       type="password"
-                      {...signupform.register("verifypassword", {
-                        required: "Please verify your password",
+                      {...signupform.register('verifypassword', {
+                        required: 'Please verify your password',
                         validate: (value) =>
-                          value === signupform.getValues("password") ||
-                          "Passwords do not match",
+                          value === signupform.getValues('password') || 'Passwords do not match',
                       })}
                       label="Verify password"
                     />
@@ -469,12 +467,15 @@ const Login: NextPage = () => {
                     disabled={isLoading || signupPasswordStrength.score < 3}
                     className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
                       isLoading || signupPasswordStrength.score < 3
-                        ? "cursor-not-allowed opacity-50"
-                        : ""
+                        ? 'cursor-not-allowed opacity-50'
+                        : ''
                     }`}
-                    style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
+                    style={{
+                      backgroundColor: selectedColor,
+                      color: getContrastColor(selectedColor),
+                    }}
                   >
-                    {isLoading ? "Creating..." : "Continue"}
+                    {isLoading ? 'Creating...' : 'Continue'}
                   </button>
                 </div>
               </div>
@@ -503,9 +504,7 @@ const Login: NextPage = () => {
           </a>
         </div>
 
-        <p className="text-[11px] text-white/60">
-          Orbit v{packageinfo.version}
-        </p>
+        <p className="text-[11px] text-white/60">Orbit v{packageinfo.version}</p>
       </footer>
     </div>
   );

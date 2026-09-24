@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { getConfig } from "@/utils/configEngine";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { getConfig } from '@/utils/configEngine';
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -11,19 +12,14 @@ type Data = {
   data?: any;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method != "GET") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method != 'GET') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
   const { id } = req.query;
 
   try {
-    const activityconfig = await getConfig("activity", parseInt(id as string));
+    const activityconfig = await getConfig('activity', parseInt(id as string));
     return res.status(200).send({
       success: true,
       data: {
@@ -33,9 +29,7 @@ export default async function handler(
       },
     });
   } catch (err) {
-    console.error("Unexpected error in /api/activity/config:", err);
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    console.error('Unexpected error in /api/activity/config:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

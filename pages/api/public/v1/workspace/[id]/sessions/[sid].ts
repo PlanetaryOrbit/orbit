@@ -1,25 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withAuth } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withAuth(handler);
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = Number.parseInt(req.query.id as string);
   const sessionId = req.query.sid as string;
 
-  if (!workspaceId)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
-  if (!sessionId)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing session ID" });
+  if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
+  if (!sessionId) return res.status(400).json({ success: false, error: 'Missing session ID' });
 
   try {
     const session = await prisma.session.findFirst({
@@ -35,12 +26,10 @@ async function handler(
     });
 
     if (!session) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Session not found" });
+      return res.status(404).json({ success: false, error: 'Session not found' });
     }
 
-    if (req.method === "GET") {
+    if (req.method === 'GET') {
       const sessionWithDetails = await prisma.session.findUnique({
         where: { id: sessionId },
         include: {
@@ -104,12 +93,12 @@ async function handler(
           role: user.roleID,
         })),
         status: sessionWithDetails!.ended
-          ? "ended"
+          ? 'ended'
           : sessionWithDetails!.startedAt
-          ? "in-progress"
-          : sessionWithDetails!.date < new Date()
-          ? "missed"
-          : "scheduled",
+            ? 'in-progress'
+            : sessionWithDetails!.date < new Date()
+              ? 'missed'
+              : 'scheduled',
         notes: sessionWithDetails!.notes.map((note) => ({
           id: note.id,
           authorId: note.authorId,
@@ -123,13 +112,11 @@ async function handler(
         success: true,
         session: formattedSession,
       });
-    } else if (req.method === "PUT") {
+    } else if (req.method === 'PUT') {
       const { date, hostUserId, participants } = req.body;
 
       if (!date && hostUserId === undefined && !participants) {
-        return res
-          .status(400)
-          .json({ success: false, error: "No update data provided" });
+        return res.status(400).json({ success: false, error: 'No update data provided' });
       }
 
       const updateData: any = {};
@@ -150,9 +137,7 @@ async function handler(
           });
 
           if (!workspaceMember) {
-            return res
-              .status(400)
-              .json({ success: false, error: "Host not found in workspace" });
+            return res.status(400).json({ success: false, error: 'Host not found in workspace' });
           }
 
           updateData.ownerId = BigInt(hostUserId);
@@ -258,19 +243,19 @@ async function handler(
           role: user.roleID,
         })),
         status: updatedSession!.ended
-          ? "ended"
+          ? 'ended'
           : updatedSession!.startedAt
-          ? "in-progress"
-          : updatedSession!.date < new Date()
-          ? "missed"
-          : "scheduled",
+            ? 'in-progress'
+            : updatedSession!.date < new Date()
+              ? 'missed'
+              : 'scheduled',
       };
 
       return res.status(200).json({
         success: true,
         session: formattedSession,
       });
-    } else if (req.method === "DELETE") {
+    } else if (req.method === 'DELETE') {
       await prisma.sessionUser.deleteMany({
         where: { sessionid: sessionId },
       });
@@ -281,17 +266,13 @@ async function handler(
 
       return res.status(200).json({
         success: true,
-        message: "Session deleted successfully",
+        message: 'Session deleted successfully',
       });
     } else {
-      return res
-        .status(405)
-        .json({ success: false, error: "Method not allowed" });
+      return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error("Error in public API:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    console.error('Error in public API:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

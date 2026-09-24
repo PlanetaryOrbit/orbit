@@ -1,15 +1,16 @@
-import axios from "axios";
-import React from "react";
-import type toast from "react-hot-toast";
-import { useRecoilState } from "recoil";
-import SwitchComponenet from "@/components/switch";
-import { workspacestate } from "@/state";
-import { FC } from '@/types/settingsComponent'
-import { IconForms } from "@tabler/icons-react";
+import { IconForms } from '@tabler/icons-react';
+import axios from 'axios';
+import React from 'react';
+import type toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 
 type props = {
   triggerToast: typeof toast;
-}
+};
 
 const Forms: FC<props> = (props) => {
   const triggerToast = props.triggerToast;
@@ -23,7 +24,10 @@ const Forms: FC<props> = (props) => {
         </div>
         <div>
           <p className="text-sm font-medium text-zinc-900 dark:text-white">Forms</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Create, customize, and manage workspace forms for collecting structured data, submissions, and user input across your workspace (<strong>Coming Soon</strong>)</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Create, customize, and manage workspace forms for collecting structured data,
+            submissions, and user input across your workspace (<strong>Coming Soon</strong>)
+          </p>
         </div>
       </div>
       {/*<SwitchComponenet
@@ -31,16 +35,11 @@ const Forms: FC<props> = (props) => {
         label=""
         classoverride="mt-0"
       />*/}
-      <SwitchComponenet
-        checked={false}
-        disabled
-        label=""
-        classoverride="mt-0"
-      />
+      <SwitchComponenet checked={false} disabled label="" classoverride="mt-0" />
     </div>
   );
 };
 
-Forms.title = "Forms";
+Forms.title = 'Forms';
 
 export default Forms;

@@ -1,8 +1,9 @@
-import { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import axios from "axios";
-import { getConfig } from "@/utils/configEngine";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import axios from 'axios';
+import { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
 
 interface OpenCloudKeyRes {
   name: string;
@@ -16,15 +17,15 @@ interface OpenCloudKeyRes {
 }
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = parseInt(req.query.id as string);
   const userId = req.auth.userId;
 
   if (!userId || isNaN(workspaceId)) {
-    return res.status(400).json({ success: false, error: "Invalid request" });
+    return res.status(400).json({ success: false, error: 'Invalid request' });
   }
 
   const user = await prisma.user.findFirst({
@@ -38,62 +39,70 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const membership = user?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const userRole = user?.roles?.[0];
-  const hasAdminPermission = userRole?.permissions?.includes("admin") || isAdmin;
+  const hasAdminPermission = userRole?.permissions?.includes('admin') || isAdmin;
 
   if (!hasAdminPermission) {
-    return res.status(403).json({ success: false, error: "Forbidden" });
+    return res.status(403).json({ success: false, error: 'Forbidden' });
   }
 
   const body = req.body as { key?: string };
   let keyToTest: string;
-  if (typeof body.key === "string" && body.key.trim() !== "") {
+  if (typeof body.key === 'string' && body.key.trim() !== '') {
     keyToTest = body.key.trim();
   } else {
-    const stored = (await getConfig("roblox_opencloud", workspaceId)) as
+    const stored = (await getConfig('roblox_opencloud', workspaceId)) as
       | { key?: string }
       | undefined;
-    keyToTest = typeof stored?.key === "string" ? stored.key.trim() : "";
+    keyToTest = typeof stored?.key === 'string' ? stored.key.trim() : '';
   }
   if (!keyToTest) {
-    return res.status(400).json({ success: false, error: "OpenCloud key is required" });
+    return res.status(400).json({ success: false, error: 'OpenCloud key is required' });
   }
 
   try {
     const ocres = await axios.post<OpenCloudKeyRes>(
-      "https://apis.roblox.com/api-keys/v1/introspect",
+      'https://apis.roblox.com/api-keys/v1/introspect',
       { apiKey: keyToTest },
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { 'Content-Type': 'application/json' } },
     );
 
     const { enabled, expired, scopes } = ocres.data;
 
     if (expired) {
-      return res.status(400).json({ success: false, code: 3, error: "API key has expired" });
+      return res.status(400).json({ success: false, code: 3, error: 'API key has expired' });
     }
 
     if (!enabled) {
-      return res.status(400).json({ success: false, code: 4, error: "API key is disabled" });
+      return res.status(400).json({ success: false, code: 4, error: 'API key is disabled' });
     }
 
-    const groupScope = scopes.find((s) => s.name === "group");
+    const groupScope = scopes.find((s) => s.name === 'group');
     if (!groupScope) {
-      return res.status(400).json({ success: false, code: 1, error: "API key is missing the 'group' scope" });
+      return res
+        .status(400)
+        .json({ success: false, code: 1, error: "API key is missing the 'group' scope" });
     }
 
     const ops = groupScope.operations ?? [];
-    if (!ops.includes("read") || !ops.includes("write")) {
-      return res.status(400).json({ success: false, code: 2, error: "API key requires both read and write operations on the 'group' scope" });
+    if (!ops.includes('read') || !ops.includes('write')) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          code: 2,
+          error: "API key requires both read and write operations on the 'group' scope",
+        });
     }
 
-    return res.status(200).json({ success: true, message: "API key is valid." });
+    return res.status(200).json({ success: true, message: 'API key is valid.' });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      return res.status(400).json({ success: false, code: 5, error: "Invalid API key" });
+      return res.status(400).json({ success: false, code: 5, error: 'Invalid API key' });
     }
-    console.error("Error testing Open Cloud Key:", error);
+    console.error('Error testing Open Cloud Key:', error);
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "Internal server error",
+      error: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 }

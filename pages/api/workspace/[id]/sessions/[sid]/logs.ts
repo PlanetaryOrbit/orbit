@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 type Data = {
   success: boolean;
@@ -14,9 +15,7 @@ export default withAuth(handler);
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const { id, sid } = req.query;
   if (!id || !sid)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
 
   const session = await prisma.session.findFirst({
     where: {
@@ -28,10 +27,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   });
 
   if (!session) {
-    return res.status(404).json({ success: false, error: "Session not found" });
+    return res.status(404).json({ success: false, error: 'Session not found' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const logs = await prisma.sessionLog.findMany({
         where: {
@@ -54,7 +53,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       });
 
@@ -62,24 +61,20 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         success: true,
         logs: JSON.parse(
           JSON.stringify(logs, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
       });
     } catch (error) {
-      console.error("Failed to fetch logs:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Failed to fetch logs" });
+      console.error('Failed to fetch logs:', error);
+      return res.status(500).json({ success: false, error: 'Failed to fetch logs' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { action, targetId, metadata } = req.body;
     if (!action) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Action is required" });
+      return res.status(400).json({ success: false, error: 'Action is required' });
     }
 
     try {
@@ -113,17 +108,15 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         success: true,
         log: JSON.parse(
           JSON.stringify(log, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
       });
     } catch (error) {
-      console.error("Failed to create log:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Failed to create log" });
+      console.error('Failed to create log:', error);
+      return res.status(500).json({ success: false, error: 'Failed to create log' });
     }
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" });
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }

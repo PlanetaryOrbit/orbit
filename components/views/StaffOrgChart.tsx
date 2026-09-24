@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import Link from "next/link";
+import Link from 'next/link';
+import React, { useMemo } from 'react';
 
 export type OrgChartNode = {
   userId: string;
@@ -40,8 +40,8 @@ function OrgSubtree({
 
   const rawKids = childrenByManager.get(userId) || [];
   const kids = [...rawKids].sort((a, b) => {
-    const na = nodesById.get(a)?.username || "";
-    const nb = nodesById.get(b)?.username || "";
+    const na = nodesById.get(a)?.username || '';
+    const nb = nodesById.get(b)?.username || '';
     return na.localeCompare(nb);
   });
 
@@ -58,7 +58,7 @@ function OrgSubtree({
             className="h-10 w-10 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-zinc-700 sm:h-12 sm:w-12"
           />
           <span className="mt-1.5 w-full truncate text-center text-[13px] font-semibold leading-tight text-zinc-900 dark:text-white sm:mt-2 sm:text-sm">
-            {node.username || "Unknown"}
+            {node.username || 'Unknown'}
           </span>
           <span className="mt-0.5 w-full truncate text-center text-[11px] text-zinc-500 dark:text-zinc-400 sm:text-xs">
             {node.rankName}
@@ -72,7 +72,7 @@ function OrgSubtree({
             className="h-10 w-10 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-zinc-700 sm:h-12 sm:w-12"
           />
           <span className="mt-1.5 w-full truncate text-center text-[13px] font-semibold leading-tight text-zinc-900 dark:text-white sm:mt-2 sm:text-sm">
-            {node.username || "Unknown"}
+            {node.username || 'Unknown'}
           </span>
           <span className="mt-0.5 w-full truncate text-center text-[11px] text-zinc-500 dark:text-zinc-400 sm:text-xs">
             {node.rankName}
@@ -115,12 +115,7 @@ function OrgSubtree({
   );
 }
 
-const StaffOrgChart: React.FC<Props> = ({
-  workspaceId,
-  nodes,
-  edges,
-  hasViewMemberProfiles,
-}) => {
+const StaffOrgChart: React.FC<Props> = ({ workspaceId, nodes, edges, hasViewMemberProfiles }) => {
   const { nodesById, childrenByManager, roots } = useMemo(() => {
     const nodesById = new Map(nodes.map((n) => [n.userId, n]));
     const childrenByManager = new Map<string, string[]>();
@@ -142,8 +137,8 @@ const StaffOrgChart: React.FC<Props> = ({
       .map((n) => n.userId)
       .filter((id) => !hasParentInChart.has(id))
       .sort((a, b) => {
-        const na = nodesById.get(a)?.username || "";
-        const nb = nodesById.get(b)?.username || "";
+        const na = nodesById.get(a)?.username || '';
+        const nb = nodesById.get(b)?.username || '';
         return na.localeCompare(nb);
       });
 
@@ -157,8 +152,8 @@ const StaffOrgChart: React.FC<Props> = ({
           No reporting hierarchy to show
         </p>
         <p className="mt-1 max-w-md px-4 text-xs text-zinc-500 dark:text-zinc-400">
-          Only members who report to someone or have someone reporting to them appear here.
-          Assign line managers on member profiles to build an org chart.
+          Only members who report to someone or have someone reporting to them appear here. Assign
+          line managers on member profiles to build an org chart.
         </p>
       </div>
     );
@@ -167,13 +162,14 @@ const StaffOrgChart: React.FC<Props> = ({
   return (
     <div className="max-sm:-mx-3 sm:mx-0">
       <p className="mb-3 px-3 text-[11px] leading-snug text-zinc-500 sm:mb-4 sm:px-0 sm:text-xs dark:text-zinc-400">
-        Reporting lines from workspace line manager settings. Manager above, direct reports
-        below.{" "}
-        <span className="whitespace-nowrap sm:whitespace-normal">Swipe sideways to pan wide charts.</span>
+        Reporting lines from workspace line manager settings. Manager above, direct reports below.{' '}
+        <span className="whitespace-nowrap sm:whitespace-normal">
+          Swipe sideways to pan wide charts.
+        </span>
       </p>
       <div
         className="overflow-x-auto overscroll-x-contain pb-3 touch-pan-x sm:pb-4"
-        style={{ WebkitOverflowScrolling: "touch" }}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="flex min-w-min flex-wrap justify-center gap-8 px-3 sm:gap-12 sm:px-2">
           {roots.map((rootId) => (

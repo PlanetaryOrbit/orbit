@@ -1,35 +1,36 @@
-import type { NextApiRequest, NextApiResponse } from "next"
-import prisma from "@/utils/database"
-import { logAudit } from '@/utils/logs'
-import { validateApiKey } from "@/utils/api-auth"
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { validateApiKey } from '@/utils/api-auth';
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed" })
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const apiKey = req.headers.authorization?.replace("Bearer ", "")
-  if (!apiKey) return res.status(401).json({ success: false, error: "Missing API key" })
+  const apiKey = req.headers.authorization?.replace('Bearer ', '');
+  if (!apiKey) return res.status(401).json({ success: false, error: 'Missing API key' });
 
-  const workspaceId = Number.parseInt(req.query.id as string)
-  if (!workspaceId) return res.status(400).json({ success: false, error: "Missing workspace ID" })
+  const workspaceId = Number.parseInt(req.query.id as string);
+  if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
 
   try {
-    const key = await validateApiKey(apiKey, workspaceId)
-    if (!key) return res.status(401).json({ success: false, error: "Invalid API key" })
+    const key = await validateApiKey(apiKey, workspaceId);
+    if (!key) return res.status(401).json({ success: false, error: 'Invalid API key' });
 
     // GET: Fetch wall posts
-    if (req.method === "GET") {
-      const { limit = "20", before } = req.query
-      const where: any = { workspaceGroupId: workspaceId }
-      if (before) where.id = { lt: Number(before) }
+    if (req.method === 'GET') {
+      const { limit = '20', before } = req.query;
+      const where: any = { workspaceGroupId: workspaceId };
+      if (before) where.id = { lt: Number(before) };
 
       const posts = await prisma.wallPost.findMany({
         where,
         include: { author: { select: { userid: true, username: true, picture: true } } },
-        orderBy: { createdAt: "desc" },
-        take: Number(limit)
-      })
+        orderBy: { createdAt: 'desc' },
+        take: Number(limit),
+      });
 
       const formattedPosts = posts.map((post) => ({
         id: post.id,
@@ -40,42 +41,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         author: {
           userId: Number(post.author.userid),
           username: post.author.username,
-          thumbnail: post.author.picture
-        }
-      }))
+          thumbnail: post.author.picture,
+        },
+      }));
 
       return res.status(200).json({
         success: true,
         posts: formattedPosts,
         total: formattedPosts.length,
-        nextCursor: formattedPosts.length > 0 ? formattedPosts[formattedPosts.length - 1].id : null
-      })
+        nextCursor: formattedPosts.length > 0 ? formattedPosts[formattedPosts.length - 1].id : null,
+      });
     }
 
     // POST: Create a new wall post
-    if (req.method === "POST") {
-      const { content, image } = req.body
-      if (!content) return res.status(400).json({ success: false, error: "Content is required" })
+    if (req.method === 'POST') {
+      const { content, image } = req.body;
+      if (!content) return res.status(400).json({ success: false, error: 'Content is required' });
 
       const author = await prisma.user.findFirst({
         where: {
           userid: BigInt(key.createdById),
-          roles: { some: { workspaceGroupId: workspaceId } }
-        }
-      })
-      if (!author) return res.status(403).json({ success: false, error: "API key creator not a member of this workspace" })
+          roles: { some: { workspaceGroupId: workspaceId } },
+        },
+      });
+      if (!author)
+        return res
+          .status(403)
+          .json({ success: false, error: 'API key creator not a member of this workspace' });
 
       const post = await prisma.wallPost.create({
         data: {
           content,
           image,
           workspaceGroupId: workspaceId,
-          authorId: BigInt(key.createdById)
+          authorId: BigInt(key.createdById),
         },
-        include: { author: { select: { userid: true, username: true, picture: true } } }
-      })
+        include: { author: { select: { userid: true, username: true, picture: true } } },
+      });
       try {
-        await logAudit(workspaceId, Number(key.createdById), 'wall.post.create', `wallpost:${post.id}`, { id: post.id, content: post.content, authorId: Number(post.author.userid) });
+        await logAudit(
+          workspaceId,
+          Number(key.createdById),
+          'wall.post.create',
+          `wallpost:${post.id}`,
+          { id: post.id, content: post.content, authorId: Number(post.author.userid) },
+        );
       } catch (e) {}
 
       return res.status(201).json({
@@ -89,13 +99,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           author: {
             userId: Number(post.author.userid),
             username: post.author.username,
-            thumbnail: post.author.picture
-          }
-        }
-      })
+            thumbnail: post.author.picture,
+          },
+        },
+      });
     }
   } catch (error) {
-    console.error("Error in public API:", error)
-    return res.status(500).json({ success: false, error: "Internal server error" })
+    console.error('Error in public API:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

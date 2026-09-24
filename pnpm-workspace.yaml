@@ -6,9 +6,9 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - "@prisma/engines"
-  - "noblox.js"
-  - "prisma"
-  - "sharp"
-  - "unrs-resolver"
+  - '@parcel/watcher'
+  - '@prisma/engines'
+  - 'noblox.js'
+  - 'prisma'
+  - 'sharp'
+  - 'unrs-resolver'

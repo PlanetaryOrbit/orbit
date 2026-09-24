@@ -1,11 +1,3 @@
-import type React from "react";
-import type { pageWithLayout } from "@/layoutTypes";
-import { loginState, workspacestate } from "@/state";
-import Button from "@/components/button";
-import Input from "@/components/input";
-import Workspace from "@/layouts/workspace";
-import { useRecoilState } from "recoil";
-import { useEffect, useState } from "react";
 import {
   IconArrowLeft,
   IconDeviceFloppy,
@@ -16,36 +8,45 @@ import {
   IconInfoCircle,
   IconCalendarEvent,
   IconClipboardList,
-} from "@tabler/icons-react";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { useRouter } from "next/router";
-import axios from "axios";
-import prisma from "@/utils/database";
-import { useForm, FormProvider } from "react-hook-form";
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import toast from "react-hot-toast";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { useRouter } from 'next/router';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import Button from '@/components/button';
+import Input from '@/components/input';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 const BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -53,7 +54,6 @@ function getRandomBg(userid: string, username?: string) {
   const index = (hash >>> 0) % BG_COLORS.length;
   return BG_COLORS[index];
 }
-
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -96,7 +96,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
           workspaceGroupId: Number(id),
         },
         orderBy: {
-          isOwnerRole: "desc",
+          isOwnerRole: 'desc',
         },
       });
 
@@ -104,95 +104,98 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
         props: {
           session: JSON.parse(
             JSON.stringify(session, (key, value) =>
-              typeof value === "bigint" ? value.toString() : value
-            )
+              typeof value === 'bigint' ? value.toString() : value,
+            ),
           ),
           roles: JSON.parse(
             JSON.stringify(roles, (key, value) =>
-              typeof value === "bigint" ? value.toString() : value
-            )
+              typeof value === 'bigint' ? value.toString() : value,
+            ),
           ),
         },
       };
     } catch (error) {
-      console.error("Error fetching session:", error);
+      console.error('Error fetching session:', error);
       return {
         notFound: true,
       };
     }
   },
   [
-    "sessions_shift_manage",
-    "sessions_training_manage",
-    "sessions_event_manage",
-    "sessions_other_manage"
-  ]
+    'sessions_shift_manage',
+    'sessions_training_manage',
+    'sessions_event_manage',
+    'sessions_other_manage',
+  ],
 );
 
-const EditSession: pageWithLayout<
-  InferGetServerSidePropsType<GetServerSideProps>
-> = ({ session, roles }) => {
+const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
+  session,
+  roles,
+}) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState('');
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteAll, setDeleteAll] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateAll, setUpdateAll] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState('basic');
 
   const tabs = [
-    { id: "basic", label: "Basic", icon: <IconInfoCircle size={18} /> },
-    { id: "scheduling", label: "Scheduling", icon: <IconCalendarEvent size={18} /> },
-    { id: "statuses", label: "Statuses", icon: <IconClipboardList size={18} /> },
-    { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
+    { id: 'basic', label: 'Basic', icon: <IconInfoCircle size={18} /> },
+    { id: 'scheduling', label: 'Scheduling', icon: <IconCalendarEvent size={18} /> },
+    { id: 'statuses', label: 'Statuses', icon: <IconClipboardList size={18} /> },
+    { id: 'slots', label: 'Slots', icon: <IconUserPlus size={18} /> },
   ];
 
   const goToSection = (id: string) => {
     setActiveTab(id);
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const form = useForm({
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: (() => {
       const sessionDate = new Date(session.date);
       const year = sessionDate.getFullYear();
-      const month = String(sessionDate.getMonth() + 1).padStart(2, "0");
-      const day = String(sessionDate.getDate()).padStart(2, "0");
-      const hours = String(sessionDate.getHours()).padStart(2, "0");
-      const minutes = String(sessionDate.getMinutes()).padStart(2, "0");
+      const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
+      const day = String(sessionDate.getDate()).padStart(2, '0');
+      const hours = String(sessionDate.getHours()).padStart(2, '0');
+      const minutes = String(sessionDate.getMinutes()).padStart(2, '0');
       const dateOnly = `${year}-${month}-${day}`;
       const timeOnly = `${hours}:${minutes}`;
 
       return {
-        name: session.name || session.sessionType?.name || "",
-        description: session.sessionType?.description || "",
+        name: session.name || session.sessionType?.name || '',
+        description: session.sessionType?.description || '',
         date: dateOnly,
         time: timeOnly,
         duration: session.duration || 30,
-        gameId: (session as any).gameId || session.sessionType?.gameId || "",
+        gameId: (session as any).gameId || session.sessionType?.gameId || '',
       };
     })(),
   });
 
-  const [statues, setStatues] = useState<{
-    name: string;
-    timeAfter: number;
-    color: string;
-    id: string;
-  }[]>(() => (session.sessionType?.statues ? session.sessionType.statues : []));
+  const [statues, setStatues] = useState<
+    {
+      name: string;
+      timeAfter: number;
+      color: string;
+      id: string;
+    }[]
+  >(() => (session.sessionType?.statues ? session.sessionType.statues : []));
 
   const newStatus = () => {
     setStatues((prev) => [
       ...prev,
       {
-        name: "New status",
+        name: 'New status',
         timeAfter: 0,
-        color: "green",
+        color: 'green',
         id: `${Date.now()}-${Math.random()}`,
       },
     ]);
@@ -203,7 +206,11 @@ const EditSession: pageWithLayout<
   };
 
   const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
-    setStatues((prev) => prev.map((status) => (status.id === id ? { ...status, name, color, timeAfter: timeafter } : status)));
+    setStatues((prev) =>
+      prev.map((status) =>
+        status.id === id ? { ...status, name, color, timeAfter: timeafter } : status,
+      ),
+    );
   };
 
   const router = useRouter();
@@ -212,18 +219,17 @@ const EditSession: pageWithLayout<
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
   const sessionTypeLabel = (() => {
-    if (typeof session.type === "string" && !/^[0-9]+$/.test(session.type)) return capitalize(session.type);
+    if (typeof session.type === 'string' && !/^[0-9]+$/.test(session.type))
+      return capitalize(session.type);
   })();
 
   useEffect(() => {
     const loadWorkspaceUsers = async () => {
       try {
-        const response = await axios.get(
-          `/api/workspace/${router.query.id}/users`
-        );
+        const response = await axios.get(`/api/workspace/${router.query.id}/users`);
         setAvailableUsers(response.data);
       } catch (error) {
-        console.error("Failed to load workspace users:", error);
+        console.error('Failed to load workspace users:', error);
       }
     };
     loadWorkspaceUsers();
@@ -231,26 +237,26 @@ const EditSession: pageWithLayout<
 
   const updateSession = async (applyToAll = false) => {
     setIsSubmitting(true);
-    setFormError("");
+    setFormError('');
 
     try {
       const formData = form.getValues();
       const datePart = formData.date;
-      const timePart = formData.time || "00:00";
+      const timePart = formData.time || '00:00';
       const localDateTime = `${datePart}T${timePart}`;
       const newDate = new Date(localDateTime);
 
       // Prevent updating a session to a past date/time
       const now = new Date();
       if (newDate.getTime() <= now.getTime()) {
-        setFormError("Cannot set session date/time in the past. Choose a future date/time.");
+        setFormError('Cannot set session date/time in the past. Choose a future date/time.');
         setIsSubmitting(false);
         setShowUpdateModal(false);
         setUpdateAll(false);
         return;
       }
 
-      const [dateStr, timeStr] = localDateTime.split("T");
+      const [dateStr, timeStr] = localDateTime.split('T');
 
       // If we have a scope from the pattern dialog, use the pattern update API
       if (scope && session.scheduleId) {
@@ -262,15 +268,15 @@ const EditSession: pageWithLayout<
             newTime: timeStr,
             newDuration: formData.duration,
             newName: formData.name,
-          }
+          },
         );
 
         toast.success(
-          scope === "single"
-            ? "Session updated successfully"
-            : scope === "future"
-            ? "This and future sessions updated successfully"
-            : "All sessions in pattern updated successfully"
+          scope === 'single'
+            ? 'Session updated successfully'
+            : scope === 'future'
+              ? 'This and future sessions updated successfully'
+              : 'All sessions in pattern updated successfully',
         );
       } else {
         // Use the original update API for non-pattern sessions
@@ -286,18 +292,16 @@ const EditSession: pageWithLayout<
             statues: statues,
             updateAll: applyToAll,
             timezoneOffset: new Date().getTimezoneOffset(),
-          }
+          },
         );
 
-        toast.success("Session updated successfully");
+        toast.success('Session updated successfully');
       }
 
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
       setFormError(
-        err?.response?.data?.error ||
-          err?.message ||
-          "Failed to update session. Please try again."
+        err?.response?.data?.error || err?.message || 'Failed to update session. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -325,28 +329,26 @@ const EditSession: pageWithLayout<
     setIsSubmitting(true);
     try {
       // If we have a scope from the pattern dialog, use it instead of asking again
-      const deleteScope = scope || (deleteAll ? "all" : "single");
+      const deleteScope = scope || (deleteAll ? 'all' : 'single');
 
-      await axios.delete(
-        `/api/workspace/${workspace.groupId}/sessions/${session.id}/delete`,
-        {
-          data: {
-            deleteAll: deleteScope === "all",
-            deleteScope: deleteScope, // Pass the scope for future/single distinction
-          },
-        }
-      );
+      await axios.delete(`/api/workspace/${workspace.groupId}/sessions/${session.id}/delete`, {
+        data: {
+          deleteAll: deleteScope === 'all',
+          deleteScope: deleteScope, // Pass the scope for future/single distinction
+        },
+      });
 
-      const successMessage = deleteScope === "single"
-        ? "Session deleted successfully"
-        : deleteScope === "future"
-        ? "This and future sessions deleted successfully"
-        : "All sessions in series deleted successfully";
+      const successMessage =
+        deleteScope === 'single'
+          ? 'Session deleted successfully'
+          : deleteScope === 'future'
+            ? 'This and future sessions deleted successfully'
+            : 'All sessions in series deleted successfully';
 
       toast.success(successMessage);
       router.push(`/workspace/${workspace.groupId}/sessions`);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to delete session");
+      toast.error(err?.response?.data?.error || 'Failed to delete session');
     } finally {
       setIsSubmitting(false);
       setShowDeleteModal(false);
@@ -366,9 +368,7 @@ const EditSession: pageWithLayout<
             <IconArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
-              Edit Session
-            </h1>
+            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Edit Session</h1>
             <p className="text-zinc-500 dark:text-zinc-400 mt-1">
               Modify session details and participant assignments
             </p>
@@ -396,43 +396,31 @@ const EditSession: pageWithLayout<
             disabled={isSubmitting}
             classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
           >
-            <IconDeviceFloppy size={16} />{" "}
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            <IconDeviceFloppy size={16} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
 
       {formError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
-          <IconAlertCircle
-            className="text-red-500 mt-0.5 flex-shrink-0"
-            size={18}
-          />
+          <IconAlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={18} />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-400">
-              Error
-            </h3>
-            <p className="text-red-600 dark:text-red-300 text-sm">
-              {formError}
-            </p>
+            <h3 className="font-medium text-red-800 dark:text-red-400">Error</h3>
+            <p className="text-red-600 dark:text-red-300 text-sm">{formError}</p>
           </div>
         </div>
       )}
 
       {scope && session.scheduleId && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3 dark:bg-blue-900/20 dark:border-blue-800">
-          <IconInfoCircle
-            className="text-blue-500 mt-0.5 flex-shrink-0"
-            size={18}
-          />
+          <IconInfoCircle className="text-blue-500 mt-0.5 flex-shrink-0" size={18} />
           <div>
-            <h3 className="font-medium text-blue-800 dark:text-blue-400">
-              Pattern Edit Mode
-            </h3>
+            <h3 className="font-medium text-blue-800 dark:text-blue-400">Pattern Edit Mode</h3>
             <p className="text-blue-600 dark:text-blue-300 text-sm">
-              {scope === "single" && "Changes will only affect this session."}
-              {scope === "future" && "Changes will affect this and all future sessions on the same day of the week."}
-              {scope === "all" && "Changes will affect all sessions in this recurring pattern."}
+              {scope === 'single' && 'Changes will only affect this session.'}
+              {scope === 'future' &&
+                'Changes will affect this and all future sessions on the same day of the week.'}
+              {scope === 'all' && 'Changes will affect all sessions in this recurring pattern.'}
             </p>
           </div>
         </div>
@@ -446,8 +434,8 @@ const EditSession: pageWithLayout<
               onClick={() => goToSection(tab.id)}
               className={`px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? "border-primary text-primary dark:border-primary dark:text-primary"
-                  : "border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                  ? 'border-primary text-primary dark:border-primary dark:text-primary'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'
               }`}
             >
               {tab.icon}
@@ -459,67 +447,111 @@ const EditSession: pageWithLayout<
 
       <FormProvider {...form}>
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
-          {activeTab === "basic" && (
+          {activeTab === 'basic' && (
             <div className="p-6" id="basic">
               <div className="space-y-6 max-w-2xl">
                 <div>
                   <Input
-                    {...form.register("name", {
-                      required: { value: true, message: "Session name is required" },
+                    {...form.register('name', {
+                      required: { value: true, message: 'Session name is required' },
                     })}
                     label="Session Name"
                     placeholder="Weekly Training Session"
                   />
                   {form.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{form.formState.errors.name.message as string}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.name.message as string}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <Input {...form.register("description")} label="Description" textarea placeholder="Describe what this session is about..." />
+                  <Input
+                    {...form.register('description')}
+                    label="Description"
+                    textarea
+                    placeholder="Describe what this session is about..."
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Type</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Session Type
+                  </label>
                   <div className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-white dark:bg-zinc-700 text-zinc-700 dark:text-white">
                     {sessionTypeLabel}
                   </div>
                 </div>
                 <div>
-                  <Input {...form.register("gameId")} label="Game ID" placeholder="Optional game ID" />
+                  <Input
+                    {...form.register('gameId')}
+                    label="Game ID"
+                    placeholder="Optional game ID"
+                  />
                 </div>
                 <div className="mt-8 flex justify-end">
-                  <Button onPress={() => setActiveTab("scheduling")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Scheduling</Button>
+                  <Button
+                    onPress={() => setActiveTab('scheduling')}
+                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                  >
+                    Continue to Scheduling
+                  </Button>
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === "scheduling" && (
+          {activeTab === 'scheduling' && (
             <div className="p-6" id="scheduling">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Date</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Session Date
+                  </label>
                   <input
                     type="date"
-                    {...form.register("date", { required: { value: true, message: "Session date is required" } })}
+                    {...form.register('date', {
+                      required: { value: true, message: 'Session date is required' },
+                    })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Enter date in your local timezone.</p>
-                  {form.formState.errors.date && <p className="mt-1 text-sm text-red-500">{form.formState.errors.date.message as string}</p>}
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    Enter date in your local timezone.
+                  </p>
+                  {form.formState.errors.date && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.date.message as string}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Time</label>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Session Time
+                  </label>
                   <input
                     type="time"
-                    {...form.register("time", { required: { value: true, message: "Session time is required" } })}
+                    {...form.register('time', {
+                      required: { value: true, message: 'Session time is required' },
+                    })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
                   />
-                  {form.formState.errors.time && <p className="mt-1 text-sm text-red-500">{form.formState.errors.time.message as string}</p>}
+                  {form.formState.errors.time && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.time.message as string}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Session Length</label>
-                  <select {...form.register("duration", { required: { value: true, message: "Duration is required" }, valueAsNumber: true })} className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Session Length
+                  </label>
+                  <select
+                    {...form.register('duration', {
+                      required: { value: true, message: 'Duration is required' },
+                      valueAsNumber: true,
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                  >
                     <option value={5}>5 minutes</option>
                     <option value={10}>10 minutes</option>
                     <option value={15}>15 minutes</option>
@@ -532,18 +564,32 @@ const EditSession: pageWithLayout<
                     <option value={120}>2 hours</option>
                   </select>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Length of session</p>
-                  {form.formState.errors.duration && <p className="mt-1 text-sm text-red-500">{form.formState.errors.duration.message as string}</p>}
+                  {form.formState.errors.duration && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState.errors.duration.message as string}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="mt-8 flex justify-between w-full">
-                <Button onPress={() => setActiveTab("basic")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
-                <Button onPress={() => setActiveTab("statuses")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Statuses</Button>
+                <Button
+                  onPress={() => setActiveTab('basic')}
+                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                >
+                  Back
+                </Button>
+                <Button
+                  onPress={() => setActiveTab('statuses')}
+                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                >
+                  Continue to Statuses
+                </Button>
               </div>
             </div>
           )}
 
-          {activeTab === "statuses" && (
+          {activeTab === 'statuses' && (
             <div className="p-6" id="statuses">
               <div className="flex items-start mb-6">
                 <div className="bg-primary/10 p-2 rounded-lg mr-4">
@@ -551,28 +597,59 @@ const EditSession: pageWithLayout<
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">Define status updates that occur during a session</p>
+                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                    Define status updates that occur during a session
+                  </p>
                 </div>
               </div>
 
               <div className="max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Statuses automatically update after the specified time has passed</p>
-                  <Button onPress={newStatus} compact classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"><IconPlus size={16} /> Add Status</Button>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Statuses automatically update after the specified time has passed
+                  </p>
+                  <Button
+                    onPress={newStatus}
+                    compact
+                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                  >
+                    <IconPlus size={16} /> Add Status
+                  </Button>
                 </div>
 
                 {statues.length === 0 ? (
                   <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
-                    <IconClipboardList className="mx-auto text-zinc-400 dark:text-zinc-500" size={32} />
+                    <IconClipboardList
+                      className="mx-auto text-zinc-400 dark:text-zinc-500"
+                      size={32}
+                    />
                     <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
-                    <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">Add statuses to track session progress (e.g., "Starting Soon", "In Progress", "Completed")</p>
-                    <Button onPress={newStatus} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"><IconPlus size={16} /> Add Your First Status</Button>
+                    <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
+                      Add statuses to track session progress (e.g., "Starting Soon", "In Progress",
+                      "Completed")
+                    </p>
+                    <Button
+                      onPress={newStatus}
+                      classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"
+                    >
+                      <IconPlus size={16} /> Add Your First Status
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {statues.map((status, index) => (
-                      <div key={status.id} className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm">
-                        <Status updateStatus={(value, mins, color) => updateStatus(status.id, value, color, mins)} deleteStatus={() => deleteStatus(status.id)} data={status} index={index + 1} />
+                      <div
+                        key={status.id}
+                        className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
+                      >
+                        <Status
+                          updateStatus={(value, mins, color) =>
+                            updateStatus(status.id, value, color, mins)
+                          }
+                          deleteStatus={() => deleteStatus(status.id)}
+                          data={status}
+                          index={index + 1}
+                        />
                       </div>
                     ))}
                   </div>
@@ -580,16 +657,30 @@ const EditSession: pageWithLayout<
               </div>
 
               <div className="mt-8 flex justify-between w-full">
-                <Button onPress={() => setActiveTab("scheduling")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
-                <Button onPress={() => setActiveTab("slots")} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">Continue to Slots</Button>
+                <Button
+                  onPress={() => setActiveTab('scheduling')}
+                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                >
+                  Back
+                </Button>
+                <Button
+                  onPress={() => setActiveTab('slots')}
+                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                >
+                  Continue to Slots
+                </Button>
               </div>
             </div>
           )}
 
-          {activeTab === "slots" && (
+          {activeTab === 'slots' && (
             <div className="p-6" id="slots">
-              <h2 className="text-xl font-semibold dark:text-white mb-4">Session Slots (Read-Only)</h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Define roles and how many people can claim each role</p>
+              <h2 className="text-xl font-semibold dark:text-white mb-4">
+                Session Slots (Read-Only)
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+                Define roles and how many people can claim each role
+              </p>
 
               <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4">
                 <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">Host</h4>
@@ -597,38 +688,79 @@ const EditSession: pageWithLayout<
                   <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot 1:</span>
                   <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
                     {session.owner?.username ? (
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString(), session.owner.username)}`}>
-                        <img src={session.owner.picture || "/default-avatar.jpg"} alt={session.owner.username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString(), session.owner.username)}`}
+                      >
+                        <img
+                          src={session.owner.picture || '/default-avatar.jpg'}
+                          alt={session.owner.username}
+                          className="w-6 h-6 rounded-full object-cover border border-white"
+                          onError={(e) => {
+                            e.currentTarget.src = '/default-avatar.jpg';
+                          }}
+                        />
                       </div>
                     ) : null}
-                    <span className="text-zinc-700 dark:text-white">{session.owner?.username || "Unclaimed"}</span>
+                    <span className="text-zinc-700 dark:text-white">
+                      {session.owner?.username || 'Unclaimed'}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4 max-w-2xl">
-                {session.sessionType.slots && Array.isArray(session.sessionType.slots) && session.sessionType.slots.length > 0 ? (
+                {session.sessionType.slots &&
+                Array.isArray(session.sessionType.slots) &&
+                session.sessionType.slots.length > 0 ? (
                   session.sessionType.slots.map((slot: any, slotIndex: number) => {
-                    if (typeof slot !== "object") return null;
+                    if (typeof slot !== 'object') return null;
                     const slotData = JSON.parse(JSON.stringify(slot));
                     return (
-                      <div key={slotIndex} className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4">
-                        <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">{slotData.name}</h4>
+                      <div
+                        key={slotIndex}
+                        className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4"
+                      >
+                        <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+                          {slotData.name}
+                        </h4>
                         <div className="space-y-2">
                           {Array.from(Array(slotData.slots)).map((_, i) => {
-                            const assignedUser = session.users?.find((u: any) => u.roleID === slotData.id && u.slot === i);
-                            const username = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.username : null;
-                            const userPicture = assignedUser ? availableUsers.find((user: any) => user.userid === assignedUser.userid.toString())?.picture : null;
+                            const assignedUser = session.users?.find(
+                              (u: any) => u.roleID === slotData.id && u.slot === i,
+                            );
+                            const username = assignedUser
+                              ? availableUsers.find(
+                                  (user: any) => user.userid === assignedUser.userid.toString(),
+                                )?.username
+                              : null;
+                            const userPicture = assignedUser
+                              ? availableUsers.find(
+                                  (user: any) => user.userid === assignedUser.userid.toString(),
+                                )?.picture
+                              : null;
                             return (
                               <div key={i} className="flex items-center gap-2">
-                                <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot {i + 1}:</span>
+                                <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
+                                  Slot {i + 1}:
+                                </span>
                                 <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
                                   {username ? (
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString(), username)}`}>
-                                      <img src={userPicture || "/default-avatar.jpg"} alt={username} className="w-6 h-6 rounded-full object-cover border border-white" onError={(e) => { e.currentTarget.src = "/default-avatar.jpg"; }} />
+                                    <div
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString(), username)}`}
+                                    >
+                                      <img
+                                        src={userPicture || '/default-avatar.jpg'}
+                                        alt={username}
+                                        className="w-6 h-6 rounded-full object-cover border border-white"
+                                        onError={(e) => {
+                                          e.currentTarget.src = '/default-avatar.jpg';
+                                        }}
+                                      />
                                     </div>
                                   ) : null}
-                                  <span className="text-zinc-700 dark:text-white">{username || "Unclaimed"}</span>
+                                  <span className="text-zinc-700 dark:text-white">
+                                    {username || 'Unclaimed'}
+                                  </span>
                                 </div>
                               </div>
                             );
@@ -638,12 +770,24 @@ const EditSession: pageWithLayout<
                     );
                   })
                 ) : (
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400">No slots defined for this session type</div>
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                    No slots defined for this session type
+                  </div>
                 )}
               </div>
               <div className="mt-8 flex justify-between w-full">
-                <Button onPress={() => setActiveTab("statuses")} classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600">Back</Button>
-                <Button onPress={form.handleSubmit(handleSaveClick)} classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90">{isSubmitting ? "Saving..." : "Save Changes"}</Button>
+                <Button
+                  onPress={() => setActiveTab('statuses')}
+                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                >
+                  Back
+                </Button>
+                <Button
+                  onPress={form.handleSubmit(handleSaveClick)}
+                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Changes'}
+                </Button>
               </div>
             </div>
           )}
@@ -660,8 +804,7 @@ const EditSession: pageWithLayout<
             {session.scheduleId ? (
               <div className="space-y-4">
                 <p className="text-sm text-zinc-600 dark:text-zinc-300 text-center">
-                  This is part of a recurring session series. What would you
-                  like to delete?
+                  This is part of a recurring session series. What would you like to delete?
                 </p>
 
                 <div className="space-y-3">
@@ -678,7 +821,7 @@ const EditSession: pageWithLayout<
                         Delete only this session
                       </div>
                       <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Remove just this single occurrence on{" "}
+                        Remove just this single occurrence on{' '}
                         {new Date(session.date).toLocaleDateString()}
                       </div>
                     </div>
@@ -719,19 +862,14 @@ const EditSession: pageWithLayout<
                     disabled={isSubmitting}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 min-w-[100px]"
                   >
-                    {isSubmitting
-                      ? "Deleting..."
-                      : deleteAll
-                      ? "Delete Series"
-                      : "Delete Session"}
+                    {isSubmitting ? 'Deleting...' : deleteAll ? 'Delete Series' : 'Delete Session'}
                   </button>
                 </div>
               </div>
             ) : (
               <div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center">
-                  Are you sure you want to delete this session? This action
-                  cannot be undone.
+                  Are you sure you want to delete this session? This action cannot be undone.
                 </p>
                 <div className="flex justify-center gap-4">
                   <button
@@ -746,7 +884,7 @@ const EditSession: pageWithLayout<
                     disabled={isSubmitting}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
                   >
-                    {isSubmitting ? "Deleting..." : "Delete"}
+                    {isSubmitting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -762,8 +900,7 @@ const EditSession: pageWithLayout<
               Update Session Series
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center">
-              This session is part of a recurring series. How would you like to
-              apply these changes?
+              This session is part of a recurring series. How would you like to apply these changes?
             </p>
 
             <div className="space-y-4 mb-6">
@@ -776,9 +913,7 @@ const EditSession: pageWithLayout<
                   className="mt-1"
                 />
                 <div>
-                  <div className="font-medium text-zinc-900 dark:text-white">
-                    This session only
-                  </div>
+                  <div className="font-medium text-zinc-900 dark:text-white">This session only</div>
                   <div className="text-sm text-zinc-500 dark:text-zinc-400">
                     Apply changes to this specific session instance
                   </div>
@@ -820,7 +955,7 @@ const EditSession: pageWithLayout<
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 min-w-[100px]"
               >
-                {isSubmitting ? "Updating..." : "Update"}
+                {isSubmitting ? 'Updating...' : 'Update'}
               </button>
             </div>
           </div>
@@ -853,7 +988,7 @@ const Status: React.FC<{
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), "green");
+      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), 'green');
     });
     return () => subscription.unsubscribe();
   }, [methods, updateStatus]);
@@ -863,16 +998,31 @@ const Status: React.FC<{
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center">
           {index !== undefined && (
-            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">{index}</span>
+            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">
+              {index}
+            </span>
           )}
-          <h3 className="font-medium dark:text-white">{watch("value") || "New Status"}</h3>
+          <h3 className="font-medium dark:text-white">{watch('value') || 'New Status'}</h3>
         </div>
-        <Button onPress={deleteStatus} compact classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"><IconTrash size={16} /> Delete</Button>
+        <Button
+          onPress={deleteStatus}
+          compact
+          classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
+        >
+          <IconTrash size={16} /> Delete
+        </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register("value")} label="Status Name" placeholder="In Progress" />
-        <Input {...register("minutes")} label="Time After (minutes)" type="number" placeholder="15" />
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">Status will activate {watch("minutes") || 0} minutes after session starts</p>
+        <Input {...register('value')} label="Status Name" placeholder="In Progress" />
+        <Input
+          {...register('minutes')}
+          label="Time After (minutes)"
+          type="number"
+          placeholder="15"
+        />
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
+          Status will activate {watch('minutes') || 0} minutes after session starts
+        </p>
       </div>
     </FormProvider>
   );

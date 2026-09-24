@@ -1,44 +1,45 @@
-import { NextPage } from "next";
-import Head from "next/head";
-import { useForm, FormProvider, SubmitHandler } from "react-hook-form";
-import React, { useEffect, useState, useRef } from "react";
-import { useRecoilState } from "recoil";
-import { loginState } from "@/state";
-import Router from "next/router";
-import axios from "axios";
-import Input from "@/components/input";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
-import { Dialog } from "@headlessui/react";
-import { IconX } from "@tabler/icons-react";
-import toast from "react-hot-toast";
-import { useOAuthConfig } from "@/hooks/useOAuthConfig";
-import clsx from "clsx";
-import { RobloxOAuthAvailable } from "@/hooks/useRobloxOAuth";
+import { Dialog } from '@headlessui/react';
+import { IconX } from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { NextPage } from 'next';
+import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
+import React, { useEffect, useState, useRef } from 'react';
+import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import Input from '@/components/input';
+import PasswordStrengthBar from '@/components/passwordStrengthBar';
 import {
   sessionFormInputOverride,
   sessionPrimaryButtonClass,
   sessionSecondaryButtonClass,
-} from "@/components/sessions/shell";
-import PasswordStrengthBar from "@/components/passwordStrengthBar";
-import { calculatePasswordStrength } from "@/utils/passwordStrength";
+} from '@/components/sessions/shell';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useOAuthConfig } from '@/hooks/useOAuthConfig';
+import { RobloxOAuthAvailable } from '@/hooks/useRobloxOAuth';
+import { loginState } from '@/state';
+import { calculatePasswordStrength } from '@/utils/passwordStrength';
 
 const oauthButtonClass =
-  "w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700";
+  'w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700';
 
 function AuthSubmitButton({
   loading,
   disabled,
   children,
   className,
-  type = "submit",
+  type = 'submit',
   onClick,
 }: {
   loading?: boolean;
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
-  type?: "submit" | "button";
+  type?: 'submit' | 'button';
   onClick?: () => void;
 }) {
   return (
@@ -85,37 +86,36 @@ type SignupForm = {
 };
 
 const AVATAR_BG_COLORS = [
-  "#fce7f3",
-  "#fbcfe8",
-  "#f9a8d4",
-  "#f472b6",
-  "#ec4899",
-  "#e0e7ff",
-  "#c7d2fe",
-  "#a5b4fc",
-  "#818cf8",
-  "#6366f1",
-  "#d1fae5",
-  "#a7f3d0",
-  "#6ee7b7",
-  "#34d399",
-  "#10b981",
-  "#cffafe",
-  "#a5f3fc",
-  "#67e8f9",
-  "#22d3ee",
-  "#06b6d4",
-  "#fef3c7",
-  "#fde68a",
-  "#fcd34d",
-  "#fbbf24",
-  "#f59e0b",
+  '#fce7f3',
+  '#fbcfe8',
+  '#f9a8d4',
+  '#f472b6',
+  '#ec4899',
+  '#e0e7ff',
+  '#c7d2fe',
+  '#a5b4fc',
+  '#818cf8',
+  '#6366f1',
+  '#d1fae5',
+  '#a7f3d0',
+  '#6ee7b7',
+  '#34d399',
+  '#10b981',
+  '#cffafe',
+  '#a5f3fc',
+  '#67e8f9',
+  '#22d3ee',
+  '#06b6d4',
+  '#fef3c7',
+  '#fde68a',
+  '#fcd34d',
+  '#fbbf24',
+  '#f59e0b',
 ];
 
 function getAvatarBgColor(displayName: string): string {
   let n = 0;
-  for (let i = 0; i < displayName.length; i++)
-    n = (n * 31 + displayName.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < displayName.length; i++) n = (n * 31 + displayName.charCodeAt(i)) >>> 0;
   return AVATAR_BG_COLORS[n % AVATAR_BG_COLORS.length];
 }
 
@@ -123,12 +123,7 @@ const Login: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
   const { isAvailable: isRobloxOAuth } = RobloxOAuthAvailable();
 
-  const {
-    discord,
-    google,
-    oauthOnly,
-    loading: oauthConfigLoading,
-  } = useOAuthConfig();
+  const { discord, google, oauthOnly, loading: oauthConfigLoading } = useOAuthConfig();
 
   const isDiscordOAuth = discord.available;
   const isGoogleOAuth = google.available;
@@ -140,11 +135,7 @@ const Login: NextPage = () => {
   const loginMethods = useForm<LoginForm>();
   const signupMethods = useForm<SignupForm>();
 
-  const {
-    register: regLogin,
-    handleSubmit: submitLogin,
-    setError: setErrLogin,
-  } = loginMethods;
+  const { register: regLogin, handleSubmit: submitLogin, setError: setErrLogin } = loginMethods;
   const {
     register: regSignup,
     handleSubmit: submitSignup,
@@ -154,22 +145,16 @@ const Login: NextPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [loginBg, setLoginBg] = useState<string | null>(null);
-  const [mode, setMode] = useState<"login" | "signup" | "link">("login");
+  const [mode, setMode] = useState<'login' | 'signup' | 'link'>('login');
   const [signupStep, setSignupStep] = useState<0 | 1 | 2 | 3>(0);
-  const [signupThumbnail, setSignupThumbnail] = useState("");
-  const [signupDisplayName, setSignupDisplayName] = useState("");
-  const [signupUserid, setSignupUserid] = useState<number | undefined>(
-    undefined,
-  );
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verificationError, setVerificationError] = useState<string | null>(
-    null,
-  );
+  const [signupThumbnail, setSignupThumbnail] = useState('');
+  const [signupDisplayName, setSignupDisplayName] = useState('');
+  const [signupUserid, setSignupUserid] = useState<number | undefined>(undefined);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
-    null,
-  );
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [showTraditionalLogin, setShowTraditionalLogin] = useState(false);
 
   const errorToastShown = useRef(false);
@@ -180,18 +165,17 @@ const Login: NextPage = () => {
     signupMethods.reset();
     setVerificationError(null);
     setSignupStep(0);
-    setSignupThumbnail("");
-    setSignupDisplayName("");
-    setVerificationCode("");
+    setSignupThumbnail('');
+    setSignupDisplayName('');
+    setVerificationCode('');
     setLoading(false);
     setUsernameCheckLoading(false);
     setUsernameAvailable(null);
     setShowTraditionalLogin(false);
-    if (usernameCheckTimeout.current)
-      clearTimeout(usernameCheckTimeout.current);
+    if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
   }, [mode]);
 
-  const signupPassword = signupMethods.watch("password") || "";
+  const signupPassword = signupMethods.watch('password') || '';
   const passwordStrength = calculatePasswordStrength(signupPassword);
 
   useEffect(() => {
@@ -199,31 +183,28 @@ const Login: NextPage = () => {
 
     async function fetchMe() {
       try {
-        const userInfo = await axios.get("/api/@me");
+        const userInfo = await axios.get('/api/@me');
         if (isMounted && userInfo.status === 200) {
-          Router.push("/");
+          Router.push('/');
         }
       } catch (error) {
-        console.log("User not authenticated");
+        console.log('User not authenticated');
       }
     }
 
     async function fetchBackground() {
       try {
-        const res = await axios.get("/api/instance/login-background");
+        const res = await axios.get('/api/instance/login-background');
         if (!isMounted) return;
 
         if (res.data.backgroundUrl) {
           setLoginBg(res.data.backgroundUrl);
         }
         if (res.data.themeRgb) {
-          document.documentElement.style.setProperty(
-            "--group-theme",
-            res.data.themeRgb,
-          );
+          document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
         }
       } catch (error) {
-        console.error("Failed to fetch background:", error);
+        console.error('Failed to fetch background:', error);
       }
     }
 
@@ -237,8 +218,7 @@ const Login: NextPage = () => {
 
   useEffect(() => {
     return () => {
-      if (usernameCheckTimeout.current)
-        clearTimeout(usernameCheckTimeout.current);
+      if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
     };
   }, []);
 
@@ -250,13 +230,13 @@ const Login: NextPage = () => {
     setUsernameCheckLoading(true);
     setUsernameAvailable(null);
     try {
-      await axios.post("/api/auth/checkUsername", { username });
-      signupMethods.clearErrors("username");
+      await axios.post('/api/auth/checkUsername', { username });
+      signupMethods.clearErrors('username');
       setUsernameAvailable(true);
     } catch (e: any) {
       const errorMessage = e?.response?.data?.error;
       if (errorMessage) {
-        setErrSignup("username", { type: "custom", message: errorMessage });
+        setErrSignup('username', { type: 'custom', message: errorMessage });
         setUsernameAvailable(false);
       }
     } finally {
@@ -265,17 +245,16 @@ const Login: NextPage = () => {
   };
 
   const onUsernameChange = (username: string) => {
-    if (usernameCheckTimeout.current)
-      clearTimeout(usernameCheckTimeout.current);
-    signupMethods.clearErrors("username");
+    if (usernameCheckTimeout.current) clearTimeout(usernameCheckTimeout.current);
+    signupMethods.clearErrors('username');
     setUsernameAvailable(null);
     usernameCheckTimeout.current = setTimeout(() => {
       checkUsernameAvailability(username);
     }, 800);
   };
 
-  const signupUsernameReg = regSignup("username", {
-    required: "This field is required",
+  const signupUsernameReg = regSignup('username', {
+    required: 'This field is required',
   });
   const signupUsernameProps = {
     ...signupUsernameReg,
@@ -289,33 +268,33 @@ const Login: NextPage = () => {
   const onSubmitLogin: SubmitHandler<LoginForm> = async (data) => {
     setLoading(true);
     try {
-      const req = await axios.post("/api/auth/login", data).catch((e: any) => {
+      const req = await axios.post('/api/auth/login', data).catch((e: any) => {
         setLoading(false);
         if (e.response?.status === 404) {
-          setErrLogin("username", {
-            type: "custom",
+          setErrLogin('username', {
+            type: 'custom',
             message: e.response.data.error,
           });
         } else if (e.response?.status === 401) {
-          setErrLogin("password", {
-            type: "custom",
+          setErrLogin('password', {
+            type: 'custom',
             message: e.response.data.error,
           });
         } else {
-          setErrLogin("username", {
-            type: "custom",
-            message: "Something went wrong",
+          setErrLogin('username', {
+            type: 'custom',
+            message: 'Something went wrong',
           });
-          setErrLogin("password", {
-            type: "custom",
-            message: "Something went wrong",
+          setErrLogin('password', {
+            type: 'custom',
+            message: 'Something went wrong',
           });
         }
         throw e;
       });
       const { data: res } = req;
       setLogin({ ...res.user, workspaces: res.workspaces });
-      Router.push("/");
+      Router.push('/');
     } catch {
     } finally {
       setLoading(false);
@@ -329,23 +308,23 @@ const Login: NextPage = () => {
     verifypassword,
   }) => {
     if (password !== verifypassword) {
-      setErrSignup("verifypassword", {
-        type: "validate",
-        message: "Passwords must match",
+      setErrSignup('verifypassword', {
+        type: 'validate',
+        message: 'Passwords must match',
       });
       return;
     }
     setLoading(true);
     setVerificationError(null);
     try {
-      const { data } = await axios.post("/api/auth/signup/start", { username });
+      const { data } = await axios.post('/api/auth/signup/start', { username });
       setVerificationCode(data.code);
       setSignupUserid(data.userid);
       setSignupStep(3);
     } catch (e: any) {
-      setErrSignup("username", {
-        type: "custom",
-        message: e.response?.data?.error || "Unexpected error occurred.",
+      setErrSignup('username', {
+        type: 'custom',
+        message: e.response?.data?.error || 'Unexpected error occurred.',
       });
     } finally {
       setLoading(false);
@@ -358,17 +337,15 @@ const Login: NextPage = () => {
     setVerificationError(null);
     const { password } = getSignupValues();
     try {
-      const { data } = await axios.post("/api/auth/signup/finish", {
+      const { data } = await axios.post('/api/auth/signup/finish', {
         password,
         code: verificationCode,
         userid: signupUserid,
       });
-      if (data.success) Router.push("/");
-      else setVerificationError("Verification failed. Please try again.");
+      if (data.success) Router.push('/');
+      else setVerificationError('Verification failed. Please try again.');
     } catch (e: any) {
-      setVerificationError(
-        e?.response?.data?.error || "Verification not found. Please try again.",
-      );
+      setVerificationError(e?.response?.data?.error || 'Verification not found. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -378,19 +355,15 @@ const Login: NextPage = () => {
     if (!Router.isReady || errorToastShown.current) return;
     const { error, action, ...rest } = Router.query;
     if (error) {
-      if (error === "discord-not-linked")
+      if (error === 'discord-not-linked')
         toast.error("This account isn't linked to any Orbit account.");
-      else if (error === "google-not-linked")
-        toast.error("Your Google account is not linked.");
-      else if (error === "state-mismatch")
-        toast.error(
-          "We detected a state mismatch, OAuth process was discontinued.",
-        );
-      else if (error === "missing_params")
-        toast.error("Not enough params were provided.");
-      else if (error === "unauthorized-domain")
-        toast.error("This domain is not allowed to sign in.");
-      else toast.error("There was an error while logging in.");
+      else if (error === 'google-not-linked') toast.error('Your Google account is not linked.');
+      else if (error === 'state-mismatch')
+        toast.error('We detected a state mismatch, OAuth process was discontinued.');
+      else if (error === 'missing_params') toast.error('Not enough params were provided.');
+      else if (error === 'unauthorized-domain')
+        toast.error('This domain is not allowed to sign in.');
+      else toast.error('There was an error while logging in.');
       errorToastShown.current = true;
       Router.replace({ pathname: Router.pathname, query: rest }, undefined, {
         shallow: true,
@@ -399,49 +372,37 @@ const Login: NextPage = () => {
   }, [Router.isReady, Router.query]);
 
   const OAuthButtons = ({ className }: { className?: string }) => (
-    <div className={`flex flex-col gap-2.5 ${className ?? ""}`}>
+    <div className={`flex flex-col gap-2.5 ${className ?? ''}`}>
       {isRobloxOAuth && (
         <button
           type="button"
-          onClick={() => (window.location.href = "/api/auth/roblox/start")}
+          onClick={() => (window.location.href = '/api/auth/roblox/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img
-            src="/roblox.svg"
-            alt="Roblox"
-            className="h-5 w-5 dark:invert-0 invert"
-          />
+          <img src="/roblox.svg" alt="Roblox" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Roblox
         </button>
       )}
       {isDiscordOAuth && (
         <button
           type="button"
-          onClick={() => (window.location.href = "/api/auth/discord/start")}
+          onClick={() => (window.location.href = '/api/auth/discord/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img
-            src="/discord.svg"
-            alt="Discord"
-            className="h-5 w-5 dark:invert-0 invert"
-          />
+          <img src="/discord.svg" alt="Discord" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Discord
         </button>
       )}
       {isGoogleOAuth && (
         <button
           type="button"
-          onClick={() => (window.location.href = "/api/auth/google/start")}
+          onClick={() => (window.location.href = '/api/auth/google/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img
-            src="/google.svg"
-            alt="Google"
-            className="h-5 w-5 dark:invert-0 invert"
-          />
+          <img src="/google.svg" alt="Google" className="h-5 w-5 dark:invert-0 invert" />
           Continue with Google
         </button>
       )}
@@ -454,9 +415,7 @@ const Login: NextPage = () => {
         <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
       </div>
       <div className="relative flex justify-center text-xs">
-        <span className="bg-white px-2 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-500">
-          or
-        </span>
+        <span className="bg-white px-2 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-500">or</span>
       </div>
     </div>
   );
@@ -503,18 +462,18 @@ const Login: NextPage = () => {
             <div className="w-full max-w-md">
               <div
                 className={clsx(
-                  "rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30",
+                  'rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30',
                 )}
               >
-                {mode === "login" && (
+                {mode === 'login' && (
                   <>
                     <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
                       Sign in
                     </h2>
                     <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                       {effectiveOAuthOnly && !showTraditionalLogin
-                        ? "Use one of the options below to sign in."
-                        : "Use your username and password to continue."}
+                        ? 'Use one of the options below to sign in.'
+                        : 'Use your username and password to continue.'}
                     </p>
 
                     {effectiveOAuthOnly && !showTraditionalLogin && (
@@ -544,18 +503,18 @@ const Login: NextPage = () => {
                             placeholder="Username"
                             id="username"
                             classoverride={sessionFormInputOverride}
-                            {...regLogin("username", {
-                              required: "This field is required",
+                            {...regLogin('username', {
+                              required: 'This field is required',
                             })}
                           />
                           <Input
                             label="Password"
                             placeholder="Password"
-                            type={showPassword ? "text" : "password"}
+                            type={showPassword ? 'text' : 'password'}
                             id="password"
                             classoverride={sessionFormInputOverride}
-                            {...regLogin("password", {
-                              required: "This field is required",
+                            {...regLogin('password', {
+                              required: 'This field is required',
                             })}
                           />
                           <div className="flex items-center gap-2 pt-1">
@@ -582,17 +541,14 @@ const Login: NextPage = () => {
                                 Forgot password?
                               </Link>
                               <p
-                                onClick={() => setMode("signup")}
+                                onClick={() => setMode('signup')}
                                 className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors hover:text-primary/80 mt-1 cursor-pointer"
                               >
                                 Are you new?
                               </p>
                             </div>
 
-                            <AuthSubmitButton
-                              loading={loading}
-                              disabled={loading}
-                            >
+                            <AuthSubmitButton loading={loading} disabled={loading}>
                               Sign in
                             </AuthSubmitButton>
                           </div>
@@ -622,7 +578,7 @@ const Login: NextPage = () => {
                   </>
                 )}
 
-                {mode === "signup" && (
+                {mode === 'signup' && (
                   <>
                     {signupStep === 0 && (
                       <>
@@ -637,25 +593,20 @@ const Login: NextPage = () => {
                             <form
                               onSubmit={async (e) => {
                                 e.preventDefault();
-                                const username = getSignupValues("username");
+                                const username = getSignupValues('username');
                                 if (!username) return;
                                 setLoading(true);
                                 try {
-                                  const { data } = await axios.post(
-                                    "/api/auth/signup/preview",
-                                    { username },
-                                  );
-                                  setSignupThumbnail(data.thumbnail || "");
-                                  setSignupDisplayName(
-                                    data.displayName || username,
-                                  );
+                                  const { data } = await axios.post('/api/auth/signup/preview', {
+                                    username,
+                                  });
+                                  setSignupThumbnail(data.thumbnail || '');
+                                  setSignupDisplayName(data.displayName || username);
                                   setSignupStep(1);
                                 } catch (err: any) {
-                                  setErrSignup("username", {
-                                    type: "custom",
-                                    message:
-                                      err?.response?.data?.error ||
-                                      "Something went wrong",
+                                  setErrSignup('username', {
+                                    type: 'custom',
+                                    message: err?.response?.data?.error || 'Something went wrong',
                                   });
                                 } finally {
                                   setLoading(false);
@@ -672,16 +623,13 @@ const Login: NextPage = () => {
                                 {...signupUsernameProps}
                               />
                               {usernameCheckLoading && (
-                                <p className="mt-1 text-sm text-primary">
-                                  Checking username...
+                                <p className="mt-1 text-sm text-primary">Checking username...</p>
+                              )}
+                              {!usernameCheckLoading && usernameAvailable === true && (
+                                <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+                                  Username is available
                                 </p>
                               )}
-                              {!usernameCheckLoading &&
-                                usernameAvailable === true && (
-                                  <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
-                                    Username is available
-                                  </p>
-                                )}
                               <div className="flex justify-end pt-4">
                                 <AuthSubmitButton
                                   loading={loading}
@@ -713,9 +661,7 @@ const Login: NextPage = () => {
                           <div
                             className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-700/60"
                             style={{
-                              backgroundColor: getAvatarBgColor(
-                                signupDisplayName || "",
-                              ),
+                              backgroundColor: getAvatarBgColor(signupDisplayName || ''),
                             }}
                           >
                             {signupThumbnail ? (
@@ -734,27 +680,21 @@ const Login: NextPage = () => {
                           </div>
                           <div className="min-w-0 flex-1 pt-0.5">
                             <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
-                              Is{" "}
+                              Is{' '}
                               <span className="text-primary">
-                                {signupDisplayName ||
-                                  getSignupValues("username") ||
-                                  "this user"}
-                              </span>{" "}
+                                {signupDisplayName || getSignupValues('username') || 'this user'}
+                              </span>{' '}
                               correct?
                             </h2>
                             <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                              Confirm this is your Roblox account, then choose a
-                              password.
+                              Confirm this is your Roblox account, then choose a password.
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-3">
                           <button
                             type="button"
-                            className={clsx(
-                              sessionSecondaryButtonClass,
-                              "flex-1 justify-center",
-                            )}
+                            className={clsx(sessionSecondaryButtonClass, 'flex-1 justify-center')}
                             onClick={() => setSignupStep(0)}
                             disabled={loading}
                           >
@@ -794,19 +734,17 @@ const Login: NextPage = () => {
                               type="password"
                               id="signup-password"
                               classoverride={sessionFormInputOverride}
-                              {...regSignup("password", {
-                                required: "Password is required",
+                              {...regSignup('password', {
+                                required: 'Password is required',
                                 minLength: {
                                   value: 7,
-                                  message:
-                                    "Password must be at least 7 characters",
+                                  message: 'Password must be at least 7 characters',
                                 },
                                 validate: (value) => {
-                                  const { score } =
-                                    calculatePasswordStrength(value);
+                                  const { score } = calculatePasswordStrength(value);
 
                                   if (score < 3) {
-                                    return "Password is not strong enough";
+                                    return 'Password is not strong enough';
                                   }
 
                                   return true;
@@ -822,11 +760,10 @@ const Login: NextPage = () => {
                               type="password"
                               id="signup-verify-password"
                               classoverride={sessionFormInputOverride}
-                              {...regSignup("verifypassword", {
-                                required: "Please verify your password",
+                              {...regSignup('verifypassword', {
+                                required: 'Please verify your password',
                                 validate: (value) =>
-                                  value === getSignupValues("password") ||
-                                  "Passwords must match",
+                                  value === getSignupValues('password') || 'Passwords must match',
                               })}
                             />
 
@@ -835,7 +772,7 @@ const Login: NextPage = () => {
                                 type="button"
                                 className={clsx(
                                   sessionSecondaryButtonClass,
-                                  "flex-1 justify-center",
+                                  'flex-1 justify-center',
                                 )}
                                 onClick={() => setSignupStep(1)}
                                 disabled={loading}
@@ -852,9 +789,7 @@ const Login: NextPage = () => {
                               </AuthSubmitButton>
                             </div>
 
-                            {(isRobloxOAuth ||
-                              isDiscordOAuth ||
-                              isGoogleOAuth) && (
+                            {(isRobloxOAuth || isDiscordOAuth || isGoogleOAuth) && (
                               <>
                                 {divider}
                                 <OAuthButtons />
@@ -862,8 +797,8 @@ const Login: NextPage = () => {
                             )}
 
                             <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                              Don&apos;t share your password. Don&apos;t use the
-                              same password as your Roblox account.
+                              Don&apos;t share your password. Don&apos;t use the same password as
+                              your Roblox account.
                             </p>
                           </form>
                         </FormProvider>
@@ -876,16 +811,13 @@ const Login: NextPage = () => {
                           Verify your account
                         </h2>
                         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                          Paste this code into your Roblox profile bio, then
-                          click Verify.
+                          Paste this code into your Roblox profile bio, then click Verify.
                         </p>
                         <p
                           className="mb-4 mt-5 select-all rounded-xl bg-zinc-100 px-4 py-3 text-center font-mono text-sm text-zinc-900 dark:bg-zinc-800 dark:text-white"
                           onClick={() => {
                             navigator.clipboard.writeText(verificationCode);
-                            toast.success(
-                              "Verification code copied to clipboard",
-                            );
+                            toast.success('Verification code copied to clipboard');
                           }}
                         >
                           {verificationCode}
@@ -904,10 +836,7 @@ const Login: NextPage = () => {
                         <div className="flex gap-3">
                           <button
                             type="button"
-                            className={clsx(
-                              sessionSecondaryButtonClass,
-                              "flex-1 justify-center",
-                            )}
+                            className={clsx(sessionSecondaryButtonClass, 'flex-1 justify-center')}
                             onClick={() => setSignupStep(2)}
                             disabled={loading}
                           >

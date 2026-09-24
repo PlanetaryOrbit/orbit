@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { useRouter } from "next/router";
-import { IconCheck, IconConfetti } from "@tabler/icons-react";
-import Button from "@/components/button";
-import { ServiceCard, ServiceToggle } from "../instance/ServiceCard";
+import { IconCheck, IconConfetti } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
-function DiscordMilestones({ title = "Discord Milestones" }: { title?: string }) {
+import Button from '@/components/button';
+
+import { ServiceCard, ServiceToggle } from '../instance/ServiceCard';
+
+function DiscordMilestones({ title = 'Discord Milestones' }: { title?: string }) {
   const router = useRouter();
   const [enabled, setEnabled] = useState(false);
-  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
 
@@ -20,11 +22,11 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
         .then((res) => {
           if (res.data.value) {
             setEnabled(res.data.value.enabled || false);
-            setWebhookUrl(res.data.value.url || "");
+            setWebhookUrl(res.data.value.url || '');
           }
         })
         .catch((err) => {
-          console.error("Error fetching discord webhook config:", err);
+          console.error('Error fetching discord webhook config:', err);
         });
     }
   }, [router.query.id]);
@@ -32,14 +34,17 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
   const handleSave = async () => {
     setLoading(true);
     try {
-      await axios.patch(`/api/workspace/${router.query.id}/settings/general/discord/milestone/key`, {
-        enabled,
-        url: webhookUrl,
-      });
-      toast.success("Milestone webhook saved!");
+      await axios.patch(
+        `/api/workspace/${router.query.id}/settings/general/discord/milestone/key`,
+        {
+          enabled,
+          url: webhookUrl,
+        },
+      );
+      toast.success('Milestone webhook saved!');
     } catch (error) {
-      console.error("Error saving Discord webhook:", error);
-      toast.error("Failed to save settings");
+      console.error('Error saving Discord webhook:', error);
+      toast.error('Failed to save settings');
     } finally {
       setLoading(false);
     }
@@ -47,23 +52,23 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
 
   const handleTest = async () => {
     if (!webhookUrl) {
-      toast.error("Please enter a webhook URL first");
+      toast.error('Please enter a webhook URL first');
       return;
     }
     setTesting(true);
     try {
       const response = await axios.post(
         `/api/workspace/${router.query.id}/settings/general/discord/milestone/test`,
-        { url: webhookUrl }
+        { url: webhookUrl },
       );
       if (response.data.success) {
-        toast.success("Test message sent successfully!");
+        toast.success('Test message sent successfully!');
       } else {
-        toast.error("Failed to send test message");
+        toast.error('Failed to send test message');
       }
     } catch (error: any) {
-      console.error("Error testing webhook:", error);
-      toast.error(error.response?.data?.error || "Failed to send test message");
+      console.error('Error testing webhook:', error);
+      toast.error(error.response?.data?.error || 'Failed to send test message');
     } finally {
       setTesting(false);
     }
@@ -79,7 +84,7 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
           <Button onClick={handleSave} disabled={loading} workspace>
             <span className="inline-flex items-center gap-2">
               <IconCheck className="h-4 w-4" stroke={1.5} />
-              {loading ? "Saving…" : "Save"}
+              {loading ? 'Saving…' : 'Save'}
             </span>
           </Button>
         </div>
@@ -93,7 +98,9 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
       {enabled && (
         <div className="space-y-3">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">Webhook URL</label>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Webhook URL
+            </label>
             <input
               type="url"
               value={webhookUrl}
@@ -108,7 +115,7 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
             disabled={testing || !webhookUrl}
             className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
           >
-            {testing ? "Sending…" : "Send test"}
+            {testing ? 'Sending…' : 'Send test'}
           </button>
         </div>
       )}
@@ -116,6 +123,6 @@ function DiscordMilestones({ title = "Discord Milestones" }: { title?: string })
   );
 }
 
-DiscordMilestones.title = "Discord Milestones";
+DiscordMilestones.title = 'Discord Milestones';
 
 export default DiscordMilestones;

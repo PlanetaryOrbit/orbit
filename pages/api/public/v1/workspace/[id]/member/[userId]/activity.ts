@@ -1,26 +1,21 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const workspaceId = Number.parseInt(req.query.id as string);
-  if (!workspaceId)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
+  if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
 
   const { userId } = req.query;
-  if (!userId)
-    return res.status(400).json({ success: false, error: "Missing user ID" });
+  if (!userId) return res.status(400).json({ success: false, error: 'Missing user ID' });
 
-  const { startDate, endDate, limit = "50" } = req.query;
+  const { startDate, endDate, limit = '50' } = req.query;
 
   try {
     // Check if user exists and has a role in this workspace
@@ -48,9 +43,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, error: "User not found in this workspace" });
+      return res.status(404).json({ success: false, error: 'User not found in this workspace' });
     }
 
     // Build query filters
@@ -69,7 +62,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const sessions = await prisma.activitySession.findMany({
       where: { ...where, archived: { not: true } },
       orderBy: {
-        startTime: "desc",
+        startTime: 'desc',
       },
       take: Number(limit),
     });
@@ -78,29 +71,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Calculate total activity time
     const totalActivityTimeMs = completedSessions.reduce((total, session) => {
-      const durationMs =
-        session.endTime!.getTime() - session.startTime.getTime();
-      const idleMs = session.idleTime
-        ? (Number(session.idleTime) / 60) * 60000
-        : 0;
+      const durationMs = session.endTime!.getTime() - session.startTime.getTime();
+      const idleMs = session.idleTime ? (Number(session.idleTime) / 60) * 60000 : 0;
       return total + Math.max(0, durationMs - idleMs);
     }, 0);
     const totalActivityTime = Math.round(totalActivityTimeMs / 60000);
 
     // Calculate average session length
-    const averageSessionLength =
-      Math.round(completedSessions.length > 0
+    const averageSessionLength = Math.round(
+      completedSessions.length > 0
         ? completedSessions.reduce((total, session) => {
-            const durationMs =
-              session.endTime!.getTime() - session.startTime.getTime();
-            const idleMs = session.idleTime
-              ? (Number(session.idleTime) / 60) * 60000
-              : 0;
+            const durationMs = session.endTime!.getTime() - session.startTime.getTime();
+            const idleMs = session.idleTime ? (Number(session.idleTime) / 60) * 60000 : 0;
             return total + Math.max(0, durationMs - idleMs);
           }, 0) /
-          completedSessions.length /
-          60000
-        : 0);
+            completedSessions.length /
+            60000
+        : 0,
+    );
 
     // Format sessions
     const formattedSessions = sessions.map((session) => ({
@@ -108,13 +96,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       active: session.active,
       startTime: session.startTime,
       endTime: session.endTime,
-      idleTime: session.idleTime
-        ? Math.round(Number(session.idleTime))
-        : 0,
+      idleTime: session.idleTime ? Math.round(Number(session.idleTime)) : 0,
       duration: session.endTime
-        ? Math.floor(
-            (session.endTime.getTime() - session.startTime.getTime()) / 60000,
-          )
+        ? Math.floor((session.endTime.getTime() - session.startTime.getTime()) / 60000)
         : null,
       messages: session.messages,
       universeId: session.universeId ? Number(session.universeId) : null,
@@ -127,7 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         userId: BigInt(userId as string),
       },
       orderBy: {
-        startTime: "desc",
+        startTime: 'desc',
       },
       take: 10,
     });
@@ -159,9 +143,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   } catch (error) {
-    console.error("Error in public API:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    console.error('Error in public API:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

@@ -1,16 +1,6 @@
-"use client";
+'use client';
 
-import type React from "react";
-import type { pageWithLayout } from "@/layoutTypes";
-import { loginState, workspacestate } from "@/state";
-import Button from "@/components/button";
-import Input from "@/components/input";
-import { v4 as uuidv4 } from "uuid";
-import Workspace from "@/layouts/workspace";
-import { useRecoilState } from "recoil";
-import { useEffect, useState } from "react";
-import { Listbox, Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
+import { Listbox, Dialog, Transition } from '@headlessui/react';
 import {
   IconCheck,
   IconChevronDown,
@@ -24,16 +14,20 @@ import {
   IconUserPlus,
   IconArrowLeft,
   IconDeviceFloppy,
-} from "@tabler/icons-react";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import * as noblox from "noblox.js";
-import { useRouter } from "next/router";
-import axios from "axios";
-import prisma from "@/utils/database";
-import Switchcomponenet from "@/components/switch";
-import { useForm, FormProvider } from "react-hook-form";
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { canCreateScheduled, canCreateUnscheduled } from "@/utils/sessionPermissions";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { useRouter } from 'next/router';
+import * as noblox from 'noblox.js';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Fragment } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { useRecoilState } from 'recoil';
+import { v4 as uuidv4 } from 'uuid';
+
+import Button from '@/components/button';
+import Input from '@/components/input';
 import {
   SessionsPageShell,
   SessionsPageHeader,
@@ -49,7 +43,14 @@ import {
   sessionPrimaryButtonClass,
   sessionSecondaryButtonClass,
   sessionsPanelShadow,
-} from "@/components/sessions/shell";
+} from '@/components/sessions/shell';
+import Switchcomponenet from '@/components/switch';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { canCreateScheduled, canCreateUnscheduled } from '@/utils/sessionPermissions';
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -61,14 +62,14 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     try {
       const fetchedGames = await noblox.getGroupGames(Number(id));
       games = fetchedGames
-        .filter((game: any) => game.rootPlace?.type === "Place")
+        .filter((game: any) => game.rootPlace?.type === 'Place')
         .map((game: any) => ({
           name: game.name,
           id: Number(game.rootPlace.id),
         }))
         .filter((game) => !isNaN(game.id) && game.id > 0);
     } catch (err) {
-      console.error("Failed to fetch games from noblox:", err);
+      console.error('Failed to fetch games from noblox:', err);
       fallbackToManual = true;
     }
 
@@ -80,11 +81,15 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
     };
   },
   [
-    "sessions_shift_scheduled", "sessions_shift_unscheduled",
-    "sessions_training_scheduled", "sessions_training_unscheduled",
-    "sessions_event_scheduled", "sessions_event_unscheduled",
-    "sessions_other_scheduled", "sessions_other_unscheduled"
-  ]
+    'sessions_shift_scheduled',
+    'sessions_shift_unscheduled',
+    'sessions_training_scheduled',
+    'sessions_training_unscheduled',
+    'sessions_event_scheduled',
+    'sessions_event_unscheduled',
+    'sessions_other_scheduled',
+    'sessions_other_unscheduled',
+  ],
 );
 
 const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
@@ -92,23 +97,23 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   fallbackToManual,
 }) => {
   const [login, setLogin] = useRecoilState(loginState);
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState('basic');
   const [enabled, setEnabled] = useState(false);
   const [days, setDays] = useState<string[]>([]);
   const form = useForm({
-    mode: "onChange",
+    mode: 'onChange',
   });
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const [allowUnscheduled, setAllowUnscheduled] = useState(false);
-  const [selectedGame, setSelectedGame] = useState("");
+  const [selectedGame, setSelectedGame] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [frequency, setFrequency] = useState("weekly");
+  const [formError, setFormError] = useState('');
+  const [frequency, setFrequency] = useState('weekly');
   const [sessionLength, setSessionLength] = useState(30); // Default to 30 minutes
-  const [unscheduledDate, setUnscheduledDate] = useState("");
-  const [unscheduledTime, setUnscheduledTime] = useState("");
+  const [unscheduledDate, setUnscheduledDate] = useState('');
+  const [unscheduledTime, setUnscheduledTime] = useState('');
   const [times, setTimes] = useState<string[]>([]);
-  const [timeInput, setTimeInput] = useState("");
+  const [timeInput, setTimeInput] = useState('');
   const [statues, setStatues] = useState<
     {
       name: string;
@@ -118,15 +123,15 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     }[]
   >([
     {
-      name: "Starting Soon",
+      name: 'Starting Soon',
       timeAfter: -15,
-      color: "yellow",
+      color: 'yellow',
       id: uuidv4(),
     },
     {
-      name: "In Progress",
+      name: 'In Progress',
       timeAfter: 0,
-      color: "green",
+      color: 'green',
       id: uuidv4(),
     },
   ]);
@@ -138,40 +143,38 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     }[]
   >([
     {
-      name: "Co-Host",
+      name: 'Co-Host',
       slots: 1,
       id: uuidv4(),
     },
   ]);
   const [showOverlapModal, setShowOverlapModal] = useState(false);
-  const [overlapMessage, setOverlapMessage] = useState("");
-  const [overlapError, setOverlapError] = useState("");
-  const [pendingCreation, setPendingCreation] = useState<
-    (() => Promise<void>) | null
-  >(null);
+  const [overlapMessage, setOverlapMessage] = useState('');
+  const [overlapError, setOverlapError] = useState('');
+  const [pendingCreation, setPendingCreation] = useState<(() => Promise<void>) | null>(null);
   const router = useRouter();
   const availableSessionTypes = [
-    { value: "shift", label: "Shift" },
-    { value: "training", label: "Training" },
-    { value: "event", label: "Event" },
-    { value: "other", label: "Other" },
-  ].filter(type => {
+    { value: 'shift', label: 'Shift' },
+    { value: 'training', label: 'Training' },
+    { value: 'event', label: 'Event' },
+    { value: 'other', label: 'Other' },
+  ].filter((type) => {
     const hasScheduledPerm = canCreateScheduled(workspace.yourPermission || [], type.value);
     const hasUnscheduledPerm = canCreateUnscheduled(workspace.yourPermission || [], type.value);
     return hasScheduledPerm || hasUnscheduledPerm;
   });
-  const canCreateAnyScheduled = availableSessionTypes.some(type =>
-    canCreateScheduled(workspace.yourPermission || [], type.value)
+  const canCreateAnyScheduled = availableSessionTypes.some((type) =>
+    canCreateScheduled(workspace.yourPermission || [], type.value),
   );
-  const canCreateAnyUnscheduled = availableSessionTypes.some(type =>
-    canCreateUnscheduled(workspace.yourPermission || [], type.value)
+  const canCreateAnyUnscheduled = availableSessionTypes.some((type) =>
+    canCreateUnscheduled(workspace.yourPermission || [], type.value),
   );
 
   const checkOverlaps = async (sessionDate: Date, duration: number) => {
     try {
       const dateStr = sessionDate.toISOString().split('T')[0];
       const response = await axios.get(
-        `/api/workspace/${workspace.groupId}/sessions/all?date=${dateStr}`
+        `/api/workspace/${workspace.groupId}/sessions/all?date=${dateStr}`,
       );
       const allSessions = Array.isArray(response.data) ? response.data : [];
 
@@ -180,8 +183,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
       const overlapping = allSessions.filter((session: any) => {
         const existingStart = new Date(session.date).getTime();
-        const existingEnd =
-          existingStart + (session.duration || 30) * 60 * 1000;
+        const existingEnd = existingStart + (session.duration || 30) * 60 * 1000;
         return sessionStart < existingEnd && sessionEnd > existingStart;
       });
 
@@ -193,17 +195,17 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   const createSession = async () => {
     setIsSubmitting(true);
-    setFormError("");
+    setFormError('');
 
     try {
-      const selectedTimes = times.length > 0 ? times : [form.getValues().time || "00:00"];
+      const selectedTimes = times.length > 0 ? times : [form.getValues().time || '00:00'];
       const selectedDays: number[] = days.map((day) => {
-        const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const dayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return dayMap.indexOf(day);
       });
 
       // use the first selected time as the representative schedule time when creating the session type
-      const [firstHours, firstMinutes] = selectedTimes[0].split(":").map(Number);
+      const [firstHours, firstMinutes] = selectedTimes[0].split(':').map(Number);
 
       const sessionTypeResponse = await axios.post(
         `/api/workspace/${workspace.groupId}/sessions/manage/new`,
@@ -220,17 +222,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           },
           slots,
           statues,
-        }
+        },
       );
 
       const createdSessionType = sessionTypeResponse.data.session;
 
       if (enabled && selectedDays.length > 0) {
-        const overlapsAggregate: Array<{ time: string; day: number; overlapping: any[] }>
-          = [];
+        const overlapsAggregate: Array<{ time: string; day: number; overlapping: any[] }> = [];
 
         for (const timeValue of selectedTimes) {
-          const [localHours, localMinutes] = timeValue.split(":").map(Number);
+          const [localHours, localMinutes] = timeValue.split(':').map(Number);
           for (const dayOfWeek of selectedDays) {
             const today = new Date();
             const currentDay = today.getDay();
@@ -257,54 +258,51 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         if (overlapsAggregate.length > 0) {
           const first = overlapsAggregate[0];
           const dayName = [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
           ][first.day];
           const sampleDate = new Date();
-          const [h, m] = first.time.split(":").map(Number);
+          const [h, m] = first.time.split(':').map(Number);
           sampleDate.setHours(h, m, 0, 0);
 
           const message = `One or more of the requested scheduled times overlap with existing session(s). Example: scheduled session on ${dayName} at ${sampleDate.toLocaleString()} overlaps with ${first.overlapping.length} existing session(s):\n${first.overlapping
             .map((s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`)
-            .join("\n")}\n\nDo you want to create all requested recurring sessions anyway?`;
+            .join('\n')}\n\nDo you want to create all requested recurring sessions anyway?`;
 
           setPendingCreation(async () => {
-            const timesArray = selectedTimes.map(timeValue => {
-              const [localHours, localMinutes] = timeValue.split(":").map(Number);
+            const timesArray = selectedTimes.map((timeValue) => {
+              const [localHours, localMinutes] = timeValue.split(':').map(Number);
               return { hours: localHours, minutes: localMinutes };
             });
 
-            await axios.post(
-              `/api/workspace/${workspace.groupId}/sessions/create-scheduled`,
-              {
-                sessionTypeId: createdSessionType.id,
-                name: form.getValues().name,
-                type: form.getValues().type,
-                schedule: {
-                  days: selectedDays,
-                  times: timesArray,
-                  frequency: frequency,
-                },
-                duration: sessionLength,
-                timezoneOffset: new Date().getTimezoneOffset(),
-              }
-            );
+            await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-scheduled`, {
+              sessionTypeId: createdSessionType.id,
+              name: form.getValues().name,
+              type: form.getValues().type,
+              schedule: {
+                days: selectedDays,
+                times: timesArray,
+                frequency: frequency,
+              },
+              duration: sessionLength,
+              timezoneOffset: new Date().getTimezoneOffset(),
+            });
           });
 
-          setOverlapError("");
+          setOverlapError('');
           setOverlapMessage(message);
           setShowOverlapModal(true);
           setIsSubmitting(false);
           return;
         }
 
-        const timesArray = selectedTimes.map(timeValue => {
-          const [localHours, localMinutes] = timeValue.split(":").map(Number);
+        const timesArray = selectedTimes.map((timeValue) => {
+          const [localHours, localMinutes] = timeValue.split(':').map(Number);
           return { hours: localHours, minutes: localMinutes };
         });
 
@@ -323,9 +321,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       }
 
       if (allowUnscheduled && unscheduledDate && unscheduledTime) {
-        const localDateTime = new Date(
-          unscheduledDate + "T" + unscheduledTime + ":00"
-        );
+        const localDateTime = new Date(unscheduledDate + 'T' + unscheduledTime + ':00');
 
         // Prevent creating sessions in the past
         //if (localDateTime.getTime() <= Date.now()) {
@@ -336,7 +332,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
         // Date.now is impure, so we use a different solution
         const now = new Date();
         if (localDateTime.getTime() <= now.getTime()) {
-          setFormError("Cannot create a session in the past. Choose a future date/time.");
+          setFormError('Cannot create a session in the past. Choose a future date/time.');
           setIsSubmitting(false);
           return;
         }
@@ -346,75 +342,64 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           const message = `This session overlaps with ${
             overlapping.length
           } existing session(s):\n${overlapping
-            .map(
-              (s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`
-            )
-            .join("\n")}\n\nDo you want to create this session anyway?`;
+            .map((s: any) => `• ${s.name} (${new Date(s.date).toLocaleString()})`)
+            .join('\n')}\n\nDo you want to create this session anyway?`;
 
           setPendingCreation(async () => {
             try {
-              await axios.post(
-                `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
-                {
-                  sessionTypeId: createdSessionType.id,
-                  name: form.getValues().name,
-                  type: form.getValues().type,
-                  date: unscheduledDate,
-                  time: unscheduledTime,
-                  duration: sessionLength,
-                  timezoneOffset: new Date().getTimezoneOffset(),
-                }
-              );
+              await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-unscheduled`, {
+                sessionTypeId: createdSessionType.id,
+                name: form.getValues().name,
+                type: form.getValues().type,
+                date: unscheduledDate,
+                time: unscheduledTime,
+                duration: sessionLength,
+                timezoneOffset: new Date().getTimezoneOffset(),
+              });
             } catch (err: any) {
-              console.error("Failed to create unscheduled session:", err);
+              console.error('Failed to create unscheduled session:', err);
               throw err;
             }
           });
-          setOverlapError("");
+          setOverlapError('');
           setOverlapMessage(message);
           setShowOverlapModal(true);
           setIsSubmitting(false);
           return;
         }
 
-        await axios.post(
-          `/api/workspace/${workspace.groupId}/sessions/create-unscheduled`,
-          {
-            sessionTypeId: createdSessionType.id,
-            name: form.getValues().name,
-            type: form.getValues().type,
-            date: unscheduledDate,
-            time: unscheduledTime,
-            duration: sessionLength,
-            timezoneOffset: new Date().getTimezoneOffset(),
-          }
-        );
+        await axios.post(`/api/workspace/${workspace.groupId}/sessions/create-unscheduled`, {
+          sessionTypeId: createdSessionType.id,
+          name: form.getValues().name,
+          type: form.getValues().type,
+          date: unscheduledDate,
+          time: unscheduledTime,
+          duration: sessionLength,
+          timezoneOffset: new Date().getTimezoneOffset(),
+        });
       }
 
       router.push(`/workspace/${workspace.groupId}/sessions?refresh=true`).catch((navErr) => {
-        console.error("Navigation error (session was created):", navErr);
+        console.error('Navigation error (session was created):', navErr);
       });
     } catch (err: any) {
-      console.error("Session creation error:", err);
-      setFormError(
-        err?.response?.data?.error ||
-          "Failed to create session. Please try again."
-      );
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      console.error('Session creation error:', err);
+      setFormError(err?.response?.data?.error || 'Failed to create session. Please try again.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleOverlapConfirm = async () => {
-    setOverlapError("");
+    setOverlapError('');
     setIsSubmitting(true);
 
     if (pendingCreation) {
       try {
         await pendingCreation();
       } catch (err: any) {
-        console.log("Creation completed with note:", err);
+        console.log('Creation completed with note:', err);
       }
 
       setPendingCreation(null);
@@ -427,24 +412,22 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   const handleOverlapCancel = () => {
     setShowOverlapModal(false);
-    setOverlapError("");
+    setOverlapError('');
     setPendingCreation(null);
     setIsSubmitting(false);
   };
 
   const toggleDay = (day: string) => {
-    setDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   };
 
   const newStatus = () => {
     setStatues((prev) => [
       ...prev,
       {
-        name: "New status",
+        name: 'New status',
         timeAfter: 0,
-        color: "green",
+        color: 'green',
         id: uuidv4(),
       },
     ]);
@@ -454,18 +437,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setStatues((prev) => prev.filter((status) => status.id !== id));
   };
 
-  const updateStatus = (
-    id: string,
-    name: string,
-    color: string,
-    timeafter: number
-  ) => {
+  const updateStatus = (id: string, name: string, color: string, timeafter: number) => {
     setStatues((prev) =>
       prev.map((status) =>
-        status.id === id
-          ? { ...status, name, color, timeAfter: timeafter }
-          : status
-      )
+        status.id === id ? { ...status, name, color, timeAfter: timeafter } : status,
+      ),
     );
   };
 
@@ -473,7 +449,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     setSlots((prev) => [
       ...prev,
       {
-        name: "Co-Host",
+        name: 'Co-Host',
         slots: 1,
         id: uuidv4(),
       },
@@ -486,20 +462,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
   const updateSlot = (id: string, name: string, slotsAvailble: number) => {
     setSlots((prev) =>
-      prev.map((slot) =>
-        slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot
-      )
+      prev.map((slot) => (slot.id === id ? { ...slot, slots: slotsAvailble, name } : slot)),
     );
   };
 
   const addTime = () => {
     if (!timeInput) return;
     if (times.includes(timeInput)) {
-      setTimeInput("");
+      setTimeInput('');
       return;
     }
     setTimes((prev) => [...prev, timeInput]);
-    setTimeInput("");
+    setTimeInput('');
   };
 
   const removeTime = (t: string) => {
@@ -507,18 +481,18 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
   };
 
   const tabs = [
-    { id: "basic", label: "Basic Info", icon: <IconInfoCircle size={18} /> },
+    { id: 'basic', label: 'Basic Info', icon: <IconInfoCircle size={18} /> },
     {
-      id: "scheduling",
-      label: "Scheduling",
+      id: 'scheduling',
+      label: 'Scheduling',
       icon: <IconCalendarEvent size={18} />,
     },
     {
-      id: "statuses",
-      label: "Statuses",
+      id: 'statuses',
+      label: 'Statuses',
       icon: <IconClipboardList size={18} />,
     },
-    { id: "slots", label: "Slots", icon: <IconUserPlus size={18} /> },
+    { id: 'slots', label: 'Slots', icon: <IconUserPlus size={18} /> },
   ];
 
   const isFormValid = () => {
@@ -531,8 +505,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     if (allowUnscheduled && !canCreateUnscheduled) return false;
     if (enabled && times.length === 0 && !form.getValues().time) return false;
     if (enabled && days.length === 0) return false;
-    if (allowUnscheduled && (!unscheduledDate || !unscheduledTime))
-      return false;
+    if (allowUnscheduled && (!unscheduledDate || !unscheduledTime)) return false;
 
     return true;
   };
@@ -541,10 +514,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
     let completed = 0;
     const total = 4;
 
-    if (
-      form.getValues().name &&
-      (selectedGame || (fallbackToManual && form.getValues().gameId))
-    ) {
+    if (form.getValues().name && (selectedGame || (fallbackToManual && form.getValues().gameId))) {
       completed++;
     }
     completed++;
@@ -600,7 +570,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       <FormProvider {...form}>
         <SessionsPanel className="overflow-hidden">
           {/* Basic Info */}
-          {activeTab === "basic" && (
+          {activeTab === 'basic' && (
             <div className="p-5 sm:p-6">
               <SessionFormSectionHeader
                 icon={IconInfoCircle}
@@ -611,10 +581,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl space-y-5">
                 <div>
                   <Input
-                    {...form.register("name", {
+                    {...form.register('name', {
                       required: {
                         value: true,
-                        message: "Session name is required",
+                        message: 'Session name is required',
                       },
                     })}
                     label="Session Name"
@@ -630,7 +600,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
                 <div>
                   <Input
-                    {...form.register("description")}
+                    {...form.register('description')}
                     label="Description"
                     textarea
                     placeholder="Describe what this session is about, what will happen, and any special instructions..."
@@ -643,17 +613,19 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   {availableSessionTypes.length > 0 ? (
                     <>
                       <select
-                        {...form.register("type", {
+                        {...form.register('type', {
                           required: {
                             value: true,
-                            message: "Session type is required",
+                            message: 'Session type is required',
                           },
                         })}
                         className={sessionFormInputClass}
                       >
                         <option value="">Select type...</option>
-                        {availableSessionTypes.map(type => (
-                          <option key={type.value} value={type.value}>{type.label}</option>
+                        {availableSessionTypes.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
                         ))}
                       </select>
                       {form.formState.errors.type && (
@@ -664,7 +636,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </>
                   ) : (
                     <div className={`${sessionFormInputClass} text-zinc-500 dark:text-zinc-400`}>
-                      No session types available - you don't have permission to create any session types
+                      No session types available - you don't have permission to create any session
+                      types
                     </div>
                   )}
                 </div>
@@ -673,17 +646,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   <div className="space-y-1">
                     <label className={sessionFormLabelClass}>Game</label>
                     <Listbox as="div" className="relative">
-                      <Listbox.Button className={`${sessionFormInputClass} flex items-center justify-between text-left`}>
+                      <Listbox.Button
+                        className={`${sessionFormInputClass} flex items-center justify-between text-left`}
+                      >
                         <span className="block truncate text-zinc-700 dark:text-white">
                           {games?.find(
                             (game: { name: string; id: number }) =>
-                              game.id === Number(selectedGame)
-                          )?.name || "Select a game"}
+                              game.id === Number(selectedGame),
+                          )?.name || 'Select a game'}
                         </span>
-                        <IconChevronDown
-                          size={18}
-                          className="text-zinc-500 dark:text-zinc-400"
-                        />
+                        <IconChevronDown size={18} className="text-zinc-500 dark:text-zinc-400" />
                       </Listbox.Button>
                       <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-zinc-800">
                         {games.map((game: { name: string; id: number }) => (
@@ -694,8 +666,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             className={({ active }) =>
                               `${
                                 active
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-zinc-900 dark:text-white"
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'text-zinc-900 dark:text-white'
                               } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                             }
                           >
@@ -703,7 +675,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                               <>
                                 <span
                                   className={`${
-                                    selected ? "font-medium" : "font-normal"
+                                    selected ? 'font-medium' : 'font-normal'
                                   } block truncate`}
                                 >
                                   {game.name}
@@ -720,12 +692,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         <div className="h-[1px] rounded-xl w-full px-3 bg-zinc-200 dark:bg-zinc-700" />
                         <Listbox.Option
                           value="None"
-                          onClick={() => setSelectedGame("")}
+                          onClick={() => setSelectedGame('')}
                           className={({ active }) =>
                             `${
                               active
-                                ? "bg-primary/10 text-primary"
-                                : "text-zinc-900 dark:text-white"
+                                ? 'bg-primary/10 text-primary'
+                                : 'text-zinc-900 dark:text-white'
                             } cursor-pointer select-none relative py-2.5 pl-10 pr-4`
                           }
                         >
@@ -733,12 +705,12 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             <>
                               <span
                                 className={`${
-                                  selected ? "font-medium" : "font-normal"
+                                  selected ? 'font-medium' : 'font-normal'
                                 } block truncate`}
                               >
                                 None
                               </span>
-                              {selectedGame === "" && (
+                              {selectedGame === '' && (
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
                                   <IconCheck size={18} aria-hidden="true" />
                                 </span>
@@ -755,15 +727,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                 ) : (
                   <div>
                     <Input
-                      {...form.register("gameId", {
+                      {...form.register('gameId', {
                         required: {
                           value: true,
-                          message:
-                            "Universe ID is required when games cannot be fetched",
+                          message: 'Universe ID is required when games cannot be fetched',
                         },
                         pattern: {
                           value: /^[0-9]+$/,
-                          message: "Invalid Universe ID format",
+                          message: 'Invalid Universe ID format',
                         },
                       })}
                       label="Universe ID"
@@ -782,7 +753,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <SessionFormFooter className="justify-end">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("scheduling")}
+                  onClick={() => setActiveTab('scheduling')}
                   className={sessionPrimaryButtonClass}
                 >
                   Continue to Scheduling
@@ -792,7 +763,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           )}
 
           {/* Scheduling */}
-          {activeTab === "scheduling" && (
+          {activeTab === 'scheduling' && (
             <div className="p-5 sm:p-6">
               <SessionFormSectionHeader
                 icon={IconCalendarEvent}
@@ -803,7 +774,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl space-y-5">
                 <SessionFormInset>
                   <div className="flex flex-col space-y-3">
-                    <div className={!canCreateAnyUnscheduled ? "opacity-50 cursor-not-allowed" : ""}>
+                    <div
+                      className={!canCreateAnyUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}
+                    >
                       <Switchcomponenet
                         label="Unscheduled session"
                         checked={allowUnscheduled}
@@ -817,12 +790,16 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
                         {canCreateAnyUnscheduled
-                          ? "Enable this to set up a one time session"
+                          ? 'Enable this to set up a one time session'
                           : "You don't have permission to create unscheduled sessions"}
                       </p>
                     </div>
 
-                    <div className={!canCreateAnyScheduled ? "opacity-50 cursor-not-allowed mt-2" : "mt-2"}>
+                    <div
+                      className={
+                        !canCreateAnyScheduled ? 'opacity-50 cursor-not-allowed mt-2' : 'mt-2'
+                      }
+                    >
                       <Switchcomponenet
                         label="Scheduled session"
                         checked={enabled}
@@ -836,7 +813,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 ml-10">
                         {canCreateAnyScheduled
-                          ? "Enable this to set up recurring sessions on a schedule"
+                          ? 'Enable this to set up recurring sessions on a schedule'
                           : "You don't have permission to create scheduled sessions"}
                       </p>
                     </div>
@@ -879,9 +856,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                         <label className={sessionFormLabelClass}>Session Length</label>
                         <select
                           value={sessionLength}
-                          onChange={(e) =>
-                            setSessionLength(Number(e.target.value))
-                          }
+                          onChange={(e) => setSessionLength(Number(e.target.value))}
                           className={sessionFormInputClass}
                         >
                           <option value={5}>5 minutes</option>
@@ -899,8 +874,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
 
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Enter date and time in your local timezone. This will
-                      create a single session at the specified date and time.
+                      Enter date and time in your local timezone. This will create a single session
+                      at the specified date and time.
                     </p>
                   </SessionFormInset>
                 )}
@@ -917,9 +892,9 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
 
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         {[
-                          { value: "weekly", label: "Weekly" },
-                          { value: "biweekly", label: "Bi-weekly" },
-                          { value: "monthly", label: "Monthly" },
+                          { value: 'weekly', label: 'Weekly' },
+                          { value: 'biweekly', label: 'Bi-weekly' },
+                          { value: 'monthly', label: 'Monthly' },
                         ].map((freq) => (
                           <button
                             key={freq.value}
@@ -927,8 +902,8 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                             onClick={() => setFrequency(freq.value)}
                             className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                               frequency === freq.value
-                                ? "bg-primary text-white"
-                                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                ? 'bg-primary text-white'
+                                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'
                             }`}
                           >
                             {freq.label}
@@ -946,88 +921,82 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       </p>
 
                       <div className="mt-3 grid grid-cols-7 gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                          (day) => (
-                            <button
-                              key={day}
-                              type="button"
-                              onClick={() => toggleDay(day)}
-                              className={`rounded-xl py-2.5 text-sm font-medium transition-all ${
-                                days.includes(day)
-                                  ? "bg-primary text-white"
-                                  : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                              }`}
-                            >
-                              {day}
-                            </button>
-                          )
-                        )}
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day)}
+                            className={`rounded-xl py-2.5 text-sm font-medium transition-all ${
+                              days.includes(day)
+                                ? 'bg-primary text-white'
+                                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
                       </div>
 
                       {days.length > 0 && (
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                          Selected: {days.join(", ")}
+                          Selected: {days.join(', ')}
                         </p>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                          <div>
-                            <label className={sessionFormLabelClass}>
-                              Session Times
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="time"
-                                value={timeInput}
-                                onChange={(e) => setTimeInput(e.target.value)}
-                                className={sessionFormInputClass}
-                              />
-                              <button
-                                type="button"
-                                onClick={addTime}
-                                className={sessionPrimaryButtonClass}
-                              >
-                                Add time
-                              </button>
-                            </div>
-                            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                              Add one or more times
-                            </p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {times.length > 0 ? (
-                                times.map((t) => (
-                                  <span
-                                    key={t}
-                                    className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-sm dark:bg-zinc-800 dark:text-white"
-                                  >
-                                    {t}
-                                    <button
-                                      type="button"
-                                      onClick={() => removeTime(t)}
-                                      className="ml-1 text-red-500"
-                                    >
-                                      ✕
-                                    </button>
-                                  </span>
-                                ))
-                              ) : form.getValues().time ? (
-                                <div className="rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
-                                  {form.getValues().time}
-                                </div>
-                              ) : null}
-                            </div>
+                        <div>
+                          <label className={sessionFormLabelClass}>Session Times</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={timeInput}
+                              onChange={(e) => setTimeInput(e.target.value)}
+                              className={sessionFormInputClass}
+                            />
+                            <button
+                              type="button"
+                              onClick={addTime}
+                              className={sessionPrimaryButtonClass}
+                            >
+                              Add time
+                            </button>
                           </div>
+                          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                            Add one or more times
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {times.length > 0 ? (
+                              times.map((t) => (
+                                <span
+                                  key={t}
+                                  className="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-sm dark:bg-zinc-800 dark:text-white"
+                                >
+                                  {t}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTime(t)}
+                                    className="ml-1 text-red-500"
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ))
+                            ) : form.getValues().time ? (
+                              <div className="rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
+                                {form.getValues().time}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
 
                       <div>
                         <label className={sessionFormLabelClass}>Session Length</label>
                         <select
                           value={sessionLength}
-                          onChange={(e) =>
-                            setSessionLength(Number(e.target.value))
-                          }
+                          onChange={(e) => setSessionLength(Number(e.target.value))}
                           className={sessionFormInputClass}
                         >
                           <option value={5}>5 minutes</option>
@@ -1053,14 +1022,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <SessionFormFooter className="justify-between">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("basic")}
+                  onClick={() => setActiveTab('basic')}
                   className={sessionSecondaryButtonClass}
                 >
                   Back
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab("statuses")}
+                  onClick={() => setActiveTab('statuses')}
                   className={sessionPrimaryButtonClass}
                 >
                   Continue to Statuses
@@ -1070,7 +1039,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           )}
 
           {/* Statuses */}
-          {activeTab === "statuses" && (
+          {activeTab === 'statuses' && (
             <div className="p-5 sm:p-6">
               <SessionFormSectionHeader
                 icon={IconClipboardList}
@@ -1081,8 +1050,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Statuses automatically update after the specified time has
-                    passed
+                    Statuses automatically update after the specified time has passed
                   </p>
                   <button
                     type="button"
@@ -1099,12 +1067,10 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       className="mx-auto text-zinc-400 dark:text-zinc-500"
                       size={32}
                     />
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-                      No statuses added yet
-                    </p>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
                     <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
-                      Add statuses to track session progress (e.g., "Starting
-                      Soon", "In Progress", "Completed")
+                      Add statuses to track session progress (e.g., "Starting Soon", "In Progress",
+                      "Completed")
                     </p>
                     <button
                       type="button"
@@ -1135,14 +1101,14 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <SessionFormFooter className="justify-between">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("scheduling")}
+                  onClick={() => setActiveTab('scheduling')}
                   className={sessionSecondaryButtonClass}
                 >
                   Back
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab("slots")}
+                  onClick={() => setActiveTab('slots')}
                   className={sessionPrimaryButtonClass}
                 >
                   Continue to Slots
@@ -1152,7 +1118,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
           )}
 
           {/* Slots */}
-          {activeTab === "slots" && (
+          {activeTab === 'slots' && (
             <div className="p-5 sm:p-6">
               <SessionFormSectionHeader
                 icon={IconUserPlus}
@@ -1163,8 +1129,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <div className="max-w-2xl">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Each session has one Host by default. Add additional roles
-                    below.
+                    Each session has one Host by default. Add additional roles below.
                   </p>
                   <button
                     type="button"
@@ -1182,7 +1147,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                       isPrimary
                       deleteStatus={() => {}}
                       data={{
-                        name: "Host",
+                        name: 'Host',
                         slots: 1,
                       }}
                     />
@@ -1191,9 +1156,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   {slots.map((slot, index) => (
                     <SessionFormInset key={slot.id}>
                       <Slot
-                        updateStatus={(name, openSlots) =>
-                          updateSlot(slot.id, name, openSlots)
-                        }
+                        updateStatus={(name, openSlots) => updateSlot(slot.id, name, openSlots)}
                         deleteStatus={() => deleteSlot(slot.id)}
                         data={slot}
                         index={index + 1}
@@ -1206,7 +1169,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
               <SessionFormFooter className="justify-between">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("statuses")}
+                  onClick={() => setActiveTab('statuses')}
                   className={sessionSecondaryButtonClass}
                 >
                   Back
@@ -1216,11 +1179,11 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                   onClick={form.handleSubmit(createSession)}
                   disabled={isSubmitting || !isFormValid()}
                   className={`${sessionPrimaryButtonClass} ${
-                    !isFormValid() ? "cursor-not-allowed opacity-50" : ""
+                    !isFormValid() ? 'cursor-not-allowed opacity-50' : ''
                   }`}
                 >
                   <IconDeviceFloppy size={16} />
-                  {isSubmitting ? "Creating..." : "Create Session"}
+                  {isSubmitting ? 'Creating...' : 'Create Session'}
                 </button>
               </SessionFormFooter>
             </div>
@@ -1229,11 +1192,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
       </FormProvider>
 
       <Transition appear show={showOverlapModal} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={handleOverlapCancel}
-        >
+        <Dialog as="div" className="relative z-50" onClose={handleOverlapCancel}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -1280,9 +1239,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     </div>
                     {overlapError && (
                       <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 dark:bg-red-950/30">
-                        <p className="text-sm text-red-600 dark:text-red-300">
-                          {overlapError}
-                        </p>
+                        <p className="text-sm text-red-600 dark:text-red-300">{overlapError}</p>
                       </div>
                     )}
                   </div>
@@ -1302,7 +1259,7 @@ const Home: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps>> = ({
                     onClick={handleOverlapConfirm}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Creating..." : "Create Anyway"}
+                    {isSubmitting ? 'Creating...' : 'Create Anyway'}
                   </button>
                 </div>
               </Dialog.Panel>
@@ -1335,11 +1292,7 @@ const Status: React.FC<{
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(
-        methods.getValues().value,
-        Number(methods.getValues().minutes),
-        "green"
-      );
+      updateStatus(methods.getValues().value, Number(methods.getValues().minutes), 'green');
     });
     return () => subscription.unsubscribe();
   }, [methods, updateStatus]);
@@ -1353,9 +1306,7 @@ const Status: React.FC<{
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">
-            {watch("value") || "New Status"}
-          </h3>
+          <h3 className="font-medium dark:text-white">{watch('value') || 'New Status'}</h3>
         </div>
         <Button
           onPress={deleteStatus}
@@ -1367,21 +1318,20 @@ const Status: React.FC<{
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          {...register("value")}
+          {...register('value')}
           label="Status Name"
           placeholder="In Progress"
           classoverride={sessionFormInputOverride}
         />
         <Input
-          {...register("minutes")}
+          {...register('minutes')}
           label="Time After (minutes)"
           type="number"
           placeholder="15"
           classoverride={sessionFormInputOverride}
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
-          Status will activate {watch("minutes") || 0} minutes after session
-          starts
+          Status will activate {watch('minutes') || 0} minutes after session starts
         </p>
       </div>
     </FormProvider>
@@ -1408,10 +1358,7 @@ const Slot: React.FC<{
 
   useEffect(() => {
     const subscription = methods.watch((value) => {
-      updateStatus(
-        methods.getValues().value,
-        Number(methods.getValues().slots)
-      );
+      updateStatus(methods.getValues().value, Number(methods.getValues().slots));
     });
     return () => subscription.unsubscribe();
   }, [methods, updateStatus]);
@@ -1426,7 +1373,7 @@ const Slot: React.FC<{
             </span>
           )}
           <h3 className="font-medium dark:text-white">
-            {isPrimary ? "Host (Primary)" : watch("value") || "New Slot"}
+            {isPrimary ? 'Host (Primary)' : watch('value') || 'New Slot'}
           </h3>
         </div>
         {!isPrimary && (
@@ -1441,14 +1388,14 @@ const Slot: React.FC<{
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          {...register("value")}
+          {...register('value')}
           disabled={isPrimary}
           label="Role Name"
           placeholder="Co-Host"
           classoverride={sessionFormInputOverride}
         />
         <Input
-          {...register("slots")}
+          {...register('slots')}
           disabled={isPrimary}
           label="Available Slots"
           type="number"
@@ -1457,10 +1404,8 @@ const Slot: React.FC<{
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
           {isPrimary
-            ? "Primary host role cannot be changed"
-            : `Number of people who can claim this role: ${
-                watch("slots") || 0
-              }`}
+            ? 'Primary host role cannot be changed'
+            : `Number of people who can claim this role: ${watch('slots') || 0}`}
         </p>
       </div>
     </FormProvider>

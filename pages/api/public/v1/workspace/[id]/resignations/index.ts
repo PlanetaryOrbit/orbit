@@ -1,24 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if ( req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH" && req.method !== "DELETE") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (
+    req.method !== 'GET' &&
+    req.method !== 'POST' &&
+    req.method !== 'PATCH' &&
+    req.method !== 'DELETE'
+  ) {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = Number.parseInt(req.query.id as string);
   if (!workspaceId) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
+    return res.status(400).json({ success: false, error: 'Missing workspace ID' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const resignations = await prisma.staffResignation.findMany({
         where: {
@@ -48,7 +50,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       });
 
@@ -69,27 +71,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({ success: true, data: formattedResponse });
     } catch (error) {
-      console.error("Error fetching resignations:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error fetching resignations:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { reason, lastWorkingDay, userId } = req.body;
 
     if (!reason || !lastWorkingDay || !userId) {
       return res.status(400).json({
         success: false,
-        error: "Reason, lastWorkingDay, and userId are required",
+        error: 'Reason, lastWorkingDay, and userId are required',
       });
     }
 
-    if (typeof reason !== "string") {
+    if (typeof reason !== 'string') {
       return res.status(400).json({
         success: false,
-        error: "Reason must be a string",
+        error: 'Reason must be a string',
       });
     }
 
@@ -97,7 +97,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!userIdBigInt) {
       return res.status(400).json({
         success: false,
-        error: "Invalid userId",
+        error: 'Invalid userId',
       });
     }
 
@@ -105,14 +105,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (isNaN(lastWorkingDayDate.getTime())) {
       return res.status(400).json({
         success: false,
-        error: "Invalid lastWorkingDay format",
+        error: 'Invalid lastWorkingDay format',
       });
     }
 
     if (lastWorkingDayDate < new Date()) {
       return res.status(400).json({
         success: false,
-        error: "Last working day must be in the future",
+        error: 'Last working day must be in the future',
       });
     }
 
@@ -129,24 +129,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!workspaceMember) {
         return res.status(404).json({
           success: false,
-          error: "User is not a member of this workspace",
+          error: 'User is not a member of this workspace',
         });
       }
 
-      const existingPendingResignation =
-        await prisma.staffResignation.findFirst({
-          where: {
-            userId: userIdBigInt,
-            workspaceGroupId: workspaceId,
-            approved: false,
-            reviewed: false,
-          },
-        });
+      const existingPendingResignation = await prisma.staffResignation.findFirst({
+        where: {
+          userId: userIdBigInt,
+          workspaceGroupId: workspaceId,
+          approved: false,
+          reviewed: false,
+        },
+      });
 
       if (existingPendingResignation) {
         return res.status(409).json({
           success: false,
-          error: "User already has a pending resignation",
+          error: 'User already has a pending resignation',
         });
       }
 
@@ -184,20 +183,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error("Error creating resignation:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error creating resignation:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     const { noticeId, approved, reviewComment } = req.body;
 
     if (!noticeId) {
       return res.status(400).json({
         success: false,
-        error: "Notice ID is required",
+        error: 'Notice ID is required',
       });
     }
 
@@ -212,14 +209,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!notice) {
         return res.status(404).json({
           success: false,
-          error: "Inactivity notice not found",
+          error: 'Inactivity notice not found',
         });
       }
 
       if (notice.revoked) {
         return res.status(409).json({
           success: false,
-          error: "Cannot update a revoked notice",
+          error: 'Cannot update a revoked notice',
         });
       }
 
@@ -256,20 +253,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error("Error updating inactivity notice:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error updating inactivity notice:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "DELETE") {
+  if (req.method === 'DELETE') {
     const { resignationId } = req.body;
 
     if (!resignationId) {
       return res.status(400).json({
         success: false,
-        error: "Resignation ID is required",
+        error: 'Resignation ID is required',
       });
     }
 
@@ -284,14 +279,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!resignation) {
         return res.status(404).json({
           success: false,
-          error: "Resignation not found",
+          error: 'Resignation not found',
         });
       }
 
       if (resignation.reviewed) {
         return res.status(409).json({
           success: false,
-          error: "Cannot cancel a resignation that has already been reviewed",
+          error: 'Cannot cancel a resignation that has already been reviewed',
         });
       }
 
@@ -303,13 +298,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({
         success: true,
-        message: "Resignation cancelled successfully",
+        message: 'Resignation cancelled successfully',
       });
     } catch (error) {
-      console.error("Error cancelling resignation:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error cancelling resignation:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 }

@@ -1,13 +1,12 @@
-import prisma from "@/utils/database";
-import { getConfig } from "@/utils/configEngine";
-import axios from "axios";
+import axios from 'axios';
+
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
 
 function getNextMilestone(count: number): number {
   const thresholds = [
-    100, 250, 500, 750,
-    1_000, 2_500, 5_000, 7_500,
-    10_000, 25_000, 50_000, 75_000,
-    100_000, 250_000, 500_000, 1_000_000,
+    100, 250, 500, 750, 1_000, 2_500, 5_000, 7_500, 10_000, 25_000, 50_000, 75_000, 100_000,
+    250_000, 500_000, 1_000_000,
   ];
 
   for (const t of thresholds) {
@@ -17,7 +16,11 @@ function getNextMilestone(count: number): number {
   return Math.ceil(count / 500_000) * 500_000;
 }
 
-function buildMilestoneMessage(groupName: string, currentCount: number, crossedMilestone: number): string {
+function buildMilestoneMessage(
+  groupName: string,
+  currentCount: number,
+  crossedMilestone: number,
+): string {
   const nextMilestone = getNextMilestone(currentCount);
   const remaining = nextMilestone - currentCount;
 
@@ -29,11 +32,8 @@ function buildMilestoneMessage(groupName: string, currentCount: number, crossedM
 
 function getCrossedMilestone(previous: number, current: number): number | null {
   const thresholds = [
-    100, 250, 500, 750,
-    1_000, 2_500, 5_000, 7_500,
-    10_000, 25_000, 50_000, 75_000,
-    100_000, 250_000, 500_000, 750_000,
-    1_000_000,
+    100, 250, 500, 750, 1_000, 2_500, 5_000, 7_500, 10_000, 25_000, 50_000, 75_000, 100_000,
+    250_000, 500_000, 750_000, 1_000_000,
   ];
 
   for (const t of thresholds) {
@@ -69,8 +69,8 @@ export async function runMilestoneCron() {
     for (const workspace of workspaces) {
       try {
         const [webhookConfig, openCloudKey] = await Promise.all([
-          getConfig("discord_milestone", workspace.groupId),
-          getConfig("roblox_opencloud", workspace.groupId),
+          getConfig('discord_milestone', workspace.groupId),
+          getConfig('roblox_opencloud', workspace.groupId),
         ]);
 
         if (
@@ -86,9 +86,9 @@ export async function runMilestoneCron() {
           `https://apis.roblox.com/cloud/v2/groups/${workspace.groupId}`,
           {
             headers: {
-              "x-api-key": openCloudKey.key,
+              'x-api-key': openCloudKey.key,
             },
-          }
+          },
         );
 
         const currentCount = data.memberCount;
@@ -100,22 +100,17 @@ export async function runMilestoneCron() {
         });
 
         if (previousCount == null) {
-          const message = buildMilestoneMessage(
-            workspace.groupName!,
-            currentCount,
-            currentCount
-          );
+          const message = buildMilestoneMessage(workspace.groupName!, currentCount, currentCount);
 
           await axios.post(webhookConfig.url, {
             content: message,
-            username: "Orbit",
-            avatar_url:
-              "http://cdn.planetaryapp.us/brand/planetary.png",
+            username: 'Orbit',
+            avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
           });
 
           results.push({
             workspace: workspace.groupName,
-            status: "first time count recorded",
+            status: 'first time count recorded',
             currentCount,
             message,
           });
@@ -123,52 +118,38 @@ export async function runMilestoneCron() {
           continue;
         }
 
-        const crossed = getCrossedMilestone(
-          previousCount,
-          currentCount
-        );
+        const crossed = getCrossedMilestone(previousCount, currentCount);
 
         if (!crossed) {
           results.push({
             workspace: workspace.groupName,
-            status: "no milestone",
+            status: 'no milestone',
           });
 
           continue;
         }
 
-        const message = buildMilestoneMessage(
-          workspace.groupName!,
-          currentCount,
-          crossed
-        );
+        const message = buildMilestoneMessage(workspace.groupName!, currentCount, crossed);
 
         await axios.post(webhookConfig.url, {
           content: message,
-          username: "Orbit",
-          avatar_url:
-            "http://cdn.planetaryapp.us/brand/planetary.png",
+          username: 'Orbit',
+          avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
         });
 
         results.push({
           workspace: workspace.groupName,
-          status: "milestone reached",
+          status: 'milestone reached',
           milestone: crossed,
           currentCount,
           message,
         });
       } catch (error) {
-        console.error(
-          `Error processing milestone for workspace ${workspace.groupId}:`,
-          error
-        );
+        console.error(`Error processing milestone for workspace ${workspace.groupId}:`, error);
 
         results.push({
           workspace: workspace.groupName,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Unknown error",
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -179,14 +160,11 @@ export async function runMilestoneCron() {
       results,
     };
   } catch (error) {
-    console.error("Error in milestone cron job:", error);
+    console.error('Error in milestone cron job:', error);
 
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

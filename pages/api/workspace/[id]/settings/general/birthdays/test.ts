@@ -1,19 +1,18 @@
-import { NextApiResponse } from "next";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import prisma from "@/utils/database";
+import { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = parseInt(req.query.id as string);
   const userId = req.auth.userId;
 
   if (!userId || isNaN(workspaceId)) {
-    return res.status(400).json({ success: false, error: "Invalid request" });
+    return res.status(400).json({ success: false, error: 'Invalid request' });
   }
 
   // Check if user has admin permission
@@ -32,27 +31,24 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const membership = user?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const userRole = user?.roles?.[0];
-  const hasAdminPermission =
-    userRole?.permissions?.includes("admin") || isAdmin;
+  const hasAdminPermission = userRole?.permissions?.includes('admin') || isAdmin;
 
   if (!hasAdminPermission) {
-    return res.status(403).json({ success: false, error: "Forbidden" });
+    return res.status(403).json({ success: false, error: 'Forbidden' });
   }
 
   try {
     const { url } = req.body;
 
-    if (!url || typeof url !== "string") {
-      return res
-        .status(400)
-        .json({ success: false, error: "Webhook URL is required" });
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ success: false, error: 'Webhook URL is required' });
     }
 
     // Validate Discord webhook URL format
     if (!url.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+/)) {
       return res.status(400).json({
         success: false,
-        error: "Invalid Discord webhook URL format",
+        error: 'Invalid Discord webhook URL format',
       });
     }
 
@@ -62,44 +58,44 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     });
 
     const embed = {
-      title: "🎂 Birthday Notification Test",
-      description: "This is a test of the birthday notification system!",
-      color: 0xFF0099,
+      title: '🎂 Birthday Notification Test',
+      description: 'This is a test of the birthday notification system!',
+      color: 0xff0099,
       fields: [
         {
-          name: "Status",
-          value: "✅ Webhook is configured correctly",
+          name: 'Status',
+          value: '✅ Webhook is configured correctly',
           inline: false,
         },
         {
-          name: "Workspace",
-          value: workspace?.groupName || "Unknown",
+          name: 'Workspace',
+          value: workspace?.groupName || 'Unknown',
           inline: true,
         },
       ],
       footer: {
-        text: "Orbit Birthday Notifications",
+        text: 'Orbit Birthday Notifications',
       },
       timestamp: new Date().toISOString(),
     };
 
     const webhookBody = {
       embeds: [embed],
-      username: "Planetary Birthdays",
+      username: 'Planetary Birthdays',
       avatar_url: `http://cdn.planetaryapp.us/brand/planetary.png`,
     };
 
     const response = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(webhookBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Discord webhook error:", errorText);
+      console.error('Discord webhook error:', errorText);
       return res.status(400).json({
         success: false,
         error: `Discord webhook returned status ${response.status}`,
@@ -108,10 +104,10 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error testing birthday webhook:", error);
+    console.error('Error testing birthday webhook:', error);
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : "Internal server error",
+      error: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 }

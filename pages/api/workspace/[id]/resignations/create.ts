@@ -1,7 +1,8 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -9,29 +10,25 @@ type Data = {
   resignation?: unknown;
 };
 
-export default withPermissionCheck(handler, "submit_resignation");
+export default withPermissionCheck(handler, 'submit_resignation');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
   if (!req.auth.userId) {
-    return res.status(401).json({ success: false, error: "Not logged in" });
+    return res.status(401).json({ success: false, error: 'Not logged in' });
   }
 
   const { lastWorkingDay, reason } = req.body;
-  if (
-    typeof lastWorkingDay !== "number" ||
-    typeof reason !== "string" ||
-    !reason.trim()
-  ) {
-    return res.status(400).json({ success: false, error: "Missing data" });
+  if (typeof lastWorkingDay !== 'number' || typeof reason !== 'string' || !reason.trim()) {
+    return res.status(400).json({ success: false, error: 'Missing data' });
   }
 
   const workspaceGroupId = parseInt(req.query.id as string, 10);
   const lastDay = new Date(lastWorkingDay);
   if (Number.isNaN(lastDay.getTime())) {
-    return res.status(400).json({ success: false, error: "Invalid last working day" });
+    return res.status(400).json({ success: false, error: 'Invalid last working day' });
   }
 
   const today = new Date();
@@ -41,7 +38,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   if (compare < today) {
     return res.status(400).json({
       success: false,
-      error: "Last working day must be today or later",
+      error: 'Last working day must be today or later',
     });
   }
 
@@ -56,7 +53,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (pending > 0) {
       return res.status(400).json({
         success: false,
-        error: "You already have a resignation awaiting review",
+        error: 'You already have a resignation awaiting review',
       });
     }
 
@@ -73,16 +70,15 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       success: true,
       resignation: JSON.parse(
         JSON.stringify(resignation, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Resignation create error:", error);
+    console.error('Resignation create error:', error);
     return res.status(500).json({
       success: false,
-      error:
-        error instanceof Error ? error.message : "Something went wrong",
+      error: error instanceof Error ? error.message : 'Something went wrong',
     });
   }
 }

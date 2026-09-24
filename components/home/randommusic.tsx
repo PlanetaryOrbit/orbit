@@ -1,7 +1,8 @@
-import { IconPlayerPlay, IconPlayerPause } from "@tabler/icons-react";
-import { useRef, useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { HomeSection } from "@/components/home/shell";
+import { IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRef, useState, useEffect, useCallback } from 'react';
+
+import { HomeSection } from '@/components/home/shell';
 
 type SongData = {
   song: string;
@@ -21,7 +22,7 @@ export default function RandomMusic() {
   useEffect(() => {
     setLoading(true);
     axios
-      .get("/api/random/music")
+      .get('/api/random/music')
       .then((r) => {
         if (r.status === 200) setData(r.data);
       })
@@ -34,8 +35,8 @@ export default function RandomMusic() {
     const audio = audioRef.current;
     if (!audio) return;
     const onEnded = () => setPlaying(false);
-    audio.addEventListener("ended", onEnded);
-    return () => audio.removeEventListener("ended", onEnded);
+    audio.addEventListener('ended', onEnded);
+    return () => audio.removeEventListener('ended', onEnded);
   }, [data]);
 
   const togglePlay = useCallback(async () => {
@@ -67,7 +68,7 @@ export default function RandomMusic() {
           onClick={togglePlay}
           disabled={!data.previewUrl}
           className="relative shrink-0 disabled:cursor-default"
-          aria-label={playing ? "Pause" : "Play preview"}
+          aria-label={playing ? 'Pause' : 'Play preview'}
         >
           <img
             src={data.artwork}

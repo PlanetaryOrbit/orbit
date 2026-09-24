@@ -1,7 +1,8 @@
-import type { NextApiResponse } from "next";
-import prisma, { document } from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma, { document } from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -12,8 +13,8 @@ type Data = {
 export default withPermissionCheck(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceGroupId = parseInt(req.query.id as string);
@@ -29,21 +30,20 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   });
 
   if (!user?.roles?.length) {
-    return res.status(403).json({ success: false, error: "You do not have permission to view this workspace." });
+    return res
+      .status(403)
+      .json({ success: false, error: 'You do not have permission to view this workspace.' });
   }
 
   const membership = user.workspaceMemberships[0];
   const isAdmin = membership?.isAdmin || false;
   const userRoleIds = user.roles.map((r) => r.id);
-  const userDepartmentIds =
-    membership?.departmentMembers.map((d) => d.departmentId) ?? [];
+  const userDepartmentIds = membership?.departmentMembers.map((d) => d.departmentId) ?? [];
 
   const canManage =
     isAdmin ||
     user.roles.some((r) =>
-      ["create_docs", "edit_docs", "delete_docs"].some((p) =>
-        r.permissions.includes(p)
-      )
+      ['create_docs', 'edit_docs', 'delete_docs'].some((p) => r.permissions.includes(p)),
     );
 
   const baseWhere = {
@@ -57,9 +57,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       : {
           ...baseWhere,
           OR: [
-            ...(userRoleIds.length > 0
-              ? [{ roles: { some: { id: { in: userRoleIds } } } }]
-              : []),
+            ...(userRoleIds.length > 0 ? [{ roles: { some: { id: { in: userRoleIds } } } }] : []),
             ...(userDepartmentIds.length > 0
               ? [{ departments: { some: { id: { in: userDepartmentIds } } } }]
               : []),
@@ -69,14 +67,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     include: {
       owner: { select: { username: true, picture: true } },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { updatedAt: 'desc' },
     take: 5,
   });
 
   res.status(200).json({
     success: true,
-    docs: JSON.parse(
-      JSON.stringify(docs, (_k, v) => (typeof v === "bigint" ? v.toString() : v))
-    ),
+    docs: JSON.parse(JSON.stringify(docs, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
   });
 }

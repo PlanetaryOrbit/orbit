@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
-import Confetti from "react-confetti";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { IconGift, IconConfetti } from "@tabler/icons-react";
-import { HomeSection } from "@/components/home/shell";
+import { IconGift, IconConfetti } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState, useRef } from 'react';
+import Confetti from 'react-confetti';
+
+import { HomeSection } from '@/components/home/shell';
 
 type BirthdayUser = {
   userid: string;
@@ -14,8 +15,19 @@ type BirthdayUser = {
 };
 
 const monthNames = [
-  "", "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  '',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 function getDaysUntilBirthday(day: number, month: number) {
@@ -29,10 +41,10 @@ function getDaysUntilBirthday(day: number, month: number) {
 }
 
 type BirthdaysProps = {
-  layout?: "section" | "strip";
+  layout?: 'section' | 'strip';
 };
 
-export default function Birthdays({ layout = "section" }: BirthdaysProps) {
+export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
   const [birthdays, setBirthdays] = useState<BirthdayUser[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const router = useRouter();
@@ -57,8 +69,8 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
       }
     }
     updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
   }, []);
 
   const usersWithDays = birthdays
@@ -71,12 +83,12 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
   if (usersWithDays.length === 0) return null;
 
   const whenLabel = (daysAway: number, month: number, day: number) => {
-    if (daysAway === 0) return "Today";
-    if (daysAway === 1) return "Tomorrow";
+    if (daysAway === 0) return 'Today';
+    if (daysAway === 1) return 'Tomorrow';
     return `In ${daysAway} days`;
   };
 
-  if (layout === "strip") {
+  if (layout === 'strip') {
     return (
       <div ref={cardRef} className="relative">
         {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
@@ -85,7 +97,7 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
             height={cardSize.height}
             numberOfPieces={120}
             recycle
-            style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", zIndex: 10 }}
+            style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 10 }}
           />
         )}
         <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain px-4 pb-1 pt-1 scrollbar-hide sm:px-3">
@@ -111,11 +123,7 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <img
-                    src={user.picture}
-                    alt=""
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
+                  <img src={user.picture} alt="" className="h-10 w-10 rounded-full object-cover" />
                   {isToday ? (
                     <IconGift className="h-4 w-4 text-zinc-400 dark:text-zinc-500" stroke={1.5} />
                   ) : (
@@ -130,7 +138,7 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
                   </p>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500">
                     {isToday && <IconConfetti className="h-3 w-3 shrink-0" stroke={1.5} />}
-                    {isToday ? "Today" : `${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
+                    {isToday ? 'Today' : `${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
                   </p>
                 </div>
               </div>
@@ -150,7 +158,7 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
             height={cardSize.height}
             numberOfPieces={200}
             recycle
-            style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+            style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
           />
         )}
         <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -184,8 +192,7 @@ export default function Birthdays({ layout = "section" }: BirthdaysProps) {
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   {whenLabel(user.daysAway, user.birthdayMonth, user.birthdayDay)}
-                  {user.daysAway > 1 &&
-                    ` · ${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
+                  {user.daysAway > 1 && ` · ${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
                 </p>
               </div>
             </li>

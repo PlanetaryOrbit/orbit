@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 type OAuthProvider = {
   available: boolean;
@@ -46,17 +46,15 @@ export function useOAuthConfig() {
 
     async function load() {
       try {
-        const response = await fetch("/api/auth/config-check", {
+        const response = await fetch('/api/auth/config-check', {
           signal: controller.signal,
           headers: {
-            Accept: "application/json",
+            Accept: 'application/json',
           },
         });
 
         if (!response.ok) {
-          throw new Error(
-            `OAuth config request returned ${response.status}`,
-          );
+          throw new Error(`OAuth config request returned ${response.status}`);
         }
 
         const data = (await response.json()) as OAuthConfig;
@@ -67,17 +65,11 @@ export function useOAuthConfig() {
           oauthOnly: data.oauthOnly ?? false,
         });
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.name === "AbortError"
-        ) {
+        if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
 
-        console.error(
-          "[AUTH] Failed to fetch OAuth configuration:",
-          error,
-        );
+        console.error('[AUTH] Failed to fetch OAuth configuration:', error);
 
         setConfig(DEFAULT_CONFIG);
       } finally {

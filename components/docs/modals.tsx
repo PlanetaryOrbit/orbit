@@ -1,6 +1,4 @@
-import { Fragment, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import clsx from "clsx";
+import { Dialog, Transition } from '@headlessui/react';
 import {
   IconAlertTriangle,
   IconExternalLink,
@@ -12,15 +10,19 @@ import {
   IconGif,
   IconVideo,
   IconUpload,
-} from "@tabler/icons-react";
-import { docsPanelShadow } from "./shell";
+} from '@tabler/icons-react';
+import clsx from 'clsx';
+import { Fragment, useState } from 'react';
+
 import {
   FolderIconBadge,
   FolderIconPicker,
   FOLDER_ICONS,
   normalizeFolderIcon,
   type FolderIconId,
-} from "@/components/docs/folderIcons";
+} from '@/components/docs/folderIcons';
+
+import { docsPanelShadow } from './shell';
 
 function DocsDialogShell({
   open,
@@ -58,8 +60,8 @@ function DocsDialogShell({
             >
               <Dialog.Panel
                 className={clsx(
-                  "w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-zinc-900",
-                  docsPanelShadow
+                  'w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-zinc-900',
+                  docsPanelShadow,
                 )}
               >
                 {children}
@@ -86,7 +88,10 @@ export function ExternalLinkModal({
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/15">
-            <IconAlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" stroke={1.75} />
+            <IconAlertTriangle
+              className="h-5 w-5 text-amber-600 dark:text-amber-400"
+              stroke={1.75}
+            />
           </div>
           <div>
             <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
@@ -128,7 +133,7 @@ export function DocTypePickerModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onChoose: (mode: "internal" | "external") => void;
+  onChoose: (mode: 'internal' | 'external') => void;
   backHref?: string;
 }) {
   return (
@@ -156,7 +161,7 @@ export function DocTypePickerModal({
         <div className="space-y-2">
           <button
             type="button"
-            onClick={() => onChoose("internal")}
+            onClick={() => onChoose('internal')}
             className="flex w-full items-center gap-3 rounded-xl bg-zinc-50 p-3.5 text-left transition-colors hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -171,7 +176,7 @@ export function DocTypePickerModal({
           </button>
           <button
             type="button"
-            onClick={() => onChoose("external")}
+            onClick={() => onChoose('external')}
             className="flex w-full items-center gap-3 rounded-xl bg-zinc-50 p-3.5 text-left transition-colors hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -237,7 +242,7 @@ export function LinkInsertModal({
               placeholder="https://example.com"
               className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
               onKeyDown={(e) => {
-                if (e.key === "Enter" && linkUrl.trim()) onConfirm();
+                if (e.key === 'Enter' && linkUrl.trim()) onConfirm();
               }}
             />
           </div>
@@ -277,7 +282,7 @@ export function MediaInsertModal({
 }: {
   open: boolean;
   onClose: () => void;
-  kind: "image" | "gif" | "video";
+  kind: 'image' | 'gif' | 'video';
   mediaUrl: string;
   onMediaUrlChange: (v: string) => void;
   onConfirm: () => void;
@@ -287,29 +292,29 @@ export function MediaInsertModal({
 }) {
   const labels = {
     image: {
-      title: "Insert image",
-      description: "Add an image from a URL or upload a file.",
-      placeholder: "https://example.com/image.png",
-      accept: "image/jpeg,image/png,image/webp",
-      uploadLabel: "Upload image",
+      title: 'Insert image',
+      description: 'Add an image from a URL or upload a file.',
+      placeholder: 'https://example.com/image.png',
+      accept: 'image/jpeg,image/png,image/webp',
+      uploadLabel: 'Upload image',
     },
     gif: {
-      title: "Insert GIF",
-      description: "Add a GIF from a URL or upload a file.",
-      placeholder: "https://example.com/animation.gif",
-      accept: "image/gif",
-      uploadLabel: "Upload GIF",
+      title: 'Insert GIF',
+      description: 'Add a GIF from a URL or upload a file.',
+      placeholder: 'https://example.com/animation.gif',
+      accept: 'image/gif',
+      uploadLabel: 'Upload GIF',
     },
     video: {
-      title: "Insert video",
-      description: "Paste a video or YouTube/Vimeo link, or upload a file.",
-      placeholder: "https://youtube.com/watch?v=…",
-      accept: "video/mp4,video/webm,video/quicktime",
-      uploadLabel: "Upload video",
+      title: 'Insert video',
+      description: 'Paste a video or YouTube/Vimeo link, or upload a file.',
+      placeholder: 'https://youtube.com/watch?v=…',
+      accept: 'video/mp4,video/webm,video/quicktime',
+      uploadLabel: 'Upload video',
     },
   }[kind];
 
-  const Icon = kind === "video" ? IconVideo : kind === "gif" ? IconGif : IconPhoto;
+  const Icon = kind === 'video' ? IconVideo : kind === 'gif' ? IconGif : IconPhoto;
 
   return (
     <DocsDialogShell open={open} onClose={onClose}>
@@ -350,7 +355,7 @@ export function MediaInsertModal({
 
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700">
             <IconUpload className="h-4 w-4" stroke={1.75} />
-            {uploading ? "Uploading…" : labels.uploadLabel}
+            {uploading ? 'Uploading…' : labels.uploadLabel}
             <input
               type="file"
               accept={labels.accept}
@@ -359,7 +364,7 @@ export function MediaInsertModal({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) onFileSelect(file);
-                e.target.value = "";
+                e.target.value = '';
               }}
             />
           </label>
@@ -403,7 +408,7 @@ export function FolderNameModal({
 }: {
   open: boolean;
   onClose: () => void;
-  mode: "create" | "rename";
+  mode: 'create' | 'rename';
   name: string;
   onNameChange: (v: string) => void;
   icon: FolderIconId;
@@ -421,12 +426,12 @@ export function FolderNameModal({
           <FolderIconBadge icon={selectedIcon} />
           <div>
             <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-              {mode === "create" ? "New folder" : "Edit folder"}
+              {mode === 'create' ? 'New folder' : 'Edit folder'}
             </Dialog.Title>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {mode === "create"
-                ? "Organize your documents into folders."
-                : "Update the folder name or icon."}
+              {mode === 'create'
+                ? 'Organize your documents into folders.'
+                : 'Update the folder name or icon.'}
             </p>
           </div>
         </div>
@@ -441,16 +446,14 @@ export function FolderNameModal({
               className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === "Enter" && name.trim() && !loading) onConfirm();
+                if (e.key === 'Enter' && name.trim() && !loading) onConfirm();
               }}
             />
           </div>
           <div>
             <label className="mb-2 block text-[11px] font-medium text-zinc-400">Icon</label>
             <FolderIconPicker value={selectedIcon} onChange={onIconChange} />
-            <p className="mt-2 text-xs text-zinc-400">
-              {FOLDER_ICONS[selectedIcon].label}
-            </p>
+            <p className="mt-2 text-xs text-zinc-400">{FOLDER_ICONS[selectedIcon].label}</p>
           </div>
           {error ? <p className="text-xs text-red-500">{error}</p> : null}
         </div>
@@ -461,7 +464,7 @@ export function FolderNameModal({
             onClick={onConfirm}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Saving…" : mode === "create" ? "Create folder" : "Save"}
+            {loading ? 'Saving…' : mode === 'create' ? 'Create folder' : 'Save'}
           </button>
           <button
             type="button"
@@ -501,7 +504,8 @@ export function DeleteFolderModal({
               Delete folder
             </Dialog.Title>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Delete <span className="font-medium text-zinc-700 dark:text-zinc-300">{folderName}</span>?
+              Delete{' '}
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">{folderName}</span>?
               Documents inside will move to the root level. Subfolders will be deleted.
             </p>
           </div>
@@ -513,7 +517,7 @@ export function DeleteFolderModal({
             onClick={onConfirm}
             className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
           >
-            {loading ? "Deleting…" : "Delete folder"}
+            {loading ? 'Deleting…' : 'Delete folder'}
           </button>
           <button
             type="button"
@@ -562,7 +566,7 @@ export function DeleteDocumentModal({
             onClick={onConfirm}
             className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
           >
-            {loading ? "Deleting…" : "Delete"}
+            {loading ? 'Deleting…' : 'Delete'}
           </button>
           <button
             type="button"
@@ -592,7 +596,7 @@ export function useExternalLinkModal() {
   };
 
   const proceed = () => {
-    if (pendingUrl) window.open(pendingUrl, "_blank");
+    if (pendingUrl) window.open(pendingUrl, '_blank');
     close();
   };
 

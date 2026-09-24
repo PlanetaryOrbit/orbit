@@ -1,22 +1,20 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getConfig, setConfig } from '@/utils/configEngine'
-import { logAudit } from '@/utils/logs'
-import { withPermissionCheck } from '@/utils/permissionsManager'
-import { withAuth } from '@/lib/withAuth'
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withAuth } from '@/lib/withAuth';
+import { getConfig, setConfig } from '@/utils/configEngine';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
-  success: boolean
-  error?: string
-  value?: any
-}
+  success: boolean;
+  error?: string;
+  value?: any;
+};
 
 export default withAuth(handler);
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const userId = (req as any).auth?.userId;
   if (!userId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -36,7 +34,15 @@ async function handler(
       const before = await getConfig('policies', workspaceId);
       const after = { enabled: req.body.enabled };
       await setConfig('policies', after, workspaceId);
-      try { await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.policies.update', 'policies', { before, after }); } catch (e) {}
+      try {
+        await logAudit(
+          workspaceId,
+          (req as any).auth?.userId || null,
+          'settings.general.policies.update',
+          'policies',
+          { before, after },
+        );
+      } catch (e) {}
       return res.status(200).json({ success: true });
     }, 'manage_features')(req, res);
   }

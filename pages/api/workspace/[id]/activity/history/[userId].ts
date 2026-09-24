@@ -1,15 +1,11 @@
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
+import type { NextApiResponse } from 'next';
 
-export default withAuth(async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id, userId } = req.query;
   const { periodEnd } = req.query;
@@ -18,7 +14,7 @@ export default withAuth(async function handler(
   const sessionUserId = req.auth.userId;
 
   if (!sessionUserId) {
-    return res.status(401).json({ success: false, error: "Unauthorized" });
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
   const isOwnActivity = BigInt(sessionUserId) === targetUserId;
@@ -43,21 +39,18 @@ export default withAuth(async function handler(
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     const membership = user.workspaceMemberships[0];
     const isAdmin = membership?.isAdmin || false;
     const userRole = user.roles[0];
     if (!userRole) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    if (
-      !isAdmin &&
-      !userRole.permissions?.includes("view_member_profiles")
-    ) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!isAdmin && !userRole.permissions?.includes('view_member_profiles')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
   }
 
@@ -81,7 +74,7 @@ export default withAuth(async function handler(
           },
         },
       },
-      orderBy: { periodEnd: "desc" },
+      orderBy: { periodEnd: 'desc' },
     });
 
     userHistory.forEach((record, index) => {
@@ -92,14 +85,14 @@ export default withAuth(async function handler(
         sessionsHosted: record.sessionsHosted,
         sessionsAttended: record.sessionsAttended,
         idleTime: record.idleTime,
-        wallPosts: record.wallPosts
+        wallPosts: record.wallPosts,
       });
     });
 
     if (userHistory.length === 0) {
       return res.status(404).json({
         success: false,
-        error: "No activity history found for this user",
+        error: 'No activity history found for this user',
       });
     }
 
@@ -108,7 +101,7 @@ export default withAuth(async function handler(
       if (!history) {
         return res.status(404).json({
           success: false,
-          error: "No activity history found for this period",
+          error: 'No activity history found for this period',
         });
       }
 
@@ -136,15 +129,13 @@ export default withAuth(async function handler(
                 idleTime: history.idleTime,
                 wallPosts: history.wallPosts || 0,
                 quotaProgress: history.quotaProgress,
-                totalSessions:
-                  history.sessionsHosted + history.sessionsAttended,
+                totalSessions: history.sessionsHosted + history.sessionsAttended,
               },
               sessions,
               adjustments,
             },
-            (key, value) =>
-              typeof value === "bigint" ? value.toString() : value
-          )
+            (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+          ),
         ),
       });
     }
@@ -184,14 +175,12 @@ export default withAuth(async function handler(
             user: userHistory[0].user,
             history: formattedHistory,
           },
-          (key, value) => (typeof value === "bigint" ? value.toString() : value)
-        )
+          (key, value) => (typeof value === 'bigint' ? value.toString() : value),
+        ),
       ),
     });
   } catch (error) {
-    console.error("User activity history fetch error:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch user activity history" });
+    console.error('User activity history fetch error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch user activity history' });
   }
 });

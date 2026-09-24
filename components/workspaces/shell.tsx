@@ -1,24 +1,24 @@
-import clsx from "clsx";
-import type { ElementType, MouseEvent, ReactNode } from "react";
-import { IconChevronRight, IconPin, IconPinFilled } from "@tabler/icons-react";
+import { IconChevronRight, IconPin, IconPinFilled } from '@tabler/icons-react';
+import clsx from 'clsx';
+import type { ElementType, MouseEvent, ReactNode } from 'react';
 
 type WorkspaceIcon = ElementType<{ className?: string; stroke?: string | number }>;
 
 export const workspacesPanelShadow =
-  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
+  'shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30';
 
 export const workspacesPrimaryButtonClass =
-  "inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50";
+  'inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50';
 
 export const workspacesSecondaryButtonClass =
-  "inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700";
+  'inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700';
 
 export const workspacesFormInputOverride =
-  "!rounded-xl !border-0 !bg-zinc-100 !px-3 !py-2 !text-sm !text-zinc-900 focus:!outline-none focus:!ring-2 focus:!ring-primary/40 dark:!bg-zinc-800 dark:!text-white !shadow-none";
+  '!rounded-xl !border-0 !bg-zinc-100 !px-3 !py-2 !text-sm !text-zinc-900 focus:!outline-none focus:!ring-2 focus:!ring-primary/40 dark:!bg-zinc-800 dark:!text-white !shadow-none';
 
 export const workspacesModalPanelClass = clsx(
-  "w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle transition-all dark:bg-zinc-900",
-  workspacesPanelShadow
+  'w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle transition-all dark:bg-zinc-900',
+  workspacesPanelShadow,
 );
 
 export function WorkspacesPageShell({
@@ -30,7 +30,7 @@ export function WorkspacesPageShell({
 }) {
   return (
     <div className="pagePadding pb-10">
-      <div className={clsx("mx-auto w-full max-w-6xl", className)}>{children}</div>
+      <div className={clsx('mx-auto w-full max-w-6xl', className)}>{children}</div>
     </div>
   );
 }
@@ -49,9 +49,9 @@ export function WorkspacesPageHeader({
   const label =
     dateLabel ??
     new Date().toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
     });
 
   return (
@@ -87,21 +87,21 @@ export function WorkspacesPanel({
       onKeyDown={
         onClick
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onClick();
               }
             }
           : undefined
       }
-      role={onClick ? "button" : undefined}
+      role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={clsx(
-        "rounded-2xl bg-white dark:bg-zinc-900/70",
+        'rounded-2xl bg-white dark:bg-zinc-900/70',
         workspacesPanelShadow,
         onClick &&
-          "cursor-pointer transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-        className
+          'cursor-pointer transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        className,
       )}
     >
       {children}
@@ -168,11 +168,11 @@ export function WorkspaceCard({
   onTogglePin: (e: MouseEvent<HTMLButtonElement>) => void;
 }) {
   const name = workspaceDisplayName(workspace);
-  const logo = workspace.groupLogo || "/favicon-32x32.png";
+  const logo = workspace.groupLogo || '/favicon-32x32.png';
 
   return (
     <WorkspacesPanel
-      className={clsx("group overflow-hidden p-0", featured && "max-w-2xl")}
+      className={clsx('group overflow-hidden p-0', featured && 'max-w-2xl')}
       onClick={onOpen}
     >
       {featured ? (
@@ -186,7 +186,7 @@ export function WorkspaceCard({
         </div>
       ) : null}
 
-      <div className={clsx("flex items-center gap-3", featured ? "p-4 sm:p-5" : "p-4")}>
+      <div className={clsx('flex items-center gap-3', featured ? 'p-4 sm:p-5' : 'p-4')}>
         {!featured ? (
           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700/60">
             <img src={logo} alt="" className="h-full w-full object-contain p-1" />
@@ -204,7 +204,9 @@ export function WorkspaceCard({
               </span>
             ) : null}
           </div>
-          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">Group {workspace.groupId}</p>
+          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+            Group {workspace.groupId}
+          </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
@@ -212,12 +214,12 @@ export function WorkspaceCard({
             type="button"
             onClick={onTogglePin}
             className={clsx(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
               isPinned
-                ? "bg-primary/10 text-primary hover:bg-primary/15"
-                : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
             )}
-            title={isPinned ? "Unpin workspace" : "Pin as featured workspace"}
+            title={isPinned ? 'Unpin workspace' : 'Pin as featured workspace'}
           >
             {isPinned ? (
               <IconPinFilled className="h-4 w-4" stroke={1.5} />

@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 const roleAssignmentLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
@@ -21,7 +22,7 @@ function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse)
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many role assignment attempts. Please wait a moment before making more changes.'
+      error: 'Too many role assignment attempts. Please wait a moment before making more changes.',
     });
     return false;
   }
@@ -35,11 +36,9 @@ type Data = {
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!checkRoleAssignmentRateLimit(req, res)) return;
-  
-  if (req.method !== "PUT") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+
+  if (req.method !== 'PUT') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const { sid } = req.query;
@@ -47,9 +46,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const currentUserId = (req as any).auth?.userId;
 
   if (!sid) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Session ID is required" });
+    return res.status(400).json({ success: false, error: 'Session ID is required' });
   }
 
   try {
@@ -61,9 +58,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
 
     if (!session) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Session not found" });
+      return res.status(404).json({ success: false, error: 'Session not found' });
     }
 
     const sessionCategory = session.type?.toLowerCase() || 'other';
@@ -86,9 +81,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
 
     if (!currentUser || !currentUser.roles[0]) {
-      return res.status(403).json({ 
-        success: false, 
-        error: "You do not have permission to perform this action" 
+      return res.status(403).json({
+        success: false,
+        error: 'You do not have permission to perform this action',
       });
     }
 
@@ -103,8 +98,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       where: { id: sid as string },
       select: { ownerId: true },
     });
-    
-    const isRemovingSelf = isRemoving && currentSession?.ownerId && currentSession.ownerId.toString() === currentUserId.toString();
+
+    const isRemovingSelf =
+      isRemoving &&
+      currentSession?.ownerId &&
+      currentSession.ownerId.toString() === currentUserId.toString();
     let canUpdateHost = false;
     if (isRemoving) {
       if (isRemovingSelf) {
@@ -119,11 +117,11 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         canUpdateHost = hasAssignPermission && hasHostPermission;
       }
     }
-    
+
     if (!canUpdateHost) {
-      return res.status(403).json({ 
-        success: false, 
-        error: "You do not have permission to assign this host role" 
+      return res.status(403).json({
+        success: false,
+        error: 'You do not have permission to assign this host role',
       });
     }
 
@@ -145,19 +143,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
 
       if (!targetUser) {
-        return res
-          .status(404)
-          .json({ success: false, error: "User not found" });
+        return res.status(404).json({ success: false, error: 'User not found' });
       }
       if (hasHostPermission && !hasAssignPermission && !isAssigningToSelf) {
         const targetUserPermissions = targetUser.roles[0]?.permissions || [];
         const targetMembership = targetUser.workspaceMemberships?.[0];
         const targetIsAdmin = targetMembership?.isAdmin || false;
-        const targetHasHostPermission = targetIsAdmin || targetUserPermissions.includes(`sessions_${type}_host`);
+        const targetHasHostPermission =
+          targetIsAdmin || targetUserPermissions.includes(`sessions_${type}_host`);
         if (!targetHasHostPermission) {
-          return res.status(403).json({ 
-            success: false, 
-            error: "You can only assign host roles to users who have the host permission" 
+          return res.status(403).json({
+            success: false,
+            error: 'You can only assign host roles to users who have the host permission',
           });
         }
       }
@@ -172,8 +169,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error updating session host:", error);
-    res.status(500).json({ success: false, error: "Internal server error" });
+    console.error('Error updating session host:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }
 

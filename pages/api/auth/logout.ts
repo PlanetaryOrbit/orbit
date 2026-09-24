@@ -1,18 +1,16 @@
-import { withAuth, AuthenticatedRequest } from "@/lib/withAuth";
-import { NextApiResponse } from "next";
-import { deleteSession } from "@/utils/session";
-import cache from "@/utils/cache";
+import { NextApiResponse } from 'next';
+
+import { withAuth, AuthenticatedRequest } from '@/lib/withAuth';
+import cache from '@/utils/cache';
+import { deleteSession } from '@/utils/session';
 
 export default withAuth(handler);
 
-export async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -20,31 +18,29 @@ export async function handler(
     await deleteSession(req.auth.token);
 
     // Clear cached session data if present
-    await cache.del(
-      `session:${req.auth.token}`
-    );
+    await cache.del(`session:${req.auth.token}`);
 
     res.setHeader(
-      "Set-Cookie",
+      'Set-Cookie',
       [
-        "session_token=;",
-        "Path=/;",
-        "HttpOnly;",
-        "SameSite=lax;",
-        "Max-Age=0;",
-        process.env.NODE_ENV === "production" ? "Secure;" : "",
-      ].join(" ")
+        'session_token=;',
+        'Path=/;',
+        'HttpOnly;',
+        'SameSite=lax;',
+        'Max-Age=0;',
+        process.env.NODE_ENV === 'production' ? 'Secure;' : '',
+      ].join(' '),
     );
 
     return res.status(200).json({
       success: true,
     });
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error('Logout error:', error);
 
     return res.status(500).json({
       success: false,
-      error: "Failed to logout",
+      error: 'Failed to logout',
     });
   }
 }

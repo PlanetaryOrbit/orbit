@@ -1,103 +1,110 @@
-"use client"
+'use client';
 
-import type { pageWithLayout } from "@/layoutTypes"
-import { loginState, workspacestate } from "@/state"
-import Workspace from "@/layouts/workspace"
-import randomText from "@/utils/randomText"
-import { useRecoilState } from "recoil"
-import { useMemo, useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import { IconLayoutDashboard, IconWall, IconBell, IconUsers, IconArrowRight } from "@tabler/icons-react"
-import { withPermissionCheckSsr } from "@/utils/permissionsManager"
-import { GetServerSideProps } from "next"
-import { HomeDashboard } from "@/components/home/dashboard"
-import { normalizeHomeWidgetOrder } from "@/utils/homeWidgets"
+import {
+  IconLayoutDashboard,
+  IconWall,
+  IconBell,
+  IconUsers,
+  IconArrowRight,
+} from '@tabler/icons-react';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useMemo, useEffect, useState } from 'react';
+import { useRecoilState } from 'recoil';
+
+import { HomeDashboard } from '@/components/home/dashboard';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import { normalizeHomeWidgetOrder } from '@/utils/homeWidgets';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import randomText from '@/utils/randomText';
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async () => ({
   props: {},
-}))
+}));
 
 const Home: pageWithLayout = () => {
-  const [login] = useRecoilState(loginState)
-  const [workspace] = useRecoilState(workspacestate)
-  const router = useRouter()
-  const text = useMemo(() => randomText(login.displayname), [login.displayname])
-  const [ready, setReady] = useState(false)
+  const [login] = useRecoilState(loginState);
+  const [workspace] = useRecoilState(workspacestate);
+  const router = useRouter();
+  const text = useMemo(() => randomText(login.displayname), [login.displayname]);
+  const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [showWarn, setShowWarn] = useState<boolean>(false);
-  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false)
+  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false);
   const [workspaceMembership, setWorkspaceMembership] = useState<{
-    isAdmin: boolean | null
-  } | null>(null)
+    isAdmin: boolean | null;
+  } | null>(null);
 
   const orderedWidgets = useMemo(
     () => normalizeHomeWidgetOrder(workspace.settings.widgets ?? []),
-    [workspace.settings.widgets]
-  )
+    [workspace.settings.widgets],
+  );
 
-  const workspaceId = workspace?.groupId ?? Number(router.query.id)
-  const workspaceLabel = workspace.customName || workspace.groupName
+  const workspaceId = workspace?.groupId ?? Number(router.query.id);
+  const workspaceLabel = workspace.customName || workspace.groupName;
 
   useEffect(() => {
     if (workspace?.groupId && workspace.settings && Array.isArray(workspace.settings.widgets)) {
-      setReady(true)
+      setReady(true);
     }
-  }, [workspace])
+  }, [workspace]);
 
   useEffect(() => {
     if (workspace?.groupId && login?.userId) {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       fetch(`/api/workspace/${workspace.groupId}/timezone`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: tz }),
-      }).catch(() => {})
+      }).catch(() => {});
     }
-  }, [workspace?.groupId, login?.userId])
+  }, [workspace?.groupId, login?.userId]);
 
   useEffect(() => {
-    if (!workspace?.groupId || !login?.userId) return
+    if (!workspace?.groupId || !login?.userId) return;
     fetch(`/api/workspace/${workspace.groupId}/member`)
       .then((r) => r.json())
       .then((data) => {
-        if (data.success) setWorkspaceMembership(data.member)
+        if (data.success) setWorkspaceMembership(data.member);
       })
-      .catch(() => {})
-  }, [workspace?.groupId, login?.userId])
+      .catch(() => {});
+  }, [workspace?.groupId, login?.userId]);
 
   useEffect(() => {
-    if (!workspace?.groupId) return
+    if (!workspace?.groupId) return;
     fetch(`/api/workspace/${workspace.groupId}/`)
       .then((r) => r.json())
       .then((data) => {
-        if (data.success) setShowWarn(!data.workspace.lastSyncedSuccessful)
+        if (data.success) setShowWarn(!data.workspace.lastSyncedSuccessful);
       })
-      .catch(() => {})
-  }, [workspace.groupId])
+      .catch(() => {});
+  }, [workspace.groupId]);
 
   useEffect(() => {
-    if (!workspace?.groupId) return
+    if (!workspace?.groupId) return;
     fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
       .then((r) => r.json())
       .then((data) => {
-        if (data.banner) setBanner(data.banner)
+        if (data.banner) setBanner(data.banner);
       })
-      .catch(() => {})
-  }, [workspace?.groupId])
+      .catch(() => {});
+  }, [workspace?.groupId]);
 
   const dateLabel = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  })
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <div className="pagePadding">
       <div className="mx-auto max-w-6xl">
-        {(showWarn && !syncWarnDismissed) && (
+        {showWarn && !syncWarnDismissed && (
           <div className="mb-5 flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              <span className="font-medium text-zinc-900 dark:text-zinc-200">Sync failed.</span>{" "}
+              <span className="font-medium text-zinc-900 dark:text-zinc-200">Sync failed.</span>{' '}
               Group sync did not finish — check API keys in settings.
             </p>
             <div className="flex shrink-0 items-center gap-2">
@@ -160,14 +167,20 @@ const Home: pageWithLayout = () => {
             Loading…
           </div>
         ) : orderedWidgets.length > 0 ? (
-          <HomeDashboard workspaceId={workspaceId} workspaceName={workspaceLabel} widgets={orderedWidgets} />
+          <HomeDashboard
+            workspaceId={workspaceId}
+            workspaceName={workspaceLabel}
+            widgets={orderedWidgets}
+          />
         ) : (
           <div className="mt-2 space-y-6">
             <div className="rounded-2xl bg-white px-8 py-10 text-center shadow-[0_1px_3px_0_rgb(0,0,0,0.06)] dark:bg-zinc-900/70">
               <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
                 <IconLayoutDashboard className="h-5 w-5 text-primary" stroke={1.75} />
               </div>
-              <p className="text-base font-semibold text-zinc-900 dark:text-white">Your dashboard is empty</p>
+              <p className="text-base font-semibold text-zinc-900 dark:text-white">
+                Your dashboard is empty
+              </p>
               <p className="mt-1.5 text-sm text-zinc-400 dark:text-zinc-500 max-w-xs mx-auto">
                 Turn on widgets in settings to start building your home screen.
               </p>
@@ -182,19 +195,26 @@ const Home: pageWithLayout = () => {
             </div>
 
             <div>
-              <p className="mb-3 text-xs font-medium text-zinc-400 dark:text-zinc-500">Available widgets</p>
+              <p className="mb-3 text-xs font-medium text-zinc-400 dark:text-zinc-500">
+                Available widgets
+              </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {[
-                  { icon: IconWall, label: "Wall", desc: "Posts from your team" },
-                  { icon: IconBell, label: "Sessions", desc: "Upcoming scheduled sessions" },
-                  { icon: IconUsers, label: "Staff", desc: "New members & birthdays" },
+                  { icon: IconWall, label: 'Wall', desc: 'Posts from your team' },
+                  { icon: IconBell, label: 'Sessions', desc: 'Upcoming scheduled sessions' },
+                  { icon: IconUsers, label: 'Staff', desc: 'New members & birthdays' },
                 ].map(({ icon: Icon, label, desc }) => (
-                  <div key={label} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] dark:bg-zinc-900/70">
+                  <div
+                    key={label}
+                    className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] dark:bg-zinc-900/70"
+                  >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                       <Icon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" stroke={1.75} />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{label}</p>
+                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                        {label}
+                      </p>
                       <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">{desc}</p>
                     </div>
                   </div>
@@ -205,9 +225,9 @@ const Home: pageWithLayout = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-Home.layout = Workspace
+Home.layout = Workspace;
 
-export default Home
+export default Home;

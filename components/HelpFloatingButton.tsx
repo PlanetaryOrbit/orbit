@@ -1,13 +1,6 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
-import { Menu, Dialog } from "@headlessui/react";
+import { Menu, Dialog } from '@headlessui/react';
 import {
   IconLifebuoy,
   IconBook,
@@ -16,8 +9,9 @@ import {
   IconHistory,
   IconX,
   IconLicense,
-} from "@tabler/icons-react";
-import clsx from "clsx";
+} from '@tabler/icons-react';
+import clsx from 'clsx';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 type ChangelogRelease = {
   version: string;
@@ -32,44 +26,40 @@ type ChangeCategory = {
 
 const CHANGE_CATEGORIES: Record<string, ChangeCategory> = {
   added: {
-    label: "Added",
-    badge:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    label: 'Added',
+    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
   },
   fixed: {
-    label: "Fixed",
-    badge: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+    label: 'Fixed',
+    badge: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
   },
   updated: {
-    label: "Updated",
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    label: 'Updated',
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
   },
   removed: {
-    label: "Removed",
-    badge: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+    label: 'Removed',
+    badge: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
   },
   remade: {
-    label: "Remade",
-    badge:
-      "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
+    label: 'Remade',
+    badge: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
   },
   changed: {
-    label: "Changed",
-    badge:
-      "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+    label: 'Changed',
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   },
   switched: {
-    label: "Switched",
-    badge: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+    label: 'Switched',
+    badge: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
   },
   reverted: {
-    label: "Reverted",
-    badge: "bg-zinc-100 text-zinc-600 dark:bg-zinc-500/15 dark:text-zinc-300",
+    label: 'Reverted',
+    badge: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-500/15 dark:text-zinc-300',
   },
   improved: {
-    label: "Improved",
-    badge:
-      "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300",
+    label: 'Improved',
+    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300',
   },
 };
 
@@ -111,7 +101,7 @@ type HelpContextValue = {
 const HelpContext = createContext<HelpContextValue>({
   openChangelog: () => {},
   openCopyright: () => {},
-  currentVersion: "",
+  currentVersion: '',
   latestVersion: null,
   updateAvailable: false,
   changelog: [],
@@ -123,22 +113,22 @@ export function useHelp() {
 }
 
 const menuItemClasses = clsx(
-  "w-full flex items-center gap-3",
-  "px-4 py-2.5",
-  "text-left text-sm font-normal",
-  "text-zinc-600 dark:text-zinc-300",
-  "transition-colors duration-150",
-  "hover:bg-zinc-100 dark:hover:bg-zinc-700/70",
-  "focus:outline-none",
+  'w-full flex items-center gap-3',
+  'px-4 py-2.5',
+  'text-left text-sm font-normal',
+  'text-zinc-600 dark:text-zinc-300',
+  'transition-colors duration-150',
+  'hover:bg-zinc-100 dark:hover:bg-zinc-700/70',
+  'focus:outline-none',
 );
 
-const menuIconClasses = "h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500";
+const menuIconClasses = 'h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500';
 
 export function HelpProvider({ children }: { children: React.ReactNode }) {
   const [showChangelog, setShowChangelog] = useState(false);
   const [showCopyright, setShowCopyright] = useState(false);
 
-  const [currentVersion, setCurrentVersion] = useState("");
+  const [currentVersion, setCurrentVersion] = useState('');
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
@@ -158,10 +148,10 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
 
     async function fetchVersion() {
       try {
-        const response = await fetch("/api/version", {
+        const response = await fetch('/api/version', {
           signal: controller.signal,
           headers: {
-            Accept: "application/json",
+            Accept: 'application/json',
           },
         });
 
@@ -176,11 +166,11 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
         setUpdateAvailable(data.outdated);
         setChangelog(Array.isArray(data.changelog) ? data.changelog : []);
       } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") {
+        if (error instanceof Error && error.name === 'AbortError') {
           return;
         }
 
-        console.error("[HELP] Failed to fetch Orbit version:", error);
+        console.error('[HELP] Failed to fetch Orbit version:', error);
       } finally {
         if (!controller.signal.aborted) {
           setVersionLoading(false);
@@ -212,21 +202,18 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
         onClose={() => setShowCopyright(false)}
         className="relative z-[99999]"
       >
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-[1px]"
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-[1px]" aria-hidden="true" />
 
         <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-4">
           <Dialog.Panel
             className={clsx(
-              "w-full max-w-lg",
-              "rounded-2xl",
-              "bg-white dark:bg-zinc-800",
-              "p-6",
-              "shadow-xl",
-              "ring-1 ring-black/5 dark:ring-white/5",
-              "focus:outline-none",
+              'w-full max-w-lg',
+              'rounded-2xl',
+              'bg-white dark:bg-zinc-800',
+              'p-6',
+              'shadow-xl',
+              'ring-1 ring-black/5 dark:ring-white/5',
+              'focus:outline-none',
             )}
           >
             <div className="flex items-center justify-between gap-4">
@@ -238,13 +225,13 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => setShowCopyright(false)}
                 className={clsx(
-                  "shrink-0 rounded-lg p-1.5",
-                  "text-zinc-400 dark:text-zinc-500",
-                  "hover:bg-zinc-100 hover:text-zinc-600",
-                  "dark:hover:bg-zinc-700 dark:hover:text-zinc-200",
-                  "focus:outline-none focus-visible:ring-2",
-                  "focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]",
-                  "transition-colors",
+                  'shrink-0 rounded-lg p-1.5',
+                  'text-zinc-400 dark:text-zinc-500',
+                  'hover:bg-zinc-100 hover:text-zinc-600',
+                  'dark:hover:bg-zinc-700 dark:hover:text-zinc-200',
+                  'focus:outline-none focus-visible:ring-2',
+                  'focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]',
+                  'transition-colors',
                 )}
                 aria-label="Close copyright and licensing dialog"
               >
@@ -280,8 +267,8 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <p className="mt-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Orbit is free and open-source software licensed under the GNU
-                  General Public License v3.0.
+                  Orbit is free and open-source software licensed under the GNU General Public
+                  License v3.0.
                 </p>
 
                 <a
@@ -289,13 +276,13 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={clsx(
-                    "inline-flex mt-3 rounded-md",
-                    "text-sm font-medium text-primary",
-                    "hover:underline",
-                    "focus:outline-none focus-visible:ring-2",
-                    "focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]",
-                    "focus-visible:ring-offset-2",
-                    "dark:focus-visible:ring-offset-zinc-800",
+                    'inline-flex mt-3 rounded-md',
+                    'text-sm font-medium text-primary',
+                    'hover:underline',
+                    'focus:outline-none focus-visible:ring-2',
+                    'focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]',
+                    'focus-visible:ring-offset-2',
+                    'dark:focus-visible:ring-offset-zinc-800',
                   )}
                 >
                   View license
@@ -314,20 +301,18 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                   Original Tovy Project
                 </h3>
 
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  © 2023 Tovy
-                </p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">© 2023 Tovy</p>
 
                 <p className="mt-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Orbit is based on the original Tovy project. Portions of the
-                  project retain their original copyright notices.
+                  Orbit is based on the original Tovy project. Portions of the project retain their
+                  original copyright notices.
                 </p>
               </section>
             </div>
 
             <p className="mt-5 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
-              Copyright notices and license information for third-party software
-              used by Orbit may be included in the project repository.
+              Copyright notices and license information for third-party software used by Orbit may
+              be included in the project repository.
             </p>
           </Dialog.Panel>
         </div>
@@ -338,21 +323,18 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
         onClose={() => setShowChangelog(false)}
         className="relative z-[99999]"
       >
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-[1px]"
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-[1px]" aria-hidden="true" />
 
         <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-4">
           <Dialog.Panel
             className={clsx(
-              "flex w-full max-w-lg flex-col",
-              "max-h-[min(90vh,48rem)]",
-              "rounded-2xl",
-              "bg-white dark:bg-zinc-800",
-              "shadow-xl",
-              "ring-1 ring-black/5 dark:ring-white/5",
-              "focus:outline-none",
+              'flex w-full max-w-lg flex-col',
+              'max-h-[min(90vh,48rem)]',
+              'rounded-2xl',
+              'bg-white dark:bg-zinc-800',
+              'shadow-xl',
+              'ring-1 ring-black/5 dark:ring-white/5',
+              'focus:outline-none',
             )}
           >
             <div className="flex shrink-0 items-center justify-between gap-4 p-6 pb-5">
@@ -370,30 +352,26 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => setShowChangelog(false)}
                 className={clsx(
-                  "shrink-0 rounded-lg p-1.5",
-                  "text-zinc-400 dark:text-zinc-500",
-                  "hover:bg-zinc-100 hover:text-zinc-600",
-                  "dark:hover:bg-zinc-700 dark:hover:text-zinc-200",
-                  "focus:outline-none focus-visible:ring-2",
-                  "focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]",
-                  "transition-colors",
+                  'shrink-0 rounded-lg p-1.5',
+                  'text-zinc-400 dark:text-zinc-500',
+                  'hover:bg-zinc-100 hover:text-zinc-600',
+                  'dark:hover:bg-zinc-700 dark:hover:text-zinc-200',
+                  'focus:outline-none focus-visible:ring-2',
+                  'focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]',
+                  'transition-colors',
                 )}
                 aria-label="Close changelog dialog"
               >
-                <IconX
-                  className="h-5 w-5"
-                  stroke={1.75}
-                  aria-hidden="true"
-                />
+                <IconX className="h-5 w-5" stroke={1.75} aria-hidden="true" />
               </button>
             </div>
 
             <div
               className={clsx(
-                "min-h-0 flex-1 overflow-y-auto",
-                "px-6 pb-6",
-                "overscroll-contain",
-                "scrollbar-thin",
+                'min-h-0 flex-1 overflow-y-auto',
+                'px-6 pb-6',
+                'overscroll-contain',
+                'scrollbar-thin',
               )}
               aria-live="polite"
               aria-busy={versionLoading}
@@ -406,9 +384,9 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                 >
                   <span
                     className={clsx(
-                      "h-4 w-4 shrink-0 animate-spin rounded-full border-2",
-                      "border-zinc-300 border-t-zinc-600",
-                      "dark:border-zinc-600 dark:border-t-zinc-300",
+                      'h-4 w-4 shrink-0 animate-spin rounded-full border-2',
+                      'border-zinc-300 border-t-zinc-600',
+                      'dark:border-zinc-600 dark:border-t-zinc-300',
                     )}
                     aria-hidden="true"
                   />
@@ -433,8 +411,8 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                     <article
                       key={`${release.version}-${release.date}`}
                       className={clsx(
-                        "rounded-xl border border-zinc-200 p-4",
-                        "dark:border-zinc-700",
+                        'rounded-xl border border-zinc-200 p-4',
+                        'dark:border-zinc-700',
                       )}
                       aria-labelledby={`release-${release.version}`}
                     >
@@ -468,9 +446,9 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
                               {category ? (
                                 <span
                                   className={clsx(
-                                    "mt-px inline-flex shrink-0 items-center rounded-md",
-                                    "px-1.5 py-0.5",
-                                    "text-[10px] font-semibold uppercase tracking-wide",
+                                    'mt-px inline-flex shrink-0 items-center rounded-md',
+                                    'px-1.5 py-0.5',
+                                    'text-[10px] font-semibold uppercase tracking-wide',
                                     category.badge,
                                   )}
                                 >
@@ -513,28 +491,25 @@ export function HelpFloatingButton() {
   } = useHelp();
 
   return (
-    <Menu
-      as="div"
-      className="fixed bottom-[4.5rem] right-6 z-[99998] lg:bottom-6"
-    >
+    <Menu as="div" className="fixed bottom-[4.5rem] right-6 z-[99998] lg:bottom-6">
       <Menu.Button
         type="button"
         className={clsx(
-          "flex h-12 w-12 items-center justify-center rounded-full",
-          "border border-zinc-200/80 dark:border-zinc-600/80",
-          "bg-white dark:bg-zinc-800",
-          "text-zinc-500 dark:text-zinc-400",
-          "shadow-lg",
-          "transition-all duration-200",
-          "hover:border-[color:rgb(var(--group-theme)/0.3)]",
-          "hover:bg-white dark:hover:bg-zinc-700/90",
-          "hover:text-[color:rgb(var(--group-theme))]",
-          "focus:outline-none focus-visible:ring-2",
-          "focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]",
-          "focus-visible:ring-offset-2",
-          "focus-visible:ring-offset-zinc-50",
-          "dark:focus-visible:ring-offset-zinc-900",
-          "active:scale-95",
+          'flex h-12 w-12 items-center justify-center rounded-full',
+          'border border-zinc-200/80 dark:border-zinc-600/80',
+          'bg-white dark:bg-zinc-800',
+          'text-zinc-500 dark:text-zinc-400',
+          'shadow-lg',
+          'transition-all duration-200',
+          'hover:border-[color:rgb(var(--group-theme)/0.3)]',
+          'hover:bg-white dark:hover:bg-zinc-700/90',
+          'hover:text-[color:rgb(var(--group-theme))]',
+          'focus:outline-none focus-visible:ring-2',
+          'focus-visible:ring-[color:rgb(var(--group-theme)/0.5)]',
+          'focus-visible:ring-offset-2',
+          'focus-visible:ring-offset-zinc-50',
+          'dark:focus-visible:ring-offset-zinc-900',
+          'active:scale-95',
         )}
         aria-label="Open help and resources menu"
         title="Help & resources"
@@ -544,14 +519,14 @@ export function HelpFloatingButton() {
 
       <Menu.Items
         className={clsx(
-          "absolute right-0 bottom-full mb-2 w-56",
-          "rounded-2xl",
-          "border border-zinc-200/80 dark:border-zinc-600/80",
-          "bg-white dark:bg-zinc-800",
-          "py-2.5",
-          "shadow-xl",
-          "ring-1 ring-black/5 dark:ring-white/5",
-          "focus:outline-none",
+          'absolute right-0 bottom-full mb-2 w-56',
+          'rounded-2xl',
+          'border border-zinc-200/80 dark:border-zinc-600/80',
+          'bg-white dark:bg-zinc-800',
+          'py-2.5',
+          'shadow-xl',
+          'ring-1 ring-black/5 dark:ring-white/5',
+          'focus:outline-none',
         )}
       >
         <div className="px-4 pb-2.5 pt-0.5">
@@ -561,20 +536,20 @@ export function HelpFloatingButton() {
 
           <p
             className={clsx(
-              "mt-0.5 text-[11px]",
+              'mt-0.5 text-[11px]',
               updateAvailable
-                ? "font-medium text-red-500 dark:text-red-400"
-                : "text-zinc-500 dark:text-zinc-400",
+                ? 'font-medium text-red-500 dark:text-red-400'
+                : 'text-zinc-500 dark:text-zinc-400',
             )}
             aria-live="polite"
           >
             {versionLoading
-              ? "Checking for updates…"
+              ? 'Checking for updates…'
               : currentVersion
                 ? `v${currentVersion}`
-                : "Version unavailable"}
+                : 'Version unavailable'}
 
-            {updateAvailable && " · Update available"}
+            {updateAvailable && ' · Update available'}
           </p>
 
           {updateAvailable && latestVersion && (
@@ -584,10 +559,7 @@ export function HelpFloatingButton() {
           )}
         </div>
 
-        <div
-          className="mx-3 mb-2 h-px bg-zinc-200/80 dark:bg-zinc-600/80"
-          role="separator"
-        />
+        <div className="mx-3 mb-2 h-px bg-zinc-200/80 dark:bg-zinc-600/80" role="separator" />
 
         <a
           href="https://docs.planetaryapp.us"
@@ -595,11 +567,7 @@ export function HelpFloatingButton() {
           rel="noopener noreferrer"
           className={menuItemClasses}
         >
-          <IconBook
-            className={menuIconClasses}
-            stroke={1.5}
-            aria-hidden="true"
-          />
+          <IconBook className={menuIconClasses} stroke={1.5} aria-hidden="true" />
           <span>Documentation</span>
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
@@ -610,11 +578,7 @@ export function HelpFloatingButton() {
           rel="noopener noreferrer"
           className={menuItemClasses}
         >
-          <IconBrandGithub
-            className={menuIconClasses}
-            stroke={1.5}
-            aria-hidden="true"
-          />
+          <IconBrandGithub className={menuIconClasses} stroke={1.5} aria-hidden="true" />
           <span>GitHub</span>
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
@@ -625,11 +589,7 @@ export function HelpFloatingButton() {
           rel="noopener noreferrer"
           className={menuItemClasses}
         >
-          <IconBug
-            className={menuIconClasses}
-            stroke={1.5}
-            aria-hidden="true"
-          />
+          <IconBug className={menuIconClasses} stroke={1.5} aria-hidden="true" />
           <span>Bug Reports</span>
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
@@ -639,41 +599,24 @@ export function HelpFloatingButton() {
             <button
               type="button"
               onClick={openChangelog}
-              className={clsx(
-                menuItemClasses,
-                active && "bg-zinc-100 dark:bg-zinc-700/70",
-              )}
+              className={clsx(menuItemClasses, active && 'bg-zinc-100 dark:bg-zinc-700/70')}
             >
-              <IconHistory
-                className={menuIconClasses}
-                stroke={1.5}
-                aria-hidden="true"
-              />
+              <IconHistory className={menuIconClasses} stroke={1.5} aria-hidden="true" />
               <span>Changelog</span>
             </button>
           )}
         </Menu.Item>
 
-        <div
-          className="mx-3 my-2 h-px bg-zinc-200/80 dark:bg-zinc-600/80"
-          role="separator"
-        />
+        <div className="mx-3 my-2 h-px bg-zinc-200/80 dark:bg-zinc-600/80" role="separator" />
 
         <Menu.Item>
           {({ active }) => (
             <button
               type="button"
               onClick={openCopyright}
-              className={clsx(
-                menuItemClasses,
-                active && "bg-zinc-100 dark:bg-zinc-700/70",
-              )}
+              className={clsx(menuItemClasses, active && 'bg-zinc-100 dark:bg-zinc-700/70')}
             >
-              <IconLicense
-                className={menuIconClasses}
-                stroke={1.5}
-                aria-hidden="true"
-              />
+              <IconLicense className={menuIconClasses} stroke={1.5} aria-hidden="true" />
               <span>Copyright & Licensing</span>
             </button>
           )}

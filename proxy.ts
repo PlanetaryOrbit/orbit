@@ -1,12 +1,17 @@
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
-const REQUIRED_ENV_VARS = [
-  "DATABASE_URL",
-  "SESSION_SECRET"
+const REQUIRED_ENV_VARS = ['DATABASE_URL', 'SESSION_SECRET'];
+
+const PUBLIC_ROUTES = [
+  '/welcome',
+  '/login',
+  '/api',
+  '/env-error',
+  '/forgot-password',
+  '/400',
+  '/500',
 ];
-
-const PUBLIC_ROUTES = ["/welcome", "/login", "/api", "/env-error", "/forgot-password", "/400", "/500"];
 
 function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
@@ -14,17 +19,19 @@ function isPublic(pathname: string) {
 
 function internalUrl(request: NextRequest, path: string): string {
   if (process.env.PLANETARY_CLOUD_URL) {
-    const base = "http://localhost:3000"; // idk seem to work on cloud instances
+    const base = 'http://localhost:3000'; // idk seem to work on cloud instances
     return `${base}${path}`;
   }
 
   if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
-    const base = process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL.replace(/\/$/, "") : process.env.PUBLIC_URL!.replace(/\/$/, "");
+    const base = process.env.NEXTAUTH_URL
+      ? process.env.NEXTAUTH_URL.replace(/\/$/, '')
+      : process.env.PUBLIC_URL!.replace(/\/$/, '');
     return `${base}${path}`;
   }
 
-  const host = request.headers.get("host") || "";
-  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+  const host = request.headers.get('host') || '';
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
     return `http://${host}${path}`;
   }
 
@@ -48,7 +55,7 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
   }
 
   try {
-    const url = internalUrl(request, "/api/admin/first-setup/config");
+    const url = internalUrl(request, '/api/admin/first-setup/config');
 
     const res = await fetch(url, {
       cache: 'no-store',
@@ -71,7 +78,7 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
       console.log(`[Middleware] Setup check failed with status: ${res.status}`);
     }
   } catch (error) {
-    console.error("[Middleware] Failed to check setup:", error);
+    console.error('[Middleware] Failed to check setup:', error);
   }
 
   return false;
@@ -81,67 +88,67 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
-    pathname.includes(".")
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api")) return NextResponse.next();
+  if (pathname.startsWith('/api')) return NextResponse.next();
 
   const missingVars = getMissingEnvVars();
   if (missingVars.length > 0) {
-    console.log("missing var!!!!!!")
-    console.log(missingVars)
-    if (pathname !== "/env-error") {
-      return NextResponse.redirect(new URL("/env-error", request.url));
+    console.log('missing var!!!!!!');
+    console.log(missingVars);
+    if (pathname !== '/env-error') {
+      return NextResponse.redirect(new URL('/env-error', request.url));
     }
     return NextResponse.next();
   }
 
   const isActuallySetup = await checkSetup(request);
-  const appSetupCookie = request.cookies.get("app_setup")?.value;
-  const cookieIsSetup = appSetupCookie === "true";
+  const appSetupCookie = request.cookies.get('app_setup')?.value;
+  const cookieIsSetup = appSetupCookie === 'true';
 
   const needsCookieUpdate = cookieIsSetup !== isActuallySetup;
 
-  if (!isActuallySetup && pathname !== "/welcome") {
+  if (!isActuallySetup && pathname !== '/welcome') {
     console.log(`[Middleware] Not setup, redirecting ${pathname} -> /welcome`);
-    const res = NextResponse.redirect(new URL("/welcome", request.url));
-    res.cookies.set("app_setup", "false", {
-      path: "/",
+    const res = NextResponse.redirect(new URL('/welcome', request.url));
+    res.cookies.set('app_setup', 'false', {
+      path: '/',
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: 'strict',
     });
     return res;
   }
 
-  if (isActuallySetup && pathname === "/welcome") {
+  if (isActuallySetup && pathname === '/welcome') {
     console.log(`[Middleware] Setup complete, redirecting /welcome -> /`);
-    const res = NextResponse.redirect(new URL("/", request.url));
-    res.cookies.set("app_setup", "true", {
-      path: "/",
+    const res = NextResponse.redirect(new URL('/', request.url));
+    res.cookies.set('app_setup', 'true', {
+      path: '/',
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: 'strict',
     });
     return res;
   }
   if (isActuallySetup && !isPublic(pathname)) {
-    const token = request.cookies.get("session_token")?.value;
+    const token = request.cookies.get('session_token')?.value;
     if (!token) {
       console.log(`[Middleware] No session token, redirecting ${pathname} -> /login`);
-      const res = NextResponse.redirect(new URL("/login", request.url));
-      res.cookies.set("app_setup", "true", {
-        path: "/",
+      const res = NextResponse.redirect(new URL('/login', request.url));
+      res.cookies.set('app_setup', 'true', {
+        path: '/',
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: 'strict',
       });
       return res;
     }
 
     try {
-      const url = internalUrl(request, "/api/auth/session/validate");
+      const url = internalUrl(request, '/api/auth/session/validate');
 
       const res = await fetch(url, {
         headers: {
@@ -151,21 +158,21 @@ export default async function middleware(request: NextRequest) {
       });
 
       if (!res.ok) {
-        const response = NextResponse.redirect(new URL("/login", request.url));
-        response.cookies.set("app_setup", "true", {
-          path: "/",
+        const response = NextResponse.redirect(new URL('/login', request.url));
+        response.cookies.set('app_setup', 'true', {
+          path: '/',
           httpOnly: true,
-          sameSite: "strict",
+          sameSite: 'strict',
         });
         return response;
       }
     } catch (error) {
-      console.error("[Middleware] Session validation failed:", error);
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.set("app_setup", "true", {
-        path: "/",
+      console.error('[Middleware] Session validation failed:', error);
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.set('app_setup', 'true', {
+        path: '/',
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: 'strict',
       });
       return response;
     }
@@ -175,15 +182,15 @@ export default async function middleware(request: NextRequest) {
 
   if (needsCookieUpdate) {
     console.log(`[Middleware] Updating app_setup cookie: ${cookieIsSetup} -> ${isActuallySetup}`);
-    response.cookies.set("app_setup", String(isActuallySetup), {
-      path: "/",
+    response.cookies.set('app_setup', String(isActuallySetup), {
+      path: '/',
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: 'strict',
     });
   }
 
   response.headers.set(
-    "Content-Security-Policy",
+    'Content-Security-Policy',
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -194,15 +201,12 @@ export default async function middleware(request: NextRequest) {
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",
-    ].join("; "),
+    ].join('; '),
   );
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "SAMEORIGIN");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload",
-  );
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 
   return response;
 }

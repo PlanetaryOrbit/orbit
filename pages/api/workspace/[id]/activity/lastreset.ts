@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 
@@ -10,10 +11,7 @@ type Data = {
 
 export default withPermissionCheck(handler);
 
-export async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
@@ -29,9 +27,9 @@ export async function handler(
           select: {
             username: true,
             picture: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!lastReset) {
@@ -40,8 +38,8 @@ export async function handler(
 
     const serializedReset = JSON.parse(
       JSON.stringify(lastReset, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
+        typeof value === 'bigint' ? value.toString() : value,
+      ),
     );
 
     return res.status(200).json({ success: true, lastReset: serializedReset });

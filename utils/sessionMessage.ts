@@ -1,8 +1,8 @@
 export const generateSessionTimeMessage = (gameName: string | null, sessionStartTime: Date) => {
   const hour = sessionStartTime.getHours();
-  
-  const defaultGameName = gameName || "Roblox";
-  
+
+  const defaultGameName = gameName || 'Roblox';
+
   const morningMessages = [
     `A morning in ${defaultGameName}`,
     `Morning shift in ${defaultGameName}`,
@@ -14,7 +14,7 @@ export const generateSessionTimeMessage = (gameName: string | null, sessionStart
     `Sunrise session in ${defaultGameName}`,
     `Morning mission in ${defaultGameName}`,
   ];
-  
+
   const afternoonMessages = [
     `Afternoon adventure in ${defaultGameName}`,
     `Midday mission in ${defaultGameName}`,
@@ -24,9 +24,9 @@ export const generateSessionTimeMessage = (gameName: string | null, sessionStart
     `Daytime duty in ${defaultGameName}`,
     `Afternoon grind in ${defaultGameName}`,
     `Peak performance in ${defaultGameName}`,
-    `Midday momentum in ${defaultGameName}`
+    `Midday momentum in ${defaultGameName}`,
   ];
-  
+
   const eveningMessages = [
     `Evening expedition in ${defaultGameName}`,
     `Night shift in ${defaultGameName}`,
@@ -37,18 +37,18 @@ export const generateSessionTimeMessage = (gameName: string | null, sessionStart
     `Moonlight mission in ${defaultGameName}`,
     `Night owl session in ${defaultGameName}`,
     `Late shift in ${defaultGameName}`,
-    `Evening entertainment in ${defaultGameName}`
+    `Evening entertainment in ${defaultGameName}`,
   ];
-  
+
   const lateNightMessages = [
     `Midnight mission in ${defaultGameName}`,
     `Late night grind in ${defaultGameName}`,
     `Insomnia session in ${defaultGameName}`,
     `After midnight in ${defaultGameName}`,
     `Nocturnal adventure in ${defaultGameName}`,
-    `Sleepless session in ${defaultGameName}`
+    `Sleepless session in ${defaultGameName}`,
   ];
-  
+
   let messages;
   if (hour >= 20 || hour < 4) {
     messages = hour >= 22 || hour < 2 ? lateNightMessages : eveningMessages;
@@ -57,6 +57,6 @@ export const generateSessionTimeMessage = (gameName: string | null, sessionStart
   } else {
     messages = morningMessages;
   }
-  
+
   return messages[Math.floor(Math.random() * messages.length)];
 };

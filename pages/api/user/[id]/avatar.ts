@@ -1,8 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { createHash } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
+
 import axios from 'axios';
-import { createHash } from 'crypto';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
 
 type CacheEntry = {
@@ -42,7 +43,7 @@ const BG_COLORS: Record<string, string> = {
   gray: '#666666',
   black: '#000000',
   white: '#ffffff',
-  orbit: '#ff0099'
+  orbit: '#ff0099',
 };
 
 const FALLBACK_HEADSHOT_USER_IDS = [156, 1, 8146];
@@ -70,7 +71,7 @@ async function fetchFallbackRobloxAvatarBuffer(targetResolution: number): Promis
       const response = await axios.get(imageUrl, {
         responseType: 'arraybuffer',
         timeout: 12000,
-        validateStatus: (status) => status === 200
+        validateStatus: (status) => status === 200,
       });
       const buf = Buffer.from(response.data);
       if (isPngBuffer(buf) && buf.length > 200) return buf;
@@ -83,8 +84,8 @@ async function fetchFallbackRobloxAvatarBuffer(targetResolution: number): Promis
       width: size,
       height: size,
       channels: 3,
-      background: { r: 160, g: 160, b: 170 }
-    }
+      background: { r: 160, g: 160, b: 170 },
+    },
   })
     .png()
     .toBuffer();
@@ -157,12 +158,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.end(mem.buffer);
 
       if (Date.now() - mem.lastRefresh > STALE_AFTER_MS) {
-        triggerBackgroundRefresh(userIdNum, avatarPath, cacheKey, bgColor, resolution).catch(() => { });
+        triggerBackgroundRefresh(userIdNum, avatarPath, cacheKey, bgColor, resolution).catch(
+          () => {},
+        );
       }
       return;
     }
 
-    await fs.mkdir(avatarDir, { recursive: true }).catch(() => { });
+    await fs.mkdir(avatarDir, { recursive: true }).catch(() => {});
 
     let baseBuffer: Buffer | null = null;
     let diskStat: any = null;
@@ -174,9 +177,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         baseBuffer = null;
         diskStat = null;
       }
-    } catch { }
+    } catch {}
 
-    if (fetchFromRoblox || !baseBuffer || (diskStat && Date.now() - diskStat.mtimeMs > STALE_AFTER_MS)) {
+    if (
+      fetchFromRoblox ||
+      !baseBuffer ||
+      (diskStat && Date.now() - diskStat.mtimeMs > STALE_AFTER_MS)
+    ) {
       baseBuffer = await fetchAndPersist(userIdNum, avatarPath, sourceResolution);
       diskStat = { mtimeMs: Date.now() };
     }
@@ -193,7 +200,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       etag,
       mtime: diskStat?.mtimeMs || now,
       lastRefresh: now,
-      metadata: { color: bgColor, resolution }
+      metadata: { color: bgColor, resolution },
     };
 
     touch(cacheKey, entry);
@@ -206,7 +213,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     setCommonHeaders(res, entry);
     res.setHeader('Content-Length', processedBuffer.length.toString());
     res.end(processedBuffer);
-
   } catch (e) {
     console.error('Avatar error serving', userIdNum, e);
     try {
@@ -230,14 +236,14 @@ async function processImage(
   buffer: Buffer,
   bgColor?: string,
   targetResolution: number = 180,
-  sourceResolution: number = 180
+  sourceResolution: number = 180,
 ): Promise<Buffer> {
   let pipeline = sharp(buffer);
 
   if (targetResolution !== sourceResolution) {
     pipeline = pipeline.resize(targetResolution, targetResolution, {
       fit: 'contain',
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
     });
   }
 
@@ -246,7 +252,7 @@ async function processImage(
     const rgb = hexToRgb(hexColor);
 
     pipeline = pipeline.flatten({
-      background: rgb
+      background: rgb,
     });
   }
 
@@ -256,14 +262,19 @@ async function processImage(
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   let normalized = hex.replace(/^#/, '');
   if (normalized.length === 3) {
-    normalized = normalized.split('').map(c => c + c).join('');
+    normalized = normalized
+      .split('')
+      .map((c) => c + c)
+      .join('');
   }
   const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalized);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 0, g: 0, b: 0 };
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 0, g: 0, b: 0 };
 }
 
 function computeETag(buf: Buffer): string {
@@ -290,7 +301,11 @@ function isNotModified(req: NextApiRequest, entry: CacheEntry): boolean {
   return false;
 }
 
-async function fetchAndPersist(userId: number, filePath: string, resolution: number = 180): Promise<Buffer> {
+async function fetchAndPersist(
+  userId: number,
+  filePath: string,
+  resolution: number = 180,
+): Promise<Buffer> {
   try {
     const remoteUrl = await getRemoteAvatarUrl(userId, resolution);
 
@@ -301,7 +316,7 @@ async function fetchAndPersist(userId: number, filePath: string, resolution: num
           console.warn('Avatar serving stale disk copy for', userId, '(thumbnail pending)');
           return stale;
         }
-      } catch { }
+      } catch {}
       return fetchFallbackRobloxAvatarBuffer(resolution);
     }
 
@@ -318,7 +333,7 @@ async function fetchAndPersist(userId: number, filePath: string, resolution: num
     }
 
     if (ROBLOX_RESOLUTIONS.includes(resolution)) {
-      fs.writeFile(filePath, buf).catch(() => { });
+      fs.writeFile(filePath, buf).catch(() => {});
     }
 
     return buf;
@@ -327,7 +342,7 @@ async function fetchAndPersist(userId: number, filePath: string, resolution: num
     try {
       const stale = await fs.readFile(filePath);
       if (isPngBuffer(stale) && stale.length > 200) return stale;
-    } catch { }
+    } catch {}
     return fetchFallbackRobloxAvatarBuffer(resolution);
   }
 }
@@ -337,7 +352,7 @@ async function triggerBackgroundRefresh(
   filePath: string,
   cacheKey: string,
   bgColor?: string,
-  targetResolution: number = 180
+  targetResolution: number = 180,
 ) {
   try {
     let sourceResolution: number;
@@ -360,17 +375,24 @@ async function triggerBackgroundRefresh(
       etag: computeETag(processedBuffer),
       mtime: now,
       lastRefresh: now,
-      metadata: { color: bgColor, resolution: targetResolution }
+      metadata: { color: bgColor, resolution: targetResolution },
     };
 
     touch(cacheKey, entry);
-    console.log('Avatar refreshed', userId, `(${targetResolution}x${targetResolution}${bgColor ? `, ${bgColor}` : ''})`);
+    console.log(
+      'Avatar refreshed',
+      userId,
+      `(${targetResolution}x${targetResolution}${bgColor ? `, ${bgColor}` : ''})`,
+    );
   } catch (e) {
     console.warn('Avatar background refresh failed', userId, e);
   }
 }
 
-async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Promise<string | null> {
+async function getRemoteAvatarUrl(
+  userId: number,
+  resolution: number = 180,
+): Promise<string | null> {
   const clampedRes = ROBLOX_RESOLUTIONS.includes(resolution)
     ? resolution
     : Math.min(resolution, 720);
@@ -380,17 +402,24 @@ async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Pro
   try {
     const response = await axios.get<{
       data: Array<{ targetId: number; state: string; imageUrl: string }>;
-    }>(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${String(userId)}&size=${size}&format=Png&isCircular=false`, {
-      timeout: 10000,
-      validateStatus: (status) => status === 200
-    });
+    }>(
+      `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${String(userId)}&size=${size}&format=Png&isCircular=false`,
+      {
+        timeout: 10000,
+        validateStatus: (status) => status === 200,
+      },
+    );
 
     const entry = response.data?.data?.[0];
 
     if (entry?.state === 'Completed' && entry?.imageUrl) return entry.imageUrl;
 
     if (entry?.state === 'Pending') {
-      console.warn('Roblox Thumbnails API returned Pending for', userId, '— will retry or use disk cache');
+      console.warn(
+        'Roblox Thumbnails API returned Pending for',
+        userId,
+        '— will retry or use disk cache',
+      );
       return null;
     }
 

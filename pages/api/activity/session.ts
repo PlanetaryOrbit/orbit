@@ -1,11 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import * as noblox from "noblox.js";
-import { getUsername, getThumbnail } from "@/utils/userinfoEngine";
-import { checkSpecificUser } from "@/utils/permissionsManager";
-import { generateSessionTimeMessage } from "@/utils/sessionMessage";
-import { deriveActivityEndChatFields } from "@/utils/activitySessionChat";
-import cache from "@/utils/cache";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
+
+import { deriveActivityEndChatFields } from '@/utils/activitySessionChat';
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+import { checkSpecificUser } from '@/utils/permissionsManager';
+import { generateSessionTimeMessage } from '@/utils/sessionMessage';
+import { getUsername, getThumbnail } from '@/utils/userinfoEngine';
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -17,14 +18,9 @@ type Data = {
   data?: any;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "POST" && req.method !== "GET") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const { authorization } = req.headers;
@@ -42,7 +38,7 @@ export default async function handler(
         config = await prisma.config.findFirst({
           where: {
             value: {
-              path: ["key"],
+              path: ['key'],
               equals: authorization,
             },
           },
@@ -54,33 +50,25 @@ export default async function handler(
       }
 
       if (!config) {
-        return res
-          .status(401)
-          .json({ success: false, error: "Invalid authorization key" });
+        return res.status(401).json({ success: false, error: 'Invalid authorization key' });
       }
     }
   } catch (err) {
-    console.error("Unexpected error in /api/activity:", err);
+    console.error('Unexpected error in /api/activity:', err);
 
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { userid, placeid, idleTime } = req.body;
     const { type } = req.query;
 
     if (!userid || isNaN(userid)) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Invalid or missing userid" });
+      return res.status(400).json({ success: false, error: 'Invalid or missing userid' });
     }
 
-    if (!type || typeof type !== "string") {
-      return res
-        .status(400)
-        .json({ success: false, error: "Missing query type (create or end)" });
+    if (!type || typeof type !== 'string') {
+      return res.status(400).json({ success: false, error: 'Missing query type (create or end)' });
     }
 
     try {
@@ -90,7 +78,7 @@ export default async function handler(
         if (!workspaceId) {
           return res.status(400).json({
             success: false,
-            error: "Workspace ID required for session-based auth",
+            error: 'Workspace ID required for session-based auth',
           });
         }
 
@@ -111,18 +99,14 @@ export default async function handler(
         }
 
         if (!config) {
-          return res
-            .status(404)
-            .json({ success: false, error: "Workspace not found" });
+          return res.status(404).json({ success: false, error: 'Workspace not found' });
         }
 
         groupId = config.workspaceGroupId;
       } else if (config) {
         groupId = config.workspaceGroupId;
       } else {
-        return res
-          .status(401)
-          .json({ success: false, error: "Authorization required" });
+        return res.status(401).json({ success: false, error: 'Authorization required' });
       }
 
       const parsedConfig = JSON.parse(JSON.stringify(config.value));
@@ -132,9 +116,7 @@ export default async function handler(
       let userRank = await cache.get<number | null>(rankCacheKey);
 
       if (userRank === null) {
-        userRank = await noblox
-          .getRankInGroup(groupId, userid)
-          .catch(() => null);
+        userRank = await noblox.getRankInGroup(groupId, userid).catch(() => null);
 
         await cache.set(rankCacheKey, userRank, 300);
       }
@@ -142,7 +124,7 @@ export default async function handler(
       if (parsedConfig.role && (!userRank || userRank < parsedConfig.role)) {
         return res.status(200).json({
           success: true,
-          error: "User is not the right rank",
+          error: 'User is not the right rank',
         });
       }
 
@@ -179,7 +161,7 @@ export default async function handler(
 
       await checkSpecificUser(userid);
 
-      if (type === "create") {
+      if (type === 'create') {
         const existing = await prisma.activitySession.findFirst({
           where: {
             userId: BigInt(userid),
@@ -191,7 +173,7 @@ export default async function handler(
         if (existing) {
           return res.status(400).json({
             success: false,
-            error: "Session already initialized",
+            error: 'Session already initialized',
           });
         }
 
@@ -199,36 +181,25 @@ export default async function handler(
 
         if (placeid) {
           try {
-            let universeInfo = await cache.get<any>(
-              `roblox:universe:${placeid}`,
-            );
+            let universeInfo = await cache.get<any>(`roblox:universe:${placeid}`);
 
             if (!universeInfo) {
               universeInfo = await noblox.getUniverseInfo(Number(placeid));
 
-              await cache.set(
-                `roblox:universe:${placeid}`,
-                universeInfo,
-                86400,
-              );
+              await cache.set(`roblox:universe:${placeid}`, universeInfo, 86400);
             }
 
             if (universeInfo?.[0]?.name) {
               gameName = universeInfo[0].name;
             }
           } catch {
-            console.log(
-              `[WARNING] Could not fetch universe info for place ${placeid}`,
-            );
+            console.log(`[WARNING] Could not fetch universe info for place ${placeid}`);
           }
         }
 
         const sessionStartTime = new Date();
 
-        const sessionMessage = generateSessionTimeMessage(
-          gameName,
-          sessionStartTime,
-        );
+        const sessionMessage = generateSessionTimeMessage(gameName, sessionStartTime);
 
         await prisma.activitySession.create({
           data: {
@@ -249,7 +220,7 @@ export default async function handler(
         });
       }
 
-      if (type === "end") {
+      if (type === 'end') {
         const session = await prisma.activitySession.findFirst({
           where: {
             userId: BigInt(userid),
@@ -261,14 +232,15 @@ export default async function handler(
         if (!session) {
           return res.status(400).json({
             success: false,
-            error: "Session not found",
+            error: 'Session not found',
           });
         }
 
         const endTime = new Date();
 
-        const { messages: messagesCount, chatLog } =
-          deriveActivityEndChatFields(req.body as Record<string, unknown>);
+        const { messages: messagesCount, chatLog } = deriveActivityEndChatFields(
+          req.body as Record<string, unknown>,
+        );
 
         await prisma.activitySession.update({
           where: {
@@ -292,25 +264,25 @@ export default async function handler(
 
       return res.status(400).json({
         success: false,
-        error: "Invalid query type",
+        error: 'Invalid query type',
       });
     } catch (error) {
       console.error(error);
 
       return res.status(500).json({
         success: false,
-        error: "Internal server error",
+        error: 'Internal server error',
       });
     }
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     const { id } = req.query;
 
     if (!id) {
       return res.status(401).json({
         success: false,
-        error: "Session ID required.",
+        error: 'Session ID required.',
       });
     }
 
@@ -321,7 +293,7 @@ export default async function handler(
         if (!workspaceId) {
           return res.status(400).json({
             success: false,
-            error: "Workspace ID required for session-based auth",
+            error: 'Workspace ID required for session-based auth',
           });
         }
 
@@ -334,7 +306,7 @@ export default async function handler(
         if (!config) {
           return res.status(404).json({
             success: false,
-            error: "Workspace not found",
+            error: 'Workspace not found',
           });
         }
 
@@ -344,7 +316,7 @@ export default async function handler(
       } else {
         return res.status(401).json({
           success: false,
-          error: "Authorization required",
+          error: 'Authorization required',
         });
       }
 
@@ -369,7 +341,7 @@ export default async function handler(
       if (!session) {
         return res.status(404).json({
           success: false,
-          error: "No active session found.",
+          error: 'No active session found.',
         });
       }
 
@@ -382,7 +354,7 @@ export default async function handler(
 
       return res.status(500).json({
         success: false,
-        error: "Internal server error",
+        error: 'Internal server error',
       });
     }
   }

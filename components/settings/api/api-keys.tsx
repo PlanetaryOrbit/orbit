@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { Dialog } from '@headlessui/react';
 import {
   IconKey,
   IconTrash,
@@ -9,12 +9,12 @@ import {
   IconCalendar,
   IconClock,
   IconChevronDown,
-} from "@tabler/icons-react";
-import axios from "axios";
-import { useRouter } from "next/router";
-import { Dialog } from "@headlessui/react";
-import { motion } from "framer-motion";
-import clsx from "clsx";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 
 interface ApiKey {
   id: string;
@@ -31,26 +31,26 @@ interface ApiKey {
 }
 
 const BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -68,8 +68,8 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
   const [newKeyData, setNewKeyData] = useState({
-    name: "",
-    expiresIn: "90days",
+    name: '',
+    expiresIn: '90days',
   });
   const [createdKey, setCreatedKey] = useState<{ key: string } | null>(null);
 
@@ -79,15 +79,13 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
 
   const fetchApiKeys = async () => {
     try {
-      const { data } = await axios.get(
-        `/api/workspace/${workspaceId}/settings/api-keys`
-      );
+      const { data } = await axios.get(`/api/workspace/${workspaceId}/settings/api-keys`);
       if (data.success) {
         setApiKeys(data.apiKeys);
       }
     } catch (error) {
-      console.error("Error fetching API keys:", error);
-      triggerToast.error("Failed to fetch API keys");
+      console.error('Error fetching API keys:', error);
+      triggerToast.error('Failed to fetch API keys');
     } finally {
       setLoading(false);
     }
@@ -97,53 +95,53 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
     try {
       const { data } = await axios.post(
         `/api/workspace/${workspaceId}/settings/api-keys/create`,
-        newKeyData
+        newKeyData,
       );
       if (data.success) {
         setCreatedKey(data.apiKey);
         fetchApiKeys();
-        triggerToast.success("API key created successfully");
+        triggerToast.success('API key created successfully');
       }
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response) {
         const status = error.response.status;
-        const message = error.response.data?.error || "An error occurred";
+        const message = error.response.data?.error || 'An error occurred';
         if (status === 400 || status === 500) {
           triggerToast.error(message);
           return;
         }
       }
-      console.error("Error creating API key:", error);
-      triggerToast.error("Failed to create API key");
+      console.error('Error creating API key:', error);
+      triggerToast.error('Failed to create API key');
     }
   };
 
   const deleteApiKey = async (keyId: string) => {
     try {
       const { data } = await axios.delete(
-        `/api/workspace/${workspaceId}/settings/api-keys/${keyId}/delete`
+        `/api/workspace/${workspaceId}/settings/api-keys/${keyId}/delete`,
       );
       if (data.success) {
         fetchApiKeys();
-        triggerToast.success("API key deleted successfully");
+        triggerToast.success('API key deleted successfully');
         setIsDeleteModalOpen(false);
       }
     } catch (error) {
-      console.error("Error deleting API key:", error);
-      triggerToast.error("Failed to delete API key");
+      console.error('Error deleting API key:', error);
+      triggerToast.error('Failed to delete API key');
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    triggerToast.success("Copied to clipboard");
+    triggerToast.success('Copied to clipboard');
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
@@ -159,9 +157,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-            API Keys
-          </h3>
+          <h3 className="text-lg font-medium text-zinc-900 dark:text-white">API Keys</h3>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage API keys for accessing workspace data programmatically
           </p>
@@ -178,9 +174,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
       {apiKeys.length === 0 ? (
         <div className="text-center py-12 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
           <IconKey size={48} className="mx-auto text-zinc-400 mb-4" />
-          <p className="text-zinc-500 dark:text-zinc-400">
-            No API keys created yet
-          </p>
+          <p className="text-zinc-500 dark:text-zinc-400">No API keys created yet</p>
           <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-2">
             Create an API key to start using the public API
           </p>
@@ -194,9 +188,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
             >
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="font-medium text-zinc-900 dark:text-white">
-                    {key.name}
-                  </h4>
+                  <h4 className="font-medium text-zinc-900 dark:text-white">{key.name}</h4>
                   <code className="text-sm bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 px-2 py-1 rounded">
                     {key.key}
                   </code>
@@ -216,11 +208,11 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                     <span className="flex items-center gap-1.5">
                       <div
                         className={`h-4 w-4 rounded-full flex items-center justify-center overflow-hidden ${getRandomBg(
-                          key.createdBy.userid.toString()
+                          key.createdBy.userid.toString(),
                         )}`}
                       >
                         <img
-                          src={key.createdBy.picture || "/default-avatar.jpg"}
+                          src={key.createdBy.picture || '/default-avatar.jpg'}
                           alt={key.createdBy.username}
                           className="h-4 w-4 object-cover rounded-full border border-white"
                         />
@@ -250,7 +242,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
           onClick={(e) => {
             if (e.target === e.currentTarget && !createdKey) {
               setIsCreateModalOpen(false);
-              setNewKeyData({ name: "", expiresIn: "90days" });
+              setNewKeyData({ name: '', expiresIn: '90days' });
             }
           }}
         >
@@ -278,12 +270,12 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                     id="api-key-title"
                     className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
                   >
-                    {createdKey ? "API key created" : "Create API key"}
+                    {createdKey ? 'API key created' : 'Create API key'}
                   </h2>
                   {!createdKey && (
                     <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                      Uses your workspace accent. Keys can access workspace data
-                      from scripts and integrations—treat them like passwords.
+                      Uses your workspace accent. Keys can access workspace data from scripts and
+                      integrations—treat them like passwords.
                     </p>
                   )}
                 </div>
@@ -296,8 +288,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                       Copy it now
                     </p>
                     <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90">
-                      You won&apos;t be able to see this secret again after you
-                      close this dialog.
+                      You won&apos;t be able to see this secret again after you close this dialog.
                     </p>
                     <div className="mt-3 flex gap-2">
                       <code className="flex-1 break-all rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 font-mono text-xs text-zinc-800 dark:border-amber-900/50 dark:bg-zinc-950 dark:text-zinc-100">
@@ -318,7 +309,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                     onClick={() => {
                       setIsCreateModalOpen(false);
                       setCreatedKey(null);
-                      setNewKeyData({ name: "", expiresIn: "90days" });
+                      setNewKeyData({ name: '', expiresIn: '90days' });
                     }}
                     className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-colors hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
                   >
@@ -347,9 +338,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                         id="api-key-name"
                         type="text"
                         value={newKeyData.name}
-                        onChange={(e) =>
-                          setNewKeyData({ ...newKeyData, name: e.target.value })
-                        }
+                        onChange={(e) => setNewKeyData({ ...newKeyData, name: e.target.value })}
                         placeholder="e.g. Production integration"
                         autoComplete="off"
                         className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-100 dark:placeholder:text-zinc-500"
@@ -391,7 +380,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                       type="button"
                       onClick={() => {
                         setIsCreateModalOpen(false);
-                        setNewKeyData({ name: "", expiresIn: "90days" });
+                        setNewKeyData({ name: '', expiresIn: '90days' });
                       }}
                       className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80"
                     >
@@ -417,10 +406,7 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
         onClose={() => setIsDeleteModalOpen(false)}
         className="relative z-50"
       >
-        <div
-          className="fixed inset-0 bg-zinc-950/55 backdrop-blur-[2px]"
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 bg-zinc-950/55 backdrop-blur-[2px]" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-2xl shadow-zinc-900/10 dark:border-zinc-700/80 dark:bg-zinc-900 dark:shadow-black/40">
             <div className="h-1 w-full bg-gradient-to-r from-red-500/30 via-red-500 to-red-500/30" />
@@ -437,12 +423,11 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
                     Delete API key
                   </Dialog.Title>
                   <Dialog.Description className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    This revokes access immediately for{" "}
+                    This revokes access immediately for{' '}
                     <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                      {selectedKey?.name ?? "this key"}
+                      {selectedKey?.name ?? 'this key'}
                     </span>
-                    . Apps using it will start failing. This can&apos;t be
-                    undone.
+                    . Apps using it will start failing. This can&apos;t be undone.
                   </Dialog.Description>
                 </div>
               </div>
@@ -470,4 +455,4 @@ export const ApiKeys = ({ triggerToast }: { triggerToast: any }) => {
   );
 };
 
-ApiKeys.title = "API Keys";
+ApiKeys.title = 'API Keys';

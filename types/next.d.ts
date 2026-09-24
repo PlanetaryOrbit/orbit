@@ -1,6 +1,6 @@
-import { IronSession } from "iron-session";
+import { IronSession } from 'iron-session';
 
-declare module "next" {
+declare module 'next' {
   interface NextApiRequest {
     session: IronSession & {
       userid?: number;
@@ -8,7 +8,7 @@ declare module "next" {
   }
 }
 
-declare module "http" {
+declare module 'http' {
   interface IncomingMessage {
     session?: IronSession & {
       userid?: number;

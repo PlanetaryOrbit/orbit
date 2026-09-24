@@ -1,5 +1,5 @@
-import prisma from "@/utils/database";
-import { getConfig } from "@/utils/configEngine";
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
 
 type ResetResult = {
   workspaceId: number;
@@ -21,24 +21,13 @@ export async function runActivityReset() {
   const now = new Date();
   const currentDay = now.getDay();
 
-  const dayNames = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ];
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
   const currentDayName = dayNames[currentDay];
 
   for (const workspace of workspaces) {
     try {
-      const schedule = await getConfig(
-        "activity_reset_schedule",
-        workspace.groupId
-      );
+      const schedule = await getConfig('activity_reset_schedule', workspace.groupId);
 
       if (!schedule?.enabled) continue;
       if (schedule.day !== currentDayName) continue;
@@ -59,9 +48,7 @@ export async function runActivityReset() {
         },
       });
 
-      const todayReset = allTodayResets.find(
-        (reset) => reset.resetById === null
-      );
+      const todayReset = allTodayResets.find((reset) => reset.resetById === null);
 
       if (todayReset) continue;
 
@@ -70,13 +57,11 @@ export async function runActivityReset() {
           workspaceGroupId: workspace.groupId,
         },
         orderBy: {
-          resetAt: "desc",
+          resetAt: 'desc',
         },
       });
 
-      const lastAutoReset = allResets.find(
-        (reset) => reset.resetById === null
-      );
+      const lastAutoReset = allResets.find((reset) => reset.resetById === null);
 
       let shouldReset = false;
 
@@ -84,24 +69,14 @@ export async function runActivityReset() {
         shouldReset = true;
       } else {
         const daysSinceLastAutoReset = Math.floor(
-          (now.getTime() - lastAutoReset.resetAt.getTime()) /
-            (1000 * 60 * 60 * 24)
+          (now.getTime() - lastAutoReset.resetAt.getTime()) / (1000 * 60 * 60 * 24),
         );
 
-        if (
-          schedule.frequency === "weekly" &&
-          daysSinceLastAutoReset >= 7
-        ) {
+        if (schedule.frequency === 'weekly' && daysSinceLastAutoReset >= 7) {
           shouldReset = true;
-        } else if (
-          schedule.frequency === "biweekly" &&
-          daysSinceLastAutoReset >= 14
-        ) {
+        } else if (schedule.frequency === 'biweekly' && daysSinceLastAutoReset >= 14) {
           shouldReset = true;
-        } else if (
-          schedule.frequency === "monthly" &&
-          daysSinceLastAutoReset >= 28
-        ) {
+        } else if (schedule.frequency === 'monthly' && daysSinceLastAutoReset >= 28) {
           shouldReset = true;
         }
       }
@@ -111,18 +86,14 @@ export async function runActivityReset() {
 
         results.push({
           workspaceId: workspace.groupId,
-          workspaceName:
-            workspace.groupName ??
-            `Workspace ${workspace.groupId}`,
+          workspaceName: workspace.groupName ?? `Workspace ${workspace.groupId}`,
           success: true,
         });
       }
     } catch (error: any) {
       results.push({
         workspaceId: workspace.groupId,
-        workspaceName:
-          workspace.groupName ??
-          `Workspace ${workspace.groupId}`,
+        workspaceName: workspace.groupName ?? `Workspace ${workspace.groupId}`,
         success: false,
         error: error.message,
       });
@@ -140,13 +111,13 @@ export async function runActivityReset() {
 async function performReset(workspaceGroupId: number) {
   const earliestSession = await prisma.activitySession.findFirst({
     where: { workspaceGroupId },
-    orderBy: { startTime: "asc" },
+    orderBy: { startTime: 'asc' },
     select: { startTime: true },
   });
 
   const earliestAdjustment = await prisma.activityAdjustment.findFirst({
     where: { workspaceGroupId },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: 'asc' },
     select: { createdAt: true },
   });
 
@@ -223,7 +194,7 @@ async function performReset(workspaceGroupId: number) {
     sessions.forEach((session) => {
       if (session.endTime) {
         const duration = Math.round(
-          (session.endTime.getTime() - session.startTime.getTime()) / 60000
+          (session.endTime.getTime() - session.startTime.getTime()) / 60000,
         );
         sessionMinutes += duration;
       }
@@ -235,10 +206,7 @@ async function performReset(workspaceGroupId: number) {
       where: { userId, workspaceGroupId, archived: { not: true } },
     });
 
-    const adjustmentMinutes = adjustments.reduce(
-      (sum, adj) => sum + adj.minutes,
-      0
-    );
+    const adjustmentMinutes = adjustments.reduce((sum, adj) => sum + adj.minutes, 0);
     const totalMinutes = sessionMinutes + adjustmentMinutes;
 
     const ownedSessions = await prisma.session.findMany({
@@ -280,7 +248,7 @@ async function performReset(workspaceGroupId: number) {
 
     const quotaProgress: any = {};
     const userRoles = member.user.roles;
-    
+
     for (const role of userRoles) {
       for (const quotaRole of role.quotaRoles) {
         const quota = quotaRole.quota;
@@ -326,8 +294,7 @@ async function performReset(workspaceGroupId: number) {
 
     for (const quotaId in quotaProgress) {
       quotaProgress[quotaId].currentMinutes = totalMinutes;
-      quotaProgress[quotaId].completed =
-        totalMinutes >= quotaProgress[quotaId].targetMinutes;
+      quotaProgress[quotaId].completed = totalMinutes >= quotaProgress[quotaId].targetMinutes;
     }
 
     historyRecords.push({

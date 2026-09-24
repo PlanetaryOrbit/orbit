@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { IconChevronRight } from "@tabler/icons-react";
-import { HomeEmpty, HomeSection } from "@/components/home/shell";
+import { IconChevronRight } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+
+import { HomeEmpty, HomeSection } from '@/components/home/shell';
 
 interface GroupLink {
   id: number;
@@ -34,7 +35,7 @@ export default function QuickLinks() {
     fetchQLs();
   }, [router.isReady, router.query.id]);
 
-  const pushCreate = () => router.push("https://create.roblox.com");
+  const pushCreate = () => router.push('https://create.roblox.com');
   const pushGame = (id: number) => router.push(`https://www.roblox.com/games/${id}/`);
 
   return (
@@ -44,7 +45,7 @@ export default function QuickLinks() {
           <span className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-primary dark:border-zinc-600" />
         </div>
       ) : quickLinks.length === 0 ? (
-        <HomeEmpty action={{ label: "Roblox Create", onClick: pushCreate }}>
+        <HomeEmpty action={{ label: 'Roblox Create', onClick: pushCreate }}>
           No experiences linked to this group yet.
         </HomeEmpty>
       ) : (
@@ -57,7 +58,7 @@ export default function QuickLinks() {
               className="group relative aspect-[16/10] overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 text-left dark:border-zinc-700 dark:bg-zinc-800"
             >
               <img
-                src={post.thumbnailUrl || "/favicon-32x32.png"}
+                src={post.thumbnailUrl || '/favicon-32x32.png'}
                 alt=""
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               />

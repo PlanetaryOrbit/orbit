@@ -2,11 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 
 /**
  * Hook to manage CSRF tokens for API requests
- * 
+ *
  * Usage:
  * ```tsx
  * const { token, refresh, loading } = useCsrfToken();
- * 
+ *
  * // Include token in API requests:
  * fetch('/api/endpoint', {
  *   method: 'POST',
@@ -26,16 +26,16 @@ export function useCsrfToken() {
   const fetchToken = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/csrf-token');
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch CSRF token: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success && data.token) {
         setToken(data.token);
       } else {
@@ -52,12 +52,15 @@ export function useCsrfToken() {
 
   useEffect(() => {
     fetchToken();
-    
+
     // Refresh token periodically (every 30 minutes)
-    const interval = setInterval(() => {
-      fetchToken();
-    }, 30 * 60 * 1000);
-    
+    const interval = setInterval(
+      () => {
+        fetchToken();
+      },
+      30 * 60 * 1000,
+    );
+
     return () => clearInterval(interval);
   }, [fetchToken]);
 
@@ -71,7 +74,7 @@ export function useCsrfToken() {
 
 /**
  * Helper function to add CSRF token to fetch options
- * 
+ *
  * Usage:
  * ```tsx
  * const options = withCsrfToken(token, {
@@ -79,14 +82,11 @@ export function useCsrfToken() {
  *   headers: { 'Content-Type': 'application/json' },
  *   body: JSON.stringify(data)
  * });
- * 
+ *
  * fetch('/api/endpoint', options);
  * ```
  */
-export function withCsrfToken(
-  token: string | null,
-  options: RequestInit = {}
-): RequestInit {
+export function withCsrfToken(token: string | null, options: RequestInit = {}): RequestInit {
   if (!token) {
     return options;
   }

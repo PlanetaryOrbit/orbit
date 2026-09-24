@@ -7,9 +7,9 @@
  * @module utils/v2/cache/redis
  */
 
-import Redis from "ioredis";
+import Redis from 'ioredis';
 
-import type { CacheProvider } from "./memory";
+import type { CacheProvider } from './memory';
 
 let client: Redis | null = null;
 
@@ -24,8 +24,8 @@ if (process.env.REDIS_URL) {
       retryStrategy: () => null,
     });
 
-    redis.on("error", (err) => {
-      console.warn("[Cache] Redis unavailable:", err.message);
+    redis.on('error', (err) => {
+      console.warn('[Cache] Redis unavailable:', err.message);
     });
 
     await redis.connect();
@@ -33,13 +33,11 @@ if (process.env.REDIS_URL) {
 
     client = redis;
 
-    console.log("[Cache] Redis connected");
+    console.log('[Cache] Redis connected');
   } catch {
     redis?.disconnect();
 
-    console.warn(
-      "[Cache] Redis unavailable, using memory cache"
-    );
+    console.warn('[Cache] Redis unavailable, using memory cache');
 
     client = null;
   }
@@ -57,17 +55,8 @@ const redisCache: CacheProvider | null = client
         return JSON.parse(value) as T;
       },
 
-      async set(
-        key: string,
-        value: unknown,
-        ttl = 300
-      ): Promise<void> {
-        await client!.set(
-          key,
-          JSON.stringify(value),
-          "EX",
-          ttl
-        );
+      async set(key: string, value: unknown, ttl = 300): Promise<void> {
+        await client!.set(key, JSON.stringify(value), 'EX', ttl);
       },
 
       async del(key: string): Promise<void> {
@@ -78,10 +67,7 @@ const redisCache: CacheProvider | null = client
         return (await client!.exists(key)) === 1;
       },
 
-      async increment(
-        key: string,
-        ttl = 60
-      ): Promise<number> {
+      async increment(key: string, ttl = 60): Promise<number> {
         const value = await client!.incr(key);
 
         if (value === 1) {

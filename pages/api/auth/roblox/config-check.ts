@@ -1,12 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+import prisma from '@/utils/database';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -17,7 +15,8 @@ export default async function handler(
 
     if (hasEnvCredentials) {
       return res.json({
-        available: envClientId.length > 0 && envClientSecret.length > 0 && envRedirectUri.length > 0 ,
+        available:
+          envClientId.length > 0 && envClientSecret.length > 0 && envRedirectUri.length > 0,
         configured: {
           clientId: true,
           clientSecret: true,
@@ -30,16 +29,19 @@ export default async function handler(
     const configs = await prisma.instanceConfig.findMany({
       where: {
         key: {
-          in: ["robloxClientId", "robloxClientSecret", "robloxRedirectUri", "oauthOnlyLogin"],
+          in: ['robloxClientId', 'robloxClientSecret', 'robloxRedirectUri', 'oauthOnlyLogin'],
         },
       },
     });
 
-    const configMap = configs.reduce((acc, config) => {
-      acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
-      return acc;
-    }, {} as Record<string, any>);
-    
+    const configMap = configs.reduce(
+      (acc, config) => {
+        acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
     const clientId = configMap.robloxClientId;
     const clientSecret = configMap.robloxClientSecret;
     const redirectUri = configMap.robloxRedirectUri;
@@ -55,7 +57,7 @@ export default async function handler(
       usingEnvVars: false,
     });
   } catch (error) {
-    console.error("Failed to check OAuth configuration:", error);
+    console.error('Failed to check OAuth configuration:', error);
     return res.json({ available: false, usingEnvVars: false });
   }
 }

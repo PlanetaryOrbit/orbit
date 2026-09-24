@@ -1,7 +1,8 @@
-import clsx from "clsx";
-import { IconFolder } from "@tabler/icons-react";
-import { DocsPanel, docsPanelShadow } from "./shell";
-import { FolderIconBadge } from "./folderIcons";
+import { IconFolder } from '@tabler/icons-react';
+import clsx from 'clsx';
+
+import { FolderIconBadge } from './folderIcons';
+import { DocsPanel, docsPanelShadow } from './shell';
 
 export type DocFolderOption = {
   id: string;
@@ -12,7 +13,7 @@ export type DocFolderOption = {
 
 export function buildFolderPath(
   folderId: string | null | undefined,
-  folders: DocFolderOption[]
+  folders: DocFolderOption[],
 ): DocFolderOption[] {
   if (!folderId) return [];
   const byId = new Map(folders.map((f) => [f.id, f]));
@@ -38,22 +39,27 @@ export function FolderPicker({
   disabled?: boolean;
   className?: string;
 }) {
-  const options = [{ id: "", name: "No folder (root)", parentId: null as string | null }, ...folders];
+  const options = [
+    { id: '', name: 'No folder (root)', parentId: null as string | null },
+    ...folders,
+  ];
 
   return (
-    <DocsPanel className={clsx("p-4", className)}>
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Folder</p>
+    <DocsPanel className={clsx('p-4', className)}>
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        Folder
+      </p>
       <select
-        value={value ?? ""}
+        value={value ?? ''}
         onChange={(e) => onChange(e.target.value || null)}
         disabled={disabled}
         className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-700 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 dark:bg-zinc-800 dark:text-zinc-200"
       >
         {options.map((folder) => {
           const depth = buildFolderPath(folder.id || null, folders).length;
-          const prefix = folder.id ? `${"— ".repeat(Math.max(0, depth - 1))}` : "";
+          const prefix = folder.id ? `${'— '.repeat(Math.max(0, depth - 1))}` : '';
           return (
-            <option key={folder.id || "root"} value={folder.id}>
+            <option key={folder.id || 'root'} value={folder.id}>
               {prefix}
               {folder.name}
             </option>
@@ -72,15 +78,12 @@ export function DocsBreadcrumbs({
   className?: string;
 }) {
   return (
-    <nav className={clsx("flex flex-wrap items-center gap-1 text-xs text-zinc-400", className)}>
+    <nav className={clsx('flex flex-wrap items-center gap-1 text-xs text-zinc-400', className)}>
       {items.map((item, index) => (
         <span key={`${item.label}-${index}`} className="inline-flex items-center gap-1">
           {index > 0 ? <span className="text-zinc-300 dark:text-zinc-600">/</span> : null}
           {item.href ? (
-            <a
-              href={item.href}
-              className="font-medium transition-colors hover:text-primary"
-            >
+            <a href={item.href} className="font-medium transition-colors hover:text-primary">
               {item.label}
             </a>
           ) : (
@@ -112,8 +115,9 @@ export function DocsFolderCard({
   canManage?: boolean;
 }) {
   const parts: string[] = [];
-  if (documentCount > 0) parts.push(`${documentCount} document${documentCount === 1 ? "" : "s"}`);
-  if (childFolderCount > 0) parts.push(`${childFolderCount} folder${childFolderCount === 1 ? "" : "s"}`);
+  if (documentCount > 0) parts.push(`${documentCount} document${documentCount === 1 ? '' : 's'}`);
+  if (childFolderCount > 0)
+    parts.push(`${childFolderCount} folder${childFolderCount === 1 ? '' : 's'}`);
 
   return (
     <DocsPanel className="group p-4" onClick={onOpen}>
@@ -154,7 +158,7 @@ export function DocsFolderCard({
             ) : null}
           </div>
           <p className="mt-0.5 text-xs text-zinc-400">
-            {parts.length > 0 ? parts.join(" · ") : "Empty folder"}
+            {parts.length > 0 ? parts.join(' · ') : 'Empty folder'}
           </p>
         </div>
       </div>
@@ -174,16 +178,16 @@ export function DocsFolderSidebarPanel({
   const rootHref = `/workspace/${workspaceId}/docs`;
 
   return (
-    <div className={clsx("rounded-2xl bg-white p-4 dark:bg-zinc-900/80", docsPanelShadow)}>
+    <div className={clsx('rounded-2xl bg-white p-4 dark:bg-zinc-900/80', docsPanelShadow)}>
       <p className="mb-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200">Folders</p>
       <div className="space-y-0.5">
         <a
           href={rootHref}
           className={clsx(
-            "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors",
+            'flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
             !currentFolderId
-              ? "bg-primary/8 text-primary dark:bg-primary/10"
-              : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50"
+              ? 'bg-primary/8 text-primary dark:bg-primary/10'
+              : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
           )}
         >
           <IconFolder className="h-3.5 w-3.5" stroke={1.75} />
@@ -196,12 +200,12 @@ export function DocsFolderSidebarPanel({
               key={folder.id}
               href={`${rootHref}?folder=${folder.id}`}
               className={clsx(
-                "flex items-center gap-2 rounded-lg py-1.5 text-xs font-medium transition-colors",
+                'flex items-center gap-2 rounded-lg py-1.5 text-xs font-medium transition-colors',
                 currentFolderId === folder.id
-                  ? "bg-primary/8 text-primary dark:bg-primary/10"
-                  : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50"
+                  ? 'bg-primary/8 text-primary dark:bg-primary/10'
+                  : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
               )}
-              style={{ paddingLeft: `${8 + Math.max(0, depth - 1) * 12}px`, paddingRight: "8px" }}
+              style={{ paddingLeft: `${8 + Math.max(0, depth - 1) * 12}px`, paddingRight: '8px' }}
             >
               <FolderIconBadge icon={folder.icon} size="sm" className="!h-5 !w-5 !rounded-lg" />
               <span className="truncate">{folder.name}</span>

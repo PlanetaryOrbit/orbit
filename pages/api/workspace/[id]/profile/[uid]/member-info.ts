@@ -1,19 +1,21 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 async function editHandler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);
   const userId = String(req.query.uid as string);
 
   if (!workspaceId || !userId) {
-    return res.status(400).json({ success: false, error: "Missing workspace ID or user ID" });
+    return res.status(400).json({ success: false, error: 'Missing workspace ID or user ID' });
   }
 
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     try {
-      const { departmentIds, lineManagerId, timezone, birthdayDay, birthdayMonth, discordId } = req.body;
+      const { departmentIds, lineManagerId, timezone, birthdayDay, birthdayMonth, discordId } =
+        req.body;
       const existingMember = await prisma.workspaceMember.findUnique({
         where: {
           workspaceGroupId_userId: {
@@ -95,20 +97,20 @@ async function editHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      return res.status(200).json({ 
-        success: true
+      return res.status(200).json({
+        success: true,
       });
     } catch (e) {
-      console.error("Update member info error:", e);
-      return res.status(500).json({ success: false, error: "Internal server error" });
+      console.error('Update member info error:', e);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" });
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     const isSelf = req.auth.userId === BigInt(req.query.uid as string);
     if (isSelf) {
       const { timezone, birthdayDay, birthdayMonth, discordId } = req.body;

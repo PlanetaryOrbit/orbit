@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma, { SessionType } from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma, { SessionType } from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 const sessionTypeCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkSessionTypeCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
@@ -22,7 +23,8 @@ function checkSessionTypeCreationRateLimit(req: NextApiRequest, res: NextApiResp
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many session type creation attempts. Please wait a moment before creating another session type.'
+      error:
+        'Too many session type creation attempts. Please wait a moment before creating another session type.',
     });
     return false;
   }
@@ -37,29 +39,24 @@ type Data = {
 };
 
 export default withPermissionCheck(handler, [
-  "sessions_shift_scheduled",
-  "sessions_shift_unscheduled",
-  "sessions_training_scheduled",
-  "sessions_training_unscheduled",
-  "sessions_event_scheduled",
-  "sessions_event_unscheduled",
-  "sessions_other_scheduled",
-  "sessions_other_unscheduled"
+  'sessions_shift_scheduled',
+  'sessions_shift_unscheduled',
+  'sessions_training_scheduled',
+  'sessions_training_unscheduled',
+  'sessions_event_scheduled',
+  'sessions_event_unscheduled',
+  'sessions_other_scheduled',
+  'sessions_other_unscheduled',
 ]);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!checkSessionTypeCreationRateLimit(req, res)) return;
-  
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });  const { name, description, schedule, slots, statues } =
-    req.body;
 
-  if (!name)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  const { name, description, schedule, slots, statues } = req.body;
+
+  if (!name) return res.status(400).json({ success: false, error: 'Missing required fields' });
 
   try {
     let scheduleData = null;
@@ -100,14 +97,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       success: true,
       session: JSON.parse(
         JSON.stringify(sessionType, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Error creating session type:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to create session type" });
+    console.error('Error creating session type:', error);
+    res.status(500).json({ success: false, error: 'Failed to create session type' });
   }
 }

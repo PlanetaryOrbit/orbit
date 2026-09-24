@@ -1,8 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import cache from "@/utils/cache";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-const CACHE_KEY = "orbit:auth:config-check";
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+
+const CACHE_KEY = 'orbit:auth:config-check';
 const CACHE_TTL = 60 * 60 * 24 * 30;
 
 type OAuthProvider = {
@@ -24,9 +25,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ConfigCheckResponse | { error: string }>,
 ) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -40,16 +41,13 @@ export default async function handler(
     const envGoogleSecret = process.env.GOOGLE_SECRET;
     const envDiscordAppId = process.env.DISCORD_APPLICATION_ID;
     const envDiscordSecret = process.env.DISCORD_SECRET;
-    const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === "true";
+    const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
 
-    const hasGoogleEnvCredentials =
-      !!envGoogleAppId && !!envGoogleSecret;
+    const hasGoogleEnvCredentials = !!envGoogleAppId && !!envGoogleSecret;
 
-    const hasDiscordEnvCredentials =
-      !!envDiscordAppId && !!envDiscordSecret;
+    const hasDiscordEnvCredentials = !!envDiscordAppId && !!envDiscordSecret;
 
-    const needsDatabaseConfig =
-      !hasGoogleEnvCredentials || !hasDiscordEnvCredentials;
+    const needsDatabaseConfig = !hasGoogleEnvCredentials || !hasDiscordEnvCredentials;
 
     let configMap: Record<string, unknown> = {};
 
@@ -58,38 +56,32 @@ export default async function handler(
         where: {
           key: {
             in: [
-              "google_id",
-              "google_secret",
-              "discordAppID",
-              "discordAppSecret",
-              "oauthOnlyLogin",
+              'google_id',
+              'google_secret',
+              'discordAppID',
+              'discordAppSecret',
+              'oauthOnlyLogin',
             ],
           },
         },
       });
 
-      configMap = configs.reduce<Record<string, unknown>>(
-        (acc, config) => {
-          acc[config.key] =
-            typeof config.value === "string"
-              ? config.value.trim()
-              : config.value;
+      configMap = configs.reduce<Record<string, unknown>>((acc, config) => {
+        acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
 
-          return acc;
-        },
-        {},
-      );
+        return acc;
+      }, {});
     }
 
     const googleClientId = hasGoogleEnvCredentials
       ? envGoogleAppId
-      : typeof configMap.google_id === "string"
+      : typeof configMap.google_id === 'string'
         ? configMap.google_id
         : undefined;
 
     const googleSecret = hasGoogleEnvCredentials
       ? envGoogleSecret
-      : typeof configMap.google_secret === "string"
+      : typeof configMap.google_secret === 'string'
         ? configMap.google_secret
         : undefined;
 
@@ -99,8 +91,7 @@ export default async function handler(
       available: !!googleClientId,
       oauthOnly: googleUsingEnvVars
         ? envOAuthOnly
-        : configMap.oauthOnlyLogin === true ||
-          configMap.oauthOnlyLogin === "true",
+        : configMap.oauthOnlyLogin === true || configMap.oauthOnlyLogin === 'true',
       configured: {
         applicationId: !!googleClientId,
         applicationSecret: !!googleSecret,
@@ -110,13 +101,13 @@ export default async function handler(
 
     const discordClientId = hasDiscordEnvCredentials
       ? envDiscordAppId
-      : typeof configMap.discordAppID === "string"
+      : typeof configMap.discordAppID === 'string'
         ? configMap.discordAppID
         : undefined;
 
     const discordSecret = hasDiscordEnvCredentials
       ? envDiscordSecret
-      : typeof configMap.discordAppSecret === "string"
+      : typeof configMap.discordAppSecret === 'string'
         ? configMap.discordAppSecret
         : undefined;
 
@@ -126,8 +117,7 @@ export default async function handler(
       available: !!discordClientId,
       oauthOnly: discordUsingEnvVars
         ? envOAuthOnly
-        : configMap.oauthOnlyLogin === true ||
-          configMap.oauthOnlyLogin === "true",
+        : configMap.oauthOnlyLogin === true || configMap.oauthOnlyLogin === 'true',
       configured: {
         applicationId: !!discordClientId,
         applicationSecret: !!discordSecret,
@@ -144,10 +134,10 @@ export default async function handler(
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("[AUTH CONFIG] Failed to check OAuth configuration:", error);
+    console.error('[AUTH CONFIG] Failed to check OAuth configuration:', error);
 
     return res.status(500).json({
-      error: "Failed to check OAuth configuration",
+      error: 'Failed to check OAuth configuration',
     });
   }
 }

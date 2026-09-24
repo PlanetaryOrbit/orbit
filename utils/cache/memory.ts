@@ -25,9 +25,7 @@ export class MemoryCache implements CacheProvider {
     }
   >();
 
-  async get<T>(
-    key: string
-  ): Promise<T | null> {
+  async get<T>(key: string): Promise<T | null> {
     const item = this.cache.get(key);
 
     if (!item) {
@@ -42,42 +40,27 @@ export class MemoryCache implements CacheProvider {
     return item.value as T;
   }
 
-  async set(
-    key: string,
-    value: unknown,
-    ttl = 300
-  ): Promise<void> {
+  async set(key: string, value: unknown, ttl = 300): Promise<void> {
     this.cache.set(key, {
       value,
       expires: Date.now() + ttl * 1000,
     });
   }
 
-  async del(
-    key: string
-  ): Promise<void> {
+  async del(key: string): Promise<void> {
     this.cache.delete(key);
   }
 
-  async has(
-    key: string
-  ): Promise<boolean> {
+  async has(key: string): Promise<boolean> {
     return (await this.get(key)) !== null;
   }
 
-  async increment(
-    key: string,
-    ttl = 60
-  ): Promise<number> {
+  async increment(key: string, ttl = 60): Promise<number> {
     const current = await this.get<number>(key);
 
     const value = (current ?? 0) + 1;
 
-    await this.set(
-      key,
-      value,
-      ttl
-    );
+    await this.set(key, value, ttl);
 
     return value;
   }

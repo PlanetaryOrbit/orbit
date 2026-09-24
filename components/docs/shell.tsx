@@ -1,10 +1,10 @@
-import clsx from "clsx";
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft } from '@tabler/icons-react';
+import clsx from 'clsx';
+import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 export const docsPanelShadow =
-  "shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30";
+  'shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30';
 
 export function DocsPageShell({
   children,
@@ -15,7 +15,7 @@ export function DocsPageShell({
 }) {
   return (
     <div className="pagePadding">
-      <div className={clsx("mx-auto w-full", className ?? "max-w-6xl")}>{children}</div>
+      <div className={clsx('mx-auto w-full', className ?? 'max-w-6xl')}>{children}</div>
     </div>
   );
 }
@@ -34,9 +34,9 @@ export function DocsPageHeader({
   action?: ReactNode;
 }) {
   const dateLabel = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   });
 
   return (
@@ -85,21 +85,20 @@ export function DocsPanel({
       onKeyDown={
         onClick
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onClick();
               }
             }
           : undefined
       }
-      role={onClick ? "button" : undefined}
+      role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={clsx(
-        "rounded-2xl bg-white dark:bg-zinc-900/70",
+        'rounded-2xl bg-white dark:bg-zinc-900/70',
         docsPanelShadow,
-        onClick &&
-          "cursor-pointer transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40",
-        className
+        onClick && 'cursor-pointer transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40',
+        className,
       )}
     >
       {children}
@@ -123,28 +122,15 @@ export function DocsPanelHeader({
       </div>
       <div className="min-w-0">
         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
-        {hint ? (
-          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{hint}</p>
-        ) : null}
+        {hint ? <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{hint}</p> : null}
       </div>
     </div>
   );
 }
 
-export function DocsInset({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function DocsInset({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div
-      className={clsx(
-        "rounded-xl bg-zinc-50 px-3.5 py-3 dark:bg-zinc-800/40",
-        className
-      )}
-    >
+    <div className={clsx('rounded-xl bg-zinc-50 px-3.5 py-3 dark:bg-zinc-800/40', className)}>
       {children}
     </div>
   );

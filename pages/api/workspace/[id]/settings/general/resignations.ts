@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { getConfig, setConfig } from "@/utils/configEngine";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { withAuth } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withAuth } from '@/lib/withAuth';
+import { getConfig, setConfig } from '@/utils/configEngine';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -14,45 +15,42 @@ export default withAuth(handler);
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const userId = (req as NextApiRequest & { session?: { userid?: number } }).session?.userid;
   if (!userId) {
-    return res.status(401).json({ success: false, error: "Unauthorized" });
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
-  if (req.method === "GET") {
-    const config = await getConfig(
-      "resignations",
-      parseInt(req.query.id as string, 10)
-    );
+  if (req.method === 'GET') {
+    const config = await getConfig('resignations', parseInt(req.query.id as string, 10));
     if (!config) {
-      return res.status(404).json({ success: false, error: "Not found" });
+      return res.status(404).json({ success: false, error: 'Not found' });
     }
     return res.status(200).json({ success: true, value: config });
   }
 
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     return withPermissionCheck(
       async (innerReq: NextApiRequest, innerRes: NextApiResponse<Data>) => {
         await setConfig(
-          "resignations",
+          'resignations',
           {
             enabled: innerReq.body.enabled,
           },
-          parseInt(innerReq.query.id as string, 10)
+          parseInt(innerReq.query.id as string, 10),
         );
         try {
-          const { logAudit } = await import("@/utils/logs");
+          const { logAudit } = await import('@/utils/logs');
           await logAudit(
             parseInt(innerReq.query.id as string, 10),
             userId,
-            "settings.update",
-            "resignations",
-            { enabled: innerReq.body.enabled }
+            'settings.update',
+            'resignations',
+            { enabled: innerReq.body.enabled },
           );
         } catch {}
         return innerRes.status(200).json({ success: true });
       },
-      "manage_features"
+      'manage_features',
     )(req, res);
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" });
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }

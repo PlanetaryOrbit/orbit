@@ -245,7 +245,7 @@ Before contributing code, make sure you have:
 ```bash
 git clone https://github.com/<your-username>/orbit.git
 cd orbit
-````
+```
 
 ### 2. Install Dependencies
 
@@ -294,9 +294,9 @@ Documentation improvements are always welcome.
 
 Before submitting documentation changes:
 
-* Read the existing documentation.
-* Keep documentation accurate and easy to understand.
-* Explain your documentation changes in your pull request.
+- Read the existing documentation.
+- Keep documentation accurate and easy to understand.
+- Explain your documentation changes in your pull request.
 
 Documentation changes usually do not require an RFC unless they introduce a major change to how Orbit works.
 
@@ -306,11 +306,11 @@ Documentation changes usually do not require an RFC unless they introduce a majo
 
 Before opening a pull request:
 
-* Make sure your changes are tested.
-* Keep commits focused and understandable.
-* Update documentation when needed.
-* Follow the project's coding style.
-* Avoid unrelated changes in the same pull request.
+- Make sure your changes are tested.
+- Keep commits focused and understandable.
+- Update documentation when needed.
+- Follow the project's coding style.
+- Avoid unrelated changes in the same pull request.
 
 For major changes, ensure an RFC has been approved before submitting implementation work.
 
@@ -339,9 +339,9 @@ refactor: simplify cache handling
 
 Keep commit messages:
 
-* Short and descriptive.
-* Written in the present tense.
-* Focused on one change.
+- Short and descriptive.
+- Written in the present tense.
+- Focused on one change.
 
 ---
 
@@ -351,10 +351,10 @@ Orbit contributors who consistently provide helpful contributions may be invited
 
 Maintainer access is given based on:
 
-* Quality of contributions.
-* Understanding of Orbit's goals.
-* Ability to collaborate with other contributors.
-* Long-term involvement.
+- Quality of contributions.
+- Understanding of Orbit's goals.
+- Ability to collaborate with other contributors.
+- Long-term involvement.
 
 Becoming a contributor does not automatically grant repository access. Maintainer roles are assigned by the existing project team.
 

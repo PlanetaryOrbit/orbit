@@ -176,15 +176,15 @@ const randomText = (name: string): string => {
     `The 2 AM club has a new member: ${name} 🎟️`,
     `Working in the shadows, ${name}? 👤`,
     `Nighttime is the best time for big ideas, right ${name}? 💡`,
-    `Sleepless on the onyx night, ${name}?`
+    `Sleepless on the onyx night, ${name}?`,
   ];
-// updated time logic 
- const hour = new Date().getHours();
+  // updated time logic
+  const hour = new Date().getHours();
 
   if (hour >= 22 || hour < 4) return randomTextFromArray(lateNightTexts); // Late Night: 10 PM – 3:59 AM (bridges midnight)
-  if (hour >= 17) return randomTextFromArray(nightOnlyTexts);            // Evening: 5 PM – 9:59 PM
-  if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts);        // Afternoon: 12 PM – 4:59 PM
-  return randomTextFromArray(morningOnlyTexts);                          // Morning: 4 AM – 11:59 AM (fallback)
+  if (hour >= 17) return randomTextFromArray(nightOnlyTexts); // Evening: 5 PM – 9:59 PM
+  if (hour >= 12) return randomTextFromArray(afternoonOnlyTexts); // Afternoon: 12 PM – 4:59 PM
+  return randomTextFromArray(morningOnlyTexts); // Morning: 4 AM – 11:59 AM (fallback)
 };
 
 export default randomText;

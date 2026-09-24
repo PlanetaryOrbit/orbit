@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -9,15 +10,12 @@ type Data = {
   count?: number;
 };
 
-export default withPermissionCheck(handler, "approve_notices");
+export default withPermissionCheck(handler, 'approve_notices');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
-  if (!req.auth.userId)
-    return res.status(401).json({ success: false, error: "Not logged in" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 
   try {
     const workspaceId = parseInt(req.query.id as string);
@@ -31,12 +29,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
     return res.status(200).json({ success: true, count });
   } catch (error) {
-    console.error("Pending notices count error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: error instanceof Error ? error.message : "Something went wrong",
-      });
+    console.error('Pending notices count error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Something went wrong',
+    });
   }
 }

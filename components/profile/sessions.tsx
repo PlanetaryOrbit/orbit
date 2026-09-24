@@ -1,10 +1,4 @@
-import React, { useState, useEffect } from "react";
-import type { ActivitySession, inactivityNotice } from "@prisma/client";
-import {
-  ProfileEmptyState,
-  ProfileSection,
-  ProfileStatCard,
-} from "@/components/profile/shell";
+import type { ActivitySession, inactivityNotice } from '@prisma/client';
 import {
   IconUsers,
   IconUserCheck,
@@ -13,10 +7,13 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconHistory,
-} from "@tabler/icons-react";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { useSessionColors } from "@/hooks/useSessionColors";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
+
+import { ProfileEmptyState, ProfileSection, ProfileStatCard } from '@/components/profile/shell';
+import { useSessionColors } from '@/hooks/useSessionColors';
 type Props = {
   sessions: (ActivitySession & {
     user: {
@@ -36,7 +33,6 @@ type Props = {
   } | null;
 };
 
-
 export function SessionsHistory({
   sessions,
   notices,
@@ -53,7 +49,7 @@ export function SessionsHistory({
   const [loading, setLoading] = useState(true);
   const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
   const { getSessionTypeColor, getTextColorForBackground } = useSessionColors(
-    router.query.id as string
+    router.query.id as string,
   );
 
   useEffect(() => {
@@ -67,13 +63,13 @@ export function SessionsHistory({
           });
           url += `?${params.toString()}`;
         }
-        
+
         const response = await axios.get(url);
         if (response.data.success) {
           setSessionHistory(response.data.sessions);
         }
       } catch (error) {
-        console.error("Failed to fetch session history:", error);
+        console.error('Failed to fetch session history:', error);
       } finally {
         setLoading(false);
       }
@@ -85,7 +81,7 @@ export function SessionsHistory({
   }, [router.query.id, router.query.uid, isHistorical, historicalPeriod]);
 
   const toggleSessionExpanded = (sessionId: string) => {
-    setExpandedSessions(prev => {
+    setExpandedSessions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(sessionId)) {
         newSet.delete(sessionId);
@@ -97,17 +93,17 @@ export function SessionsHistory({
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
   };
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
     });
   };
@@ -150,7 +146,7 @@ export function SessionsHistory({
             {sessionHistory.map((session) => {
               const isExpanded = expandedSessions.has(session.id);
               const userParticipation = session.users?.find(
-                (u: any) => u.userid.toString() === router.query.uid
+                (u: any) => u.userid.toString() === router.query.uid,
               );
               const userRole = userParticipation
                 ? session.sessionType.slots[userParticipation.slot]
@@ -171,7 +167,9 @@ export function SessionsHistory({
                           {session.sessionType.name}
                         </span>
                         {session.type && (
-                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${sessionColorClass} ${textColorClass}`}>
+                          <span
+                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${sessionColorClass} ${textColorClass}`}
+                          >
                             {session.type.charAt(0).toUpperCase() + session.type.slice(1)}
                           </span>
                         )}
@@ -194,7 +192,7 @@ export function SessionsHistory({
                           <div className="flex items-center gap-1.5">
                             <img
                               src={`/api/user/${session.owner.userid}/avatar`}
-                              alt={session.owner.username || "Host"}
+                              alt={session.owner.username || 'Host'}
                               className="h-3.5 w-3.5 rounded-full object-cover"
                             />
                             <span>{session.owner.username}</span>
@@ -227,11 +225,11 @@ export function SessionsHistory({
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <img
                                   src={`/api/user/${participant.userid}/avatar`}
-                                  alt={participant.user?.username || "User"}
+                                  alt={participant.user?.username || 'User'}
                                   className="h-6 w-6 rounded-full object-cover shrink-0"
                                 />
                                 <span className="truncate text-sm text-zinc-900 dark:text-white">
-                                  {participant.user?.username || "Unknown"}
+                                  {participant.user?.username || 'Unknown'}
                                 </span>
                               </div>
                               <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">

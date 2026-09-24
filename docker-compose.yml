@@ -1,6 +1,6 @@
 services:
   orbit:
-    restart: "unless-stopped"
+    restart: 'unless-stopped'
     tty: true
     build:
       context: .
@@ -13,18 +13,14 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - '3000:3000'
     command: >
       sh -c "pnpm exec prisma migrate deploy && pnpm run start"
 
   db:
-    image: "postgres:latest"
+    image: 'postgres:latest'
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost",
-        ]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,7 +30,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - db:/var/lib/postgresql
 

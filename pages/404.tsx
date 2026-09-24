@@ -1,7 +1,7 @@
-import Head from "next/head";
-import Router from "next/router";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
+import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
 
 export default function Error() {
   return (
@@ -34,9 +34,8 @@ export default function Error() {
             <div className="text-left flex-1">
               <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-200">Page not found</h1>
               <p className="mt-3 text-zinc-400 max-w-xl">
-                Looks like you've ventured into uncharted space. The page you're
-                looking for doesn't exist (or moved). No worries — here are a few
-                options to get back on course.
+                Looks like you've ventured into uncharted space. The page you're looking for doesn't
+                exist (or moved). No worries — here are a few options to get back on course.
               </p>
 
               <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-3">

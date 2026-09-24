@@ -1,18 +1,16 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 const sessionEditLimits: {
   [key: string]: { count: number; resetTime: number };
 } = {};
 
-function checkSessionEditRateLimit(
-  req: NextApiRequest,
-  res: NextApiResponse
-): boolean {
-  const workspaceId = req.query?.id || "unknown";
-  const sessionId = req.query?.sid || "unknown";
-  const userId = (req as any).auth?.userId || "anonymous";
+function checkSessionEditRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
+  const workspaceId = req.query?.id || 'unknown';
+  const sessionId = req.query?.sid || 'unknown';
+  const userId = (req as any).auth?.userId || 'anonymous';
   const key = `workspace:${workspaceId}:session:${sessionId}:user:${userId}`;
   const now = Date.now();
   const windowMs = 60 * 1000;
@@ -28,8 +26,7 @@ function checkSessionEditRateLimit(
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error:
-        "Too many edit attempts. Please wait a moment before making more changes.",
+      error: 'Too many edit attempts. Please wait a moment before making more changes.',
     });
     return false;
   }
@@ -38,12 +35,12 @@ function checkSessionEditRateLimit(
 
 export default withPermissionCheck(
   async (req: NextApiRequest, res: NextApiResponse) => {
-    if (req.method === "PUT") {
+    if (req.method === 'PUT') {
       if (!checkSessionEditRateLimit(req, res)) return;
     }
     const { id, sid } = req.query;
 
-    if (req.method === "PUT") {
+    if (req.method === 'PUT') {
       const {
         date,
         time,
@@ -57,13 +54,13 @@ export default withPermissionCheck(
         statues,
       } = req.body;
       if (!date) {
-        return res.status(400).json({ error: "Session date is required" });
+        return res.status(400).json({ error: 'Session date is required' });
       }
 
       try {
         let sessionDate: Date;
         if (time) {
-          const parsedDate = new Date(date + "T" + time + ":00Z");
+          const parsedDate = new Date(date + 'T' + time + ':00Z');
           const offsetMinutes = timezoneOffset || 0;
           sessionDate = new Date(parsedDate.getTime() + offsetMinutes * 60000);
         } else {
@@ -76,7 +73,7 @@ export default withPermissionCheck(
         });
 
         if (!currentSession) {
-          return res.status(404).json({ error: "Session not found" });
+          return res.status(404).json({ error: 'Session not found' });
         }
 
         const sessionUpdateData: any = {
@@ -144,8 +141,8 @@ export default withPermissionCheck(
                     roleID: assignment.roleID,
                     slot: assignment.slot,
                   },
-                })
-              )
+                }),
+              ),
             );
           }
         }
@@ -165,16 +162,16 @@ export default withPermissionCheck(
 
         const serializedSession = JSON.parse(
           JSON.stringify(finalSession, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         );
 
         res.status(200).json(serializedSession);
       } catch (error) {
-        console.error("Error updating session:", error);
-        res.status(500).json({ error: "Failed to update session" });
+        console.error('Error updating session:', error);
+        res.status(500).json({ error: 'Failed to update session' });
       }
-    } else if (req.method === "DELETE") {
+    } else if (req.method === 'DELETE') {
       try {
         await prisma.sessionUser.deleteMany({
           where: {
@@ -188,19 +185,19 @@ export default withPermissionCheck(
           },
         });
 
-        res.status(200).json({ message: "Session deleted successfully" });
+        res.status(200).json({ message: 'Session deleted successfully' });
       } catch (error) {
-        console.error("Error deleting session:", error);
-        res.status(500).json({ error: "Failed to delete session" });
+        console.error('Error deleting session:', error);
+        res.status(500).json({ error: 'Failed to delete session' });
       }
     } else {
-      res.status(405).json({ error: "Method not allowed" });
+      res.status(405).json({ error: 'Method not allowed' });
     }
   },
   [
-    "sessions_shift_manage",
-    "sessions_training_manage",
-    "sessions_event_manage",
-    "sessions_other_manage"
-  ]
+    'sessions_shift_manage',
+    'sessions_training_manage',
+    'sessions_event_manage',
+    'sessions_other_manage',
+  ],
 );

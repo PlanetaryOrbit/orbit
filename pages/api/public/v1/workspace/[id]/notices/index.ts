@@ -1,24 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET" && req.method !== "POST" && req.method !== "PATCH" && req.method !== "DELETE") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (
+    req.method !== 'GET' &&
+    req.method !== 'POST' &&
+    req.method !== 'PATCH' &&
+    req.method !== 'DELETE'
+  ) {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = Number.parseInt(req.query.id as string);
   if (!workspaceId) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
+    return res.status(400).json({ success: false, error: 'Missing workspace ID' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const notices = await prisma.inactivityNotice.findMany({
         where: {
@@ -41,7 +43,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reviewComment: true,
         },
         orderBy: {
-          startTime: "desc",
+          startTime: 'desc',
         },
       });
 
@@ -60,27 +62,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({ success: true, data: formattedResponse });
     } catch (error) {
-      console.error("Error fetching notices:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error fetching notices:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { reason, startTime, endTime, userId } = req.body;
 
     if (!reason || !endTime || !userId) {
       return res.status(400).json({
         success: false,
-        error: "Reason, endTime, and userId are required",
+        error: 'Reason, endTime, and userId are required',
       });
     }
 
-    if (!reason || typeof reason !== "string") {
+    if (!reason || typeof reason !== 'string') {
       return res.status(400).json({
         success: false,
-        error: "Reason is required and must be a string",
+        error: 'Reason is required and must be a string',
       });
     }
 
@@ -88,7 +88,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!userIdBigInt) {
       return res.status(400).json({
         success: false,
-        error: "Invalid userId",
+        error: 'Invalid userId',
       });
     }
 
@@ -98,21 +98,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (startDateTime.getTime() < new Date().getTime()) {
       return res.status(400).json({
         success: false,
-        error: "Start time must be in the future",
+        error: 'Start time must be in the future',
       });
     }
 
     if (isNaN(endDateTime.getTime())) {
       return res.status(400).json({
         success: false,
-        error: "Invalid endTime format",
+        error: 'Invalid endTime format',
       });
     }
 
     if (endDateTime <= startDateTime) {
       return res.status(400).json({
         success: false,
-        error: "End time must be after start time",
+        error: 'End time must be after start time',
       });
     }
 
@@ -129,7 +129,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!workspaceMember) {
         return res.status(404).json({
           success: false,
-          error: "User is not a member of this workspace",
+          error: 'User is not a member of this workspace',
         });
       }
 
@@ -148,7 +148,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (existingActiveNotice) {
         return res.status(409).json({
           success: false,
-          error: "User already has an active inactivity notice",
+          error: 'User already has an active inactivity notice',
         });
       }
 
@@ -189,20 +189,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error("Error creating inactivity notice:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error creating inactivity notice:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     const { noticeId, approved, reviewComment } = req.body;
 
     if (!noticeId) {
       return res.status(400).json({
         success: false,
-        error: "Notice ID is required",
+        error: 'Notice ID is required',
       });
     }
 
@@ -217,7 +215,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!notice) {
         return res.status(404).json({
           success: false,
-          error: "Notice not found",
+          error: 'Notice not found',
         });
       }
 
@@ -253,20 +251,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error("Error updating notice:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error updating notice:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "DELETE") {
+  if (req.method === 'DELETE') {
     const { noticeId } = req.body;
 
     if (!noticeId) {
       return res.status(400).json({
         success: false,
-        error: "Notice ID is required",
+        error: 'Notice ID is required',
       });
     }
 
@@ -281,7 +277,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (!notice) {
         return res.status(404).json({
           success: false,
-          error: "Notice not found",
+          error: 'Notice not found',
         });
       }
 
@@ -297,17 +293,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({
         success: true,
-        message: "Notice revoked successfully",
+        message: 'Notice revoked successfully',
         data: {
           id: revokedNotice.id,
           revoked: revokedNotice.revoked,
         },
       });
     } catch (error) {
-      console.error("Error revoking notice:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error revoking notice:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 }

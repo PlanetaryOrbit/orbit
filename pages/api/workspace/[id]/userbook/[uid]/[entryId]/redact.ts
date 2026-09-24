@@ -1,8 +1,9 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { logAudit } from "@/utils/logs";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -10,15 +11,15 @@ type Data = {
   entry?: any;
 };
 
-export default withPermissionCheck(handler, "manage_members");
+export default withPermissionCheck(handler, 'manage_members');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id, uid, entryId } = req.query;
   if (!id || !uid || !entryId)
-    return res.status(400).json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
 
   const workspaceGroupId = parseInt(id as string);
 
@@ -26,7 +27,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     const entry = await prisma.userBook.findUnique({
       where: { id: entryId as string },
     });
-    if (!entry) return res.status(404).json({ success: false, error: "Entry not found" });
+    if (!entry) return res.status(404).json({ success: false, error: 'Entry not found' });
     if (entry.workspaceGroupId !== workspaceGroupId)
       return res.status(403).json({ success: false, error: "WorkspaceID doesn't match." });
 
@@ -59,7 +60,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           };
         }
       } catch (e) {
-        console.error("Failed to fetch action user", e);
+        console.error('Failed to fetch action user', e);
       }
     }
 
@@ -67,14 +68,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       await logAudit(
         workspaceGroupId,
         req.auth.userId || null,
-        setRedacted ? "userbook.redact" : "userbook.unredact",
+        setRedacted ? 'userbook.redact' : 'userbook.unredact',
         `userbook:${updated.id}`,
-        { entryId: updated.id, redacted: updated.redacted }
+        { entryId: updated.id, redacted: updated.redacted },
       );
     } catch (e) {}
 
     const responseEntry: any = JSON.parse(
-      JSON.stringify(updated, (k, v) => (typeof v === "bigint" ? v.toString() : v))
+      JSON.stringify(updated, (k, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
     if (redactedByUser) responseEntry.redactedByUser = redactedByUser;
 
@@ -83,6 +84,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       entry: responseEntry,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Failed to redact entry" });
+    res.status(500).json({ success: false, error: 'Failed to redact entry' });
   }
 }

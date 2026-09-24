@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
+import { useSyncExternalStore } from 'react';
 
 interface Props {
   darkBackground?: string | null;
@@ -17,10 +17,7 @@ function useMounted() {
   );
 }
 
-export default function AuthBackground({
-  darkBackground,
-  lightBackground,
-}: Props) {
+export default function AuthBackground({ darkBackground, lightBackground }: Props) {
   const mounted = useMounted();
   const { resolvedTheme } = useTheme();
 
@@ -29,7 +26,7 @@ export default function AuthBackground({
   }
 
   const background =
-    resolvedTheme === "light"
+    resolvedTheme === 'light'
       ? (lightBackground ?? darkBackground)
       : (darkBackground ?? lightBackground);
 
@@ -48,12 +45,6 @@ export default function AuthBackground({
   }
 
   return (
-    <Image
-      src={background}
-      alt=""
-      fill
-      priority
-      className="pointer-events-none object-cover"
-    />
+    <Image src={background} alt="" fill priority className="pointer-events-none object-cover" />
   );
 }

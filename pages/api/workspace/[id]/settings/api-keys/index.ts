@@ -1,23 +1,24 @@
-import type { NextApiResponse } from "next"
-import { withPermissionCheck } from "@/utils/permissionsManager"
-import prisma from "@/utils/database"
-import { AuthenticatedRequest } from "@/lib/withAuth"
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
-  success: boolean
-  error?: string
-  apiKeys?: any[]
-}
+  success: boolean;
+  error?: string;
+  apiKeys?: any[];
+};
 
-export default withPermissionCheck(handler, "manage_apikeys")
+export default withPermissionCheck(handler, 'manage_apikeys');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (!req.auth.userId) return res.status(401).json({ success: false, error: "Not authenticated" })
-  if (!req.query.id) return res.status(400).json({ success: false, error: "Missing workspace ID" })
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  if (!req.query.id) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
 
-  const workspaceId = Number.parseInt(req.query.id as string)
+  const workspaceId = Number.parseInt(req.query.id as string);
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const apiKeys = await prisma.apiKey.findMany({
         where: {
@@ -39,9 +40,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
-      })
+      });
       const maskedKeys = apiKeys.map((key: any) => ({
         ...key,
         key: `****${key.key.slice(-4)}`,
@@ -55,14 +56,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
               picture: key.createdBy.picture,
             }
           : null,
-      }))
+      }));
 
-      return res.status(200).json({ success: true, apiKeys: maskedKeys })
+      return res.status(200).json({ success: true, apiKeys: maskedKeys });
     } catch (error) {
-      console.error("Error fetching API keys:", error)
-      return res.status(500).json({ success: false, error: "Failed to fetch API keys" })
+      console.error('Error fetching API keys:', error);
+      return res.status(500).json({ success: false, error: 'Failed to fetch API keys' });
     }
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" })
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }

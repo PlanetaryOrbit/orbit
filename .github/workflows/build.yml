@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Docker / Git tag to release (e.g. 2.1.4beta1)"
+        description: 'Docker / Git tag to release (e.g. 2.1.4beta1)'
         required: true
         type: string
 
@@ -59,7 +59,6 @@ jobs:
             NODE_OPTIONS=--max-old-space-size=4096
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
-
 
       - name: Summary
         run: |

@@ -1,11 +1,9 @@
 import type { NextApiResponse } from 'next';
-import prisma from '@/utils/database';
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 
-export default withAuth(async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
@@ -42,10 +40,10 @@ export default withAuth(async function handler(
 
   const membership = currentUser?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
-  const canEditAllianceDetails = isAdmin ||
-    (currentUser?.roles?.some((role) =>
-      role.permissions?.includes("edit_alliance_details")
-    ) ?? false);
+  const canEditAllianceDetails =
+    isAdmin ||
+    (currentUser?.roles?.some((role) => role.permissions?.includes('edit_alliance_details')) ??
+      false);
 
   const alliance = await prisma.ally.findFirst({
     where: {
@@ -61,7 +59,7 @@ export default withAuth(async function handler(
     return res.status(404).json({ success: false, error: 'Alliance not found' });
   }
 
-  const isRep = alliance.reps.some(rep => rep.userid === BigInt(currentUserId));
+  const isRep = alliance.reps.some((rep) => rep.userid === BigInt(currentUserId));
 
   if (!canEditAllianceDetails && !isRep) {
     return res.status(403).json({ success: false, error: 'Insufficient permissions' });
@@ -75,7 +73,7 @@ export default withAuth(async function handler(
       if (!urlPattern.test(discordServer.trim())) {
         return res.status(400).json({
           success: false,
-          error: 'Discord server must be a valid Discord invite link'
+          error: 'Discord server must be a valid Discord invite link',
         });
       }
     }
@@ -84,11 +82,11 @@ export default withAuth(async function handler(
     if (Array.isArray(ourReps) && ourReps.length > 0) {
       const users = await prisma.user.findMany({
         where: {
-          userid: { in: ourReps.map((id: any) => BigInt(id)) }
+          userid: { in: ourReps.map((id: any) => BigInt(id)) },
         },
-        select: { userid: true, username: true }
+        select: { userid: true, username: true },
       });
-      ourRepUsernames = users.map(user => user.username || user.userid.toString());
+      ourRepUsernames = users.map((user) => user.username || user.userid.toString());
     }
 
     const updatedAlly = await prisma.ally.update({
@@ -98,9 +96,10 @@ export default withAuth(async function handler(
       data: {
         discordServer: discordServer?.trim() || null,
         reps: {
-          set: ourReps?.map((userId: any) => ({
-            userid: BigInt(userId)
-          })) || []
+          set:
+            ourReps?.map((userId: any) => ({
+              userid: BigInt(userId),
+            })) || [],
         },
         theirReps: Array.isArray(theirReps) ? theirReps.filter((rep: string) => rep.trim()) : [],
       },
@@ -115,7 +114,7 @@ export default withAuth(async function handler(
     console.error('Error updating alliance:', error);
     return res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });

@@ -1,27 +1,15 @@
-import React, { FC, useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import {
-  IconX,
-  IconCheck,
-  IconClock,
-  IconFileText,
-  IconExternalLink,
-} from "@tabler/icons-react";
-import axios from "axios";
-import toast from "react-hot-toast";
+import { IconX, IconCheck, IconClock, IconFileText, IconExternalLink } from '@tabler/icons-react';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import React, { FC, useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface PolicyDocument {
   id: string;
   name: string;
   content: any;
   acknowledgmentDeadline?: Date | string | null;
-  acknowledgmentMethod?:
-    | "signature"
-    | "checkbox"
-    | "type_username"
-    | "type_word"
-    | string
-    | null;
+  acknowledgmentMethod?: 'signature' | 'checkbox' | 'type_username' | 'type_word' | string | null;
   acknowledgmentWord?: string | null;
   isTrainingDocument: boolean;
 }
@@ -45,28 +33,26 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
   initialExternalDocVisited = false,
   currentUsername,
 }) => {
-  const [signature, setSignature] = useState<string>("");
+  const [signature, setSignature] = useState<string>('');
   const [isSliderCompleted, setIsSliderCompleted] = useState(false);
   const [isAcknowledging, setIsAcknowledging] = useState(false);
-  const [typedWord, setTypedWord] = useState("");
-  const [hasVisitedExternalDoc, setHasVisitedExternalDoc] = useState(
-    initialExternalDocVisited
-  );
+  const [typedWord, setTypedWord] = useState('');
+  const [hasVisitedExternalDoc, setHasVisitedExternalDoc] = useState(initialExternalDocVisited);
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
     if (isOpen && signatureCanvasRef.current) {
       const canvas = signatureCanvasRef.current;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (ctx) {
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
-        ctx.strokeStyle = "#000000";
+        ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
       }
     }
   }, [isOpen]);
@@ -74,30 +60,24 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
   if (!isOpen) return null;
 
   const isExternalDocument =
-    document.content &&
-    typeof document.content === "object" &&
-    document.content.external;
+    document.content && typeof document.content === 'object' && document.content.external;
 
-  const getAcknowledmentMethod = () =>
-    document.acknowledgmentMethod || "signature";
+  const getAcknowledmentMethod = () => document.acknowledgmentMethod || 'signature';
 
   const getIsAcknowledgmentComplete = () => {
     const method = getAcknowledmentMethod();
     switch (method) {
-      case "signature":
+      case 'signature':
         return signature.trim().length > 0;
-      case "type_username":
+      case 'type_username':
         return (
           signature.trim().length > 0 &&
           currentUsername &&
           signature.trim().toLowerCase() === currentUsername.toLowerCase()
         );
-      case "type_word":
-        return (
-          typedWord.trim().toLowerCase() ===
-          (document.acknowledgmentWord || "").toLowerCase()
-        );
-      case "checkbox":
+      case 'type_word':
+        return typedWord.trim().toLowerCase() === (document.acknowledgmentWord || '').toLowerCase();
+      case 'checkbox':
       default:
         return true; // For checkbox mode, no additional validation needed
     }
@@ -105,48 +85,43 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
 
   const validateAcknowledgment = () => {
     if (isExternalDocument && !hasVisitedExternalDoc) {
-      toast.error("Please visit the external document before acknowledging");
+      toast.error('Please visit the external document before acknowledging');
       return false;
     }
 
     const method = getAcknowledmentMethod();
     switch (method) {
-      case "signature":
+      case 'signature':
         if (!signature.trim()) {
-          toast.error("Please provide your digital signature");
+          toast.error('Please provide your digital signature');
           return false;
         }
         break;
-      case "type_username":
+      case 'type_username':
         if (!signature.trim()) {
-          toast.error("Please provide your username");
+          toast.error('Please provide your username');
           return false;
         }
         if (!currentUsername) {
-          toast.error("Unable to verify username. Please try again.");
+          toast.error('Unable to verify username. Please try again.');
           return false;
         }
         if (signature.trim().toLowerCase() !== currentUsername.toLowerCase()) {
-          toast.error(
-            "Please enter your correct username exactly as it appears in your account"
-          );
+          toast.error('Please enter your correct username exactly as it appears in your account');
           return false;
         }
         break;
-      case "type_word":
+      case 'type_word':
         if (!typedWord.trim()) {
-          toast.error("Please type the required word to acknowledge");
+          toast.error('Please type the required word to acknowledge');
           return false;
         }
-        if (
-          typedWord.trim().toLowerCase() !==
-          (document.acknowledgmentWord || "").toLowerCase()
-        ) {
-          toast.error("Please type the correct word to acknowledge");
+        if (typedWord.trim().toLowerCase() !== (document.acknowledgmentWord || '').toLowerCase()) {
+          toast.error('Please type the correct word to acknowledge');
           return false;
         }
         break;
-      case "checkbox":
+      case 'checkbox':
         // Checkbox mode has no additional validation
         break;
     }
@@ -163,46 +138,40 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
       const method = getAcknowledmentMethod();
       const acknowledgmentData: any = {
         acknowledgmentMethod: method,
-        ipAddress: "client-provided",
+        ipAddress: 'client-provided',
       };
 
       // Add method-specific data
       switch (method) {
-        case "signature":
-        case "type_username":
+        case 'signature':
+        case 'type_username':
           acknowledgmentData.signature = signature;
           break;
-        case "type_word":
+        case 'type_word':
           acknowledgmentData.signature = `Word acknowledgment: "${typedWord}" at ${new Date().toISOString()}`;
           break;
-        case "checkbox":
+        case 'checkbox':
           acknowledgmentData.signature = `Checkbox acknowledgment at ${new Date().toISOString()}`;
           break;
       }
 
       await axios.post(
         `/api/workspace/${workspaceId}/policies/${document.id}/acknowledge`,
-        acknowledgmentData
+        acknowledgmentData,
       );
 
-      toast.success("Policy acknowledged successfully");
+      toast.success('Policy acknowledged successfully');
       onAcknowledged();
       onClose();
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.error || "Failed to acknowledge policy"
-      );
+      toast.error(error.response?.data?.error || 'Failed to acknowledge policy');
     } finally {
       setIsAcknowledging(false);
     }
   };
 
   // Canvas drawing functions for signature pad
-  const getCanvasCoordinates = (
-    canvas: HTMLCanvasElement,
-    clientX: number,
-    clientY: number
-  ) => {
+  const getCanvasCoordinates = (canvas: HTMLCanvasElement, clientX: number, clientY: number) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
@@ -218,7 +187,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const coords = getCanvasCoordinates(canvas, e.clientX, e.clientY);
@@ -232,7 +201,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const coords = getCanvasCoordinates(canvas, e.clientX, e.clientY);
@@ -246,7 +215,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const canvas = signatureCanvasRef.current;
     if (canvas) {
       // Check if anything was actually drawn on the canvas
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (ctx) {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const hasDrawing = imageData.data.some((pixel, index) => {
@@ -255,9 +224,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
         });
 
         if (hasDrawing) {
-          setSignature(
-            `Digital signature captured at ${new Date().toISOString()}`
-          );
+          setSignature(`Digital signature captured at ${new Date().toISOString()}`);
         }
       }
     }
@@ -267,30 +234,30 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Reconfigure context after clearing
-    ctx.strokeStyle = "#000000";
+    ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    setSignature("");
+    setSignature('');
   };
 
   const handleExternalDocClick = (url: string) => {
     setHasVisitedExternalDoc(true);
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const renderAcknowledgmentInput = () => {
     const method = getAcknowledmentMethod();
 
     switch (method) {
-      case "signature":
+      case 'signature':
         return (
           <div className="space-y-4">
             <div>
@@ -344,7 +311,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
           </div>
         );
 
-      case "type_username":
+      case 'type_username':
         return (
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -363,7 +330,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
           </div>
         );
 
-      case "type_word":
+      case 'type_word':
         return (
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -382,7 +349,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
           </div>
         );
 
-      case "checkbox":
+      case 'checkbox':
       default:
         return (
           <div>
@@ -395,8 +362,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
   };
 
   const isOverdue =
-    document.acknowledgmentDeadline &&
-    new Date() > new Date(document.acknowledgmentDeadline);
+    document.acknowledgmentDeadline && new Date() > new Date(document.acknowledgmentDeadline);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
@@ -418,9 +384,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
                   Acknowledgement required
                 </h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {document.isTrainingDocument
-                    ? "Training Document"
-                    : "Policy Document"}
+                  {document.isTrainingDocument ? 'Training Document' : 'Policy Document'}
                 </p>
               </div>
             </div>
@@ -436,19 +400,17 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
             <div
               className={`mt-3 p-3 rounded-lg flex items-center space-x-2 ${
                 isOverdue
-                  ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
-                  : "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                  : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
               }`}
             >
               <IconClock className="w-4 h-4" />
               <span className="text-sm font-medium">
                 {isOverdue
                   ? `Overdue - Deadline was ${new Date(
-                      document.acknowledgmentDeadline
+                      document.acknowledgmentDeadline,
                     ).toLocaleDateString()}`
-                  : `Deadline: ${new Date(
-                      document.acknowledgmentDeadline
-                    ).toLocaleDateString()}`}
+                  : `Deadline: ${new Date(document.acknowledgmentDeadline).toLocaleDateString()}`}
               </span>
             </div>
           )}
@@ -462,7 +424,7 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
 
           <div className="prose prose-sm dark:prose-invert max-w-none">
             {document.content &&
-            typeof document.content === "object" &&
+            typeof document.content === 'object' &&
             document.content.external ? (
               <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
@@ -484,21 +446,17 @@ const PolicyAcknowledgmentModal: FC<PolicyAcknowledgmentModalProps> = ({
                   </div>
                 )}
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3">
-                  You must visit the external document before you can
-                  acknowledge this policy.
+                  You must visit the external document before you can acknowledge this policy.
                 </p>
               </div>
             ) : (
               <div className="text-zinc-700 dark:text-zinc-300">
                 {/* Render document content - simplified version */}
-                <p>
-                  Please read the full policy document carefully before
-                  acknowledging.
-                </p>
+                <p>Please read the full policy document carefully before acknowledging.</p>
                 {document.content && (
                   <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                     <div className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-100 font-sans leading-relaxed">
-                      {typeof document.content === "string"
+                      {typeof document.content === 'string'
                         ? document.content
                         : JSON.stringify(document.content, null, 2)}
                     </div>

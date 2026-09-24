@@ -1,13 +1,5 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import Image from "@tiptap/extension-image";
 import {
   IconBold,
   IconItalic,
@@ -23,11 +15,20 @@ import {
   IconPhoto,
   IconGif,
   IconVideo,
-} from "@tabler/icons-react";
-import { LinkInsertModal, MediaInsertModal } from "./modals";
-import { docMediaProseClass, markdownToHtml, tiptapJsonToMarkdown } from "./content";
-import { DocVideo } from "./extensions/video";
-import { readImageFile, readVideoFile } from "./media";
+} from '@tabler/icons-react';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import clsx from 'clsx';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { docMediaProseClass, markdownToHtml, tiptapJsonToMarkdown } from './content';
+import { DocVideo } from './extensions/video';
+import { readImageFile, readVideoFile } from './media';
+import { LinkInsertModal, MediaInsertModal } from './modals';
 
 type RichDocumentEditorProps = {
   value: string;
@@ -37,7 +38,7 @@ type RichDocumentEditorProps = {
   className?: string;
 };
 
-type MediaKind = "image" | "gif" | "video";
+type MediaKind = 'image' | 'gif' | 'video';
 
 function BubbleBtn({
   active,
@@ -59,10 +60,10 @@ function BubbleBtn({
         onClick();
       }}
       className={clsx(
-        "rounded-md p-1.5 transition-colors",
+        'rounded-md p-1.5 transition-colors',
         active
-          ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-          : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+          ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+          : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
       )}
     >
       {children}
@@ -99,10 +100,10 @@ export default function RichDocumentEditor({
   className,
 }: RichDocumentEditorProps) {
   const [showLinkModal, setShowLinkModal] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkText, setLinkText] = useState("");
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
   const [mediaKind, setMediaKind] = useState<MediaKind | null>(null);
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaUrl, setMediaUrl] = useState('');
   const [mediaUploading, setMediaUploading] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const syncingRef = useRef(false);
@@ -115,23 +116,23 @@ export default function RichDocumentEditor({
       lastEmitted.current = md;
       onChange(md);
     },
-    [onChange]
+    [onChange],
   );
 
   const insertImage = useCallback(
-    (editor: NonNullable<ReturnType<typeof useEditor>>, src: string, alt = "") => {
+    (editor: NonNullable<ReturnType<typeof useEditor>>, src: string, alt = '') => {
       editor.chain().focus().setImage({ src, alt }).run();
       emitMarkdown(editor);
     },
-    [emitMarkdown]
+    [emitMarkdown],
   );
 
   const insertVideo = useCallback(
     (editor: NonNullable<ReturnType<typeof useEditor>>, src: string) => {
-      editor.chain().focus().insertContent({ type: "video", attrs: { src } }).run();
+      editor.chain().focus().insertContent({ type: 'video', attrs: { src } }).run();
       emitMarkdown(editor);
     },
-    [emitMarkdown]
+    [emitMarkdown],
   );
 
   const handleImageFile = useCallback(
@@ -142,14 +143,14 @@ export default function RichDocumentEditor({
         const dataUrl = await readImageFile(file);
         insertImage(editor, dataUrl, file.name);
         setMediaKind(null);
-        setMediaUrl("");
+        setMediaUrl('');
       } catch (e: any) {
-        setMediaError(e?.message || "Failed to upload image");
+        setMediaError(e?.message || 'Failed to upload image');
       } finally {
         setMediaUploading(false);
       }
     },
-    [insertImage]
+    [insertImage],
   );
 
   const handleVideoFile = useCallback(
@@ -160,14 +161,14 @@ export default function RichDocumentEditor({
         const dataUrl = await readVideoFile(file);
         insertVideo(editor, dataUrl);
         setMediaKind(null);
-        setMediaUrl("");
+        setMediaUrl('');
       } catch (e: any) {
-        setMediaError(e?.message || "Failed to upload video");
+        setMediaError(e?.message || 'Failed to upload video');
       } finally {
         setMediaUploading(false);
       }
     },
-    [insertVideo]
+    [insertVideo],
   );
 
   const editor = useEditor({
@@ -184,19 +185,19 @@ export default function RichDocumentEditor({
         autolink: true,
         linkOnPaste: true,
         HTMLAttributes: {
-          class: "text-primary underline underline-offset-2 cursor-pointer",
+          class: 'text-primary underline underline-offset-2 cursor-pointer',
         },
       }),
       Image.configure({
         inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: "doc-media-image",
+          class: 'doc-media-image',
         },
       }),
       DocVideo,
       Placeholder.configure({
-        placeholder: "Start writing…",
+        placeholder: 'Start writing…',
       }),
     ],
     content: markdownToHtml(value),
@@ -204,15 +205,15 @@ export default function RichDocumentEditor({
     editorProps: {
       attributes: {
         class: clsx(
-          "doc-editor prose prose-zinc dark:prose-invert max-w-none min-h-[50vh] px-4 py-2 focus:outline-none sm:px-6 [&_.is-editor-empty:first-child::before]:text-zinc-300 [&_.is-editor-empty:first-child::before]:dark:text-zinc-600 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_p]:leading-relaxed",
-          docMediaProseClass
+          'doc-editor prose prose-zinc dark:prose-invert max-w-none min-h-[50vh] px-4 py-2 focus:outline-none sm:px-6 [&_.is-editor-empty:first-child::before]:text-zinc-300 [&_.is-editor-empty:first-child::before]:dark:text-zinc-600 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_p]:leading-relaxed',
+          docMediaProseClass,
         ),
       },
       handleClick: (_view, _pos, event) => {
         const target = event.target as HTMLElement;
-        const link = target.closest("a");
-        const href = link?.getAttribute("href");
-        if (href && (href.startsWith("http://") || href.startsWith("https://"))) {
+        const link = target.closest('a');
+        const href = link?.getAttribute('href');
+        if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
           event.preventDefault();
           onExternalLink(href);
           return true;
@@ -226,7 +227,7 @@ export default function RichDocumentEditor({
         if (!items) return false;
 
         for (const item of Array.from(items)) {
-          if (item.type.startsWith("image/")) {
+          if (item.type.startsWith('image/')) {
             event.preventDefault();
             const file = item.getAsFile();
             if (file) void handleImageFile(file, ed);
@@ -244,11 +245,11 @@ export default function RichDocumentEditor({
         const file = files[0];
         event.preventDefault();
 
-        if (file.type.startsWith("image/")) {
+        if (file.type.startsWith('image/')) {
           void handleImageFile(file, ed);
           return true;
         }
-        if (file.type.startsWith("video/")) {
+        if (file.type.startsWith('video/')) {
           void handleVideoFile(file, ed);
           return true;
         }
@@ -281,15 +282,15 @@ export default function RichDocumentEditor({
   const openLinkModal = () => {
     if (!editor || disabled) return;
     const { from, to } = editor.state.selection;
-    setLinkText(editor.state.doc.textBetween(from, to, " ") || "");
-    setLinkUrl(editor.getAttributes("link").href || "");
+    setLinkText(editor.state.doc.textBetween(from, to, ' ') || '');
+    setLinkUrl(editor.getAttributes('link').href || '');
     setShowLinkModal(true);
   };
 
   const openMediaModal = (kind: MediaKind) => {
     if (disabled) return;
     setMediaKind(kind);
-    setMediaUrl("");
+    setMediaUrl('');
     setMediaError(null);
   };
 
@@ -297,17 +298,13 @@ export default function RichDocumentEditor({
     if (!editor || !linkUrl.trim()) return;
     const href = linkUrl.trim();
     if (editor.state.selection.empty && linkText.trim()) {
-      editor
-        .chain()
-        .focus()
-        .insertContent(`<a href="${href}">${linkText.trim()}</a>`)
-        .run();
+      editor.chain().focus().insertContent(`<a href="${href}">${linkText.trim()}</a>`).run();
     } else {
-      editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
     }
     setShowLinkModal(false);
-    setLinkUrl("");
-    setLinkText("");
+    setLinkUrl('');
+    setLinkText('');
     emitMarkdown(editor);
   };
 
@@ -315,24 +312,24 @@ export default function RichDocumentEditor({
     if (!editor || !mediaKind || !mediaUrl.trim()) return;
     const src = mediaUrl.trim();
 
-    if (mediaKind === "video") {
+    if (mediaKind === 'video') {
       insertVideo(editor, src);
     } else {
-      insertImage(editor, src, mediaKind === "gif" ? "GIF" : "");
+      insertImage(editor, src, mediaKind === 'gif' ? 'GIF' : '');
     }
 
     setMediaKind(null);
-    setMediaUrl("");
+    setMediaUrl('');
     setMediaError(null);
   };
 
   const handleMediaFileSelect = (file: File) => {
     if (!editor || !mediaKind) return;
-    if (mediaKind === "video") {
+    if (mediaKind === 'video') {
       void handleVideoFile(file, editor);
     } else {
-      if (mediaKind === "gif" && file.type !== "image/gif") {
-        setMediaError("Please choose a GIF file.");
+      if (mediaKind === 'gif' && file.type !== 'image/gif') {
+        setMediaError('Please choose a GIF file.');
         return;
       }
       void handleImageFile(file, editor);
@@ -341,18 +338,18 @@ export default function RichDocumentEditor({
 
   return (
     <>
-      <div className={clsx("relative flex-1", className)}>
+      <div className={clsx('relative flex-1', className)}>
         {!disabled && (
           <div className="mb-2 flex flex-wrap items-center gap-1.5 px-4 sm:px-6">
-            <InsertBtn onClick={() => openMediaModal("image")} title="Insert image">
+            <InsertBtn onClick={() => openMediaModal('image')} title="Insert image">
               <IconPhoto className="h-3.5 w-3.5" stroke={1.75} />
               Image
             </InsertBtn>
-            <InsertBtn onClick={() => openMediaModal("gif")} title="Insert GIF">
+            <InsertBtn onClick={() => openMediaModal('gif')} title="Insert GIF">
               <IconGif className="h-3.5 w-3.5" stroke={1.75} />
               GIF
             </InsertBtn>
-            <InsertBtn onClick={() => openMediaModal("video")} title="Insert video">
+            <InsertBtn onClick={() => openMediaModal('video')} title="Insert video">
               <IconVideo className="h-3.5 w-3.5" stroke={1.75} />
               Video
             </InsertBtn>
@@ -362,33 +359,33 @@ export default function RichDocumentEditor({
         {editor && !disabled && (
           <BubbleMenu
             editor={editor}
-            options={{ placement: "top", offset: 10 }}
+            options={{ placement: 'top', offset: 10 }}
             className="flex items-center gap-0.5 rounded-lg border border-zinc-200/90 bg-white/95 p-0.5 shadow-xl backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/95"
           >
             <BubbleBtn
               title="Bold"
-              active={editor.isActive("bold")}
+              active={editor.isActive('bold')}
               onClick={() => editor.chain().focus().toggleBold().run()}
             >
               <IconBold className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Italic"
-              active={editor.isActive("italic")}
+              active={editor.isActive('italic')}
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
               <IconItalic className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Underline"
-              active={editor.isActive("underline")}
+              active={editor.isActive('underline')}
               onClick={() => editor.chain().focus().toggleUnderline().run()}
             >
               <IconUnderline className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Strikethrough"
-              active={editor.isActive("strike")}
+              active={editor.isActive('strike')}
               onClick={() => editor.chain().focus().toggleStrike().run()}
             >
               <IconStrikethrough className="h-3.5 w-3.5" stroke={2.5} />
@@ -396,21 +393,21 @@ export default function RichDocumentEditor({
             <span className="mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
             <BubbleBtn
               title="Heading 1"
-              active={editor.isActive("heading", { level: 1 })}
+              active={editor.isActive('heading', { level: 1 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             >
               <IconH1 className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Heading 2"
-              active={editor.isActive("heading", { level: 2 })}
+              active={editor.isActive('heading', { level: 2 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             >
               <IconH2 className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Heading 3"
-              active={editor.isActive("heading", { level: 3 })}
+              active={editor.isActive('heading', { level: 3 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
             >
               <IconH3 className="h-3.5 w-3.5" stroke={2.5} />
@@ -418,30 +415,26 @@ export default function RichDocumentEditor({
             <span className="mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
             <BubbleBtn
               title="Bullet list"
-              active={editor.isActive("bulletList")}
+              active={editor.isActive('bulletList')}
               onClick={() => editor.chain().focus().toggleBulletList().run()}
             >
               <IconList className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Numbered list"
-              active={editor.isActive("orderedList")}
+              active={editor.isActive('orderedList')}
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
             >
               <IconListNumbers className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
             <BubbleBtn
               title="Quote"
-              active={editor.isActive("blockquote")}
+              active={editor.isActive('blockquote')}
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
             >
               <IconQuote className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
-            <BubbleBtn
-              title="Link"
-              active={editor.isActive("link")}
-              onClick={openLinkModal}
-            >
+            <BubbleBtn title="Link" active={editor.isActive('link')} onClick={openLinkModal}>
               <IconLink className="h-3.5 w-3.5" stroke={2.5} />
             </BubbleBtn>
           </BubbleMenu>
@@ -464,7 +457,7 @@ export default function RichDocumentEditor({
           open={!!mediaKind}
           onClose={() => {
             setMediaKind(null);
-            setMediaUrl("");
+            setMediaUrl('');
             setMediaError(null);
           }}
           kind={mediaKind}

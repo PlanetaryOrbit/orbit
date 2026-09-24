@@ -1,15 +1,17 @@
-"use client";
+'use client';
 
-import type toast from "react-hot-toast";
-import { useRecoilState } from "recoil";
-import { workspacestate, loginState } from "@/state";
-import type { FC } from "@/types/settingsComponent";
-import { IconShieldLock, IconTrash, IconTransfer } from "@tabler/icons-react";
-import clsx from "clsx";
-import { useState } from "react";
-import DeleteWorkspace from "./delete";
-import TransferOwnership from "./transfer";
-import { useRouter } from "next/router";
+import { IconShieldLock, IconTrash, IconTransfer } from '@tabler/icons-react';
+import clsx from 'clsx';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import type toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import { workspacestate, loginState } from '@/state';
+import type { FC } from '@/types/settingsComponent';
+
+import DeleteWorkspace from './delete';
+import TransferOwnership from './transfer';
 
 type props = {
   triggerToast: typeof toast;
@@ -22,7 +24,7 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const router = useRouter();
-  
+
   const isOwner = isAdmin !== undefined ? isAdmin : workspace.isAdmin === true;
 
   if (!isOwner) {
@@ -36,7 +38,8 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
           <IconShieldLock size={20} stroke={1.75} />
         </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
-          As the workspace owner, you can transfer ownership to another member or permanently delete this workspace and its data.
+          As the workspace owner, you can transfer ownership to another member or permanently delete
+          this workspace and its data.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -44,8 +47,8 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
           type="button"
           onClick={() => setShowTransferModal(true)}
           className={clsx(
-            "flex flex-col items-start text-left gap-2 rounded-xl border-2 border-primary/25 bg-primary/5 dark:bg-primary/10 px-4 py-4 transition-all",
-            "hover:border-primary/50 hover:bg-primary/10 dark:hover:bg-primary/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+            'flex flex-col items-start text-left gap-2 rounded-xl border-2 border-primary/25 bg-primary/5 dark:bg-primary/10 px-4 py-4 transition-all',
+            'hover:border-primary/50 hover:bg-primary/10 dark:hover:bg-primary/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900',
           )}
         >
           <span className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white">
@@ -55,15 +58,16 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
             Transfer ownership
           </span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400 pl-[2.75rem]">
-            Hand off admin control to a trusted member. You will lose owner privileges after confirmation.
+            Hand off admin control to a trusted member. You will lose owner privileges after
+            confirmation.
           </span>
         </button>
         <button
           type="button"
           onClick={() => setShowDeleteModal(true)}
           className={clsx(
-            "flex flex-col items-start text-left gap-2 rounded-xl border-2 border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 px-4 py-4 transition-all",
-            "hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+            'flex flex-col items-start text-left gap-2 rounded-xl border-2 border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 px-4 py-4 transition-all',
+            'hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900',
           )}
         >
           <span className="flex items-center gap-2 text-sm font-semibold text-red-800 dark:text-red-200">
@@ -73,7 +77,8 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
             Delete workspace
           </span>
           <span className="text-xs text-red-700/80 dark:text-red-300/80 pl-[2.75rem]">
-            Irreversible. All workspace data, settings, and history tied to this space will be removed.
+            Irreversible. All workspace data, settings, and history tied to this space will be
+            removed.
           </span>
         </button>
       </div>
@@ -82,8 +87,8 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         workspaceId={workspace.groupId}
-        workspaceName={workspace.groupName || ""}
-        onSuccess={() => router.push("/")}
+        workspaceName={workspace.groupName || ''}
+        onSuccess={() => router.push('/')}
       />
       <TransferOwnership
         isOpen={showTransferModal}
@@ -92,14 +97,14 @@ const Admin: FC<props> = ({ triggerToast, isAdmin }) => {
         currentOwnerId={BigInt(loginInfo.userId || 0)}
         onSuccess={() => {
           setShowTransferModal(false);
-          triggerToast.success("You are no longer the workspace owner");
-          setTimeout(() => router.push("/"), 2000);
+          triggerToast.success('You are no longer the workspace owner');
+          setTimeout(() => router.push('/'), 2000);
         }}
       />
     </div>
   );
 };
 
-Admin.title = "Workspace Administration";
+Admin.title = 'Workspace Administration';
 
 export default Admin;

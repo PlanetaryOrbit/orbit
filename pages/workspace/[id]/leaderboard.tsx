@@ -1,22 +1,18 @@
-import workspace from "@/layouts/workspace";
-import { pageWithLayout } from "@/layoutTypes";
-import { loginState } from "@/state";
-import axios from "axios";
-import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
-import { useRecoilState } from "recoil";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import prisma from "@/utils/database";
-import {
-  IconTrophy,
-  IconUsers,
-  IconUserCircle,
-  IconLaurelWreath1,
-} from "@tabler/icons-react";
-import randomText from "@/utils/randomText";
-import Tooltip from "@/components/tooltip";
-import moment from "moment";
-import { PodiumBadge, podiumPlaceFromIndex } from "@/components/activity/PodiumBadge";
+import { IconTrophy, IconUsers, IconUserCircle, IconLaurelWreath1 } from '@tabler/icons-react';
+import axios from 'axios';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import { useEffect, useState, useMemo } from 'react';
+import { useRecoilState } from 'recoil';
+
+import { PodiumBadge, podiumPlaceFromIndex } from '@/components/activity/PodiumBadge';
+import Tooltip from '@/components/tooltip';
+import workspace from '@/layouts/workspace';
+import { pageWithLayout } from '@/layoutTypes';
+import { loginState } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import randomText from '@/utils/randomText';
 
 interface StaffMember {
   userId: string;
@@ -26,58 +22,60 @@ interface StaffMember {
   messages?: number;
 }
 
-export const getServerSideProps = withPermissionCheckSsr(
-  async (context: any) => {
-    const { id } = context.query;
-    const userid = context.req.auth.userId;
+export const getServerSideProps = withPermissionCheckSsr(async (context: any) => {
+  const { id } = context.query;
+  const userid = context.req.auth.userId;
 
-    if (!userid) {
-      return { redirect: { destination: "/login" } };
-    }
-
-    if (!id) {
-      return { notFound: true };
-    }
-
-    const user = await prisma.user.findFirst({
-      where: { userid },
-      include: {
-        roles: {
-          where: { workspaceGroupId: parseInt(id as string) },
-        },
-      },
-    });
-
-    if (!user) {
-      return { redirect: { destination: "/login" } };
-    }
-
-    const config = await prisma.config.findFirst({
-      where: {
-        workspaceGroupId: parseInt(id as string),
-        key: "leaderboard",
-      },
-    });
-
-    let leaderboardEnabled = false;
-    if (config?.value) {
-      let val = config.value;
-      if (typeof val === "string") {
-        try { val = JSON.parse(val) } catch { val = {} }
-      }
-      leaderboardEnabled =
-        typeof val === "object" && val !== null && "enabled" in val
-          ? (val as { enabled?: boolean }).enabled ?? false
-          : false;
-    }
-
-    if (!leaderboardEnabled) {
-      return { notFound: true };
-    }
-
-    return { props: {} };
+  if (!userid) {
+    return { redirect: { destination: '/login' } };
   }
-);
+
+  if (!id) {
+    return { notFound: true };
+  }
+
+  const user = await prisma.user.findFirst({
+    where: { userid },
+    include: {
+      roles: {
+        where: { workspaceGroupId: parseInt(id as string) },
+      },
+    },
+  });
+
+  if (!user) {
+    return { redirect: { destination: '/login' } };
+  }
+
+  const config = await prisma.config.findFirst({
+    where: {
+      workspaceGroupId: parseInt(id as string),
+      key: 'leaderboard',
+    },
+  });
+
+  let leaderboardEnabled = false;
+  if (config?.value) {
+    let val = config.value;
+    if (typeof val === 'string') {
+      try {
+        val = JSON.parse(val);
+      } catch {
+        val = {};
+      }
+    }
+    leaderboardEnabled =
+      typeof val === 'object' && val !== null && 'enabled' in val
+        ? ((val as { enabled?: boolean }).enabled ?? false)
+        : false;
+  }
+
+  if (!leaderboardEnabled) {
+    return { notFound: true };
+  }
+
+  return { props: {} };
+});
 
 function formatMinutes(ms: number) {
   const minutes = Math.floor(ms / 1000 / 60);
@@ -109,7 +107,7 @@ const Leaderboard: pageWithLayout = () => {
         setActiveUsers(au ?? []);
         setInactiveUsers(iu ?? []);
       } catch (error) {
-        console.error("Error fetching leaderboard data:", error);
+        console.error('Error fetching leaderboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -124,29 +122,32 @@ const Leaderboard: pageWithLayout = () => {
 
   const getPodiumIcon = (position: number) => {
     if (position < 0 || position > 2) return null;
-    return (
-      <PodiumBadge
-        place={podiumPlaceFromIndex(position)}
-        size="lg"
-      />
-    );
+    return <PodiumBadge place={podiumPlaceFromIndex(position)} size="lg" />;
   };
 
   const getPodiumHeight = (position: number) => {
     switch (position) {
-      case 0: return "h-24 sm:h-32";
-      case 1: return "h-16 sm:h-24";
-      case 2: return "h-12 sm:h-20";
-      default: return "h-10 sm:h-16";
+      case 0:
+        return 'h-24 sm:h-32';
+      case 1:
+        return 'h-16 sm:h-24';
+      case 2:
+        return 'h-12 sm:h-20';
+      default:
+        return 'h-10 sm:h-16';
     }
   };
 
   const getPodiumColors = (position: number) => {
     switch (position) {
-      case 0: return "bg-gradient-to-t from-yellow-400 to-yellow-300 border-yellow-500";
-      case 1: return "bg-gradient-to-t from-gray-400 to-gray-300 border-gray-500";
-      case 2: return "bg-gradient-to-t from-amber-600 to-amber-500 border-amber-700";
-      default: return "bg-gradient-to-t from-zinc-300 to-zinc-200 border-zinc-400";
+      case 0:
+        return 'bg-gradient-to-t from-yellow-400 to-yellow-300 border-yellow-500';
+      case 1:
+        return 'bg-gradient-to-t from-gray-400 to-gray-300 border-gray-500';
+      case 2:
+        return 'bg-gradient-to-t from-amber-600 to-amber-500 border-amber-700';
+      default:
+        return 'bg-gradient-to-t from-zinc-300 to-zinc-200 border-zinc-400';
     }
   };
 
@@ -166,7 +167,6 @@ const Leaderboard: pageWithLayout = () => {
   return (
     <div className="pagePadding">
       <div className="max-w-7xl mx-auto">
-
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <div className="bg-primary/10 p-2.5 sm:p-3 rounded-xl shrink-0">
             <IconTrophy className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -188,16 +188,15 @@ const Leaderboard: pageWithLayout = () => {
                 const position = podiumPositions[i];
                 const isFirst = position === 0;
                 const avatarSize = isFirst
-                  ? "w-16 h-16 sm:w-24 sm:h-24"
-                  : "w-14 h-14 sm:w-20 sm:h-20";
-                const borderColor = position === 0
-                  ? "border-yellow-400"
-                  : position === 1
-                  ? "border-gray-400"
-                  : "border-amber-600";
-                const podiumWidth = isFirst
-                  ? "w-20 sm:w-28"
-                  : "w-16 sm:w-24";
+                  ? 'w-16 h-16 sm:w-24 sm:h-24'
+                  : 'w-14 h-14 sm:w-20 sm:h-20';
+                const borderColor =
+                  position === 0
+                    ? 'border-yellow-400'
+                    : position === 1
+                      ? 'border-gray-400'
+                      : 'border-amber-600';
+                const podiumWidth = isFirst ? 'w-20 sm:w-28' : 'w-16 sm:w-24';
 
                 return (
                   <div
@@ -215,7 +214,7 @@ const Leaderboard: pageWithLayout = () => {
                           src={user.picture}
                           alt={user.username}
                           className={`${avatarSize} rounded-full border-4 ${borderColor} shadow-lg object-cover`}
-                          style={{ background: "transparent" }}
+                          style={{ background: 'transparent' }}
                         />
                       </button>
                       <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 sm:-top-2">
@@ -233,13 +232,17 @@ const Leaderboard: pageWithLayout = () => {
                           </div>
                         </div>
                       )}
-                      <span className={`text-white font-bold ${isFirst ? "text-lg sm:text-xl" : "text-base sm:text-lg"}`}>
+                      <span
+                        className={`text-white font-bold ${isFirst ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'}`}
+                      >
                         {position + 1}
                       </span>
                     </div>
 
                     <div className="mt-2 sm:mt-4 text-center w-full px-1">
-                      <p className={`font-semibold text-zinc-900 dark:text-white truncate text-xs sm:text-sm ${isFirst ? "sm:text-base sm:font-bold" : ""}`}>
+                      <p
+                        className={`font-semibold text-zinc-900 dark:text-white truncate text-xs sm:text-sm ${isFirst ? 'sm:text-base sm:font-bold' : ''}`}
+                      >
                         {user.username}
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -291,7 +294,7 @@ const Leaderboard: pageWithLayout = () => {
                           src={user.picture}
                           alt={user.username}
                           className="w-8 h-8 sm:w-12 sm:h-12 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm object-cover"
-                          style={{ background: "transparent" }}
+                          style={{ background: 'transparent' }}
                         />
                       </button>
                       <span className="font-semibold text-sm text-zinc-900 dark:text-white truncate">
@@ -314,24 +317,21 @@ const Leaderboard: pageWithLayout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
           {[
             {
-              title: "In-game Staff",
-              subtitle: "Currently active members",
+              title: 'In-game Staff',
+              subtitle: 'Currently active members',
               users: activeUsers,
-              emptyText: "No staff are currently in-game",
+              emptyText: 'No staff are currently in-game',
               icon: IconUsers,
             },
             {
-              title: "Inactive Staff",
-              subtitle: "Staff on inactivity notice",
+              title: 'Inactive Staff',
+              subtitle: 'Staff on inactivity notice',
               users: inactiveUsers,
-              emptyText: "No staff are currently inactive",
+              emptyText: 'No staff are currently inactive',
               icon: IconUserCircle,
             },
           ].map(({ title, subtitle, users, emptyText, icon: Icon }) => (
-            <div
-              key={title}
-              className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-6 shadow-sm"
-            >
+            <div key={title} className="bg-white dark:bg-zinc-800 rounded-xl p-4 sm:p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-primary/10 p-2 rounded-lg shrink-0">
                   <Icon className="w-5 h-5 text-primary" />
@@ -340,9 +340,7 @@ const Leaderboard: pageWithLayout = () => {
                   <h3 className="text-sm sm:text-base font-medium text-zinc-900 dark:text-white">
                     {title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                    {subtitle}
-                  </p>
+                  <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -352,7 +350,7 @@ const Leaderboard: pageWithLayout = () => {
                       key={user.userId}
                       tooltipText={
                         user.reason
-                          ? `${user.username} | ${moment(user.from).format("DD MMM")} - ${moment(user.to).format("DD MMM")}`
+                          ? `${user.username} | ${moment(user.from).format('DD MMM')} - ${moment(user.to).format('DD MMM')}`
                           : user.username
                       }
                       orientation="top"
@@ -367,15 +365,13 @@ const Leaderboard: pageWithLayout = () => {
                           src={user.picture}
                           alt={user.username}
                           className="w-10 h-10 rounded-full object-cover border-2 border-white"
-                          style={{ background: "transparent" }}
+                          style={{ background: 'transparent' }}
                         />
                       </button>
                     </Tooltip>
                   ))
                 ) : (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
-                    {emptyText}
-                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">{emptyText}</p>
                 )}
               </div>
             </div>
@@ -387,14 +383,26 @@ const Leaderboard: pageWithLayout = () => {
 };
 
 const BG_COLORS = [
-  "bg-rose-300", "bg-lime-300", "bg-teal-200", "bg-amber-300",
-  "bg-rose-200", "bg-lime-200", "bg-green-100", "bg-red-100",
-  "bg-yellow-200", "bg-amber-200", "bg-emerald-300", "bg-green-300",
-  "bg-red-300", "bg-emerald-200", "bg-green-200", "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);

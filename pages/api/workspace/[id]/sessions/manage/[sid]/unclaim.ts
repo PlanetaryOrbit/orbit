@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiResponse } from "next";
-import prisma, { schedule } from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma, { schedule } from '@/utils/database';
 
 type Data = {
   success: boolean;
@@ -12,23 +13,16 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   const { id, sid } = req.query;
   if (!id || !sid)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   const { date } = req.body;
-  if (!date)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+  if (!date) return res.status(400).json({ success: false, error: 'Missing required fields' });
   const day = new Date(date);
 
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const user = await prisma.user.findUnique({
     where: {
@@ -67,17 +61,18 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     },
   });
   const userRoles = user?.roles || [];
-  const hostingRoleIds = (schedule?.sessionType?.hostingRoles || []).map(
-    (r: any) => r.id
-  );
+  const hostingRoleIds = (schedule?.sessionType?.hostingRoles || []).map((r: any) => r.id);
   const hasHostingRole = userRoles.some((ur: any) => hostingRoleIds.includes(ur.id));
-  const hasAdminPerm = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("admin"));
+  const hasAdminPerm = userRoles.some(
+    (ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes('admin'),
+  );
 
   if (!hasHostingRole && !isAdmin && !hasAdminPerm) {
-    return res.status(403).json({ success: false, error: "You do not have permission to claim this session" });
+    return res
+      .status(403)
+      .json({ success: false, error: 'You do not have permission to claim this session' });
   }
-  if (!schedule)
-    return res.status(400).json({ success: false, error: "Invalid schedule" });
+  if (!schedule) return res.status(400).json({ success: false, error: 'Invalid schedule' });
   const dateTime = new Date();
   dateTime.setUTCHours(schedule.Hour);
   dateTime.setUTCMinutes(schedule.Minute);
@@ -101,8 +96,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     },
   });
-  if (!findSession)
-    return res.status(400).json({ success: false, error: "Invalid session" });
+  if (!findSession) return res.status(400).json({ success: false, error: 'Invalid session' });
 
   const schedulewithsession = await prisma.schedule.update({
     where: {
@@ -144,8 +138,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     success: true,
     session: JSON.parse(
       JSON.stringify(schedulewithsession, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      )
+        typeof value === 'bigint' ? value.toString() : value,
+      ),
     ),
   });
 }

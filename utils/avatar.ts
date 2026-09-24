@@ -10,34 +10,30 @@
  * @author BuddyWinte
  */
 
-import cache from "@/utils/cache";
+import cache from '@/utils/cache';
 
-export type AvatarType =
-  | "headshot"
-  | "avatar"
-  | "bust"
-  | "fullbody";
+export type AvatarType = 'headshot' | 'avatar' | 'bust' | 'fullbody';
 
 const ROBLOX_THUMBNAILS = {
-  headshot: "avatar-headshot",
-  avatar: "avatar",
-  bust: "avatar-bust",
-  fullbody: "avatar",
+  headshot: 'avatar-headshot',
+  avatar: 'avatar',
+  bust: 'avatar-bust',
+  fullbody: 'avatar',
 } as const;
 
 const VALID_SIZES = new Set([
-  "48x48",
-  "50x50",
-  "60x60",
-  "75x75",
-  "100x100",
-  "110x110",
-  "150x150",
-  "180x180",
-  "250x250",
-  "352x352",
-  "420x420",
-  "720x720",
+  '48x48',
+  '50x50',
+  '60x60',
+  '75x75',
+  '100x100',
+  '110x110',
+  '150x150',
+  '180x180',
+  '250x250',
+  '352x352',
+  '420x420',
+  '720x720',
 ]);
 
 export interface FetchAvatarOptions {
@@ -56,11 +52,7 @@ export async function fetchAvatar(
   userId: bigint | number | string,
   options: FetchAvatarOptions = {},
 ): Promise<string | null> {
-  const {
-    type = "headshot",
-    size = "180x180",
-    circular = false,
-  } = options;
+  const { type = 'headshot', size = '180x180', circular = false } = options;
 
   const id = String(userId);
 
@@ -68,18 +60,9 @@ export async function fetchAvatar(
     return null;
   }
 
-  const validSize = VALID_SIZES.has(size)
-    ? size
-    : "180x180";
+  const validSize = VALID_SIZES.has(size) ? size : '180x180';
 
-  const key = [
-    "roblox",
-    "avatar",
-    type,
-    id,
-    validSize,
-    circular,
-  ].join(":");
+  const key = ['roblox', 'avatar', type, id, validSize, circular].join(':');
 
   const cached = await cache.get<string>(key);
 
@@ -91,10 +74,10 @@ export async function fetchAvatar(
     const endpoint = ROBLOX_THUMBNAILS[type];
 
     const response = await fetch(
-      "https://thumbnails.roblox.com/v1/users/" +
+      'https://thumbnails.roblox.com/v1/users/' +
         `${endpoint}?userIds=${id}` +
         `&size=${validSize}` +
-        "&format=Png" +
+        '&format=Png' +
         `&isCircular=${circular}`,
     );
 
@@ -104,19 +87,14 @@ export async function fetchAvatar(
 
     const body = await response.json();
 
-    const image =
-      body.data?.[0] as RobloxThumbnail | undefined;
+    const image = body.data?.[0] as RobloxThumbnail | undefined;
 
     if (!image?.imageUrl) {
-      await cache.set(key, "null", 300);
+      await cache.set(key, 'null', 300);
       return null;
     }
 
-    await cache.set(
-      key,
-      image.imageUrl,
-      60 * 60 * 24,
-    );
+    await cache.set(key, image.imageUrl, 60 * 60 * 24);
 
     return image.imageUrl;
   } catch {
@@ -128,41 +106,26 @@ export async function fetchAvatars(
   userIds: Array<bigint | number | string>,
   options: FetchAvatarOptions = {},
 ): Promise<Record<string, string | null>> {
-  const {
-    type = "headshot",
-    size = "180x180",
-    circular = false,
-  } = options;
+  const { type = 'headshot', size = '180x180', circular = false } = options;
 
-  const ids = userIds
-    .map(String)
-    .filter((id) => /^\d+$/.test(id));
+  const ids = userIds.map(String).filter((id) => /^\d+$/.test(id));
 
   if (!ids.length) {
     return {};
   }
 
-  const validSize = VALID_SIZES.has(size)
-    ? size
-    : "180x180";
+  const validSize = VALID_SIZES.has(size) ? size : '180x180';
 
   const result: Record<string, string | null> = {};
 
   const missing: string[] = [];
 
   for (const id of ids) {
-    const key = [
-      "roblox",
-      "avatar",
-      type,
-      id,
-      validSize,
-      circular,
-    ].join(":");
+    const key = ['roblox', 'avatar', type, id, validSize, circular].join(':');
 
     const cached = await cache.get<string>(key);
 
-    if (cached && cached !== "null") {
+    if (cached && cached !== 'null') {
       result[id] = cached;
     } else {
       missing.push(id);
@@ -176,10 +139,10 @@ export async function fetchAvatars(
   const endpoint = ROBLOX_THUMBNAILS[type];
 
   const response = await fetch(
-    "https://thumbnails.roblox.com/v1/users/" +
-      `${endpoint}?userIds=${missing.join(",")}` +
+    'https://thumbnails.roblox.com/v1/users/' +
+      `${endpoint}?userIds=${missing.join(',')}` +
       `&size=${validSize}` +
-      "&format=Png" +
+      '&format=Png' +
       `&isCircular=${circular}`,
   );
 
@@ -191,24 +154,13 @@ export async function fetchAvatars(
 
   for (const image of body.data ?? []) {
     const id = String(image.targetId);
-    const key = [
-      "roblox",
-      "avatar",
-      type,
-      id,
-      validSize,
-      circular,
-    ].join(":");
+    const key = ['roblox', 'avatar', type, id, validSize, circular].join(':');
 
     const url = image.imageUrl ?? null;
 
     result[id] = url;
 
-    await cache.set(
-      key,
-      url ?? "null",
-      url ? 86400 : 300,
-    );
+    await cache.set(key, url ?? 'null', url ? 86400 : 300);
   }
 
   return result;

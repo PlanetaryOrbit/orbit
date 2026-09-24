@@ -1,18 +1,6 @@
-"use client";
+'use client';
 
-import type { NextPage } from "next";
-import Head from "next/head";
-import Topbar from "@/components/topbar";
-import { useRouter } from "next/router";
-import { loginState } from "@/state";
-import { Transition, Dialog } from "@headlessui/react";
-import { useState, useEffect, Fragment, useRef, useCallback } from "react";
-import axios from "axios";
-import Input from "@/components/input";
-import { motion } from "framer-motion";
-import { useForm, FormProvider } from "react-hook-form";
-import { useRecoilState } from "recoil";
-import { toast } from "react-hot-toast";
+import { Transition, Dialog } from '@headlessui/react';
 import {
   IconPlus,
   IconRefresh,
@@ -28,8 +16,20 @@ import {
   IconClock,
   IconUserCog,
   IconClockCog,
-} from "@tabler/icons-react";
-import clsx from "clsx";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { motion } from 'framer-motion';
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useState, useEffect, Fragment, useRef, useCallback } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import Input from '@/components/input';
+import Topbar from '@/components/topbar';
 import {
   WorkspaceCard,
   WorkspacesEmptyState,
@@ -40,7 +40,8 @@ import {
   workspacesModalPanelClass,
   workspacesPrimaryButtonClass,
   workspacesSecondaryButtonClass,
-} from "@/components/workspaces/shell";
+} from '@/components/workspaces/shell';
+import { loginState } from '@/state';
 
 interface Workspaces {
   groupId: number;
@@ -48,7 +49,7 @@ interface Workspaces {
   groupLogo: string;
 }
 
-const PINNED_WORKSPACE_KEY = "orbit-pinned-workspace";
+const PINNED_WORKSPACE_KEY = 'orbit-pinned-workspace';
 
 const Home: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
@@ -58,24 +59,22 @@ const Home: NextPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showInstanceSettings, setShowInstanceSettings] = useState(false);
-  const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(
-    null,
-  );
+  const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspaces[] | []>([]);
   const [externalConfig, setExternalConfig] = useState({
-    clientId: "",
-    clientSecret: "",
-    redirectUri: "",
-    redirect_wid: "",
-    discordAppId: "",
-    discordAppSecret: "",
-    google_id: "",
-    google_secret: "",
-    google_email_filtration: "",
+    clientId: '',
+    clientSecret: '',
+    redirectUri: '',
+    redirect_wid: '',
+    discordAppId: '',
+    discordAppSecret: '',
+    google_id: '',
+    google_secret: '',
+    google_email_filtration: '',
     oauthOnlyLogin: false,
   });
   const [configLoading, setConfigLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
+  const [saveMessage, setSaveMessage] = useState('');
   const [usingEnvVars, setUsingEnvVars] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingSlide, setOnboardingSlide] = useState(0);
@@ -85,81 +84,78 @@ const Home: NextPage = () => {
   const isOAuthConfigValid =
     (externalConfig.discordAppId.trim().length > 0 &&
       externalConfig.discordAppSecret.trim().length > 0) ||
-    (externalConfig.clientId.trim().length > 0 &&
-      externalConfig.clientSecret.trim().length > 0) ||
-    (externalConfig.clientId.trim().length > 0 &&
-      externalConfig.clientSecret.trim().length > 0) ||
-    (externalConfig.google_id.trim().length > 0 &&
-      externalConfig.google_secret.trim().length > 0);
+    (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) ||
+    (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) ||
+    (externalConfig.google_id.trim().length > 0 && externalConfig.google_secret.trim().length > 0);
 
   const features = [
     {
-      title: "Workspaces",
-      desc: "Each Roblox group gets its own workspace with members, roles, and activity tracking.",
+      title: 'Workspaces',
+      desc: 'Each Roblox group gets its own workspace with members, roles, and activity tracking.',
     },
     {
-      title: "Roles & Departments",
-      desc: "Organise your team into departments and assign roles for fine-grained access control.",
+      title: 'Roles & Departments',
+      desc: 'Organise your team into departments and assign roles for fine-grained access control.',
     },
     {
-      title: "Sessions",
-      desc: "Log and track sessions, attendance, and host activity all in one place.",
+      title: 'Sessions',
+      desc: 'Log and track sessions, attendance, and host activity all in one place.',
     },
   ];
   const slides = [
     {
       icon: IconBuildingSkyscraper,
-      title: "Workspaces",
+      title: 'Workspaces',
       desc: "Each Roblox group gets its own workspace — your team's central hub for everything.",
       note: undefined,
     },
     {
       icon: IconUsersGroup,
-      title: "Roles & Departments",
-      desc: "Organise your team into departments and assign roles for fine-grained access control.",
+      title: 'Roles & Departments',
+      desc: 'Organise your team into departments and assign roles for fine-grained access control.',
       note: undefined,
     },
     {
       icon: IconCalendarEvent,
-      title: "Sessions",
-      desc: "Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.",
+      title: 'Sessions',
+      desc: 'Host and log sessions, track attendance, assign co-hosts, and keep notes automatically.',
       note: undefined,
     },
     {
       icon: IconChartBar,
-      title: "Activity & Quotas",
+      title: 'Activity & Quotas',
       desc: "Monitor member activity over time. Set quotas and see who's contributing.",
       note: undefined,
     },
     {
       icon: IconFileText,
-      title: "Documents & Policies",
-      desc: "Write internal documents and require policy acknowledgments from your members.",
+      title: 'Documents & Policies',
+      desc: 'Write internal documents and require policy acknowledgments from your members.',
       note: undefined,
     },
     {
       icon: IconServerCog,
-      title: "Staff Management",
-      desc: "Manage all of your staff effortlessly from the views.",
+      title: 'Staff Management',
+      desc: 'Manage all of your staff effortlessly from the views.',
       note: undefined,
     },
     {
       icon: IconUserCog,
-      title: "Staff Notices",
-      desc: "See, monitor, approve or deny staff notices, all made in one place.",
+      title: 'Staff Notices',
+      desc: 'See, monitor, approve or deny staff notices, all made in one place.',
       note: undefined,
     },
     {
       icon: IconClockCog,
-      title: "Leaderboard",
-      desc: "See how you have been doing, and see who is on the leaderboard.",
+      title: 'Leaderboard',
+      desc: 'See how you have been doing, and see who is on the leaderboard.',
       note: undefined,
     },
     {
       icon: IconRocket,
       title: "You're all set! 🎉",
       desc: "That's everything. Jump into your workspace and start exploring.",
-      note: "More features are added regularly — keep an eye out for updates.",
+      note: 'More features are added regularly — keep an eye out for updates.',
     },
   ];
 
@@ -170,15 +166,15 @@ const Home: NextPage = () => {
   useEffect(() => {
     async function checkWorkspaces() {
       try {
-        const { data } = await axios.get<{ data: Workspaces[]}>("/api/auth/workspaceMembership");
+        const { data } = await axios.get<{ data: Workspaces[] }>('/api/auth/workspaceMembership');
 
         setWorkspaces(data.data);
       } catch (error) {
-        console.error("Error checking workspaces:", error);
+        console.error('Error checking workspaces:', error);
       }
     }
 
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
     const raw = localStorage.getItem(PINNED_WORKSPACE_KEY);
     if (raw) {
       const id = parseInt(raw, 10);
@@ -203,51 +199,51 @@ const Home: NextPage = () => {
     if (pinnedWorkspaceId === groupId) {
       setPinnedWorkspaceId(null);
       localStorage.removeItem(PINNED_WORKSPACE_KEY);
-      toast.success("Workspace unpinned");
+      toast.success('Workspace unpinned');
     } else {
       setPinnedWorkspaceId(groupId);
       localStorage.setItem(PINNED_WORKSPACE_KEY, String(groupId));
-      toast.success("Workspace pinned");
+      toast.success('Workspace pinned');
     }
   };
 
   const createWorkspace = async () => {
     setLoading(true);
-    const t = toast.loading("Creating workspace...");
+    const t = toast.loading('Creating workspace...');
 
     const request = await axios
-      .post("/api/createws", {
-        groupId: Number(methods.getValues("groupID")),
+      .post('/api/createws', {
+        groupId: Number(methods.getValues('groupID')),
       })
       .catch((err) => {
         console.log(err);
         setLoading(false);
 
-        if (err.response?.data?.error === "You are not a high enough rank") {
-          methods.setError("groupID", {
-            type: "custom",
-            message: "You need to be a rank 10 or higher to create a workspace",
+        if (err.response?.data?.error === 'You are not a high enough rank') {
+          methods.setError('groupID', {
+            type: 'custom',
+            message: 'You need to be a rank 10 or higher to create a workspace',
           });
         }
-        if (err.response?.data?.error === "Workspace already exists") {
-          methods.setError("groupID", {
-            type: "custom",
-            message: "This group already has a workspace",
+        if (err.response?.data?.error === 'Workspace already exists') {
+          methods.setError('groupID', {
+            type: 'custom',
+            message: 'This group already has a workspace',
           });
         }
       });
 
     if (request) {
-      toast.success("Workspace created!", { id: t });
+      toast.success('Workspace created!', { id: t });
       setIsOpen(false);
-      router.push(`/workspace/${methods.getValues("groupID")}?new=true`);
+      router.push(`/workspace/${methods.getValues('groupID')}?new=true`);
     }
   };
   useEffect(() => {
     const checkLogin = async () => {
       let req;
       try {
-        req = await axios.get("/api/@me");
+        req = await axios.get('/api/@me');
         setLogin({ ...req.data.user });
         if (req.data.user.isFirstLogin) {
           setShowOnboarding(true);
@@ -255,11 +251,11 @@ const Home: NextPage = () => {
       } catch (err: any) {
         const status = err.response?.status;
         if (status === 400) {
-          if (router.pathname !== "/welcome") router.push("/welcome");
+          if (router.pathname !== '/welcome') router.push('/welcome');
         } else if (status === 401) {
-          router.push("/login");
+          router.push('/login');
         } else {
-          console.error("Unexpected error:", err);
+          console.error('Unexpected error:', err);
         }
       } finally {
         setLoading(false);
@@ -268,11 +264,11 @@ const Home: NextPage = () => {
 
     const checkOwnerStatus = async () => {
       try {
-        const response = await axios.get("/api/auth/checkOwner");
+        const response = await axios.get('/api/auth/checkOwner');
         if (response.data.success) setIsOwner(response.data.isOwner);
       } catch (err: any) {
         if (err.response?.status !== 401) {
-          console.error("Failed to check owner status:", err);
+          console.error('Failed to check owner status:', err);
         }
       }
     };
@@ -283,14 +279,16 @@ const Home: NextPage = () => {
 
   const checkRoles = async () => {
     const request = axios
-      .post("/api/auth/checkRoles")
-      .then((data) => { setWorkspaces(data.data.data ?? []) })
+      .post('/api/auth/checkRoles')
+      .then((data) => {
+        setWorkspaces(data.data.data ?? []);
+      })
       .catch(console.error);
 
     toast.promise(request, {
-      loading: "Checking roles...",
-      success: "Roles checked!",
-      error: "An error occurred",
+      loading: 'Checking roles...',
+      success: 'Roles checked!',
+      error: 'An error occurred',
     });
   };
 
@@ -302,7 +300,7 @@ const Home: NextPage = () => {
   }, [showInstanceSettings, isOwner]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin;
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`;
       setExternalConfig((prev) => ({ ...prev, redirectUri: autoRedirectUri }));
@@ -311,7 +309,7 @@ const Home: NextPage = () => {
 
   const loadRobloxConfig = async () => {
     try {
-      const response = await axios.get("/api/admin/instance-config");
+      const response = await axios.get('/api/admin/instance-config');
       console.log(response);
       const {
         robloxClientId,
@@ -326,35 +324,34 @@ const Home: NextPage = () => {
         google_secret,
         google_email_filtration,
       } = response.data;
-      const currentOrigin =
-        typeof window !== "undefined" ? window.location.origin : "";
-      console.log(window.location)
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      console.log(window.location);
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`;
 
       setExternalConfig({
-        clientId: robloxClientId || "",
-        clientSecret: robloxClientSecret || "",
+        clientId: robloxClientId || '',
+        clientSecret: robloxClientSecret || '',
         redirectUri: autoRedirectUri,
-        discordAppId: discordApplicationID || "", // was missing the fallback
-        discordAppSecret: discordClientSecret || "", // was missing the fallback
+        discordAppId: discordApplicationID || '', // was missing the fallback
+        discordAppSecret: discordClientSecret || '', // was missing the fallback
         oauthOnlyLogin: oauthOnlyLogin || false,
-        redirect_wid: redirectWorkspace || "", // was missing the fallback
-        google_id: google_id || "",
-        google_secret: google_secret || "",
-        google_email_filtration: google_email_filtration || "",
+        redirect_wid: redirectWorkspace || '', // was missing the fallback
+        google_id: google_id || '',
+        google_secret: google_secret || '',
+        google_email_filtration: google_email_filtration || '',
       });
       setUsingEnvVars(envVars || false);
       setLoginBackground(bg || null);
     } catch (error) {
-      console.error("Failed to load OAuth config:", error);
+      console.error('Failed to load OAuth config:', error);
     }
   };
 
   const saveRobloxConfig = async () => {
     setConfigLoading(true);
-    setSaveMessage("");
+    setSaveMessage('');
     try {
-      await axios.post("/api/admin/instance-config", {
+      await axios.post('/api/admin/instance-config', {
         robloxClientId: externalConfig.clientId,
         robloxClientSecret: externalConfig.clientSecret,
         robloxRedirectUri: externalConfig.redirectUri,
@@ -365,17 +362,17 @@ const Home: NextPage = () => {
         google_id: externalConfig.google_id,
         google_secret: externalConfig.google_secret,
         google_email_filtration: externalConfig.google_email_filtration
-          ? externalConfig.google_email_filtration.startsWith("@")
+          ? externalConfig.google_email_filtration.startsWith('@')
             ? externalConfig.google_email_filtration
             : `@${externalConfig.google_email_filtration}`
-          : "",
+          : '',
       });
-      setSaveMessage("Settings saved successfully!");
-      setTimeout(() => setSaveMessage(""), 3000);
+      setSaveMessage('Settings saved successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      console.error("Failed to save OAuth config:", error);
-      setSaveMessage("Failed to save settings. Please try again.");
-      setTimeout(() => setSaveMessage(""), 3000);
+      console.error('Failed to save OAuth config:', error);
+      setSaveMessage('Failed to save settings. Please try again.');
+      setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setConfigLoading(false);
     }
@@ -383,7 +380,7 @@ const Home: NextPage = () => {
 
   const Onboarded = async () => {
     try {
-      await axios.post("/api/user/firstLogin");
+      await axios.post('/api/user/firstLogin');
     } catch {}
   };
 
@@ -391,14 +388,14 @@ const Home: NextPage = () => {
     setBgUploading(true);
     try {
       const formData = new FormData();
-      formData.append("background", file);
-      const res = await axios.post("/api/admin/upload-background", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      formData.append('background', file);
+      const res = await axios.post('/api/admin/upload-background', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setLoginBackground(res.data.url);
-      toast.success("Background image updated!");
+      toast.success('Background image updated!');
     } catch {
-      toast.error("Failed to upload background image.");
+      toast.error('Failed to upload background image.');
     } finally {
       setBgUploading(false);
     }
@@ -407,11 +404,11 @@ const Home: NextPage = () => {
   const removeBackground = useCallback(async () => {
     setBgUploading(true);
     try {
-      await axios.delete("/api/admin/upload-background");
+      await axios.delete('/api/admin/upload-background');
       setLoginBackground(null);
-      toast.success("Background image removed.");
+      toast.success('Background image removed.');
     } catch {
-      toast.error("Failed to remove background image.");
+      toast.error('Failed to remove background image.');
     } finally {
       setBgUploading(false);
     }
@@ -430,22 +427,15 @@ const Home: NextPage = () => {
       workspaces?.length
     ) {
       const redirectWorkspaceId = Number(externalConfig.redirect_wid);
-      const hasAccess = workspaces.some(
-        (workspace) => workspace.groupId === redirectWorkspaceId,
-      );
+      const hasAccess = workspaces.some((workspace) => workspace.groupId === redirectWorkspaceId);
 
       if (hasAccess) {
         gotoWorkspace(redirectWorkspaceId);
       } else {
-        router.push("/404");
+        router.push('/404');
       }
     }
-  }, [
-    workspaces,
-    externalConfig.redirect_wid,
-    showInstanceSettings,
-    configLoading,
-  ]);
+  }, [workspaces, externalConfig.redirect_wid, showInstanceSettings, configLoading]);
 
   const nextSlide = () => {
     setOnboardingSlide(onboardingSlide + 1);
@@ -465,10 +455,7 @@ const Home: NextPage = () => {
     <div>
       <Head>
         <title>Orbit - Workspaces</title>
-        <meta
-          name="description"
-          content="Manage your Roblox workspaces with Orbit"
-        />
+        <meta name="description" content="Manage your Roblox workspaces with Orbit" />
       </Head>
 
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden">
@@ -487,7 +474,10 @@ const Home: NextPage = () => {
                   <button
                     type="button"
                     onClick={() => setIsOpen(true)}
-                    className={clsx(workspacesPrimaryButtonClass, "gap-2 px-5 py-2.5 font-semibold")}
+                    className={clsx(
+                      workspacesPrimaryButtonClass,
+                      'gap-2 px-5 py-2.5 font-semibold',
+                    )}
                   >
                     <IconPlus className="h-5 w-5" stroke={2} />
                     <span>New Workspace</span>
@@ -496,7 +486,7 @@ const Home: NextPage = () => {
                 <button
                   type="button"
                   onClick={checkRoles}
-                  className={clsx(workspacesSecondaryButtonClass, "gap-2 px-4 py-2.5")}
+                  className={clsx(workspacesSecondaryButtonClass, 'gap-2 px-4 py-2.5')}
                 >
                   <IconRefresh className="h-4 w-4" stroke={1.5} />
                   <span className="hidden sm:inline">Refresh Roles</span>
@@ -549,10 +539,10 @@ const Home: NextPage = () => {
                         ) : null}
                         <div
                           className={clsx(
-                            "grid gap-3 sm:gap-4",
+                            'grid gap-3 sm:gap-4',
                             !showPinnedFeatured && showAsSingleBig
-                              ? "grid-cols-1 max-w-xl"
-                              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                              ? 'grid-cols-1 max-w-xl'
+                              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
                           )}
                         >
                           {others.map((w) => (
@@ -578,15 +568,18 @@ const Home: NextPage = () => {
               title="No workspaces yet"
               description={
                 isOwner
-                  ? "Create your first workspace to get started."
-                  : "You may need to contact whoever is managing this instance to get access."
+                  ? 'Create your first workspace to get started.'
+                  : 'You may need to contact whoever is managing this instance to get access.'
               }
               action={
                 isOwner ? (
                   <button
                     type="button"
                     onClick={() => setIsOpen(true)}
-                    className={clsx(workspacesPrimaryButtonClass, "gap-2 px-5 py-2.5 font-semibold")}
+                    className={clsx(
+                      workspacesPrimaryButtonClass,
+                      'gap-2 px-5 py-2.5 font-semibold',
+                    )}
                   >
                     <IconPlus className="h-5 w-5" stroke={2} />
                     Create Workspace
@@ -597,11 +590,7 @@ const Home: NextPage = () => {
           )}
 
           <Transition appear show={isOpen} as={Fragment}>
-            <Dialog
-              as="div"
-              className="relative z-10"
-              onClose={() => setIsOpen(false)}
-            >
+            <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -625,7 +614,7 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "max-w-md p-6")}>
+                    <Dialog.Panel className={clsx(workspacesModalPanelClass, 'max-w-md p-6')}>
                       <Dialog.Title
                         as="h3"
                         className="text-lg font-semibold text-zinc-900 dark:text-white"
@@ -638,22 +627,20 @@ const Home: NextPage = () => {
 
                       <div className="mt-5">
                         <FormProvider {...methods}>
-                          <form
-                            onSubmit={methods.handleSubmit(createWorkspace)}
-                          >
+                          <form onSubmit={methods.handleSubmit(createWorkspace)}>
                             <Input
                               label="Group ID"
                               placeholder="e.g. 35724790"
                               classoverride={workspacesFormInputOverride}
-                              {...methods.register("groupID", {
-                                required: "This field is required",
+                              {...methods.register('groupID', {
+                                required: 'This field is required',
                                 pattern: {
                                   value: /^[a-zA-Z0-9-.]*$/,
-                                  message: "No spaces or special characters",
+                                  message: 'No spaces or special characters',
                                 },
                                 maxLength: {
                                   value: 10,
-                                  message: "Length must be below 10 characters",
+                                  message: 'Length must be below 10 characters',
                                 },
                               })}
                             />
@@ -675,7 +662,7 @@ const Home: NextPage = () => {
                           disabled={loading}
                           className={workspacesPrimaryButtonClass}
                         >
-                          {loading ? "Creating…" : "Create"}
+                          {loading ? 'Creating…' : 'Create'}
                         </button>
                       </div>
                     </Dialog.Panel>
@@ -714,7 +701,12 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "flex max-h-[90vh] max-w-lg flex-col")}>
+                    <Dialog.Panel
+                      className={clsx(
+                        workspacesModalPanelClass,
+                        'flex max-h-[90vh] max-w-lg flex-col',
+                      )}
+                    >
                       <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
                         <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
                           Instance Settings
@@ -760,8 +752,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -782,8 +774,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -791,7 +783,7 @@ const Home: NextPage = () => {
 
                             <div>
                               <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                                Redirect URI{" "}
+                                Redirect URI{' '}
                                 <span className="text-zinc-400 dark:text-zinc-500">
                                   (auto-generated)
                                 </span>
@@ -824,8 +816,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -846,8 +838,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -871,8 +863,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -893,8 +885,8 @@ const Home: NextPage = () => {
                                   disabled={usingEnvVars}
                                   className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                     usingEnvVars
-                                      ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                      : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   }`}
                                 />
                               </div>
@@ -916,8 +908,8 @@ const Home: NextPage = () => {
                                 disabled={usingEnvVars}
                                 className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                   usingEnvVars
-                                    ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                    : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                 }`}
                               />
                             </div>
@@ -938,15 +930,15 @@ const Home: NextPage = () => {
                                 disabled={usingEnvVars}
                                 className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                   usingEnvVars
-                                    ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
-                                    : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                 }`}
                               />
                             </div>
                           </div>
 
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                            Need a hand? Check our documentation at{" "}
+                            Need a hand? Check our documentation at{' '}
                             <a
                               href="https://docs.planetaryapp.us/workspace/roblox-oauth"
                               target="_blank"
@@ -985,9 +977,7 @@ const Home: NextPage = () => {
                                   d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18M3.75 3.75h16.5A.75.75 0 0121 4.5v13.5a.75.75 0 01-.75.75H3.75A.75.75 0 013 18V4.5a.75.75 0 01.75-.75z"
                                 />
                               </svg>
-                              <span className="text-xs">
-                                No custom background set
-                              </span>
+                              <span className="text-xs">No custom background set</span>
                             </div>
                           )}
                           <input
@@ -998,7 +988,7 @@ const Home: NextPage = () => {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) uploadBackground(file);
-                              e.target.value = "";
+                              e.target.value = '';
                             }}
                           />
                           <div className="flex gap-2">
@@ -1009,10 +999,10 @@ const Home: NextPage = () => {
                               className="flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {bgUploading
-                                ? "Uploading…"
+                                ? 'Uploading…'
                                 : loginBackground
-                                  ? "Replace Image"
-                                  : "Upload Image"}
+                                  ? 'Replace Image'
+                                  : 'Upload Image'}
                             </button>
                             {loginBackground && (
                               <button
@@ -1026,8 +1016,8 @@ const Home: NextPage = () => {
                             )}
                           </div>
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1.5">
-                            Replaces the default gradient on the login page. Max
-                            5 MB (JPEG, PNG, WebP, GIF).
+                            Replaces the default gradient on the login page. Max 5 MB (JPEG, PNG,
+                            WebP, GIF).
                           </p>
                         </div>
 
@@ -1045,19 +1035,18 @@ const Home: NextPage = () => {
                               disabled={usingEnvVars || !isOAuthConfigValid}
                               className={`w-4 h-4 text-blue-600 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 focus:ring-2 ${
                                 usingEnvVars || !isOAuthConfigValid
-                                  ? "bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed"
-                                  : "bg-white dark:bg-zinc-700"
+                                  ? 'bg-zinc-100 dark:bg-zinc-800 cursor-not-allowed'
+                                  : 'bg-white dark:bg-zinc-700'
                               }`}
                             />
                             <span
-                              className={`ml-2 text-sm ${usingEnvVars ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-700 dark:text-zinc-300"}`}
+                              className={`ml-2 text-sm ${usingEnvVars ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}
                             >
                               Enforce OAuth login
                             </span>
                           </label>
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 ml-6">
-                            When enabled, users will only see the OAuth login
-                            options.
+                            When enabled, users will only see the OAuth login options.
                           </p>
                         </div>
                       </div>
@@ -1066,9 +1055,9 @@ const Home: NextPage = () => {
                         {saveMessage && (
                           <div
                             className={`mb-3 p-2.5 rounded-md text-sm ${
-                              saveMessage.includes("successfully")
-                                ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
-                                : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                              saveMessage.includes('successfully')
+                                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                             }`}
                           >
                             {saveMessage}
@@ -1089,14 +1078,14 @@ const Home: NextPage = () => {
                             disabled={configLoading || usingEnvVars}
                             className={clsx(
                               workspacesPrimaryButtonClass,
-                              usingEnvVars && "cursor-not-allowed opacity-60"
+                              usingEnvVars && 'cursor-not-allowed opacity-60',
                             )}
                           >
                             {configLoading
-                              ? "Saving…"
+                              ? 'Saving…'
                               : usingEnvVars
-                                ? "Using Env Vars"
-                                : "Save Settings"}
+                                ? 'Using Env Vars'
+                                : 'Save Settings'}
                           </button>
                         </div>
                       </div>
@@ -1107,11 +1096,7 @@ const Home: NextPage = () => {
             </Dialog>
           </Transition>
           <Transition appear show={showOnboarding} as={Fragment}>
-            <Dialog
-              as="div"
-              className="relative z-20"
-              onClose={() => setShowOnboarding(false)}
-            >
+            <Dialog as="div" className="relative z-20" onClose={() => setShowOnboarding(false)}>
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
@@ -1135,13 +1120,15 @@ const Home: NextPage = () => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                   >
-                    <Dialog.Panel className={clsx(workspacesModalPanelClass, "max-w-md overflow-hidden")}>
+                    <Dialog.Panel
+                      className={clsx(workspacesModalPanelClass, 'max-w-md overflow-hidden')}
+                    >
                       <div className="relative overflow-hidden">
                         <motion.div
                           className="flex"
                           animate={{ x: `${-onboardingSlide * 100}%` }}
                           transition={{
-                            type: "spring",
+                            type: 'spring',
                             stiffness: 400,
                             damping: 35,
                             mass: 0.8,
@@ -1159,8 +1146,7 @@ const Home: NextPage = () => {
                                 Hi {login.displayname}! 👋
                               </Dialog.Title>
                               <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-xs">
-                                Welcome to Orbit. Here's a quick look at what
-                                you can do.
+                                Welcome to Orbit. Here's a quick look at what you can do.
                               </p>
                             </div>
                             <div className="mt-4 space-y-1.5">
@@ -1191,10 +1177,7 @@ const Home: NextPage = () => {
                               <div key={i} className="w-full shrink-0">
                                 <div className="flex items-center justify-center pt-8 pb-4">
                                   <div className="w-16 h-16 rounded-2xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center">
-                                    <Icon
-                                      className="w-8 h-8 text-primary"
-                                      stroke={1.5}
-                                    />
+                                    <Icon className="w-8 h-8 text-primary" stroke={1.5} />
                                   </div>
                                 </div>
 
@@ -1234,10 +1217,10 @@ const Home: NextPage = () => {
                             <div
                               key={dotIdx}
                               className={clsx(
-                                "h-1.5 rounded-full transition-all duration-300",
+                                'h-1.5 rounded-full transition-all duration-300',
                                 dotIdx === onboardingSlide
-                                  ? "w-4 bg-primary"
-                                  : "w-1.5 bg-zinc-200 dark:bg-zinc-600",
+                                  ? 'w-4 bg-primary'
+                                  : 'w-1.5 bg-zinc-200 dark:bg-zinc-600',
                               )}
                             />
                           ))}
@@ -1252,14 +1235,20 @@ const Home: NextPage = () => {
                                   setShowOnboarding(false);
                                   Onboarded();
                                 }}
-                                className={clsx(workspacesSecondaryButtonClass, "flex-1 justify-center py-2.5")}
+                                className={clsx(
+                                  workspacesSecondaryButtonClass,
+                                  'flex-1 justify-center py-2.5',
+                                )}
                               >
                                 Skip
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setOnboardingSlide((s) => s + 1)}
-                                className={clsx(workspacesPrimaryButtonClass, "flex-1 justify-center py-2.5 font-semibold")}
+                                className={clsx(
+                                  workspacesPrimaryButtonClass,
+                                  'flex-1 justify-center py-2.5 font-semibold',
+                                )}
                               >
                                 Next
                               </button>
@@ -1271,7 +1260,10 @@ const Home: NextPage = () => {
                                 setShowOnboarding(false);
                                 Onboarded();
                               }}
-                              className={clsx(workspacesPrimaryButtonClass, "w-full justify-center py-2.5 font-semibold")}
+                              className={clsx(
+                                workspacesPrimaryButtonClass,
+                                'w-full justify-center py-2.5 font-semibold',
+                              )}
                             >
                               Get started
                             </button>

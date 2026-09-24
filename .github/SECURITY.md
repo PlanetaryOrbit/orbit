@@ -1,5 +1,6 @@
 # Security Policy
-*Last Updated / Effective Date:* September 24th, 2026
+
+_Last Updated / Effective Date:_ September 24th, 2026
 
 **Do not report security vulnerabilities through GitHub issues, pull requests, discussions, social media, or other public channels.**
 

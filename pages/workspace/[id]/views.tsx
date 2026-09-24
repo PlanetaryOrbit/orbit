@@ -1,47 +1,5 @@
-import workspace from "@/layouts/workspace";
-import { pageWithLayout } from "@/layoutTypes";
-import { loginState } from "@/state";
-import { Fragment, useEffect, useState } from "react";
-import { Dialog, Popover, Transition } from "@headlessui/react";
-import { GetServerSidePropsContext } from "next";
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
-import Input from "@/components/input";
-import { v4 as uuidv4 } from "uuid";
-import prisma from "@/utils/database";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  SortingState,
-  getPaginationRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { FormProvider, useForm } from "react-hook-form";
-import {
-  inactivityNotice,
-  userBook,
-  wallPost,
-} from "@prisma/client";
-import Checkbox from "@/components/checkbox";
-import toast from "react-hot-toast";
-import axios from "axios";
-import { useRouter } from "next/router";
-import moment from "moment";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { getConfig } from "@/utils/configEngine";
-import { SAVED_VIEW_NAME_MAX_LENGTH } from "@/utils/savedViewLimits";
-import StaffOrgChart from "@/components/views/StaffOrgChart";
-import type { OrgChartEdge, OrgChartNode } from "@/components/views/StaffOrgChart";
-import clsx from "clsx";
-import {
-  ViewsPageShell,
-  ViewsPageHeader,
-  ViewsPanel,
-  viewsPanelShadow,
-} from "@/components/views/shell";
+import { Dialog, Popover, Transition } from '@headlessui/react';
+import { inactivityNotice, userBook, wallPost } from '@prisma/client';
 import {
   IconArrowLeft,
   IconFilter,
@@ -76,7 +34,46 @@ import {
   IconDeviceFloppy,
   IconTrash,
   IconSitemap,
-} from "@tabler/icons-react";
+} from '@tabler/icons-react';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  SortingState,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import axios from 'axios';
+import clsx from 'clsx';
+import moment from 'moment';
+import { GetServerSidePropsContext } from 'next';
+import { useRouter } from 'next/router';
+import { Fragment, useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+import { v4 as uuidv4 } from 'uuid';
+
+import Checkbox from '@/components/checkbox';
+import Input from '@/components/input';
+import {
+  ViewsPageShell,
+  ViewsPageHeader,
+  ViewsPanel,
+  viewsPanelShadow,
+} from '@/components/views/shell';
+import StaffOrgChart from '@/components/views/StaffOrgChart';
+import type { OrgChartEdge, OrgChartNode } from '@/components/views/StaffOrgChart';
+import workspace from '@/layouts/workspace';
+import { pageWithLayout } from '@/layoutTypes';
+import { loginState } from '@/state';
+import { workspacestate } from '@/state';
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { SAVED_VIEW_NAME_MAX_LENGTH } from '@/utils/savedViewLimits';
 
 type User = {
   info: {
@@ -103,9 +100,9 @@ type User = {
 
 export const getServerSideProps = withPermissionCheckSsr(
   async ({ params, req }: GetServerSidePropsContext) => {
-    const workspaceGroupId = parseInt(params?.id as string)
+    const workspaceGroupId = parseInt(params?.id as string);
 
-    const currentUserId = (req as any).auth?.userId as bigint
+    const currentUserId = (req as any).auth?.userId as bigint;
 
     const currentUser = await prisma.user.findFirst({
       where: { userid: currentUserId },
@@ -113,22 +110,23 @@ export const getServerSideProps = withPermissionCheckSsr(
         workspaceMemberships: { where: { workspaceGroupId } },
         roles: { where: { workspaceGroupId } },
       },
-    })
+    });
 
-    const membership = currentUser?.workspaceMemberships?.[0]
-    const isAdmin = membership?.isAdmin || false
-    const userRole = currentUser?.roles?.[0]
-    const hasManageViewsPerm = userRole?.permissions?.includes("edit_views") || false
-    const hasCreateViewsPerm = userRole?.permissions?.includes("create_views") || false
-    const hasDeleteViewsPerm = userRole?.permissions?.includes("delete_views") || false
-    const hasUseSavedViewsPerm = userRole?.permissions?.includes("use_views") || false
-    const hasViewMemberProfiles = isAdmin || userRole?.permissions?.includes("view_member_profiles") || false
+    const membership = currentUser?.workspaceMemberships?.[0];
+    const isAdmin = membership?.isAdmin || false;
+    const userRole = currentUser?.roles?.[0];
+    const hasManageViewsPerm = userRole?.permissions?.includes('edit_views') || false;
+    const hasCreateViewsPerm = userRole?.permissions?.includes('create_views') || false;
+    const hasDeleteViewsPerm = userRole?.permissions?.includes('delete_views') || false;
+    const hasUseSavedViewsPerm = userRole?.permissions?.includes('use_views') || false;
+    const hasViewMemberProfiles =
+      isAdmin || userRole?.permissions?.includes('view_member_profiles') || false;
 
     const departments = await prisma.department.findMany({
       where: { workspaceGroupId },
       select: { id: true, name: true, color: true },
       orderBy: { name: 'asc' },
-    })
+    });
 
     return {
       props: {
@@ -140,46 +138,46 @@ export const getServerSideProps = withPermissionCheckSsr(
         hasViewMemberProfiles,
         departments: JSON.parse(JSON.stringify(departments)),
       },
-    }
+    };
   },
-  "view_members"
-)
+  'view_members',
+);
 
 const filters: {
   [key: string]: string[];
 } = {
-  username: ["equal", "notEqual", "contains"],
-  minutes: ["equal", "greaterThan", "lessThan"],
-  idle: ["equal", "greaterThan", "lessThan"],
-  rank: ["equal", "notEqual", "greaterThan", "lessThan"],
-  sessions: ["equal", "notEqual", "greaterThan", "lessThan"],
-  hosted: ["equal", "notEqual", "greaterThan", "lessThan"],
-  warnings: ["equal", "notEqual", "greaterThan", "lessThan"],
-  messages: ["equal", "notEqual", "greaterThan", "lessThan"],
-  notices: ["equal", "greaterThan", "lessThan"],
-  registered: ["equal", "notEqual"],
-  quota: ["equal", "notEqual"],
-  department: ["equal", "notEqual"],
+  username: ['equal', 'notEqual', 'contains'],
+  minutes: ['equal', 'greaterThan', 'lessThan'],
+  idle: ['equal', 'greaterThan', 'lessThan'],
+  rank: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+  sessions: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+  hosted: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+  warnings: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+  messages: ['equal', 'notEqual', 'greaterThan', 'lessThan'],
+  notices: ['equal', 'greaterThan', 'lessThan'],
+  registered: ['equal', 'notEqual'],
+  quota: ['equal', 'notEqual'],
+  department: ['equal', 'notEqual'],
 };
 
 const filterNames: {
   [key: string]: string;
 } = {
-  equal: "Equals",
-  notEqual: "Does not equal",
-  contains: "Contains",
-  greaterThan: "Greater than",
-  lessThan: "Less than",
+  equal: 'Equals',
+  notEqual: 'Does not equal',
+  contains: 'Contains',
+  greaterThan: 'Greater than',
+  lessThan: 'Less than',
 };
 
 function normalizeSavedViewName(input: string): string {
   const t = input.trim();
   if (t.length > 0) return t.slice(0, SAVED_VIEW_NAME_MAX_LENGTH);
   return `View ${new Date().toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })}`.slice(0, SAVED_VIEW_NAME_MAX_LENGTH);
 }
 
@@ -192,7 +190,15 @@ type pageProps = {
   hasViewMemberProfiles: boolean;
   departments: Array<{ id: string; name: string; color: string | null }>;
 };
-const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCreateViewsPerm, hasDeleteViewsPerm, hasUseSavedViewsPerm, hasViewMemberProfiles, departments }) => {
+const Views: pageWithLayout<pageProps> = ({
+  isAdmin,
+  hasManageViewsPerm,
+  hasCreateViewsPerm,
+  hasDeleteViewsPerm,
+  hasUseSavedViewsPerm,
+  hasViewMemberProfiles,
+  departments,
+}) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const router = useRouter();
@@ -202,14 +208,14 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [type, setType] = useState("");
+  const [message, setMessage] = useState('');
+  const [type, setType] = useState('');
   const [minutes, setMinutes] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [ranks, setRanks] = useState<{ id: number; rank: number; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [colFilters, setColFilters] = useState<
     {
@@ -221,14 +227,14 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   >([]);
   const [savedViews, setSavedViews] = useState<any[]>([]);
   const [isSaveOpen, setIsSaveOpen] = useState(false);
-  const [saveName, setSaveName] = useState("");
-  const [saveColor, setSaveColor] = useState("");
-  const [saveIcon, setSaveIcon] = useState("");
+  const [saveName, setSaveName] = useState('');
+  const [saveColor, setSaveColor] = useState('');
+  const [saveIcon, setSaveIcon] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalViewConfig, setOriginalViewConfig] = useState<any>(null);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [totalUsers, setTotalUsers] = useState(0);
-  const [mainPanelMode, setMainPanelMode] = useState<"table" | "orgChart">("table");
+  const [mainPanelMode, setMainPanelMode] = useState<'table' | 'orgChart'>('table');
   const [orgChartData, setOrgChartData] = useState<{
     nodes: OrgChartNode[];
     edges: OrgChartEdge[];
@@ -236,27 +242,27 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   const [orgChartLoading, setOrgChartLoading] = useState(false);
 
   const ICON_OPTIONS: { key: string; Icon: any; title?: string }[] = [
-    { key: "star", Icon: IconStar, title: "Star" },
-    { key: "sparkles", Icon: IconSparkles, title: "Sparkles" },
-    { key: "briefcase", Icon: IconBriefcase, title: "Briefcase" },
-    { key: "target", Icon: IconTarget, title: "Target" },
-    { key: "alert", Icon: IconAlertTriangle, title: "Warning" },
-    { key: "calendar", Icon: IconCalendarWeekFilled, title: "Calendar" },
-    { key: "speakerphone", Icon: IconSpeakerphone, title: "Speakerphone" },
-    { key: "file", Icon: IconFile, title: "File" },
-    { key: "folder", Icon: IconFolder, title: "Folder" },
-    { key: "box", Icon: IconBox, title: "Box" },
-    { key: "id", Icon: IconId, title: "ID" },
-    { key: "tools", Icon: IconTools, title: "Tools" },
-    { key: "tag", Icon: IconTag, title: "Tag" },
-    { key: "pin", Icon: IconPin, title: "Pin" },
-    { key: "bell", Icon: IconBell, title: "Bell" },
-    { key: "lock", Icon: IconLock, title: "Lock" },
-    { key: "coffee", Icon: IconCoffee, title: "Coffee" },
-    { key: "school", Icon: IconSchool, title: "School" },
+    { key: 'star', Icon: IconStar, title: 'Star' },
+    { key: 'sparkles', Icon: IconSparkles, title: 'Sparkles' },
+    { key: 'briefcase', Icon: IconBriefcase, title: 'Briefcase' },
+    { key: 'target', Icon: IconTarget, title: 'Target' },
+    { key: 'alert', Icon: IconAlertTriangle, title: 'Warning' },
+    { key: 'calendar', Icon: IconCalendarWeekFilled, title: 'Calendar' },
+    { key: 'speakerphone', Icon: IconSpeakerphone, title: 'Speakerphone' },
+    { key: 'file', Icon: IconFile, title: 'File' },
+    { key: 'folder', Icon: IconFolder, title: 'Folder' },
+    { key: 'box', Icon: IconBox, title: 'Box' },
+    { key: 'id', Icon: IconId, title: 'ID' },
+    { key: 'tools', Icon: IconTools, title: 'Tools' },
+    { key: 'tag', Icon: IconTag, title: 'Tag' },
+    { key: 'pin', Icon: IconPin, title: 'Pin' },
+    { key: 'bell', Icon: IconBell, title: 'Bell' },
+    { key: 'lock', Icon: IconLock, title: 'Lock' },
+    { key: 'coffee', Icon: IconCoffee, title: 'Coffee' },
+    { key: 'school', Icon: IconSchool, title: 'School' },
   ];
 
-  const renderIcon = (key: string, className = "w-5 h-5") => {
+  const renderIcon = (key: string, className = 'w-5 h-5') => {
     const found = ICON_OPTIONS.find((i) => i.key === key);
     if (!found) return null;
     const C = found.Icon;
@@ -285,7 +291,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
   const columns = [
     {
-      id: "select",
+      id: 'select',
       header: ({ table }: any) => (
         <Checkbox
           {...{
@@ -305,30 +311,28 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         />
       ),
     },
-    columnHelper.accessor("info", {
-      header: "User",
+    columnHelper.accessor('info', {
+      header: 'User',
       cell: (row) => {
         return (
           <div
             className={`flex flex-row ${hasViewMemberProfiles ? 'cursor-pointer' : 'cursor-default'}`}
             onClick={() => {
               if (hasViewMemberProfiles) {
-                router.push(
-                  `/workspace/${router.query.id}/profile/${row.getValue().userId}`
-                );
+                router.push(`/workspace/${router.query.id}/profile/${row.getValue().userId}`);
               }
             }}
           >
             <div
               className={clsx(
-                "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full",
-                getRandomBg(row.getValue().userId.toString(), row.getValue().username ?? undefined)
+                'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full',
+                getRandomBg(row.getValue().userId.toString(), row.getValue().username ?? undefined),
               )}
             >
               <img
                 src={`/api/user/${row.getValue().userId}/avatar`}
                 className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
-                style={{ background: "transparent" }}
+                style={{ background: 'transparent' }}
                 alt=""
               />
             </div>
@@ -342,81 +346,74 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         );
       },
     }),
-    columnHelper.accessor("rankName", {
-      header: "Rank",
+    columnHelper.accessor('rankName', {
+      header: 'Rank',
       cell: (row) => {
-        return (
-          <p className="dark:text-white">
-            {row.getValue() || "Guest"}
-          </p>
-        );
+        return <p className="dark:text-white">{row.getValue() || 'Guest'}</p>;
       },
     }),
-    columnHelper.accessor("hostedSessions", {
-      header: "Hosted sessions",
+    columnHelper.accessor('hostedSessions', {
+      header: 'Hosted sessions',
       cell: (row) => {
         const hosted = row.getValue() as any;
-        const len =
-          hosted && typeof hosted.length === "number" ? hosted.length : 0;
+        const len = hosted && typeof hosted.length === 'number' ? hosted.length : 0;
         return <p className="dark:text-white">{len}</p>;
       },
     }),
-    columnHelper.accessor("sessionsAttended", {
-      header: "Sessions Attended",
+    columnHelper.accessor('sessionsAttended', {
+      header: 'Sessions Attended',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue()}</p>;
       },
     }),
-    columnHelper.accessor("allianceVisits", {
-      header: "Alliance Visits",
+    columnHelper.accessor('allianceVisits', {
+      header: 'Alliance Visits',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue()}</p>;
       },
     }),
-    columnHelper.accessor("book", {
-      header: "Warnings",
+    columnHelper.accessor('book', {
+      header: 'Warnings',
       cell: (row) => {
         const book = row.getValue() as any[];
-        const warnings = Array.isArray(book)
-          ? book.filter((b) => b.type === "warning").length
-          : 0;
+        const warnings = Array.isArray(book) ? book.filter((b) => b.type === 'warning').length : 0;
         return <p className="dark:text-white">{warnings}</p>;
       },
     }),
-    columnHelper.accessor("inactivityNotices", {
-      header: "Inactivity notices",
+    columnHelper.accessor('inactivityNotices', {
+      header: 'Inactivity notices',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue().length}</p>;
       },
     }),
-    columnHelper.accessor("minutes", {
-      header: "Minutes",
+    columnHelper.accessor('minutes', {
+      header: 'Minutes',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue()}</p>;
       },
     }),
-    columnHelper.accessor("idleMinutes", {
-      header: "Idle minutes",
+    columnHelper.accessor('idleMinutes', {
+      header: 'Idle minutes',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue()}</p>;
       },
     }),
-    columnHelper.accessor("messages", {
-      header: "Messages",
+    columnHelper.accessor('messages', {
+      header: 'Messages',
       cell: (row) => {
         return <p className="dark:text-white">{row.getValue()}</p>;
       },
     }),
-    columnHelper.accessor("registered", {
-      header: "Registered",
+    columnHelper.accessor('registered', {
+      header: 'Registered',
       cell: (row) => {
-        return <p>{row.getValue() ? "✅" : "❌"}</p>;
+        return <p>{row.getValue() ? '✅' : '❌'}</p>;
       },
     }),
-    columnHelper.accessor("quota", {
-      header: "Quota Complete",
+    columnHelper.accessor('quota', {
+      header: 'Quota Complete',
       cell: (row) => {
-        return <p>{row.getValue() ? "✅" : "❌"}</p>;
+        return <p>{row.getValue() ? '✅' : '❌'}</p>;
       },
     }),
   ];
@@ -461,18 +458,13 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   const newfilter = () => {
     setColFilters([
       ...colFilters,
-      { id: uuidv4(), column: "username", filter: "equal", value: "" },
+      { id: uuidv4(), column: 'username', filter: 'equal', value: '' },
     ]);
   };
   const removeFilter = (id: string) => {
     setColFilters(colFilters.filter((filter) => filter.id !== id));
   };
-  const updateFilter = (
-    id: string,
-    column: string,
-    filter: string,
-    value: string
-  ) => {
+  const updateFilter = (id: string, column: string, filter: string, value: string) => {
     const OBJ = Object.assign([] as typeof colFilters, colFilters);
     const index = OBJ.findIndex((filter) => filter.id === id);
     OBJ[index] = { id, column, filter, value };
@@ -484,7 +476,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
       const res = await axios.get(`/api/workspace/${router.query.id}/views`);
       if (res.data && res.data.views) setSavedViews(res.data.views || []);
     } catch (e) {
-      console.error("Failed to load saved views", e);
+      console.error('Failed to load saved views', e);
     }
   };
 
@@ -498,20 +490,17 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
   useEffect(() => {
     const fetchStaffData = async () => {
-      if (!router.query.id || mainPanelMode !== "table") return;
+      if (!router.query.id || mainPanelMode !== 'table') return;
 
       setIsLoading(true);
       try {
-        const res = await axios.get(
-          `/api/workspace/${router.query.id}/views/staff`,
-          {
-            params: {
-              page: pagination.pageIndex,
-              pageSize: pagination.pageSize,
-              filters: JSON.stringify(colFilters),
-            },
-          }
-        );
+        const res = await axios.get(`/api/workspace/${router.query.id}/views/staff`, {
+          params: {
+            page: pagination.pageIndex,
+            pageSize: pagination.pageSize,
+            filters: JSON.stringify(colFilters),
+          },
+        });
 
         if (res.data) {
           setUsers(res.data.users || []);
@@ -519,24 +508,18 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           setTotalUsers(res.data.pagination?.totalUsers || 0);
         }
       } catch (error) {
-        console.error("Failed to fetch staff data:", error);
-        toast.error("Failed to load staff data");
+        console.error('Failed to fetch staff data:', error);
+        toast.error('Failed to load staff data');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStaffData();
-  }, [
-    router.query.id,
-    pagination.pageIndex,
-    pagination.pageSize,
-    colFilters,
-    mainPanelMode,
-  ]);
+  }, [router.query.id, pagination.pageIndex, pagination.pageSize, colFilters, mainPanelMode]);
 
   useEffect(() => {
-    if (!router.query.id || mainPanelMode !== "orgChart") return;
+    if (!router.query.id || mainPanelMode !== 'orgChart') return;
 
     let cancelled = false;
     setOrgChartLoading(true);
@@ -551,9 +534,9 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         }
       })
       .catch((err) => {
-        console.error("Failed to load org chart:", err);
+        console.error('Failed to load org chart:', err);
         if (!cancelled) {
-          toast.error("Failed to load org chart");
+          toast.error('Failed to load org chart');
           setOrgChartData({ nodes: [], edges: [] });
         }
       })
@@ -568,17 +551,17 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
 
   const applySavedView = (view: any) => {
     if (!view) return;
-    setMainPanelMode("table");
+    setMainPanelMode('table');
     const filtersField = view.filters;
     if (Array.isArray(filtersField)) {
       setColFilters(filtersField || []);
-    } else if (filtersField && typeof filtersField === "object") {
+    } else if (filtersField && typeof filtersField === 'object') {
       setColFilters(filtersField.filters || []);
       if (filtersField.sorting && Array.isArray(filtersField.sorting)) {
         try {
           setSorting(filtersField.sorting);
         } catch (e) {
-          console.error("Failed to apply saved sorting", e);
+          console.error('Failed to apply saved sorting', e);
         }
       } else {
         setSorting([]);
@@ -597,7 +580,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   };
 
   const resetToDefault = () => {
-    setMainPanelMode("table");
+    setMainPanelMode('table');
     setSelectedViewId(null);
     setColFilters([]);
     setColumnVisibility({
@@ -621,9 +604,9 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   };
 
   const openSaveDialog = () => {
-    setSaveName("");
-    setSaveColor("");
-    setSaveIcon("");
+    setSaveName('');
+    setSaveColor('');
+    setSaveIcon('');
     setIsSaveOpen(true);
   };
 
@@ -644,17 +627,14 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         filters: filtersPayload,
         columnVisibility,
       };
-      const res = await axios.post(
-        `/api/workspace/${router.query.id}/views`,
-        payload
-      );
+      const res = await axios.post(`/api/workspace/${router.query.id}/views`, payload);
       if (res.data && res.data.view) {
         setSavedViews((prev) => [...prev, res.data.view]);
       }
       setIsSaveOpen(false);
-      toast.success("View created!");
+      toast.success('View created!');
     } catch (e) {
-      toast.error("Failed to create view.");
+      toast.error('Failed to create view.');
     }
   };
 
@@ -662,9 +642,9 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     try {
       await axios.delete(`/api/workspace/${router.query.id}/views/${id}`);
       setSavedViews((prev) => prev.filter((v) => v.id !== id));
-      toast.success("View deleted!");
+      toast.success('View deleted!');
     } catch (e) {
-      toast.error("Failed to delete view.");
+      toast.error('Failed to delete view.');
     }
   };
 
@@ -673,7 +653,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     try {
       await deleteSavedView(viewToDelete);
       if (selectedViewId === viewToDelete) {
-        setMainPanelMode("table");
+        setMainPanelMode('table');
         setSelectedViewId(null);
         setColFilters([]);
         setColumnVisibility({
@@ -709,11 +689,9 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     };
 
     const filtersChanged =
-      JSON.stringify(currentFilters) !==
-      JSON.stringify(originalViewConfig.filters);
+      JSON.stringify(currentFilters) !== JSON.stringify(originalViewConfig.filters);
     const columnsChanged =
-      JSON.stringify(columnVisibility) !==
-      JSON.stringify(originalViewConfig.columnVisibility);
+      JSON.stringify(columnVisibility) !== JSON.stringify(originalViewConfig.columnVisibility);
 
     return filtersChanged || columnsChanged;
   };
@@ -736,17 +714,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
           columnVisibility,
         };
 
-        await axios.patch(
-          `/api/workspace/${router.query.id}/views/${selectedViewId}`,
-          payload
-        );
+        await axios.patch(`/api/workspace/${router.query.id}/views/${selectedViewId}`, payload);
 
         setSavedViews((prev) =>
           prev.map((v) =>
-            v.id === selectedViewId
-              ? { ...v, filters: filtersPayload, columnVisibility }
-              : v
-          )
+            v.id === selectedViewId ? { ...v, filters: filtersPayload, columnVisibility } : v,
+          ),
         );
 
         setOriginalViewConfig({
@@ -756,9 +729,9 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
         });
 
         setIsEditMode(false);
-        toast.success("View updated!");
+        toast.success('View updated!');
       } catch (e) {
-        toast.error("Failed to update view.");
+        toast.error('Failed to update view.');
       }
     } else {
       setIsEditMode(true);
@@ -766,18 +739,17 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
   };
 
   const getSafeWorkspaceId = (id: string | string[] | undefined) => {
-    if (typeof id !== "string") return null;
+    if (typeof id !== 'string') return null;
     if (!/^[a-zA-Z0-9_-]+$/.test(id)) return null;
     return id;
   };
 
-  useEffect(() => {
-  }, [colFilters]);
+  useEffect(() => {}, [colFilters]);
 
   const massAction = () => {
     const workspaceId = getSafeWorkspaceId(router.query.id);
     if (!workspaceId) {
-      toast.error("Invalid workspace id.");
+      toast.error('Invalid workspace id.');
       return;
     }
 
@@ -786,35 +758,35 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     for (const select of selected) {
       const data = select.original;
 
-      if (type == "add") {
+      if (type == 'add') {
         promises.push(
           axios.post(`/api/workspace/${workspaceId}/activity/add`, {
             userId: data.info.userId,
             minutes,
-          })
+          }),
         );
       } else {
         promises.push(
-          axios.post(
-            `/api/workspace/${workspaceId}/userbook/${data.info.userId}/new`,
-            { notes: message.length > 0 ? message : "Not provided.", type }
-          )
+          axios.post(`/api/workspace/${workspaceId}/userbook/${data.info.userId}/new`, {
+            notes: message.length > 0 ? message : 'Not provided.',
+            type,
+          }),
         );
       }
     }
 
     toast.promise(Promise.all(promises), {
-      loading: "Actions in progress...",
+      loading: 'Actions in progress...',
       success: () => {
         setIsOpen(false);
-        return "Actions applied!";
+        return 'Actions applied!';
       },
-      error: "Could not perform actions.",
+      error: 'Could not perform actions.',
     });
 
     setIsOpen(false);
-    setMessage("");
-    setType("");
+    setMessage('');
+    setType('');
   };
 
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -824,8 +796,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-    
-    if (query.trim() === "") {
+
+    if (query.trim() === '') {
       setSearchOpen(false);
       setColFilters([]);
       setSearchResults([]);
@@ -835,54 +807,52 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
       try {
         setSearchOpen(true);
         const userRequest = await axios.get(
-          `/api/workspace/${router.query.id}/staff/search/${query.trim()}`
+          `/api/workspace/${router.query.id}/staff/search/${query.trim()}`,
         );
         const userList = userRequest.data.users;
         setSearchResults(userList);
       } catch (error: any) {
         if (error.response?.status === 429) {
-          toast.error("Please wait before searching again");
+          toast.error('Please wait before searching again');
         }
         setSearchResults([]);
       }
     }, 2000);
-    
+
     setSearchTimeout(timeout);
   };
 
   const updateSearchFilter = async (username: string) => {
     setSearchQuery(username);
     setSearchOpen(false);
-    setColFilters([
-      { id: uuidv4(), column: "username", filter: "equal", value: username },
-    ]);
+    setColFilters([{ id: uuidv4(), column: 'username', filter: 'equal', value: username }]);
   };
 
   const getSelectionName = (columnId: string) => {
-    if (columnId == "sessionsAttended") {
-      return "Sessions Attended";
-    } else if (columnId == "hostedSessions") {
-      return "Hosted Sessions";
-    } else if (columnId == "allianceVisits") {
-      return "Alliance Visits";
-    } else if (columnId == "book") {
-      return "Warnings";
-    } else if (columnId == "wallPosts") {
-      return "Wall Posts";
-    } else if (columnId == "rankName" || columnId == "rankID") {
-      return "Rank";
-    } else if (columnId == "inactivityNotices") {
-      return "Inactivity notices";
-    } else if (columnId == "minutes") {
-      return "Minutes";
-    } else if (columnId == "idleMinutes") {
-      return "Idle minutes";
-    } else if (columnId == "messages") {
-      return "Messages";
-    } else if (columnId == "registered") {
-      return "Registered";
-    } else if (columnId == "quota") {
-      return "Quota Complete";
+    if (columnId == 'sessionsAttended') {
+      return 'Sessions Attended';
+    } else if (columnId == 'hostedSessions') {
+      return 'Hosted Sessions';
+    } else if (columnId == 'allianceVisits') {
+      return 'Alliance Visits';
+    } else if (columnId == 'book') {
+      return 'Warnings';
+    } else if (columnId == 'wallPosts') {
+      return 'Wall Posts';
+    } else if (columnId == 'rankName' || columnId == 'rankID') {
+      return 'Rank';
+    } else if (columnId == 'inactivityNotices') {
+      return 'Inactivity notices';
+    } else if (columnId == 'minutes') {
+      return 'Minutes';
+    } else if (columnId == 'idleMinutes') {
+      return 'Idle minutes';
+    } else if (columnId == 'messages') {
+      return 'Messages';
+    } else if (columnId == 'registered') {
+      return 'Registered';
+    } else if (columnId == 'quota') {
+      return 'Quota Complete';
     }
   };
 
@@ -916,80 +886,80 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
             </div>
 
             <div className="space-y-0.5 p-1.5">
-                <div
-                  className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
-                    mainPanelMode === "table" && selectedViewId === null
-                      ? "bg-primary/8 dark:bg-primary/10"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
-                  }`}
+              <div
+                className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
+                  mainPanelMode === 'table' && selectedViewId === null
+                    ? 'bg-primary/8 dark:bg-primary/10'
+                    : 'hover:bg-zinc-50 dark:hover:bg-zinc-700/40'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetToDefault();
+                  }}
+                  className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetToDefault();
-                    }}
-                    className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <IconUsers className="h-3.5 w-3.5" stroke={1.75} />
+                  </span>
+                  <span
+                    className={`truncate text-sm font-medium ${
+                      mainPanelMode === 'table' && selectedViewId === null
+                        ? 'text-primary'
+                        : 'text-zinc-700 dark:text-zinc-300'
+                    }`}
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                      <IconUsers className="h-3.5 w-3.5" stroke={1.75} />
-                    </span>
-                    <span
-                      className={`truncate text-sm font-medium ${
-                        mainPanelMode === "table" && selectedViewId === null
-                          ? "text-primary"
-                          : "text-zinc-700 dark:text-zinc-300"
-                      }`}
-                    >
-                      Staff table
-                    </span>
-                  </button>
-                </div>
+                    Staff table
+                  </span>
+                </button>
+              </div>
 
-                <div
-                  className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
-                    mainPanelMode === "orgChart"
-                      ? "bg-primary/8 dark:bg-primary/10"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
-                  }`}
+              <div
+                className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
+                  mainPanelMode === 'orgChart'
+                    ? 'bg-primary/8 dark:bg-primary/10'
+                    : 'hover:bg-zinc-50 dark:hover:bg-zinc-700/40'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedViewId(null);
+                    setIsEditMode(false);
+                    setMainPanelMode('orgChart');
+                  }}
+                  className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedViewId(null);
-                      setIsEditMode(false);
-                      setMainPanelMode("orgChart");
-                    }}
-                    className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <IconSitemap className="h-3.5 w-3.5" stroke={1.75} />
+                  </span>
+                  <span
+                    className={`truncate text-sm font-medium ${
+                      mainPanelMode === 'orgChart'
+                        ? 'text-primary'
+                        : 'text-zinc-700 dark:text-zinc-300'
+                    }`}
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                      <IconSitemap className="h-3.5 w-3.5" stroke={1.75} />
-                    </span>
-                    <span
-                      className={`truncate text-sm font-medium ${
-                        mainPanelMode === "orgChart"
-                          ? "text-primary"
-                          : "text-zinc-700 dark:text-zinc-300"
-                      }`}
-                    >
-                      Org chart
-                    </span>
-                  </button>
-                </div>
+                    Org chart
+                  </span>
+                </button>
+              </div>
 
-                {hasUseSavedViews() && (
-                  <>
-                    {savedViews.length === 0 && (
-                      <p className="px-2 py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
-                        No saved views
-                      </p>
-                    )}
-                    {savedViews.map((v) => (
+              {hasUseSavedViews() && (
+                <>
+                  {savedViews.length === 0 && (
+                    <p className="px-2 py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
+                      No saved views
+                    </p>
+                  )}
+                  {savedViews.map((v) => (
                     <div
                       key={v.id}
                       className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
                         selectedViewId === v.id
-                          ? "bg-primary/8 dark:bg-primary/10"
-                          : "hover:bg-zinc-50 dark:hover:bg-zinc-700/40"
+                          ? 'bg-primary/8 dark:bg-primary/10'
+                          : 'hover:bg-zinc-50 dark:hover:bg-zinc-700/40'
                       }`}
                     >
                       <button
@@ -1004,21 +974,23 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                       >
                         <span
                           className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-zinc-800"
-                          style={{ background: v.color || "#e5e7eb" }}
+                          style={{ background: v.color || '#e5e7eb' }}
                         >
                           {v.icon ? (
-                            renderIcon(v.icon, "w-3.5 h-3.5")
+                            renderIcon(v.icon, 'w-3.5 h-3.5')
                           ) : (
                             <span className="text-xs font-semibold">
-                              {(v.name || "").charAt(0).toUpperCase()}
+                              {(v.name || '').charAt(0).toUpperCase()}
                             </span>
                           )}
                         </span>
-                        <span className={`text-sm truncate font-medium ${
-                          selectedViewId === v.id
-                            ? "text-primary"
-                            : "text-zinc-700 dark:text-zinc-300"
-                        }`}>
+                        <span
+                          className={`text-sm truncate font-medium ${
+                            selectedViewId === v.id
+                              ? 'text-primary'
+                              : 'text-zinc-700 dark:text-zinc-300'
+                          }`}
+                        >
                           {v.name}
                         </span>
                       </button>
@@ -1037,15 +1009,15 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                         </button>
                       )}
                     </div>
-                    ))}
-                  </>
-                )}
-              </div>
+                  ))}
+                </>
+              )}
+            </div>
           </ViewsPanel>
         </div>
 
         <div className="min-w-0 flex-1">
-          {mainPanelMode === "table" && (
+          {mainPanelMode === 'table' && (
             <ViewsPanel className="relative z-10 mb-4 overflow-visible p-4">
               <div className="flex flex-col md:flex-row gap-3 relative z-20">
                 <div className="flex gap-2">
@@ -1055,12 +1027,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                         <Popover.Button
                           disabled={selectedViewId !== null && !isEditMode}
                           className={clsx(
-                            "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                            'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
                             selectedViewId !== null && !isEditMode
-                              ? "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                              ? 'cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600'
                               : open
-                              ? "bg-primary/10 text-primary"
-                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white',
                           )}
                         >
                           <IconFilter className="h-4 w-4" stroke={1.75} />
@@ -1117,12 +1089,12 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                         <Popover.Button
                           disabled={selectedViewId !== null && !isEditMode}
                           className={clsx(
-                            "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                            'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
                             selectedViewId !== null && !isEditMode
-                              ? "cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                              ? 'cursor-not-allowed bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600'
                               : open
-                              ? "bg-primary/10 text-primary"
-                              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white',
                           )}
                         >
                           <IconUsers className="h-4 w-4" stroke={1.75} />
@@ -1141,10 +1113,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                           <Popover.Panel className="absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
                             <div className="space-y-2">
                               {table.getAllLeafColumns().map((column: any) => {
-                                if (
-                                  column.id !== "select" &&
-                                  column.id !== "info"
-                                ) {
+                                if (column.id !== 'select' && column.id !== 'info') {
                                   return (
                                     <label
                                       key={column.id}
@@ -1239,7 +1208,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </span>
                   <button
                     onClick={() => {
-                      setType("promotion");
+                      setType('promotion');
                       setIsOpen(true);
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-emerald-600/80 hover:bg-emerald-600 transition-all"
@@ -1249,7 +1218,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </button>
                   <button
                     onClick={() => {
-                      setType("warning");
+                      setType('warning');
                       setIsOpen(true);
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-amber-600/80 hover:bg-amber-600 transition-all"
@@ -1259,7 +1228,7 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                   </button>
                   <button
                     onClick={() => {
-                      setType("termination");
+                      setType('termination');
                       setIsOpen(true);
                     }}
                     className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all"
@@ -1272,8 +1241,8 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
             </ViewsPanel>
           )}
 
-            {mainPanelMode === "table" ? (
-              isLoading ? (
+          {mainPanelMode === 'table' ? (
+            isLoading ? (
               <ViewsPanel className="p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
@@ -1281,463 +1250,444 @@ const Views: pageWithLayout<pageProps> = ({ isAdmin, hasManageViewsPerm, hasCrea
                 </div>
               </ViewsPanel>
             ) : (
-            <ViewsPanel className="overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto md:table-fixed">
-                  <thead className="border-b border-zinc-100 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-800/40">
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            scope="col"
-                            aria-sort={
-                              header.column.getIsSorted?.() === "asc"
-                                ? "ascending"
-                                : header.column.getIsSorted?.() === "desc"
-                                ? "descending"
-                                : "none"
-                            }
-                            className={clsx(
-                              "cursor-pointer px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300",
-                              header.column.id === "info" && "md:w-1/4 min-w-[90px]",
-                              header.column.id === "select" && "w-12 px-2 text-center"
-                            )}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            {header.isPlaceholder ? null : (
-                              <div className="flex items-center space-x-1.5">
-                                <span>
-                                  {flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                                </span>
-                                <span className="text-zinc-400">
-                                  {header.column.getIsSorted?.() === "asc" ? (
-                                    <IconArrowUp className="w-3 h-3" />
-                                  ) : header.column.getIsSorted?.() ===
-                                    "desc" ? (
-                                    <IconArrowDown className="w-3 h-3" />
-                                  ) : null}
-                                </span>
-                              </div>
-                            )}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    {table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className={
-                              cell.column.id === "info"
-                                ? "pl-1 pr-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden"
-                                : cell.column.id === "select"
-                                ? "px-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden text-center"
-                                : "px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden"
-                            }
-                            style={
-                              cell.column.id === "info"
-                                ? {
-                                    minWidth: 90,
-                                    maxWidth: "30%",
-                                    minHeight: 44,
-                                  }
-                                : cell.column.id === "select"
-                                ? { width: 48 }
-                                : { maxWidth: 0 }
-                            }
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex items-center justify-center border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                    className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                  >
-                    Previous
-                  </button>
-                  <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-zinc-500">
-                    Page {table.getState().pagination.pageIndex + 1} of{" "}
-                    {table.getPageCount()}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                    className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                  >
-                    Next
-                  </button>
+              <ViewsPanel className="overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full table-auto md:table-fixed">
+                    <thead className="border-b border-zinc-100 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-800/40">
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <tr key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => (
+                            <th
+                              key={header.id}
+                              scope="col"
+                              aria-sort={
+                                header.column.getIsSorted?.() === 'asc'
+                                  ? 'ascending'
+                                  : header.column.getIsSorted?.() === 'desc'
+                                    ? 'descending'
+                                    : 'none'
+                              }
+                              className={clsx(
+                                'cursor-pointer px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300',
+                                header.column.id === 'info' && 'md:w-1/4 min-w-[90px]',
+                                header.column.id === 'select' && 'w-12 px-2 text-center',
+                              )}
+                              onClick={header.column.getToggleSortingHandler()}
+                            >
+                              {header.isPlaceholder ? null : (
+                                <div className="flex items-center space-x-1.5">
+                                  <span>
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    )}
+                                  </span>
+                                  <span className="text-zinc-400">
+                                    {header.column.getIsSorted?.() === 'asc' ? (
+                                      <IconArrowUp className="w-3 h-3" />
+                                    ) : header.column.getIsSorted?.() === 'desc' ? (
+                                      <IconArrowDown className="w-3 h-3" />
+                                    ) : null}
+                                  </span>
+                                </div>
+                              )}
+                            </th>
+                          ))}
+                        </tr>
+                      ))}
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                      {table.getRowModel().rows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              key={cell.id}
+                              className={
+                                cell.column.id === 'info'
+                                  ? 'pl-1 pr-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden'
+                                  : cell.column.id === 'select'
+                                    ? 'px-2 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden text-center'
+                                    : 'px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 overflow-hidden'
+                              }
+                              style={
+                                cell.column.id === 'info'
+                                  ? {
+                                      minWidth: 90,
+                                      maxWidth: '30%',
+                                      minHeight: 44,
+                                    }
+                                  : cell.column.id === 'select'
+                                    ? { width: 48 }
+                                    : { maxWidth: 0 }
+                              }
+                            >
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
+
+                <div className="flex items-center justify-center border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => table.previousPage()}
+                      disabled={!table.getCanPreviousPage()}
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    >
+                      Previous
+                    </button>
+                    <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-zinc-500">
+                      Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => table.nextPage()}
+                      disabled={!table.getCanNextPage()}
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </ViewsPanel>
+            )
+          ) : orgChartLoading ? (
+            <ViewsPanel className="p-12">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading org chart…</p>
               </div>
             </ViewsPanel>
-            )
-            )
-            : orgChartLoading ? (
-              <ViewsPanel className="p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading org chart…</p>
-                </div>
-              </ViewsPanel>
-            ) : (
-              <ViewsPanel className="p-4 sm:p-6">
-                <StaffOrgChart
-                  workspaceId={String(router.query.id)}
-                  nodes={orgChartData?.nodes ?? []}
-                  edges={orgChartData?.edges ?? []}
-                  hasViewMemberProfiles={hasViewMemberProfiles}
-                />
-              </ViewsPanel>
-            )}
+          ) : (
+            <ViewsPanel className="p-4 sm:p-6">
+              <StaffOrgChart
+                workspaceId={String(router.query.id)}
+                nodes={orgChartData?.nodes ?? []}
+                edges={orgChartData?.edges ?? []}
+                hasViewMemberProfiles={hasViewMemberProfiles}
+              />
+            </ViewsPanel>
+          )}
         </div>
       </div>
 
-        <Transition appear show={isOpen} as={Fragment}>
-          <Dialog
-            as="div"
-            className="relative z-50"
-            onClose={() => setIsOpen(false)}
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-black bg-opacity-25" />
-            </Transition.Child>
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
 
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4 text-center">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all">
-                    <Dialog.Title
-                      as="div"
-                      className="flex items-center justify-between mb-3"
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="div" className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                      Mass {type} {type === 'add' ? 'minutes' : ''}
+                    </h3>
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="text-zinc-400 hover:text-zinc-500"
                     >
-                      <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
-                        Mass {type} {type === "add" ? "minutes" : ""}
-                      </h3>
-                      <button
-                        onClick={() => setIsOpen(false)}
-                        className="text-zinc-400 hover:text-zinc-500"
-                      >
-                        <IconX className="w-5 h-5" />
-                      </button>
-                    </Dialog.Title>
+                      <IconX className="w-5 h-5" />
+                    </button>
+                  </Dialog.Title>
 
-                    <FormProvider
-                      {...useForm({
-                        defaultValues: {
-                          value: type === "add" ? minutes.toString() : message,
-                        },
-                      })}
-                    >
-                      <div className="mt-3">
-                        <Input
-                          type={type === "add" ? "number" : "text"}
-                          placeholder={type === "add" ? "Minutes" : "Message"}
-                          value={type === "add" ? minutes.toString() : message}
-                          name="value"
-                          id="value"
-                          onBlur={async () => true}
-                          onChange={async (e) => {
-                            if (type === "add") {
-                              setMinutes(parseInt(e.target.value) || 0);
-                            } else {
-                              setMessage(e.target.value);
-                            }
-                            return true;
-                          }}
-                        />
-                      </div>
-                    </FormProvider>
-
-                    <div className="mt-5 flex justify-end gap-2">
-                      <button
-                        type="button"
-                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-                        onClick={massAction}
-                      >
-                        Confirm
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
-              </div>
-            </div>
-          </Dialog>
-        </Transition>
-
-        <Transition appear show={isSaveOpen} as={Fragment}>
-          <Dialog
-            as="div"
-            className="relative z-50"
-            onClose={() => setIsSaveOpen(false)}
-          >
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-200"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="ease-in duration-150"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-            </Transition.Child>
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-200"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-150"
-                  leaveFrom="opacity-100 scale-100"
-                  leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel
-                    className={clsx(
-                      "w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-5 text-left align-middle transition-all dark:bg-zinc-900/95 sm:p-6",
-                      viewsPanelShadow
-                    )}
+                  <FormProvider
+                    {...useForm({
+                      defaultValues: {
+                        value: type === 'add' ? minutes.toString() : message,
+                      },
+                    })}
                   >
-                    <div className="mb-4 flex items-start justify-between gap-3">
-                      <div>
-                        <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
-                          Save view
-                        </Dialog.Title>
-                        <p className="mt-0.5 text-xs text-zinc-400">
-                          Name this view and pick a color and icon
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsSaveOpen(false)}
-                        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                      >
-                        <IconX className="h-5 w-5" stroke={1.75} />
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="mb-1 block text-[11px] font-medium text-zinc-400">
-                          Name ({saveName.length}/{SAVED_VIEW_NAME_MAX_LENGTH})
-                        </label>
-                        <input
-                          type="text"
-                          name="save-name"
-                          maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
-                          value={saveName}
-                          onChange={(e) =>
-                            setSaveName(
-                              e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH)
-                            )
+                    <div className="mt-3">
+                      <Input
+                        type={type === 'add' ? 'number' : 'text'}
+                        placeholder={type === 'add' ? 'Minutes' : 'Message'}
+                        value={type === 'add' ? minutes.toString() : message}
+                        name="value"
+                        id="value"
+                        onBlur={async () => true}
+                        onChange={async (e) => {
+                          if (type === 'add') {
+                            setMinutes(parseInt(e.target.value) || 0);
+                          } else {
+                            setMessage(e.target.value);
                           }
-                          placeholder="e.g. Active moderators"
-                          className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2 block text-[11px] font-medium text-zinc-400">
-                          Color
-                        </label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {[
-                            "#fef2f2",
-                            "#fef3c7",
-                            "#ecfeff",
-                            "#fff7ed",
-                            "#f5f3ff",
-                            "#fff2c0",
-                            "#d1fae5",
-                            "#fee2e2",
-                            "#fee7f6",
-                            "#fcd7d7",
-                            "#f8e494",
-                            "#c1fcff",
-                            "#fdd6a6",
-                            "#b7a9ff",
-                            "#fde68a",
-                            "#aaffd3",
-                            "#e0f2fe",
-                            "#ffbcbc",
-                            "#ffbce8",
-                          ].map((c) => (
-                            <button
-                              key={c}
-                              type="button"
-                              onClick={() => setSaveColor(c)}
-                              title={c}
-                              className={clsx(
-                                "h-8 w-8 rounded-lg transition-all",
-                                saveColor === c
-                                  ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900"
-                                  : "hover:scale-105"
-                              )}
-                              style={{ background: c }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="mb-2 block text-[11px] font-medium text-zinc-400">
-                          Icon
-                        </label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ICON_OPTIONS.map((opt) => {
-                            const IconComp = opt.Icon;
-                            return (
-                              <button
-                                key={opt.key}
-                                type="button"
-                                onClick={() => setSaveIcon(opt.key)}
-                                title={opt.title || opt.key}
-                                className={clsx(
-                                  "flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 transition-all dark:bg-zinc-800",
-                                  saveIcon === opt.key
-                                    ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900"
-                                    : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                                )}
-                              >
-                                <IconComp
-                                  className="h-4 w-4 text-zinc-700 dark:text-zinc-200"
-                                  stroke={1.75}
-                                />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                          return true;
+                        }}
+                      />
                     </div>
+                  </FormProvider>
 
-                    <div className="mt-5 flex justify-end gap-2">
-                      <button
-                        type="button"
-                        className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-                        onClick={() => setIsSaveOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={saveCurrentView}
-                        disabled={!saveName.trim()}
-                      >
-                        Save view
-                      </button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
-              </div>
-            </div>
-          </Dialog>
-        </Transition>
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm">
-              <div className="p-6">
-                <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
-                  <IconTrash className="w-5 h-5 text-red-500" />
-                </div>
-                <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
-                  Delete view?
-                </h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  This saved view will be permanently removed. This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-2 px-6 pb-5">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setViewToDelete(null);
-                  }}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteSavedView}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                      onClick={massAction}
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
             </div>
           </div>
-        )}
+        </Dialog>
+      </Transition>
+
+      <Transition appear show={isSaveOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsSaveOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-150"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          </Transition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-200"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-150"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel
+                  className={clsx(
+                    'w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-5 text-left align-middle transition-all dark:bg-zinc-900/95 sm:p-6',
+                    viewsPanelShadow,
+                  )}
+                >
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                        Save view
+                      </Dialog.Title>
+                      <p className="mt-0.5 text-xs text-zinc-400">
+                        Name this view and pick a color and icon
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsSaveOpen(false)}
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    >
+                      <IconX className="h-5 w-5" stroke={1.75} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
+                        Name ({saveName.length}/{SAVED_VIEW_NAME_MAX_LENGTH})
+                      </label>
+                      <input
+                        type="text"
+                        name="save-name"
+                        maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
+                        value={saveName}
+                        onChange={(e) =>
+                          setSaveName(e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH))
+                        }
+                        placeholder="e.g. Active moderators"
+                        className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-[11px] font-medium text-zinc-400">
+                        Color
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          '#fef2f2',
+                          '#fef3c7',
+                          '#ecfeff',
+                          '#fff7ed',
+                          '#f5f3ff',
+                          '#fff2c0',
+                          '#d1fae5',
+                          '#fee2e2',
+                          '#fee7f6',
+                          '#fcd7d7',
+                          '#f8e494',
+                          '#c1fcff',
+                          '#fdd6a6',
+                          '#b7a9ff',
+                          '#fde68a',
+                          '#aaffd3',
+                          '#e0f2fe',
+                          '#ffbcbc',
+                          '#ffbce8',
+                        ].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setSaveColor(c)}
+                            title={c}
+                            className={clsx(
+                              'h-8 w-8 rounded-lg transition-all',
+                              saveColor === c
+                                ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900'
+                                : 'hover:scale-105',
+                            )}
+                            style={{ background: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-[11px] font-medium text-zinc-400">
+                        Icon
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ICON_OPTIONS.map((opt) => {
+                          const IconComp = opt.Icon;
+                          return (
+                            <button
+                              key={opt.key}
+                              type="button"
+                              onClick={() => setSaveIcon(opt.key)}
+                              title={opt.title || opt.key}
+                              className={clsx(
+                                'flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-100 transition-all dark:bg-zinc-800',
+                                saveIcon === opt.key
+                                  ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-zinc-900'
+                                  : 'hover:bg-zinc-200 dark:hover:bg-zinc-700',
+                              )}
+                            >
+                              <IconComp
+                                className="h-4 w-4 text-zinc-700 dark:text-zinc-200"
+                                stroke={1.75}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                      onClick={() => setIsSaveOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={saveCurrentView}
+                      disabled={!saveName.trim()}
+                    >
+                      Save view
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm">
+            <div className="p-6">
+              <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+                <IconTrash className="w-5 h-5 text-red-500" />
+              </div>
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+                Delete view?
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                This saved view will be permanently removed. This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-2 px-6 pb-5">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setViewToDelete(null);
+                }}
+                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteSavedView}
+                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ViewsPageShell>
   );
 };
 
 const BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -1747,9 +1697,9 @@ function getRandomBg(userid: string, username?: string) {
 }
 
 const filterInputClass =
-  "w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white";
+  'w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white';
 
-const filterLabelClass = "mb-1 block text-[11px] font-medium text-zinc-400";
+const filterLabelClass = 'mb-1 block text-[11px] font-medium text-zinc-400';
 
 const Filter: React.FC<{
   data: {
@@ -1779,15 +1729,11 @@ const Filter: React.FC<{
   });
 
   const { register } = methods;
-  const selectedCol = methods.watch("col");
+  const selectedCol = methods.watch('col');
 
   useEffect(() => {
     const subscription = methods.watch(() => {
-      updateFilter(
-        methods.getValues().col,
-        methods.getValues().op,
-        methods.getValues().value
-      );
+      updateFilter(methods.getValues().col, methods.getValues().op, methods.getValues().value);
     });
     return () => subscription.unsubscribe();
   }, [methods.watch]);
@@ -1796,9 +1742,7 @@ const Filter: React.FC<{
     <FormProvider {...methods}>
       <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            Filter rule
-          </span>
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Filter rule</span>
           <button
             type="button"
             onClick={deleteFilter}
@@ -1812,7 +1756,7 @@ const Filter: React.FC<{
         <div className="space-y-3">
           <div>
             <label className={filterLabelClass}>Column</label>
-            <select {...register("col")} className={filterInputClass}>
+            <select {...register('col')} className={filterInputClass}>
               {Object.keys(filters).map((filter) => (
                 <option value={filter} key={filter}>
                   {filter}
@@ -1823,7 +1767,7 @@ const Filter: React.FC<{
 
           <div>
             <label className={filterLabelClass}>Operation</label>
-            <select {...register("op")} className={filterInputClass}>
+            <select {...register('op')} className={filterInputClass}>
               {(filters[selectedCol] || filters.username).map((filter) => (
                 <option value={filter} key={filter}>
                   {filterNames[filter]}
@@ -1832,20 +1776,20 @@ const Filter: React.FC<{
             </select>
           </div>
 
-          {selectedCol !== "rank" &&
-            selectedCol !== "registered" &&
-            selectedCol !== "quota" &&
-            selectedCol !== "department" && (
+          {selectedCol !== 'rank' &&
+            selectedCol !== 'registered' &&
+            selectedCol !== 'quota' &&
+            selectedCol !== 'department' && (
               <div>
                 <label className={filterLabelClass}>Value</label>
-                <input {...register("value")} className={filterInputClass} />
+                <input {...register('value')} className={filterInputClass} />
               </div>
             )}
 
-          {selectedCol === "rank" && (
+          {selectedCol === 'rank' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register("value")} className={filterInputClass}>
+              <select {...register('value')} className={filterInputClass}>
                 {ranks.map((rank) => (
                   <option value={rank.rank} key={rank.id}>
                     {rank.name}
@@ -1855,30 +1799,30 @@ const Filter: React.FC<{
             </div>
           )}
 
-          {selectedCol === "registered" && (
+          {selectedCol === 'registered' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register("value")} className={filterInputClass}>
+              <select {...register('value')} className={filterInputClass}>
                 <option value="true">Yes</option>
                 <option value="false">No</option>
               </select>
             </div>
           )}
 
-          {selectedCol === "quota" && (
+          {selectedCol === 'quota' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register("value")} className={filterInputClass}>
+              <select {...register('value')} className={filterInputClass}>
                 <option value="true">Yes</option>
                 <option value="false">No</option>
               </select>
             </div>
           )}
 
-          {selectedCol === "department" && (
+          {selectedCol === 'department' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register("value")} className={filterInputClass}>
+              <select {...register('value')} className={filterInputClass}>
                 {departments.map((dept) => (
                   <option value={dept.id} key={dept.id}>
                     {dept.name}

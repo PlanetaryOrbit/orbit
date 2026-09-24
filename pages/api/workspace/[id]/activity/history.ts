@@ -1,18 +1,17 @@
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 export default withPermissionCheck(async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id } = req.query;
-  const { page = "1", limit = "10" } = req.query;
+  const { page = '1', limit = '10' } = req.query;
   const workspaceGroupId = parseInt(id as string);
 
   try {
@@ -25,8 +24,8 @@ export default withPermissionCheck(async function handler(
         periodStart: true,
         periodEnd: true,
       },
-      distinct: ["periodEnd"],
-      orderBy: { periodEnd: "desc" },
+      distinct: ['periodEnd'],
+      orderBy: { periodEnd: 'desc' },
       skip,
       take: limitNum,
     });
@@ -46,20 +45,13 @@ export default withPermissionCheck(async function handler(
               },
             },
           },
-          orderBy: { minutes: "desc" },
+          orderBy: { minutes: 'desc' },
         });
 
-        const totalMinutes = periodHistory.reduce(
-          (sum, h) => sum + h.minutes,
-          0
-        );
-        const totalMessages = periodHistory.reduce(
-          (sum, h) => sum + h.messages,
-          0
-        );
+        const totalMinutes = periodHistory.reduce((sum, h) => sum + h.minutes, 0);
+        const totalMessages = periodHistory.reduce((sum, h) => sum + h.messages, 0);
         const totalUsers = periodHistory.length;
-        const avgMinutes =
-          totalUsers > 0 ? Math.round(totalMinutes / totalUsers) : 0;
+        const avgMinutes = totalUsers > 0 ? Math.round(totalMinutes / totalUsers) : 0;
 
         return {
           periodStart: period.periodStart,
@@ -78,12 +70,12 @@ export default withPermissionCheck(async function handler(
             sessionsAttended: h.sessionsAttended,
           })),
         };
-      })
+      }),
     );
     const totalPeriods = await prisma.activityHistory.findMany({
       where: { workspaceGroupId },
       select: { periodEnd: true },
-      distinct: ["periodEnd"],
+      distinct: ['periodEnd'],
     });
 
     return res.status(200).json({
@@ -98,9 +90,7 @@ export default withPermissionCheck(async function handler(
       },
     });
   } catch (error) {
-    console.error("Activity history fetch error:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch activity history" });
+    console.error('Activity history fetch error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch activity history' });
   }
 });

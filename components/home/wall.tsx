@@ -1,11 +1,12 @@
-import axios from "axios";
-import React, { useState } from "react";
-import type { wallPost, user } from "@/utils/database";
-import { useRouter } from "next/router";
-import moment from "moment";
-import ReactMarkdown from "react-markdown";
-import rehypeSanitize from "rehype-sanitize";
-import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
+import axios from 'axios';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
+
+import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
+import type { wallPost, user } from '@/utils/database';
 
 const Wall: React.FC = () => {
   const [posts, setPosts] = useState<(wallPost & { author: user })[]>([]);
@@ -23,7 +24,7 @@ const Wall: React.FC = () => {
     return (
       <HomeEmpty
         action={{
-          label: "Go to wall",
+          label: 'Go to wall',
           onClick: () => router.push(`/workspace/${workspaceId}/wall`),
         }}
       >
@@ -48,7 +49,7 @@ const Wall: React.FC = () => {
                   {post.author.username}
                 </p>
                 <span className="shrink-0 text-[11px] text-zinc-400 dark:text-zinc-500">
-                  {moment(post.createdAt).format("MMM D")}
+                  {moment(post.createdAt).format('MMM D')}
                 </span>
               </div>
               <div className="prose prose-sm prose-zinc dark:prose-invert mt-1 max-w-none line-clamp-3 [&_p]:my-0">

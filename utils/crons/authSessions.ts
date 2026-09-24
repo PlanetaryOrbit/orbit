@@ -1,4 +1,4 @@
-import prisma from "@/utils/database";
+import prisma from '@/utils/database';
 
 export async function runSessionCron() {
   const result = await prisma.authSession.deleteMany({

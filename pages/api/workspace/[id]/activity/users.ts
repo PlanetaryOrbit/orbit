@@ -1,14 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import {
-  getUsername,
-  getThumbnail,
-  getDisplayName,
-} from "@/utils/userinfoEngine";
-import { getConfig } from "@/utils/configEngine";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
+import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 
 const activityUsersCache = new Map<string, { data: any; timestamp: number }>();
 const ACTIVITY_CACHE_DURATION = 30000;
@@ -32,12 +29,9 @@ type TopStaff = {
 export default withPermissionCheck(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
-  if (!req.auth.userId)
-    return res.status(401).json({ success: false, error: "Not logged in" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 
   const workspaceId = parseInt(req.query.id as string);
   const cacheKey = `activity_users_${workspaceId}`;
@@ -52,14 +46,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       workspaceGroupId: workspaceId,
     },
     orderBy: {
-      resetAt: "desc",
+      resetAt: 'desc',
     },
   });
 
-  const startDate = lastReset?.resetAt || new Date("2025-01-01");
+  const startDate = lastReset?.resetAt || new Date('2025-01-01');
   const currentDate = new Date();
 
-  const activityConfig = await getConfig("activity", workspaceId);
+  const activityConfig = await getConfig('activity', workspaceId);
   const leaderboardRank = activityConfig?.leaderboardRole;
   const idleTimeEnabled = activityConfig?.idleTimeEnabled ?? true;
 
@@ -164,7 +158,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     const u = users.find((u) => u.userid === user.userId);
     activeUsers.push({
       userId: Number(user.userId),
-      username: u?.username || "Unknown",
+      username: u?.username || 'Unknown',
       picture: `/api/user/${Number(user.userId)}/avatar`,
     });
   }
@@ -175,7 +169,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       reason: session.reason,
       from: session.startTime,
       to: session.endTime!,
-      username: u?.username || "Unknown",
+      username: u?.username || 'Unknown',
       picture: `/api/user/${Number(session.userId)}/avatar`,
     });
   }
@@ -191,15 +185,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   const combinedMinutes: CombinedObj[] = [];
   sessions.forEach((session) => {
     if (!session.endTime) return;
-    const found = combinedMinutes.find(
-      (x) => x.userId == Number(session.userId)
-    );
-    const sessionDuration =
-      session.endTime.getTime() - session.startTime.getTime();
-    const idleTimeMs =
-      idleTimeEnabled && session.idleTime
-        ? Number(session.idleTime) * 60000
-        : 0;
+    const found = combinedMinutes.find((x) => x.userId == Number(session.userId));
+    const sessionDuration = session.endTime.getTime() - session.startTime.getTime();
+    const idleTimeMs = idleTimeEnabled && session.idleTime ? Number(session.idleTime) * 60000 : 0;
     const effectiveTime = Math.max(0, sessionDuration - idleTimeMs); // we clamp the value
 
     if (found) {
@@ -224,9 +212,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   });
 
   adjustments.forEach((adjustment: any) => {
-    const found = combinedMinutes.find(
-      (x) => x.userId == Number(adjustment.userId)
-    );
+    const found = combinedMinutes.find((x) => x.userId == Number(adjustment.userId));
     const adjustmentMs = adjustment.minutes * 60000;
     if (found) {
       found.ms.push(adjustmentMs);
@@ -253,7 +239,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (found) {
       topStaff.push({
         userId: min.userId,
-        username: found?.username || "Unknown",
+        username: found?.username || 'Unknown',
         ms: minSum,
         picture: `/api/user/${min.userId}/avatar`,
       });
@@ -273,7 +259,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
     topStaff.push({
       userId: userId,
-      username: user.username || "Unknown",
+      username: user.username || 'Unknown',
       ms: 0,
       picture: `/api/user/${userId}/avatar`,
     });

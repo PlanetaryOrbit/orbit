@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { IconPlayerPlay } from "@tabler/icons-react";
+import { IconPlayerPlay } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 
 interface GroupLink {
   id: number;
@@ -47,7 +47,7 @@ export default function FeaturedExperiences() {
           className="group relative h-36 overflow-hidden rounded-2xl text-left sm:h-40"
         >
           <img
-            src={game.thumbnailUrl || "/favicon-32x32.png"}
+            src={game.thumbnailUrl || '/favicon-32x32.png'}
             alt=""
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />

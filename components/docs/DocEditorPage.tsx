@@ -1,13 +1,14 @@
-import Link from "next/link";
-import clsx from "clsx";
-import type { ReactNode } from "react";
-import { IconArrowLeft } from "@tabler/icons-react";
-import { docsPanelShadow } from "./shell";
-import { AccessControlPanel } from "./AccessControl";
+import { IconArrowLeft } from '@tabler/icons-react';
+import clsx from 'clsx';
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+
+import { AccessControlPanel } from './AccessControl';
+import { docsPanelShadow } from './shell';
 
 export function DocEditorPage({
   backHref,
-  backLabel = "Documents",
+  backLabel = 'Documents',
   actions,
   sidebar,
   children,
@@ -25,8 +26,8 @@ export function DocEditorPage({
       <div className="mx-auto max-w-6xl">
         <div
           className={clsx(
-            "mb-4 flex items-center justify-between gap-3",
-            dimmed && "pointer-events-none opacity-40"
+            'mb-4 flex items-center justify-between gap-3',
+            dimmed && 'pointer-events-none opacity-40',
           )}
         >
           <Link
@@ -41,8 +42,8 @@ export function DocEditorPage({
 
         <div
           className={clsx(
-            "grid grid-cols-1 gap-5 lg:grid-cols-[1fr_15rem] xl:grid-cols-[1fr_17rem]",
-            dimmed && "pointer-events-none select-none opacity-40"
+            'grid grid-cols-1 gap-5 lg:grid-cols-[1fr_15rem] xl:grid-cols-[1fr_17rem]',
+            dimmed && 'pointer-events-none select-none opacity-40',
           )}
         >
           <div className="min-w-0">{children}</div>
@@ -58,7 +59,7 @@ export function DocWritingSurface({
   onTitleChange,
   titleError,
   titleDisabled,
-  titlePlaceholder = "Untitled document",
+  titlePlaceholder = 'Untitled document',
   footer,
   children,
 }: {
@@ -73,8 +74,8 @@ export function DocWritingSurface({
   return (
     <div
       className={clsx(
-        "flex min-h-[calc(100vh-11rem)] flex-col rounded-2xl bg-white dark:bg-zinc-900/80",
-        docsPanelShadow
+        'flex min-h-[calc(100vh-11rem)] flex-col rounded-2xl bg-white dark:bg-zinc-900/80',
+        docsPanelShadow,
       )}
     >
       <div className="px-6 pt-8 pb-2 sm:px-10 sm:pt-10">
@@ -86,9 +87,7 @@ export function DocWritingSurface({
           placeholder={titlePlaceholder}
           className="w-full border-0 bg-transparent text-2xl font-semibold tracking-tight text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-0 disabled:opacity-60 dark:text-white dark:placeholder-zinc-600 sm:text-3xl"
         />
-        {titleError ? (
-          <p className="mt-1 text-xs text-red-500">{titleError}</p>
-        ) : null}
+        {titleError ? <p className="mt-1 text-xs text-red-500">{titleError}</p> : null}
       </div>
 
       <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10" />
@@ -105,33 +104,31 @@ export function DocWritingSurface({
   );
 }
 
-export function DocEditorSidebar(
-  props: React.ComponentProps<typeof AccessControlPanel>
-) {
+export function DocEditorSidebar(props: React.ComponentProps<typeof AccessControlPanel>) {
   return <AccessControlPanel {...props} variant="sidebar" />;
 }
 
 const AVATAR_BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function getRandomBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -141,9 +138,9 @@ function getRandomBg(userid: string, username?: string) {
 
 function formatDocDate(value: string) {
   return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
 }
 
@@ -161,21 +158,18 @@ export function DocViewMeta({
   updatedAt?: string;
 }) {
   const profileHref =
-    authorId && workspaceId
-      ? `/workspace/${workspaceId}/profile/${authorId}`
-      : undefined;
+    authorId && workspaceId ? `/workspace/${workspaceId}/profile/${authorId}` : undefined;
   const created = formatDocDate(createdAt);
   const updated =
-    updatedAt &&
-    new Date(updatedAt).getTime() !== new Date(createdAt).getTime()
+    updatedAt && new Date(updatedAt).getTime() !== new Date(createdAt).getTime()
       ? formatDocDate(updatedAt)
       : null;
 
   const avatar = (
     <div
       className={clsx(
-        "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full",
-        getRandomBg(authorId ?? "", authorName)
+        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full',
+        getRandomBg(authorId ?? '', authorName),
       )}
     >
       {authorId ? (
@@ -183,7 +177,7 @@ export function DocViewMeta({
           src={`/api/user/${authorId}/avatar`}
           alt={authorName}
           className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
-          style={{ background: "transparent" }}
+          style={{ background: 'transparent' }}
         />
       ) : (
         <span className="text-sm font-semibold text-zinc-700">
@@ -230,8 +224,8 @@ export function DocViewSurface({
   return (
     <div
       className={clsx(
-        "flex min-h-[calc(100vh-11rem)] flex-col rounded-2xl bg-white dark:bg-zinc-900/80",
-        docsPanelShadow
+        'flex min-h-[calc(100vh-11rem)] flex-col rounded-2xl bg-white dark:bg-zinc-900/80',
+        docsPanelShadow,
       )}
     >
       <div className="px-6 pt-8 pb-4 sm:px-10 sm:pt-10">
@@ -267,15 +261,8 @@ export function DocPermissionsSidebar({
   const openToAll = roles.length === 0 && departments.length === 0;
 
   return (
-    <div
-      className={clsx(
-        "rounded-2xl bg-white p-4 dark:bg-zinc-900/80",
-        docsPanelShadow
-      )}
-    >
-      <p className="mb-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200">
-        Permissions
-      </p>
+    <div className={clsx('rounded-2xl bg-white p-4 dark:bg-zinc-900/80', docsPanelShadow)}>
+      <p className="mb-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200">Permissions</p>
 
       {openToAll ? (
         <p className="text-xs text-zinc-400">Visible to everyone in the workspace</p>
@@ -291,7 +278,7 @@ export function DocPermissionsSidebar({
                   <span
                     key={r.id}
                     className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95"
-                    style={{ backgroundColor: r.color || "#71717a" }}
+                    style={{ backgroundColor: r.color || '#71717a' }}
                   >
                     {r.name}
                   </span>
@@ -309,7 +296,7 @@ export function DocPermissionsSidebar({
                   <span
                     key={d.id}
                     className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95"
-                    style={{ backgroundColor: d.color || "#71717a" }}
+                    style={{ backgroundColor: d.color || '#71717a' }}
                   >
                     {d.name}
                   </span>

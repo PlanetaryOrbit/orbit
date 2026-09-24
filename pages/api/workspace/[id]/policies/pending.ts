@@ -1,76 +1,73 @@
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 export default withPermissionCheck(async function handler(
   req: AuthenticatedRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id } = req.query;
   const userId = req.auth.userId;
 
-  if (!userId)
-    return res.status(401).json({ success: false, error: "Unauthorized" });
+  if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
   const workspaceGroupId = parseInt(id as string);
 
   try {
     const user = await prisma.user.findFirst({
       where: {
-        userid: BigInt(userId)
+        userid: BigInt(userId),
       },
       include: {
         roles: {
           where: {
-            workspaceGroupId
+            workspaceGroupId,
           },
           select: {
-            id: true
-          }
+            id: true,
+          },
         },
         workspaceMemberships: {
           where: {
-            workspaceGroupId
+            workspaceGroupId,
           },
           include: {
             departmentMembers: {
               include: {
                 department: {
                   select: {
-                    id: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
       return res.status(200).json({ success: true, count: 0 });
     }
 
-    const userRoleIds = user.roles ? user.roles.map(role => role.id) : [];
-    const userDepartmentIds = user.workspaceMemberships?.[0]?.departmentMembers?.map(dm => dm.department.id) || [];
+    const userRoleIds = user.roles ? user.roles.map((role) => role.id) : [];
+    const userDepartmentIds =
+      user.workspaceMemberships?.[0]?.departmentMembers?.map((dm) => dm.department.id) || [];
 
-    const orConditions: any[] = [
-      { roles: { none: {} }, departments: { none: {} } }
-    ];
+    const orConditions: any[] = [{ roles: { none: {} }, departments: { none: {} } }];
 
     if (userRoleIds.length > 0) {
       orConditions.push({
         roles: {
           some: {
-            id: { in: userRoleIds }
-          }
-        }
+            id: { in: userRoleIds },
+          },
+        },
       });
     }
 
@@ -78,9 +75,9 @@ export default withPermissionCheck(async function handler(
       orConditions.push({
         departments: {
           some: {
-            id: { in: userDepartmentIds }
-          }
-        }
+            id: { in: userDepartmentIds },
+          },
+        },
       });
     }
 
@@ -88,7 +85,7 @@ export default withPermissionCheck(async function handler(
       where: {
         workspaceGroupId,
         requiresAcknowledgment: true,
-        OR: orConditions
+        OR: orConditions,
       },
       select: {
         id: true,
@@ -103,14 +100,10 @@ export default withPermissionCheck(async function handler(
       },
     });
 
-    const pendingCount = policies.filter(
-      (p) => p.acknowledgments.length === 0
-    ).length;
+    const pendingCount = policies.filter((p) => p.acknowledgments.length === 0).length;
     return res.status(200).json({ success: true, count: pendingCount });
   } catch (error) {
-    console.error("Error fetching pending policy count:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal server error" });
+    console.error('Error fetching pending policy count:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });

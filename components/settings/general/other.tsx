@@ -1,15 +1,16 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
-import type toast from "react-hot-toast";
-import { FC } from "@/types/settingsComponent";
-import { IconBolt } from "@tabler/icons-react";
+import { IconBolt } from '@tabler/icons-react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import type toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import {
   ALLIANCE_STRIKES_DEFAULT_MAX,
   ALLIANCE_STRIKES_MIN,
   ALLIANCE_STRIKES_SETTING_MAX,
-} from "@/utils/allianceStrikesConfig";
+} from '@/utils/allianceStrikesConfig';
 
 type props = {
   triggerToast: typeof toast;
@@ -38,16 +39,16 @@ const Other: FC<props> = ({ triggerToast }) => {
         { maxStrikes: v },
       );
       if (res.status !== 200 || !res.data?.success) throw new Error();
-      const next = typeof res.data.maxStrikes === "number" ? res.data.maxStrikes : v;
+      const next = typeof res.data.maxStrikes === 'number' ? res.data.maxStrikes : v;
       const obj = JSON.parse(JSON.stringify(workspace), (key, value) =>
-        typeof value === "bigint" ? value.toString() : value,
+        typeof value === 'bigint' ? value.toString() : value,
       );
       obj.settings.allianceMaxStrikes = next;
       setWorkspace(obj);
       setMaxStrikes(next);
-      triggerToast.success("Alliance strike limit saved");
+      triggerToast.success('Alliance strike limit saved');
     } catch {
-      triggerToast.error("Could not save settings");
+      triggerToast.error('Could not save settings');
     }
   };
 
@@ -60,8 +61,8 @@ const Other: FC<props> = ({ triggerToast }) => {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-zinc-900 dark:text-white">Alliance strike limit</p>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-            Caps how many strikes each alliance can hold. The alliance page shows one meter segment per strike (between{" "}
-            {ALLIANCE_STRIKES_MIN} and {ALLIANCE_STRIKES_SETTING_MAX}).
+            Caps how many strikes each alliance can hold. The alliance page shows one meter segment
+            per strike (between {ALLIANCE_STRIKES_MIN} and {ALLIANCE_STRIKES_SETTING_MAX}).
           </p>
           <div className="mt-4 flex flex-wrap items-end gap-3">
             <div>
@@ -91,6 +92,6 @@ const Other: FC<props> = ({ triggerToast }) => {
   );
 };
 
-Other.title = "Alliance strikes";
+Other.title = 'Alliance strikes';
 
 export default Other;

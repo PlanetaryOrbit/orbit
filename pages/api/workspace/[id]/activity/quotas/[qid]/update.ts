@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { logAudit } from "@/utils/logs";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -9,24 +10,24 @@ type Data = {
   quota?: any;
 };
 
-export default withPermissionCheck(handler, "create_quotas");
+export default withPermissionCheck(handler, 'create_quotas');
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "PATCH" && req.method !== "PUT") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'PATCH' && req.method !== 'PUT') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   if (!req.session?.userid) {
-    return res.status(401).json({ success: false, error: "Not logged in" });
+    return res.status(401).json({ success: false, error: 'Not logged in' });
   }
 
   const qid = req.query.qid;
-  if (!qid || typeof qid !== "string") {
-    return res.status(400).json({ success: false, error: "Missing or invalid quota id" });
+  if (!qid || typeof qid !== 'string') {
+    return res.status(400).json({ success: false, error: 'Missing or invalid quota id' });
   }
 
   const { name, type, value, roles, departments, users, description, sessionType } = req.body;
-  const isCustom = type === "custom";
+  const isCustom = type === 'custom';
   const hasRoles = Array.isArray(roles) && roles.length > 0;
   const hasDepartments = Array.isArray(departments) && departments.length > 0;
   const hasUsers = Array.isArray(users) && users.length > 0;
@@ -38,7 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     (!isCustom && (parsedValue === null || Number.isNaN(parsedValue))) ||
     (!hasRoles && !hasDepartments && !hasUsers)
   ) {
-    return res.status(400).json({ success: false, error: "Missing or invalid data" });
+    return res.status(400).json({ success: false, error: 'Missing or invalid data' });
   }
 
   try {
@@ -51,7 +52,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
 
     if (!existing || String(existing.workspaceGroupId) !== String(req.query.id)) {
-      return res.status(404).json({ success: false, error: "Quota not found" });
+      return res.status(404).json({ success: false, error: 'Quota not found' });
     }
 
     const updateData: any = {
@@ -127,7 +128,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       await logAudit(
         parseInt(req.query.id as string),
         (req as any).auth?.userId || null,
-        "activity.quota.update",
+        'activity.quota.update',
         `quota:${fullQuota?.id}`,
         {
           id: fullQuota?.id,
@@ -135,19 +136,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           type: fullQuota?.type,
           value: fullQuota?.value,
           roles: (fullQuota?.quotaRoles || []).map((r: any) => (r.role ? r.role.name : r.roleId)),
-          departments: (fullQuota?.quotaDepartments || []).map((d: any) => (d.department ? d.department.name : d.departmentId)),
-        }
+          departments: (fullQuota?.quotaDepartments || []).map((d: any) =>
+            d.department ? d.department.name : d.departmentId,
+          ),
+        },
       );
     } catch (e) {}
 
     return res.status(200).json({
       success: true,
       quota: JSON.parse(
-        JSON.stringify(fullQuota, (_key, value) => (typeof value === "bigint" ? value.toString() : value))
+        JSON.stringify(fullQuota, (_key, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Quota update error:", error);
-    return res.status(500).json({ success: false, error: "Something went wrong" });
+    console.error('Quota update error:', error);
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 }

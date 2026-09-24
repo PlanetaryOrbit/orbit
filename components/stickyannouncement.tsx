@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { IconX, IconPin, IconPencil, IconCheck } from "@tabler/icons-react";
-import { useRouter } from "next/router";
-import axios from "axios";
-import toast from "react-hot-toast";
-import packageinfo from '@/package.json'
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
+import { IconX, IconPin, IconPencil, IconCheck } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import packageinfo from '@/package.json';
+import { workspacestate } from '@/state';
 
 const ANNOUNCEMENT_KEY = `announcementDismissed_${packageinfo.version}`;
 
@@ -24,38 +25,38 @@ interface Announcement {
 }
 
 const defaultAnnouncement: Announcement = {
-  title: "Planetary",
+  title: 'Planetary',
   subtitle: `Update: v${packageinfo.version} is now live!`,
   sections: [
     {
-      title: "📚 Documentation rework",
+      title: '📚 Documentation rework',
       content:
-        "We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.us/",
+        'We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.us/',
     },
     {
-      title: "🔧 Backend improvements",
+      title: '🔧 Backend improvements',
       content:
-        "We’ve pushed a wave of backend fixes and stability improvements. Things should feel smoother, faster, and more reliable overall ✨",
+        'We’ve pushed a wave of backend fixes and stability improvements. Things should feel smoother, faster, and more reliable overall ✨',
     },
     {
-      title: "👤 Your profile, your control",
+      title: '👤 Your profile, your control',
       content:
-        "You can now view and edit your own profile — including birthday, timezone, and more personal settings. It’s your space, make it yours.",
+        'You can now view and edit your own profile — including birthday, timezone, and more personal settings. It’s your space, make it yours.',
     },
     {
-      title: "🎨 UI rework",
+      title: '🎨 UI rework',
       content:
-        "We’ve reworked large parts of the UI with a cleaner, more modern feel. Go explore it — we think you’ll enjoy what the Planetary Team has been cooking up 👀",
+        'We’ve reworked large parts of the UI with a cleaner, more modern feel. Go explore it — we think you’ll enjoy what the Planetary Team has been cooking up 👀',
     },
     {
-      title: "🧑‍💻 User profile system overhaul",
+      title: '🧑‍💻 User profile system overhaul',
       content:
-        "User profiles have been fully migrated to our new internal user API. This makes everything more stable and sets the foundation for future features.",
+        'User profiles have been fully migrated to our new internal user API. This makes everything more stable and sets the foundation for future features.',
     },
     {
-      title: "",
+      title: '',
       content:
-        "That’s not even everything. Go poke around and see what else has changed — we’d rather let you discover it yourself 😉",
+        'That’s not even everything. Go poke around and see what else has changed — we’d rather let you discover it yourself 😉',
     },
   ],
   editorUsername: null,
@@ -88,20 +89,18 @@ export default function StickyNoteAnnouncement() {
 
   const fetchAnnouncement = async () => {
     try {
-      const response = await axios.get(
-        `/api/workspace/${router.query.id}/announcement`
-      );
+      const response = await axios.get(`/api/workspace/${router.query.id}/announcement`);
       if (response.data.success) {
         setAnnouncement(response.data.announcement);
         setCanEdit(response.data.canEdit);
       }
     } catch (error) {
-      console.error("Error fetching announcement:", error);
+      console.error('Error fetching announcement:', error);
     }
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(ANNOUNCEMENT_KEY, "true");
+    localStorage.setItem(ANNOUNCEMENT_KEY, 'true');
     setIsVisible(false);
   };
 
@@ -120,32 +119,27 @@ export default function StickyNoteAnnouncement() {
 
     setIsSaving(true);
     try {
-      const response = await axios.post(
-        `/api/workspace/${router.query.id}/announcement/update`,
-        {
-          title: editData.title,
-          subtitle: editData.subtitle,
-          sections: editData.sections,
-        }
-      );
+      const response = await axios.post(`/api/workspace/${router.query.id}/announcement/update`, {
+        title: editData.title,
+        subtitle: editData.subtitle,
+        sections: editData.sections,
+      });
 
       if (response.data.success) {
         setAnnouncement(response.data.announcement);
         setIsEditing(false);
         setEditData(null);
-        toast.success("Announcement updated successfully!");
+        toast.success('Announcement updated successfully!');
       }
     } catch (error: any) {
-      console.error("Error saving announcement:", error);
-      toast.error(
-        error.response?.data?.error || "Failed to update announcement"
-      );
+      console.error('Error saving announcement:', error);
+      toast.error(error.response?.data?.error || 'Failed to update announcement');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const updateSection = (index: number, field: "title" | "content", value: string) => {
+  const updateSection = (index: number, field: 'title' | 'content', value: string) => {
     if (!editData) return;
     const newSections = [...editData.sections];
     newSections[index] = { ...newSections[index], [field]: value };
@@ -156,7 +150,7 @@ export default function StickyNoteAnnouncement() {
     if (!editData) return;
     setEditData({
       ...editData,
-      sections: [...editData.sections, { title: "", content: "" }],
+      sections: [...editData.sections, { title: '', content: '' }],
     });
   };
 
@@ -174,8 +168,8 @@ export default function StickyNoteAnnouncement() {
   return (
     <div className="z-0 bg-white dark:bg-zinc-900/70 rounded-2xl shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30 p-4 flex items-start space-x-4 mb-6 relative">
       <img
-        src={workspace?.groupThumbnail || "/favicon.png"}
-        alt={workspace?.groupName || "Planetary"}
+        src={workspace?.groupThumbnail || '/favicon.png'}
+        alt={workspace?.groupName || 'Planetary'}
         className="w-10 h-10 rounded-full object-cover bg-zinc-100 dark:bg-zinc-800 flex-shrink-0"
       />
       <div className="flex-1">
@@ -183,19 +177,23 @@ export default function StickyNoteAnnouncement() {
           <div className="space-y-3 pt-0.5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">Title</label>
+                <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                  Title
+                </label>
                 <input
                   type="text"
-                  value={editData?.title || ""}
+                  value={editData?.title || ''}
                   onChange={(e) => setEditData({ ...editData!, title: e.target.value })}
                   className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-zinc-800 dark:text-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">Subtitle</label>
+                <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                  Subtitle
+                </label>
                 <input
                   type="text"
-                  value={editData?.subtitle || ""}
+                  value={editData?.subtitle || ''}
                   onChange={(e) => setEditData({ ...editData!, subtitle: e.target.value })}
                   className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-zinc-800 dark:text-white"
                 />
@@ -206,7 +204,9 @@ export default function StickyNoteAnnouncement() {
               {editData?.sections.map((section, index) => (
                 <div key={index} className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">Section {index + 1}</span>
+                    <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                      Section {index + 1}
+                    </span>
                     {editData.sections.length > 1 && (
                       <button
                         onClick={() => removeSection(index)}
@@ -220,13 +220,13 @@ export default function StickyNoteAnnouncement() {
                     type="text"
                     placeholder="Section title (optional)"
                     value={section.title}
-                    onChange={(e) => updateSection(index, "title", e.target.value)}
+                    onChange={(e) => updateSection(index, 'title', e.target.value)}
                     className="mb-2 w-full rounded-lg border-0 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-none focus:outline-none focus:ring-1 focus:ring-primary dark:bg-zinc-700 dark:text-white"
                   />
                   <textarea
                     placeholder="Section content"
                     value={section.content}
-                    onChange={(e) => updateSection(index, "content", e.target.value)}
+                    onChange={(e) => updateSection(index, 'content', e.target.value)}
                     rows={3}
                     className="w-full rounded-lg border-0 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-primary dark:bg-zinc-700 dark:text-white resize-none"
                   />
@@ -248,7 +248,7 @@ export default function StickyNoteAnnouncement() {
                 className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 <IconCheck className="w-3.5 h-3.5" />
-                {isSaving ? "Saving…" : "Save"}
+                {isSaving ? 'Saving…' : 'Save'}
               </button>
               <button
                 onClick={handleCancel}
@@ -275,9 +275,7 @@ export default function StickyNoteAnnouncement() {
 
               {displayAnnouncement.sections.map((section, index) => (
                 <div key={index}>
-                  {section.title && (
-                    <p className="font-semibold mt-2">{section.title}</p>
-                  )}
+                  {section.title && <p className="font-semibold mt-2">{section.title}</p>}
                   <p>{section.content}</p>
                 </div>
               ))}
@@ -291,7 +289,7 @@ export default function StickyNoteAnnouncement() {
                         alt={announcement.editorUsername}
                         className="w-5 h-5 rounded-full"
                         onError={(e) => {
-                          e.currentTarget.style.display = "none";
+                          e.currentTarget.style.display = 'none';
                         }}
                       />
                     )}
@@ -305,8 +303,8 @@ export default function StickyNoteAnnouncement() {
               {announcement.isDefault && (
                 <>
                   <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                    That's a wrap for this week — we'll see you next Saturday
-                    for more updates from Team Planetary.
+                    That's a wrap for this week — we'll see you next Saturday for more updates from
+                    Team Planetary.
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     Read the full changelog

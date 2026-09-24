@@ -1,5 +1,5 @@
-import prisma from "@/utils/database";
-import { getConfig } from "@/utils/configEngine";
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
 
 export async function runBirthdayCron() {
   const workspaces = await prisma.workspace.findMany({
@@ -13,10 +13,7 @@ export async function runBirthdayCron() {
 
   for (const workspace of workspaces) {
     try {
-      const webhookConfig = await getConfig(
-        "birthday_webhook",
-        workspace.groupId
-      );
+      const webhookConfig = await getConfig('birthday_webhook', workspace.groupId);
 
       if (!webhookConfig?.enabled || !webhookConfig.url) {
         continue;
@@ -28,28 +25,27 @@ export async function runBirthdayCron() {
       const todayDay = today.getDate();
       const todayMonth = today.getMonth() + 1;
 
-      const membersWithBirthdays =
-        await prisma.workspaceMember.findMany({
-          where: {
-            workspaceGroupId: workspace.groupId,
-            user: {
-              birthdayDay: todayDay,
-              birthdayMonth: todayMonth,
+      const membersWithBirthdays = await prisma.workspaceMember.findMany({
+        where: {
+          workspaceGroupId: workspace.groupId,
+          user: {
+            birthdayDay: todayDay,
+            birthdayMonth: todayMonth,
+          },
+        },
+        select: {
+          discordId: true,
+          user: {
+            select: {
+              userid: true,
+              username: true,
+              picture: true,
+              birthdayDay: true,
+              birthdayMonth: true,
             },
           },
-          select: {
-            discordId: true,
-            user: {
-              select: {
-                userid: true,
-                username: true,
-                picture: true,
-                birthdayDay: true,
-                birthdayMonth: true,
-              },
-            },
-          },
-        });
+        },
+      });
 
       if (membersWithBirthdays.length === 0) {
         continue;
@@ -58,13 +54,10 @@ export async function runBirthdayCron() {
       for (const member of membersWithBirthdays) {
         const user = member.user;
 
-        const colorHex = embedColor
-          .toString(16)
-          .toUpperCase()
-          .padStart(6, "0");
+        const colorHex = embedColor.toString(16).toUpperCase().padStart(6, '0');
 
         const embed: any = {
-          title: "🎉 Birthday Celebration! 🎉",
+          title: '🎉 Birthday Celebration! 🎉',
           description: `It's **${user.username}**'s birthday today!\n\nWish them a happy birthday!`,
           color: embedColor,
           thumbnail: {
@@ -81,9 +74,8 @@ export async function runBirthdayCron() {
 
         const webhookBody: any = {
           embeds: [embed],
-          username: "Planetary Birthdays",
-          avatar_url:
-            "http://cdn.planetaryapp.us/brand/planetary.png",
+          username: 'Planetary Birthdays',
+          avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
         };
 
         if (member.discordId) {
@@ -91,9 +83,9 @@ export async function runBirthdayCron() {
         }
 
         const response = await fetch(webhookConfig.url, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(webhookBody),
         });
@@ -103,29 +95,21 @@ export async function runBirthdayCron() {
         results.push({
           workspace: workspace.groupName,
           user: user.username,
-          status: response.ok ? "success" : "failed",
+          status: response.ok ? 'success' : 'failed',
           statusCode: response.status,
           error: response.ok ? undefined : responseText,
         });
 
         if (membersWithBirthdays.length > 1) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000)
-          );
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
     } catch (error) {
-      console.error(
-        `Error processing birthdays for workspace ${workspace.groupId}:`,
-        error
-      );
+      console.error(`Error processing birthdays for workspace ${workspace.groupId}:`, error);
 
       results.push({
         workspace: workspace.groupName,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }

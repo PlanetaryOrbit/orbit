@@ -1,18 +1,16 @@
-import { NextApiResponse } from "next";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import prisma from "@/utils/database";
-import cache from "@/utils/cache";
+import { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
 
 export default withAuth(handler);
 
-export async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET") {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -38,7 +36,7 @@ export async function handler(
       if (!user) {
         return res.status(404).json({
           success: false,
-          error: "User not found",
+          error: 'User not found',
         });
       }
 
@@ -49,11 +47,7 @@ export async function handler(
         customName: group.workspace.customName,
       }));
 
-      await cache.set(
-        cacheKey,
-        data,
-        300
-      );
+      await cache.set(cacheKey, data, 300);
     }
 
     return res.status(200).json({
@@ -61,14 +55,11 @@ export async function handler(
       data,
     });
   } catch (error) {
-    console.error(
-      "Workspace fetch error:",
-      error
-    );
+    console.error('Workspace fetch error:', error);
 
     return res.status(500).json({
       success: false,
-      error: "Internal server error",
+      error: 'Internal server error',
     });
   }
 }

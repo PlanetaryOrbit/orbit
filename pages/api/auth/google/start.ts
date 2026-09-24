@@ -1,7 +1,8 @@
+import { google } from 'googleapis';
 import type { NextApiRequest, NextApiResponse } from 'next';
+
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
-import { google } from 'googleapis';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -9,20 +10,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   let clientId: string | undefined;
-  let secret: string | undefined
+  let secret: string | undefined;
   clientId = process.env.GOOGLE_APP_ID;
   secret = process.env.GOOGLE_SECRET;
   if (!clientId) {
     try {
       const configs = await prisma.instanceConfig.findMany({
         where: {
-          key: { in: ['google_id'] }
-        }
+          key: { in: ['google_id'] },
+        },
       });
-      const configMap = configs.reduce((acc, config) => {
-        acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
-        return acc;
-      }, {} as Record<string, any>);
+      const configMap = configs.reduce(
+        (acc, config) => {
+          acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
       clientId = clientId || configMap.google_id;
     } catch (error) {
       console.error('Failed to fetch OAuth config from database:', error);
@@ -32,13 +36,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const configs = await prisma.instanceConfig.findMany({
         where: {
-          key: { in: ['google_secret'] }
-        }
+          key: { in: ['google_secret'] },
+        },
       });
-      const configMap = configs.reduce((acc, config) => {
-        acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
-        return acc;
-      }, {} as Record<string, any>);
+      const configMap = configs.reduce(
+        (acc, config) => {
+          acc[config.key] = typeof config.value === 'string' ? config.value.trim() : config.value;
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
       secret = secret || configMap.google_secret;
     } catch (error) {
       console.error('Failed to fetch OAuth config from database:', error);
@@ -48,15 +55,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!clientId || !secret) {
     console.error('Missing Google OAuth configuration');
     return res.status(500).json({ error: 'OAuth configuration error' });
-  };
+  }
 
-  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const state =
+    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   req.session.oauthState = state;
   await req.session.save();
 
-  const scopes = ['email','openid','profile'];
+  const scopes = ['email', 'openid', 'profile'];
 
-  const oauth2 = new google.auth.OAuth2(clientId, secret, `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`);
+  const oauth2 = new google.auth.OAuth2(
+    clientId,
+    secret,
+    `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`,
+  );
 
   const authUrl = oauth2.generateAuthUrl({
     access_type: 'online',
@@ -64,9 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     include_granted_scopes: true,
     state: state,
     client_id: clientId,
-    redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`
+    redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
   });
 
-  res.redirect(authUrl)
-
+  res.redirect(authUrl);
 }

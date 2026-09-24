@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from '@prisma/client';
 
 function coerceNumber(val: unknown): number | undefined {
-  if (typeof val === "number" && Number.isFinite(val)) return val;
-  if (typeof val === "string") {
+  if (typeof val === 'number' && Number.isFinite(val)) return val;
+  if (typeof val === 'string') {
     const n = Number(val);
     return Number.isFinite(n) ? n : undefined;
   }
@@ -10,7 +10,7 @@ function coerceNumber(val: unknown): number | undefined {
 }
 
 function pickRawChatArray(body: Record<string, unknown>): unknown {
-  const keys = ["chatBodies", "chatLog", "chatMessages", "messagesTexts"] as const;
+  const keys = ['chatBodies', 'chatLog', 'chatMessages', 'messagesTexts'] as const;
   for (const k of keys) {
     if (Object.prototype.hasOwnProperty.call(body, k)) {
       const v = body[k];
@@ -23,12 +23,12 @@ function pickRawChatArray(body: Record<string, unknown>): unknown {
 function normalizeLines(raw: unknown[]): string[] {
   return raw
     .map((entry) => {
-      if (typeof entry === "string") return entry.trim();
-      if (entry && typeof entry === "object" && "text" in entry) {
+      if (typeof entry === 'string') return entry.trim();
+      if (entry && typeof entry === 'object' && 'text' in entry) {
         const t = (entry as { text?: unknown }).text;
-        return typeof t === "string" ? t.trim() : "";
+        return typeof t === 'string' ? t.trim() : '';
       }
-      return "";
+      return '';
     })
     .filter((s) => s.length > 0);
 }
@@ -42,12 +42,7 @@ export function deriveActivityEndChatFields(body: Record<string, unknown>): {
 
   if (Array.isArray(rawArr)) {
     const lines = normalizeLines(rawArr);
-    const messages =
-      lines.length > 0
-        ? lines.length
-        : legacyN !== undefined
-          ? legacyN
-          : 0;
+    const messages = lines.length > 0 ? lines.length : legacyN !== undefined ? legacyN : 0;
     return {
       messages,
       chatLog: lines as unknown as Prisma.InputJsonValue,

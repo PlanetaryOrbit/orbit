@@ -1,27 +1,21 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { withAuth } from "@/lib/withAuth";
-import prisma from "@/utils/database";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default withAuth(async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+import { withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+
+export default withAuth(async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceGroupId = parseInt(req.query.id as string, 10);
   if (!workspaceGroupId) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Invalid workspace id" });
+    return res.status(400).json({ success: false, error: 'Invalid workspace id' });
   }
 
   const currentUserId = req.session?.userid;
   if (!currentUserId) {
-    return res.status(401).json({ success: false, error: "Not authenticated" });
+    return res.status(401).json({ success: false, error: 'Not authenticated' });
   }
 
   const user = await prisma.user.findFirst({
@@ -45,14 +39,10 @@ export default withAuth(async function handler(
   const membership = user?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const hasManageMembersPermission =
-    isAdmin ||
-    (user?.roles?.some((role) => role.permissions?.includes("record_notices")) ??
-    false);
+    isAdmin || (user?.roles?.some((role) => role.permissions?.includes('record_notices')) ?? false);
 
   if (!hasManageMembersPermission) {
-    return res
-      .status(403)
-      .json({ success: false, error: "Insufficient permissions" });
+    return res.status(403).json({ success: false, error: 'Insufficient permissions' });
   }
 
   const { userId, startTime, endTime, reason } = req.body;
@@ -60,7 +50,7 @@ export default withAuth(async function handler(
   if (!userId || !startTime || !endTime || !reason) {
     return res.status(400).json({
       success: false,
-      error: "Missing required fields: userId, startTime, endTime, reason",
+      error: 'Missing required fields: userId, startTime, endTime, reason',
     });
   }
 
@@ -71,7 +61,7 @@ export default withAuth(async function handler(
     if (start >= end) {
       return res.status(400).json({
         success: false,
-        error: "End time must be after start time",
+        error: 'End time must be after start time',
       });
     }
 
@@ -91,7 +81,7 @@ export default withAuth(async function handler(
     if (!targetUser || !targetUser.roles.length) {
       return res.status(404).json({
         success: false,
-        error: "User not found in workspace",
+        error: 'User not found in workspace',
       });
     }
 
@@ -109,7 +99,7 @@ export default withAuth(async function handler(
 
     return res.status(201).json({
       success: true,
-      message: "Notice created successfully",
+      message: 'Notice created successfully',
       notice: {
         id: notice.id,
         startTime: notice.startTime,
@@ -120,10 +110,10 @@ export default withAuth(async function handler(
       },
     });
   } catch (error) {
-    console.error("Error creating admin notice:", error);
+    console.error('Error creating admin notice:', error);
     return res.status(500).json({
       success: false,
-      error: "Internal server error",
+      error: 'Internal server error',
     });
   }
 });

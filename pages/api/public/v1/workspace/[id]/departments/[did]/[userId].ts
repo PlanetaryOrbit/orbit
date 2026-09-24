@@ -1,14 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST" && req.method !== "DELETE") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST' && req.method !== 'DELETE') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const { id, did, userId } = req.query;
@@ -16,26 +15,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!id || !did || !userId) {
     return res
       .status(400)
-      .json({ success: false, error: "Missing workspace ID, department ID, or user ID" });
+      .json({ success: false, error: 'Missing workspace ID, department ID, or user ID' });
   }
 
   const workspaceId = Number.parseInt(id as string);
   if (isNaN(workspaceId)) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Invalid workspace ID" });
+    return res.status(400).json({ success: false, error: 'Invalid workspace ID' });
   }
 
   const departmentIdString = Array.isArray(did) ? did[0] : did;
   if (!departmentIdString) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing department ID" });
+    return res.status(400).json({ success: false, error: 'Missing department ID' });
   }
 
   const userIdBigInt = Array.isArray(userId) ? BigInt(userId[0]) : BigInt(userId as string);
   if (!userIdBigInt) {
-    return res.status(400).json({ success: false, error: "Missing user ID" });
+    return res.status(400).json({ success: false, error: 'Missing user ID' });
   }
 
   try {
@@ -43,25 +38,29 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       where: {
         workspaceGroupId_userId: {
           workspaceGroupId: workspaceId,
-          userId: userIdBigInt
-        }
-      }
+          userId: userIdBigInt,
+        },
+      },
     });
 
     if (!workspaceMember) {
-      return res.status(404).json({ success: false, error: "User is not a member of this workspace" });
+      return res
+        .status(404)
+        .json({ success: false, error: 'User is not a member of this workspace' });
     }
 
-    if (req.method === "POST") {
+    if (req.method === 'POST') {
       const department = await prisma.department.findFirst({
         where: {
           id: departmentIdString,
-          workspaceGroupId: workspaceId
-        }
+          workspaceGroupId: workspaceId,
+        },
       });
 
       if (!department) {
-        return res.status(404).json({ success: false, error: "Department not found in this workspace" });
+        return res
+          .status(404)
+          .json({ success: false, error: 'Department not found in this workspace' });
       }
 
       const existingDepartmentMember = await prisma.departmentMember.findUnique({
@@ -69,57 +68,61 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           departmentId_workspaceGroupId_userId: {
             departmentId: departmentIdString,
             workspaceGroupId: workspaceId,
-            userId: userIdBigInt
-          }
-        }
+            userId: userIdBigInt,
+          },
+        },
       });
 
       if (existingDepartmentMember) {
-        return res.status(409).json({ success: false, error: "User already belongs to this department" });
+        return res
+          .status(409)
+          .json({ success: false, error: 'User already belongs to this department' });
       }
 
       const departmentMember = await prisma.departmentMember.create({
         data: {
           departmentId: departmentIdString,
           workspaceGroupId: workspaceId,
-          userId: userIdBigInt
+          userId: userIdBigInt,
         },
         include: {
           department: true,
           workspaceMember: {
             include: {
-              user: true
-            }
-          }
-        }
+              user: true,
+            },
+          },
+        },
       });
 
-      return res.status(201).json({ 
-        success: true, 
+      return res.status(201).json({
+        success: true,
         data: {
           departmentId: departmentMember.departmentId,
           workspaceGroupId: departmentMember.workspaceGroupId,
           userId: departmentMember.userId,
           departmentName: departmentMember.department.name,
           userName: departmentMember.workspaceMember.user.username,
-          joinedAt: new Date().toISOString()
-        }
+          joinedAt: new Date().toISOString(),
+        },
       });
     }
 
-    if (req.method === "DELETE") {
+    if (req.method === 'DELETE') {
       const existingDepartmentMember = await prisma.departmentMember.findUnique({
         where: {
           departmentId_workspaceGroupId_userId: {
             departmentId: departmentIdString,
             workspaceGroupId: workspaceId,
-            userId: userIdBigInt
-          }
-        }
+            userId: userIdBigInt,
+          },
+        },
       });
 
       if (!existingDepartmentMember) {
-        return res.status(404).json({ success: false, error: "User does not belong to this department" });
+        return res
+          .status(404)
+          .json({ success: false, error: 'User does not belong to this department' });
       }
 
       await prisma.departmentMember.delete({
@@ -127,19 +130,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           departmentId_workspaceGroupId_userId: {
             departmentId: departmentIdString,
             workspaceGroupId: workspaceId,
-            userId: userIdBigInt
-          }
-        }
+            userId: userIdBigInt,
+          },
+        },
       });
 
-      return res.status(200).json({ 
-        success: true, 
-        message: "User removed from department successfully" 
+      return res.status(200).json({
+        success: true,
+        message: 'User removed from department successfully',
       });
     }
-
   } catch (error) {
-    console.error("Error managing department member:", error);
-    return res.status(500).json({ success: false, error: "Internal server error" });
+    console.error('Error managing department member:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }

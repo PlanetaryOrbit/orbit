@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { closeActiveSessions } from "@/utils/closesessions";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { closeActiveSessions } from '@/utils/closesessions';
 
 type Data = {
   success: boolean;
@@ -9,21 +10,16 @@ type Data = {
 
 let hasRunStartupTasks = false;
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const cronSecret = req.headers["x-cron-secret"];
+  const cronSecret = req.headers['x-cron-secret'];
   if (!process.env.CRON_SECRET || cronSecret !== process.env.CRON_SECRET) {
     return res.status(401).json({
       success: false,
-      error: "Unauthorized",
+      error: 'Unauthorized',
     });
   }
 
@@ -31,7 +27,7 @@ export default async function handler(
   if (hasRunStartupTasks) {
     return res.status(200).json({
       success: true,
-      message: "Startup tasks already completed",
+      message: 'Startup tasks already completed',
     });
   }
 
@@ -41,13 +37,13 @@ export default async function handler(
 
     return res.status(200).json({
       success: true,
-      message: "Startup tasks completed successfully",
+      message: 'Startup tasks completed successfully',
     });
   } catch (error: any) {
-    console.error("[STARTUP] Error running startup tasks:", error);
+    console.error('[STARTUP] Error running startup tasks:', error);
     return res.status(500).json({
       success: false,
-      error: "Failed to complete startup tasks",
+      error: 'Failed to complete startup tasks',
     });
   }
 }

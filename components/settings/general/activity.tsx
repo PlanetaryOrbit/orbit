@@ -1,10 +1,4 @@
-import axios from "axios";
-import React, { useEffect, useState, Fragment } from "react";
-import type toast from "react-hot-toast";
-import { useRecoilState } from "recoil";
-import SwitchComponenet from "@/components/switch";
-import { workspacestate } from "@/state";
-import { Dialog, Listbox, Transition } from "@headlessui/react";
+import { Dialog, Listbox, Transition } from '@headlessui/react';
 import {
   IconCheck,
   IconChevronDown,
@@ -14,21 +8,35 @@ import {
   IconPodium,
   IconDownload,
   IconHistory,
-} from "@tabler/icons-react";
-import { useRouter } from "next/router";
-import moment from "moment";
-import clsx from "clsx";
-import { FC } from "@/types/settingsComponent";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState, Fragment } from 'react';
+import type toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
-const listboxButtonClass = "w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 text-left text-sm font-medium text-zinc-900 dark:text-white ring-1 ring-zinc-200 dark:ring-zinc-700 hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow";
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
+
+const listboxButtonClass =
+  'w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 text-left text-sm font-medium text-zinc-900 dark:text-white ring-1 ring-zinc-200 dark:ring-zinc-700 hover:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow';
 const listboxOptionsClass =
-  "absolute left-0 z-50 mt-2 w-full min-w-[12rem] rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_4px_16px_0_rgb(0,0,0,0.10)] dark:shadow-zinc-950/40 py-1.5 overflow-auto max-h-60";
-const listboxOptionClass = (active: boolean) => clsx("flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer text-sm rounded-xl mx-1", active ? "bg-zinc-100 dark:bg-zinc-700/60 text-zinc-900 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300");
+  'absolute left-0 z-50 mt-2 w-full min-w-[12rem] rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_4px_16px_0_rgb(0,0,0,0.10)] dark:shadow-zinc-950/40 py-1.5 overflow-auto max-h-60';
+const listboxOptionClass = (active: boolean) =>
+  clsx(
+    'flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer text-sm rounded-xl mx-1',
+    active
+      ? 'bg-zinc-100 dark:bg-zinc-700/60 text-zinc-900 dark:text-zinc-100'
+      : 'text-zinc-700 dark:text-zinc-300',
+  );
 
 const layoutOptionClass = (active: boolean) =>
   clsx(
-    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm leading-snug cursor-pointer transition-colors",
-    active ? "bg-[color:rgb(var(--group-theme)/0.1)]" : "text-zinc-700 dark:text-zinc-300"
+    'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm leading-snug cursor-pointer transition-colors',
+    active ? 'bg-[color:rgb(var(--group-theme)/0.1)]' : 'text-zinc-700 dark:text-zinc-300',
   );
 
 function SettingField({
@@ -36,19 +44,21 @@ function SettingField({
   hint,
   children,
 }: {
-  label: string
-  hint?: string
-  children: React.ReactNode
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="space-y-2">
       <div>
         <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{label}</p>
-        {hint ? <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{hint}</p> : null}
+        {hint ? (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{hint}</p>
+        ) : null}
       </div>
       {children}
     </div>
-  )
+  );
 }
 
 function ToggleRow({
@@ -59,12 +69,12 @@ function ToggleRow({
   onChange,
   badge,
 }: {
-  title: string
-  hint: string
-  checked: boolean
-  disabled?: boolean
-  onChange?: () => void
-  badge?: string
+  title: string;
+  hint: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange?: () => void;
+  badge?: string;
 }) {
   return (
     <div className="flex flex-row items-center justify-between gap-4 py-3.5">
@@ -81,12 +91,12 @@ function ToggleRow({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <span className="w-8 text-right text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-          {disabled ? "Off" : checked ? "On" : "Off"}
+          {disabled ? 'Off' : checked ? 'On' : 'Off'}
         </span>
         <SwitchComponenet checked={checked} disabled={disabled} onChange={onChange} label="" />
       </div>
     </div>
-  )
+  );
 }
 
 type props = {
@@ -105,19 +115,17 @@ const Activity: FC<props> = (props) => {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(false);
-  const [leaderboardStyle, setLeaderboardStyle] = useState<"list" | "podium">("list");
+  const [leaderboardStyle, setLeaderboardStyle] = useState<'list' | 'podium'>('list');
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [privateServerEnabled, setPrivateServerEnabled] = useState(false);
   const [studioEnabled, setStudioEnabled] = useState(false);
-  const [scheduleDay, setScheduleDay] = useState<string>("monday");
-  const [scheduleFrequency, setScheduleFrequency] = useState<string>("weekly");
+  const [scheduleDay, setScheduleDay] = useState<string>('monday');
+  const [scheduleFrequency, setScheduleFrequency] = useState<string>('weekly');
   const router = useRouter();
 
   useEffect(() => {
     (async () => {
-      const res = await axios.get(
-        `/api/workspace/${router.query.id}/settings/activity/getConfig`
-      );
+      const res = await axios.get(`/api/workspace/${router.query.id}/settings/activity/getConfig`);
       if (res.status === 200) {
         setRoles(res.data.roles);
         setSelectedRole(res.data.currentRole);
@@ -131,14 +139,12 @@ const Activity: FC<props> = (props) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(
-          `/api/workspace/${router.query.id}/activity/lastreset`
-        );
+        const res = await axios.get(`/api/workspace/${router.query.id}/activity/lastreset`);
         if (res.status === 200 && res.data.success) {
           setLastReset(res.data.lastReset);
         }
       } catch (error) {
-        console.error("Error fetching last reset:", error);
+        console.error('Error fetching last reset:', error);
       }
     })();
   }, [router.query.id]);
@@ -149,9 +155,9 @@ const Activity: FC<props> = (props) => {
         .then((res) => res.json())
         .then((data) => {
           let enabled = false;
-          let style = "list";
+          let style = 'list';
           let val = data.value ?? data;
-          if (typeof val === "string") {
+          if (typeof val === 'string') {
             try {
               val = JSON.parse(val);
             } catch {
@@ -159,19 +165,19 @@ const Activity: FC<props> = (props) => {
             }
           }
           enabled =
-            typeof val === "object" && val !== null && "enabled" in val
-              ? (val as { enabled?: boolean }).enabled ?? false
+            typeof val === 'object' && val !== null && 'enabled' in val
+              ? ((val as { enabled?: boolean }).enabled ?? false)
               : false;
           style =
-            typeof val === "object" && val !== null && "style" in val
-              ? (val as { style?: string }).style ?? "list"
-              : "list";
+            typeof val === 'object' && val !== null && 'style' in val
+              ? ((val as { style?: string }).style ?? 'list')
+              : 'list';
           setLeaderboardEnabled(enabled);
-          setLeaderboardStyle(style as "list" | "podium");
+          setLeaderboardStyle(style as 'list' | 'podium');
         })
         .catch(() => {
           setLeaderboardEnabled(false);
-          setLeaderboardStyle("list");
+          setLeaderboardStyle('list');
         });
     }
   }, [router.query.id]);
@@ -179,19 +185,17 @@ const Activity: FC<props> = (props) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(
-          `/api/workspace/${router.query.id}/settings/activity/schedule`
-        );
+        const res = await axios.get(`/api/workspace/${router.query.id}/settings/activity/schedule`);
         if (res.status === 200 && res.data.success) {
           const schedule = res.data.schedule;
           if (schedule) {
             setScheduleEnabled(schedule.enabled || false);
-            setScheduleDay(schedule.day || "monday");
-            setScheduleFrequency(schedule.frequency || "weekly");
+            setScheduleDay(schedule.day || 'monday');
+            setScheduleFrequency(schedule.frequency || 'weekly');
           }
         }
       } catch (error) {
-        console.error("Error fetching schedule:", error);
+        console.error('Error fetching schedule:', error);
       }
     })();
   }, [router.query.id]);
@@ -201,27 +205,20 @@ const Activity: FC<props> = (props) => {
   };
 
   const updateRole = async (id: number) => {
-    const req = await axios.post(
-      `/api/workspace/${workspace.groupId}/settings/activity/setRole`,
-      { role: id }
-    );
+    const req = await axios.post(`/api/workspace/${workspace.groupId}/settings/activity/setRole`, {
+      role: id,
+    });
     if (req.status === 200) {
-      setSelectedRole(
-        (roles.find((role: any) => role.rank === id) as any).rank
-      );
+      setSelectedRole((roles.find((role: any) => role.rank === id) as any).rank);
 
       if (selectedLRole && id > selectedLRole) {
-        const availableRoles = (roles as any[]).filter(
-          (role: any) => role.rank >= id
-        );
+        const availableRoles = (roles as any[]).filter((role: any) => role.rank >= id);
         if (availableRoles.length > 0) {
-          const lowestAvailableRole = availableRoles.sort(
-            (a: any, b: any) => a.rank - b.rank
-          )[0];
+          const lowestAvailableRole = availableRoles.sort((a: any, b: any) => a.rank - b.rank)[0];
           await updateLRole(lowestAvailableRole.rank);
         }
       }
-      triggerToast.success("Updated activity role!");
+      triggerToast.success('Updated activity role!');
     }
   };
 
@@ -229,16 +226,14 @@ const Activity: FC<props> = (props) => {
     try {
       const req = await axios.post(
         `/api/workspace/${workspace.groupId}/settings/activity/setLRole`,
-        { role: id }
+        { role: id },
       );
       if (req.status === 200) {
         setSelectedLRole(id);
-        triggerToast.success("Updated leaderboard rank!");
+        triggerToast.success('Updated leaderboard rank!');
       }
     } catch (error: any) {
-      triggerToast.error(
-        error?.response?.data?.error || "Failed to update leaderboard rank."
-      );
+      triggerToast.error(error?.response?.data?.error || 'Failed to update leaderboard rank.');
     }
   };
 
@@ -248,15 +243,15 @@ const Activity: FC<props> = (props) => {
     try {
       const req = await axios.post(
         `/api/workspace/${workspace.groupId}/settings/activity/setprivateserver`,
-        { enabled: enabled }
+        { enabled: enabled },
       );
       if (req.status === 200) {
         setPrivateServerEnabled(req.data.enabled);
-        triggerToast.success("Updated Private Server tracking!");
+        triggerToast.success('Updated Private Server tracking!');
       }
     } catch (error: any) {
       setPrivateServerEnabled(previous);
-      triggerToast.error("Failed to update private server tracking.");
+      triggerToast.error('Failed to update private server tracking.');
     }
   };
   const updateStudio = async (enabled: boolean) => {
@@ -265,54 +260,50 @@ const Activity: FC<props> = (props) => {
     try {
       const req = await axios.post(
         `/api/workspace/${workspace.groupId}/settings/activity/setstudio`,
-        { enabled: enabled }
+        { enabled: enabled },
       );
       if (req.status === 200) {
         setStudioEnabled(req.data.enabled);
-        triggerToast.success("Updated Studio tracking!");
+        triggerToast.success('Updated Studio tracking!');
       }
     } catch (error: any) {
       setStudioEnabled(previous);
-      triggerToast.error("Failed to update studio tracking.");
+      triggerToast.error('Failed to update studio tracking.');
     }
   };
 
-  const updateLeaderboardStyle = async (style: "list" | "podium") => {
+  const updateLeaderboardStyle = async (style: 'list' | 'podium') => {
     try {
       const res = await axios.patch(
         `/api/workspace/${workspace.groupId}/settings/general/leaderboard`,
         {
           enabled: leaderboardEnabled,
           style: style,
-        }
+        },
       );
       if (res.status === 200) {
         setLeaderboardStyle(style);
-        triggerToast.success("Updated leaderboard style!");
+        triggerToast.success('Updated leaderboard style!');
       }
     } catch (error: any) {
-      triggerToast.error("Failed to update leaderboard style.");
+      triggerToast.error('Failed to update leaderboard style.');
     }
   };
 
   const resetActivity = async () => {
     setIsResetting(true);
     try {
-      const res = await axios.post(
-        `/api/workspace/${router.query.id}/activity/reset`
-      );
+      const res = await axios.post(`/api/workspace/${router.query.id}/activity/reset`);
       if (res.status === 200) {
-        triggerToast.success("Activity has been reset!");
+        triggerToast.success('Activity has been reset!');
         setIsResetDialogOpen(false);
-        const resetRes = await axios.get(
-          `/api/workspace/${router.query.id}/activity/lastreset`
-        );
+        const resetRes = await axios.get(`/api/workspace/${router.query.id}/activity/lastreset`);
         if (resetRes.status === 200 && resetRes.data.success) {
           setLastReset(resetRes.data.lastReset);
         }
       }
     } catch (error) {
-      triggerToast.error("Failed to reset activity.");
+      triggerToast.error('Failed to reset activity.');
     } finally {
       setIsResetting(false);
     }
@@ -320,25 +311,22 @@ const Activity: FC<props> = (props) => {
 
   const saveSchedule = async () => {
     try {
-      const res = await axios.post(
-        `/api/workspace/${router.query.id}/settings/activity/schedule`,
-        {
-          enabled: scheduleEnabled,
-          day: scheduleDay,
-          frequency: scheduleFrequency,
-        }
-      );
+      const res = await axios.post(`/api/workspace/${router.query.id}/settings/activity/schedule`, {
+        enabled: scheduleEnabled,
+        day: scheduleDay,
+        frequency: scheduleFrequency,
+      });
       if (res.status === 200) {
-        triggerToast.success("Schedule saved successfully!");
+        triggerToast.success('Schedule saved successfully!');
       }
     } catch (error) {
-      triggerToast.error("Failed to save schedule.");
+      triggerToast.error('Failed to save schedule.');
     }
   };
 
   const cardClass =
-    "rounded-2xl bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/70 dark:shadow-zinc-950/30 overflow-visible"
-  const cardHeaderClass = "px-5 pt-5 pb-4"
+    'rounded-2xl bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/70 dark:shadow-zinc-950/30 overflow-visible';
+  const cardHeaderClass = 'px-5 pt-5 pb-4';
 
   return (
     <div className="relative z-15 mx-auto max-w-3xl space-y-6">
@@ -364,22 +352,43 @@ const Activity: FC<props> = (props) => {
                   label="Activity role"
                   hint="Only members at or above this rank are included in activity stats."
                 >
-                  <Listbox value={selectedRole} onChange={(value: number) => updateRole(value)} as="div" className="relative">
+                  <Listbox
+                    value={selectedRole}
+                    onChange={(value: number) => updateRole(value)}
+                    as="div"
+                    className="relative"
+                  >
                     <Listbox.Button className={listboxButtonClass}>
-                      <span className="truncate">{(roles.find((r: any) => r.rank === selectedRole) as any)?.name || 'Select a role'}</span>
+                      <span className="truncate">
+                        {(roles.find((r: any) => r.rank === selectedRole) as any)?.name ||
+                          'Select a role'}
+                      </span>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                     </Listbox.Button>
                     <Listbox.Options className={listboxOptionsClass}>
-                      {roles.filter((role: any) => role.rank > 0).map((role: any, index) => (
-                        <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
-                          {({ selected }) => (
-                            <>
-                              <span className={`${selected ? "font-semibold" : ""} flex gap-2`}>{role.name} <span className="text-zinc-400 dark:text-zinc-500">(Group rank: {role.rank})</span> </span>
-                              {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
-                            </>
-                          )}
-                        </Listbox.Option>
-                      ))}
+                      {roles
+                        .filter((role: any) => role.rank > 0)
+                        .map((role: any, index) => (
+                          <Listbox.Option
+                            key={index}
+                            value={role.rank}
+                            className={({ active }) => listboxOptionClass(active)}
+                          >
+                            {({ selected }) => (
+                              <>
+                                <span className={`${selected ? 'font-semibold' : ''} flex gap-2`}>
+                                  {role.name}{' '}
+                                  <span className="text-zinc-400 dark:text-zinc-500">
+                                    (Group rank: {role.rank})
+                                  </span>{' '}
+                                </span>
+                                {selected && (
+                                  <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                                )}
+                              </>
+                            )}
+                          </Listbox.Option>
+                        ))}
                     </Listbox.Options>
                   </Listbox>
                 </SettingField>
@@ -408,8 +417,12 @@ const Activity: FC<props> = (props) => {
               </div>
 
               <div className="pt-5">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Activity loader</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">Install this on your machine to report session time to the workspace.</p>
+                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  Activity loader
+                </p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">
+                  Install this on your machine to report session time to the workspace.
+                </p>
                 <button
                   type="button"
                   onClick={downloadLoader}
@@ -431,8 +444,12 @@ const Activity: FC<props> = (props) => {
                     <IconPodium className="h-4 w-4" stroke={1.75} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Leaderboard</p>
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">How rankings appear on the public leaderboard page.</p>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      Leaderboard
+                    </p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                      How rankings appear on the public leaderboard page.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -442,53 +459,90 @@ const Activity: FC<props> = (props) => {
                     label="Minimum rank on leaderboard"
                     hint="Ranks below this are hidden from the leaderboard (unless you allow all ranks)."
                   >
-                    <Listbox value={selectedLRole} onChange={(value: number | undefined) => updateLRole(value)} as="div" className="relative">
+                    <Listbox
+                      value={selectedLRole}
+                      onChange={(value: number | undefined) => updateLRole(value)}
+                      as="div"
+                      className="relative"
+                    >
                       <Listbox.Button className={listboxButtonClass}>
                         <span className="truncate">
-                          {selectedLRole ? (roles.find((r: any) => r.rank === selectedLRole) as any)?.name || "Guest" : "All ranks"}
+                          {selectedLRole
+                            ? (roles.find((r: any) => r.rank === selectedLRole) as any)?.name ||
+                              'Guest'
+                            : 'All ranks'}
                         </span>
                         <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                       </Listbox.Button>
                       <Listbox.Options className={listboxOptionsClass}>
-                        <Listbox.Option value={undefined} className={({ active }) => listboxOptionClass(active)}>
+                        <Listbox.Option
+                          value={undefined}
+                          className={({ active }) => listboxOptionClass(active)}
+                        >
                           {({ selected }) => (
                             <>
-                              <span className={selected ? "font-semibold" : ""}>All ranks</span>
-                              {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                              <span className={selected ? 'font-semibold' : ''}>All ranks</span>
+                              {selected && (
+                                <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                              )}
                             </>
                           )}
                         </Listbox.Option>
-                        {roles.filter((role: any) => !selectedRole || role.rank >= selectedRole).map((role: any, index) => (
-                          <Listbox.Option key={index} value={role.rank} className={({ active }) => listboxOptionClass(active)}>
-                            {({ selected }) => (
-                              <>
-                                <span className={selected ? "font-semibold" : ""}>{role.name}</span>
-                                {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
+                        {roles
+                          .filter((role: any) => !selectedRole || role.rank >= selectedRole)
+                          .map((role: any, index) => (
+                            <Listbox.Option
+                              key={index}
+                              value={role.rank}
+                              className={({ active }) => listboxOptionClass(active)}
+                            >
+                              {({ selected }) => (
+                                <>
+                                  <span className={selected ? 'font-semibold' : ''}>
+                                    {role.name}
+                                  </span>
+                                  {selected && (
+                                    <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                                  )}
+                                </>
+                              )}
+                            </Listbox.Option>
+                          ))}
                       </Listbox.Options>
                     </Listbox>
                   </SettingField>
                 </div>
                 <div className="pt-5">
                   <SettingField label="Layout" hint="List is compact; podium highlights top three.">
-                    <Listbox value={leaderboardStyle} onChange={(value: "list" | "podium") => updateLeaderboardStyle(value)} as="div" className="relative">
+                    <Listbox
+                      value={leaderboardStyle}
+                      onChange={(value: 'list' | 'podium') => updateLeaderboardStyle(value)}
+                      as="div"
+                      className="relative"
+                    >
                       <Listbox.Button
                         className={listboxButtonClass}
                         onMouseDown={(e) => e.preventDefault()}
                       >
                         <span className="flex min-w-0 items-center gap-2.5 text-left">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300">
-                            {leaderboardStyle === "list" ? <IconList className="h-4 w-4" stroke={1.5} /> : <IconPodium className="h-4 w-4" stroke={1.5} />}
+                            {leaderboardStyle === 'list' ? (
+                              <IconList className="h-4 w-4" stroke={1.5} />
+                            ) : (
+                              <IconPodium className="h-4 w-4" stroke={1.5} />
+                            )}
                           </span>
-                          <span className="truncate font-medium">{leaderboardStyle === "list" ? "List" : "Podium"}</span>
+                          <span className="truncate font-medium">
+                            {leaderboardStyle === 'list' ? 'List' : 'Podium'}
+                          </span>
                         </span>
                         <IconChevronDown className="h-4 w-4 shrink-0 text-zinc-400" />
                       </Listbox.Button>
                       <Listbox.Options className={listboxOptionsClass}>
-                        <Listbox.Option value="list" className={({ active }) => layoutOptionClass(active)}>
+                        <Listbox.Option
+                          value="list"
+                          className={({ active }) => layoutOptionClass(active)}
+                        >
                           {({ selected }) => (
                             <>
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300">
@@ -497,19 +551,33 @@ const Activity: FC<props> = (props) => {
                               <div className="min-w-0 flex-1 py-0.5 self-center">
                                 <p
                                   className={clsx(
-                                    "text-sm",
-                                    selected ? "font-semibold text-zinc-900 dark:text-white" : "font-medium text-zinc-800 dark:text-zinc-200"
+                                    'text-sm',
+                                    selected
+                                      ? 'font-semibold text-zinc-900 dark:text-white'
+                                      : 'font-medium text-zinc-800 dark:text-zinc-200',
                                   )}
                                 >
                                   List
                                 </p>
-                                <p className="mt-0.5 text-xs leading-normal text-zinc-500 dark:text-zinc-400">Single column, all ranks in order</p>
+                                <p className="mt-0.5 text-xs leading-normal text-zinc-500 dark:text-zinc-400">
+                                  Single column, all ranks in order
+                                </p>
                               </div>
-                              {selected ? <IconCheck className="h-4 w-4 shrink-0 self-center text-[color:rgb(var(--group-theme))]" stroke={2} /> : <span className="h-4 w-4 shrink-0" aria-hidden />}
+                              {selected ? (
+                                <IconCheck
+                                  className="h-4 w-4 shrink-0 self-center text-[color:rgb(var(--group-theme))]"
+                                  stroke={2}
+                                />
+                              ) : (
+                                <span className="h-4 w-4 shrink-0" aria-hidden />
+                              )}
                             </>
                           )}
                         </Listbox.Option>
-                        <Listbox.Option value="podium" className={({ active }) => layoutOptionClass(active)}>
+                        <Listbox.Option
+                          value="podium"
+                          className={({ active }) => layoutOptionClass(active)}
+                        >
                           {({ selected }) => (
                             <>
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-300">
@@ -518,15 +586,26 @@ const Activity: FC<props> = (props) => {
                               <div className="min-w-0 flex-1 py-0.5 self-center">
                                 <p
                                   className={clsx(
-                                    "text-sm",
-                                    selected ? "font-semibold text-zinc-900 dark:text-white" : "font-medium text-zinc-800 dark:text-zinc-200"
+                                    'text-sm',
+                                    selected
+                                      ? 'font-semibold text-zinc-900 dark:text-white'
+                                      : 'font-medium text-zinc-800 dark:text-zinc-200',
                                   )}
                                 >
                                   Podium
                                 </p>
-                                <p className="mt-0.5 text-xs leading-normal text-zinc-500 dark:text-zinc-400">Medals and raised blocks for 1st–3rd</p>
+                                <p className="mt-0.5 text-xs leading-normal text-zinc-500 dark:text-zinc-400">
+                                  Medals and raised blocks for 1st–3rd
+                                </p>
                               </div>
-                              {selected ? <IconCheck className="h-4 w-4 shrink-0 self-center text-[color:rgb(var(--group-theme))]" stroke={2} /> : <span className="h-4 w-4 shrink-0" aria-hidden />}
+                              {selected ? (
+                                <IconCheck
+                                  className="h-4 w-4 shrink-0 self-center text-[color:rgb(var(--group-theme))]"
+                                  stroke={2}
+                                />
+                              ) : (
+                                <span className="h-4 w-4 shrink-0" aria-hidden />
+                              )}
                             </>
                           )}
                         </Listbox.Option>
@@ -547,8 +626,12 @@ const Activity: FC<props> = (props) => {
               <IconHistory className="h-4 w-4" stroke={1.75} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Activity period & resets</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Manual reset clears current metrics. Scheduled resets can run automatically.</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Activity period & resets
+              </p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                Manual reset clears current metrics. Scheduled resets can run automatically.
+              </p>
             </div>
           </div>
         </div>
@@ -560,16 +643,18 @@ const Activity: FC<props> = (props) => {
                 <IconHistory className="h-4 w-4" stroke={1.5} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">Last period reset</p>
+                <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide">
+                  Last period reset
+                </p>
                 <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mt-0.5">
-                  {moment(lastReset.resetAt).format("MMMM Do, YYYY [at] h:mm A")}
+                  {moment(lastReset.resetAt).format('MMMM Do, YYYY [at] h:mm A')}
                 </p>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
                   {lastReset.resetBy?.username
                     ? `By ${lastReset.resetBy.username}`
                     : lastReset.resetById === null
-                      ? "By automation"
-                      : "By unknown user"}
+                      ? 'By automation'
+                      : 'By unknown user'}
                 </p>
               </div>
             </div>
@@ -578,11 +663,17 @@ const Activity: FC<props> = (props) => {
           <div className="space-y-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4">
             <div className="flex flex-row items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Automatic reset</p>
-                <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">Run a reset on a recurring schedule (saved separately from manual reset).</p>
+                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  Automatic reset
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                  Run a reset on a recurring schedule (saved separately from manual reset).
+                </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="w-8 text-right text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{scheduleEnabled ? "On" : "Off"}</span>
+                <span className="w-8 text-right text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+                  {scheduleEnabled ? 'On' : 'Off'}
+                </span>
                 <SwitchComponenet
                   checked={scheduleEnabled}
                   onChange={() => setScheduleEnabled(!scheduleEnabled)}
@@ -594,18 +685,37 @@ const Activity: FC<props> = (props) => {
             {scheduleEnabled && (
               <div className="space-y-4 border-t border-zinc-200/60 dark:border-zinc-700/60 pt-4">
                 <SettingField label="Day" hint="The weekday the job runs.">
-                  <Listbox value={scheduleDay} onChange={setScheduleDay} as="div" className="relative w-full text-left">
+                  <Listbox
+                    value={scheduleDay}
+                    onChange={setScheduleDay}
+                    as="div"
+                    className="relative w-full text-left"
+                  >
                     <Listbox.Button className={listboxButtonClass}>
-                      <span className="capitalize">{(scheduleDay as string) || "monday"}</span>
+                      <span className="capitalize">{(scheduleDay as string) || 'monday'}</span>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                     </Listbox.Button>
                     <Listbox.Options className={listboxOptionsClass}>
-                      {["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => (
-                        <Listbox.Option key={day} value={day} className={({ active }) => listboxOptionClass(active)}>
+                      {[
+                        'sunday',
+                        'monday',
+                        'tuesday',
+                        'wednesday',
+                        'thursday',
+                        'friday',
+                        'saturday',
+                      ].map((day) => (
+                        <Listbox.Option
+                          key={day}
+                          value={day}
+                          className={({ active }) => listboxOptionClass(active)}
+                        >
                           {({ selected }) => (
                             <>
                               <span className="capitalize">{day}</span>
-                              {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                              {selected && (
+                                <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                              )}
                             </>
                           )}
                         </Listbox.Option>
@@ -614,28 +724,39 @@ const Activity: FC<props> = (props) => {
                   </Listbox>
                 </SettingField>
                 <SettingField label="Frequency" hint="How often the reset should occur.">
-                  <Listbox value={scheduleFrequency} onChange={setScheduleFrequency} as="div" className="relative w-full text-left">
+                  <Listbox
+                    value={scheduleFrequency}
+                    onChange={setScheduleFrequency}
+                    as="div"
+                    className="relative w-full text-left"
+                  >
                     <Listbox.Button className={listboxButtonClass}>
                       <span>
-                        {scheduleFrequency === "weekly"
-                          ? "Weekly"
-                          : scheduleFrequency === "biweekly"
-                            ? "Bi-weekly"
-                            : "Monthly"}
+                        {scheduleFrequency === 'weekly'
+                          ? 'Weekly'
+                          : scheduleFrequency === 'biweekly'
+                            ? 'Bi-weekly'
+                            : 'Monthly'}
                       </span>
                       <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                     </Listbox.Button>
                     <Listbox.Options className={listboxOptionsClass}>
                       {[
-                        { value: "weekly", label: "Weekly" },
-                        { value: "biweekly", label: "Bi-weekly" },
-                        { value: "monthly", label: "Monthly" },
+                        { value: 'weekly', label: 'Weekly' },
+                        { value: 'biweekly', label: 'Bi-weekly' },
+                        { value: 'monthly', label: 'Monthly' },
                       ].map((freq) => (
-                        <Listbox.Option key={freq.value} value={freq.value} className={({ active }) => listboxOptionClass(active)}>
+                        <Listbox.Option
+                          key={freq.value}
+                          value={freq.value}
+                          className={({ active }) => listboxOptionClass(active)}
+                        >
                           {({ selected }) => (
                             <>
-                              <span className={selected ? "font-semibold" : ""}>{freq.label}</span>
-                              {selected && <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />}
+                              <span className={selected ? 'font-semibold' : ''}>{freq.label}</span>
+                              {selected && (
+                                <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                              )}
                             </>
                           )}
                         </Listbox.Option>
@@ -701,19 +822,30 @@ const Activity: FC<props> = (props) => {
                 <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 p-6 text-left shadow-2xl transition-all">
                   <div className="mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-950/50 mb-4">
-                      <IconAlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" stroke={1.75} />
+                      <IconAlertTriangle
+                        className="h-5 w-5 text-red-600 dark:text-red-400"
+                        stroke={1.75}
+                      />
                     </div>
                     <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
                       Reset activity period?
                     </Dialog.Title>
                     <p className="mt-1.5 text-sm text-zinc-400 dark:text-zinc-500">
-                      This will archive all current stats and start a fresh period. It cannot be undone.
+                      This will archive all current stats and start a fresh period. It cannot be
+                      undone.
                     </p>
                   </div>
 
                   <ul className="mb-5 space-y-1.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3">
-                    {["Current activity data saved to history", "All current metrics cleared", "Fresh activity period begins"].map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    {[
+                      'Current activity data saved to history',
+                      'All current metrics cleared',
+                      'Fresh activity period begins',
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400"
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600 shrink-0" />
                         {item}
                       </li>
@@ -733,7 +865,7 @@ const Activity: FC<props> = (props) => {
                       disabled={isResetting}
                       className="flex-1 rounded-2xl bg-red-500 hover:bg-red-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 transition-colors"
                     >
-                      {isResetting ? "Resetting…" : "Reset period"}
+                      {isResetting ? 'Resetting…' : 'Reset period'}
                     </button>
                   </div>
                 </Dialog.Panel>
@@ -746,7 +878,7 @@ const Activity: FC<props> = (props) => {
   );
 };
 
-Activity.title = "Activity";
+Activity.title = 'Activity';
 Activity.isAboveOthers = true;
 
 export default Activity;

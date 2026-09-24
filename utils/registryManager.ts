@@ -1,10 +1,11 @@
-import prisma from "./database";
-import axios from "axios";
+import axios from 'axios';
+
+import prisma from './database';
 
 export const getRegistry = async (url: string) => {
-	return;
-}
+  return;
+};
 
 export const setRegistry = async (url: string) => {
-	return;
-}
+  return;
+};

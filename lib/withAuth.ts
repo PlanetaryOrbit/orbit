@@ -1,27 +1,26 @@
+import * as crypto from 'crypto';
+
+import * as cookie from 'cookie';
 import type {
   NextApiHandler,
   NextApiRequest,
   NextApiResponse,
   GetServerSidePropsContext,
   GetServerSidePropsResult,
-} from "next";
+} from 'next';
+import zxcvbn from 'zxcvbn';
 
-import { getSessionByToken } from "@/utils/session";
-import zxcvbn from "zxcvbn";
-import * as cookie from "cookie";
-import * as crypto from "crypto";
-import { getConfig } from "@/utils/configEngine";
-import prisma from "@/utils/database";
-import { verifyWorkspace } from "./security";
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { getSessionByToken } from '@/utils/session';
 
-if (process.env.NODE_ENV === "production") {
-  const secret =
-    process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+import { verifyWorkspace } from './security';
 
-  if (secret === "supersecretpassword") {
-    throw new Error(
-      "SESSION_SECRET must be changed from the default secret in production",
-    );
+if (process.env.NODE_ENV === 'production') {
+  const secret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+  if (secret === 'supersecretpassword') {
+    throw new Error('SESSION_SECRET must be changed from the default secret in production');
   }
 
   const strength = zxcvbn(secret);
@@ -57,17 +56,18 @@ export function withAuth(
   handler: (req: AuthenticatedRequest, res: NextApiResponse) => any,
 ): NextApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    if (!verifyWorkspace(req)) return res.status(400).send({
-      success: false,
-      error: "Not valid workspace"
-    });
+    if (!verifyWorkspace(req))
+      return res.status(400).send({
+        success: false,
+        error: 'Not valid workspace',
+      });
     try {
-      const cookies = cookie.parse(req.headers.cookie || "");
+      const cookies = cookie.parse(req.headers.cookie || '');
 
       if (!cookies.session_token) {
         return res.status(401).json({
           success: false,
-          error: "Not authenticated",
+          error: 'Not authenticated',
         });
       }
 
@@ -75,20 +75,15 @@ export function withAuth(
 
       if (!session) {
         res.setHeader(
-          "Set-Cookie",
-          [
-            "session_token=",
-            "Path=/",
-            "HttpOnly",
-            "SameSite=lax",
-            "Secure",
-            "Max-Age=0",
-          ].join("; "),
+          'Set-Cookie',
+          ['session_token=', 'Path=/', 'HttpOnly', 'SameSite=lax', 'Secure', 'Max-Age=0'].join(
+            '; ',
+          ),
         );
 
         return res.status(401).json({
           success: false,
-          error: "Invalid or expired session",
+          error: 'Invalid or expired session',
         });
       }
 
@@ -102,15 +97,15 @@ export function withAuth(
 
       authReq.session = {
         userid: BigInt(session.userId),
-      } as AuthenticatedRequest["session"];
+      } as AuthenticatedRequest['session'];
 
       return handler(authReq, res);
     } catch (error) {
-      console.error("Authentication error:", error);
+      console.error('Authentication error:', error);
 
       return res.status(500).json({
         success: false,
-        error: "Authentication failed",
+        error: 'Authentication failed',
       });
     }
   };
@@ -120,10 +115,11 @@ export function withKey(
   handler: (req: NextApiRequest, res: NextApiResponse) => any,
 ): NextApiHandler {
   return async (req: NextApiRequest, res: NextApiResponse) => {
-    if (!verifyWorkspace(req)) return res.status(400).send({
-      success: false,
-      error: "Not valid workspace"
-    })
+    if (!verifyWorkspace(req))
+      return res.status(400).send({
+        success: false,
+        error: 'Not valid workspace',
+      });
     const { id } = req.query;
     try {
       const auth = req.headers.authorization;
@@ -131,31 +127,27 @@ export function withKey(
       if (!auth) {
         return res.status(401).json({
           success: false,
-          error: "Missing or invalid Authorization header",
+          error: 'Missing or invalid Authorization header',
         });
       }
 
-      const workspaceId = Array.isArray(id)
-        ? parseInt(id[0])
-        : id
-          ? parseInt(id)
-          : undefined;
+      const workspaceId = Array.isArray(id) ? parseInt(id[0]) : id ? parseInt(id) : undefined;
 
       let authenticated = false;
 
-      if (auth.startsWith("Bearer ")) {
-        const apiKey = auth.replace("Bearer ", "");
+      if (auth.startsWith('Bearer ')) {
+        const apiKey = auth.replace('Bearer ', '');
         const key = await prisma.apiKey.findUnique({
           where: { key: apiKey },
         });
 
         if (key) {
           if (key.expiresAt && new Date() > key.expiresAt) {
-            return res.status(401).json({ success: false, error: "API key expired" });
+            return res.status(401).json({ success: false, error: 'API key expired' });
           }
 
           if (id && key.workspaceGroupId !== workspaceId) {
-            return res.status(403).json({ success: false, error: "Access denied" });
+            return res.status(403).json({ success: false, error: 'Access denied' });
           }
 
           await prisma.apiKey.update({
@@ -168,20 +160,20 @@ export function withKey(
       }
 
       if (!authenticated) {
-        const secretKey = await getConfig("board_key", workspaceId as number);
+        const secretKey = await getConfig('board_key', workspaceId as number);
         if (secretKey?.key && secretKey.key === auth) {
           authenticated = true;
         }
       }
 
       if (!authenticated) {
-        return res.status(401).json({ success: false, error: "Invalid API key" });
+        return res.status(401).json({ success: false, error: 'Invalid API key' });
       }
 
       return handler(req, res);
     } catch (error) {
-      console.error("Authentication error:", error);
-      return res.status(500).json({ success: false, error: "Authentication failed" });
+      console.error('Authentication error:', error);
+      return res.status(500).json({ success: false, error: 'Authentication failed' });
     }
   };
 }
@@ -195,7 +187,7 @@ export function withAuthSsr<
 >(
   handler: (
     context: GetServerSidePropsContext & {
-      req: GetServerSidePropsContext["req"] & {
+      req: GetServerSidePropsContext['req'] & {
         auth: {
           userId: bigint;
 
@@ -209,14 +201,14 @@ export function withAuthSsr<
 ) {
   return async (context: GetServerSidePropsContext) => {
     try {
-      const cookies = cookie.parse(context.req.headers.cookie || "");
+      const cookies = cookie.parse(context.req.headers.cookie || '');
 
       const token = cookies.session_token;
 
       if (!token) {
         return {
           redirect: {
-            destination: "/login",
+            destination: '/login',
             permanent: false,
           },
         };
@@ -226,20 +218,15 @@ export function withAuthSsr<
 
       if (!session) {
         context.res.setHeader(
-          "Set-Cookie",
-          [
-            "session_token=",
-            "Path=/",
-            "HttpOnly",
-            "SameSite=lax",
-            "Secure",
-            "Max-Age=0",
-          ].join("; "),
+          'Set-Cookie',
+          ['session_token=', 'Path=/', 'HttpOnly', 'SameSite=lax', 'Secure', 'Max-Age=0'].join(
+            '; ',
+          ),
         );
 
         return {
           redirect: {
-            destination: "/login",
+            destination: '/login',
             permanent: false,
           },
         };
@@ -253,11 +240,11 @@ export function withAuthSsr<
 
       return handler(context as any);
     } catch (error) {
-      console.error("SSR Authentication error:", error);
+      console.error('SSR Authentication error:', error);
 
       return {
         redirect: {
-          destination: "/login",
+          destination: '/login',
           permanent: false,
         },
       };
@@ -265,17 +252,15 @@ export function withAuthSsr<
   };
 }
 
-export function withInstanceAuth(
-  handler: AuthHandler
-): NextApiHandler {
+export function withInstanceAuth(handler: AuthHandler): NextApiHandler {
   return async (req, res) => {
     try {
-      const cookies = cookie.parse(req.headers.cookie || "");
+      const cookies = cookie.parse(req.headers.cookie || '');
 
       if (!cookies.session_token) {
         return res.status(401).json({
           success: false,
-          error: "Not authenticated",
+          error: 'Not authenticated',
         });
       }
 
@@ -284,7 +269,7 @@ export function withInstanceAuth(
       if (!session) {
         return res.status(401).json({
           success: false,
-          error: "Invalid session",
+          error: 'Invalid session',
         });
       }
 
@@ -303,8 +288,8 @@ export function withInstanceAuth(
       return handler(authReq, res);
     } catch {
       return res.status(500).json({
-        success:false,
-        error:"Authentication failed",
+        success: false,
+        error: 'Authentication failed',
       });
     }
   };

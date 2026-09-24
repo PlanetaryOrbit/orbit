@@ -1,42 +1,35 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { fetchworkspace, getConfig, setConfig } from "@/utils/configEngine";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
-import {
-  getUsername,
-  getThumbnail,
-  getDisplayName,
-} from "@/utils/userinfoEngine";
-import * as noblox from "noblox.js";
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
+import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 type Data = {
   success: boolean;
   error?: string;
 };
 
-export default withPermissionCheck(handler, "reset_activity");
+export default withPermissionCheck(handler, 'reset_activity');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
-  if (!req.auth.userId)
-    return res.status(401).json({ success: false, error: "Not logged in" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
 
   const workspaceGroupId = Number(req.query.id as string);
 
   try {
     const earliestSession = await prisma.activitySession.findFirst({
       where: { workspaceGroupId },
-      orderBy: { startTime: "asc" },
+      orderBy: { startTime: 'asc' },
       select: { startTime: true },
     });
 
     const earliestAdjustment = await prisma.activityAdjustment.findFirst({
       where: { workspaceGroupId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
       select: { createdAt: true },
     });
     let periodStart = new Date();
@@ -114,7 +107,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       sessions.forEach((session) => {
         if (session.endTime) {
           const duration = Math.round(
-            (session.endTime.getTime() - session.startTime.getTime()) / 60000
+            (session.endTime.getTime() - session.startTime.getTime()) / 60000,
           );
           sessionMinutes += duration;
         }
@@ -122,19 +115,16 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         totalIdleTime += Number(session.idleTime) || 0;
       });
       const adjustments = await prisma.activityAdjustment.findMany({
-        where: { 
-          userId, 
+        where: {
+          userId,
           workspaceGroupId,
           archived: { not: true },
         },
       });
 
-      const adjustmentMinutes = adjustments.reduce(
-        (sum, adj) => sum + adj.minutes,
-        0
-      );
+      const adjustmentMinutes = adjustments.reduce((sum, adj) => sum + adj.minutes, 0);
       const totalMinutes = sessionMinutes + adjustmentMinutes;
-      
+
       const ownedSessions = await prisma.session.findMany({
         where: {
           ownerId: userId,
@@ -174,55 +164,53 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         },
       });
 
-      const roleBasedHostedSessions = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-          return (
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host")
-          );
-        }
-      ).length;
+      const roleBasedHostedSessions = allSessionParticipations.filter((participation) => {
+        const slots = participation.session.sessionType.slots as any[];
+        const slotIndex = participation.slot;
+        const slotName = slots[slotIndex]?.name || '';
+        return (
+          participation.roleID.toLowerCase().includes('co-host') ||
+          slotName.toLowerCase().includes('co-host')
+        );
+      }).length;
 
       const sessionsHosted = ownedSessions.length + roleBasedHostedSessions;
       const ownedSessionIds = new Set(ownedSessions.map((s) => s.id));
-      const sessionsAttended = allSessionParticipations.filter(
-        (participation) => {
-          const slots = participation.session.sessionType.slots as any[];
-          const slotIndex = participation.slot;
-          const slotName = slots[slotIndex]?.name || "";
-          const isCoHost =
-            participation.roleID.toLowerCase().includes("co-host") ||
-            slotName.toLowerCase().includes("co-host");
+      const sessionsAttended = allSessionParticipations.filter((participation) => {
+        const slots = participation.session.sessionType.slots as any[];
+        const slotIndex = participation.slot;
+        const slotName = slots[slotIndex]?.name || '';
+        const isCoHost =
+          participation.roleID.toLowerCase().includes('co-host') ||
+          slotName.toLowerCase().includes('co-host');
 
-          return !isCoHost && !ownedSessionIds.has(participation.sessionid);
-        }
-      ).length;
+        return !isCoHost && !ownedSessionIds.has(participation.sessionid);
+      }).length;
 
       const allUserSessionsIds = new Set([
-        ...ownedSessions.map(s => s.id),
-        ...allSessionParticipations.map(p => p.sessionid)
+        ...ownedSessions.map((s) => s.id),
+        ...allSessionParticipations.map((p) => p.sessionid),
       ]);
       const sessionsLogged = allUserSessionsIds.size;
       const sessionsByType: Record<string, number> = {};
       const allUserSessions = [
-        ...ownedSessions.map(s => ({ id: s.id, type: s.type })),
-        ...allSessionParticipations.map(p => ({ 
-          id: p.sessionid, 
-          type: (p.session as any).type 
-        }))
+        ...ownedSessions.map((s) => ({ id: s.id, type: s.type })),
+        ...allSessionParticipations.map((p) => ({
+          id: p.sessionid,
+          type: (p.session as any).type,
+        })),
       ];
-      const uniqueSessionsMap = new Map(allUserSessions.map(s => [s.id, s.type]));
+      const uniqueSessionsMap = new Map(allUserSessions.map((s) => [s.id, s.type]));
       for (const [, sessionType] of uniqueSessionsMap) {
         const type = sessionType || 'other';
         sessionsByType[type] = (sessionsByType[type] || 0) + 1;
       }
       const cohostSessions = allSessionParticipations.filter((p) => {
         const slots = p.session.sessionType.slots as any[];
-        const slotName = slots[p.slot]?.name || "";
-        return p.roleID.toLowerCase().includes("co-host") || slotName.toLowerCase().includes("co-host");
+        const slotName = slots[p.slot]?.name || '';
+        return (
+          p.roleID.toLowerCase().includes('co-host') || slotName.toLowerCase().includes('co-host')
+        );
       }).length;
 
       const allianceVisits = await prisma.allyVisit.count({
@@ -234,11 +222,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
             gte: periodStart,
             lte: periodEnd,
           },
-          OR: [
-            { hostId: userId },
-            { participants: { has: userId } }
-          ]
-        }
+          OR: [{ hostId: userId }, { participants: { has: userId } }],
+        },
       });
 
       const wallPosts = await prisma.wallPost.findMany({
@@ -254,10 +239,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       const totalWallPosts = wallPosts.length;
 
       const quotaProgress: any = {};
-      const roleQuotas = member.user.roles
-        .flatMap((role) => role.quotaRoles)
-        .map((qr) => qr.quota);
-      
+      const roleQuotas = member.user.roles.flatMap((role) => role.quotaRoles).map((qr) => qr.quota);
+
       const departmentQuotas = member.departmentMembers
         .flatMap((dm) => dm.department.quotaDepartments)
         .map((qd) => qd.quota);
@@ -277,11 +260,11 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         let percentage = 0;
 
         switch (quota.type) {
-          case "mins":
+          case 'mins':
             currentValue = totalMinutes;
             percentage = (totalMinutes / quota.value) * 100;
             break;
-          case "sessions_hosted":
+          case 'sessions_hosted':
             if (quota.sessionType && quota.sessionType !== 'all') {
               currentValue = sessionsByType[quota.sessionType] || 0;
             } else {
@@ -289,11 +272,11 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
             }
             percentage = (currentValue / quota.value) * 100;
             break;
-          case "sessions_attended":
+          case 'sessions_attended':
             currentValue = sessionsAttended;
             percentage = (sessionsAttended / quota.value) * 100;
             break;
-          case "sessions_logged":
+          case 'sessions_logged':
             if (quota.sessionType && quota.sessionType !== 'all') {
               currentValue = sessionsByType[quota.sessionType] || 0;
             } else {
@@ -301,7 +284,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
             }
             percentage = (currentValue / quota.value) * 100;
             break;
-          case "alliance_visits":
+          case 'alliance_visits':
             currentValue = allianceVisits;
             percentage = (allianceVisits / quota.value) * 100;
             break;
@@ -366,9 +349,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           archiveEndDate: periodEnd,
         },
       });
-      
+
       await tx.activitySession.updateMany({
-        where: { 
+        where: {
           workspaceGroupId,
           archived: { not: true },
         },
@@ -378,9 +361,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           archiveEndDate: periodEnd,
         },
       });
-      
+
       await tx.activityAdjustment.updateMany({
-        where: { 
+        where: {
           workspaceGroupId,
           archived: { not: true },
         },
@@ -390,7 +373,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           archiveEndDate: periodEnd,
         },
       });
-      
+
       await tx.session.updateMany({
         where: {
           sessionType: { workspaceGroupId },
@@ -407,8 +390,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, error: "Something went wrong" });
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 }

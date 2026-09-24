@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 const sessionCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 
@@ -22,7 +23,8 @@ function checkSessionCreationRateLimit(req: NextApiRequest, res: NextApiResponse
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many session creation requests. Please wait a moment before creating more sessions.'
+      error:
+        'Too many session creation requests. Please wait a moment before creating more sessions.',
     });
     return false;
   }
@@ -41,49 +43,39 @@ export default withAuth(handler);
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (!checkSessionCreationRateLimit(req, res)) return;
 
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { sessionTypeId, name, type, schedule, timezoneOffset, duration } = req.body;
 
   if (!sessionTypeId || !name || !type || !schedule) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   }
 
   const { days, hours, minutes, times, frequency, date } = schedule;
   let timesToProcess: Array<{ hours: number; minutes: number }> = [];
-  
+
   if (times && Array.isArray(times) && times.length > 0) {
     timesToProcess = times;
   } else if (hours !== undefined && minutes !== undefined) {
     timesToProcess = [{ hours, minutes }];
   } else {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing schedule time details" });
-  }
-  
-  if (!days) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing schedule details" });
+    return res.status(400).json({ success: false, error: 'Missing schedule time details' });
   }
 
-  const validTypes = ["shift", "training", "event", "other"];
+  if (!days) {
+    return res.status(400).json({ success: false, error: 'Missing schedule details' });
+  }
+
+  const validTypes = ['shift', 'training', 'event', 'other'];
   if (!validTypes.includes(type)) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Invalid session type" });
+    return res.status(400).json({ success: false, error: 'Invalid session type' });
   }
 
   if (!req.session?.userid) {
-    return res.status(401).json({ 
-      success: false, 
-      error: "Not authenticated" 
+    return res.status(401).json({
+      success: false,
+      error: 'Not authenticated',
     });
   }
 
@@ -113,13 +105,13 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     isAdmin,
     hasRole: !!userRole,
     permissions: userRole?.permissions || [],
-    hasPermission: userRole?.permissions.includes(requiredPermission)
+    hasPermission: userRole?.permissions.includes(requiredPermission),
   });
 
   if (!isAdmin && (!userRole || !userRole.permissions.includes(requiredPermission))) {
-    return res.status(403).json({ 
-      success: false, 
-      error: `You don't have permission to create scheduled ${type} sessions` 
+    return res.status(403).json({
+      success: false,
+      error: `You don't have permission to create scheduled ${type} sessions`,
     });
   }
 
@@ -130,9 +122,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     if (!sessionType) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Session type not found" });
+      return res.status(404).json({ success: false, error: 'Session type not found' });
     }
 
     const sessionsToCreate = [];
@@ -142,9 +132,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     endDate.setFullYear(currentDate.getFullYear() + 1);
 
     let intervalDays = 7;
-    if (frequency === "biweekly") {
+    if (frequency === 'biweekly') {
       intervalDays = 14;
-    } else if (frequency === "monthly") {
+    } else if (frequency === 'monthly') {
       intervalDays = 30;
     }
 
@@ -159,7 +149,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           sessionTypeId: sessionType.id,
         },
       });
-      
+
       patternSchedules.push(patternSchedule);
 
       for (const dayOfWeek of selectedDays) {
@@ -173,16 +163,16 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
             daysUntilTarget = 7;
           }
         }
-        
+
         const firstOccurrence = new Date(today);
         firstOccurrence.setDate(today.getDate() + daysUntilTarget);
         firstOccurrence.setUTCHours(0, 0, 0, 0);
 
         let sessionCount = 0;
         let maxSessions;
-        if (frequency === "monthly") {
+        if (frequency === 'monthly') {
           maxSessions = 12;
-        } else if (frequency === "biweekly") {
+        } else if (frequency === 'biweekly') {
           maxSessions = 26;
         } else {
           maxSessions = 52;
@@ -190,8 +180,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
         while (sessionCount < maxSessions) {
           const sessionDate = new Date(firstOccurrence);
-          sessionDate.setDate(firstOccurrence.getDate() + (sessionCount * intervalDays));
-          
+          sessionDate.setDate(firstOccurrence.getDate() + sessionCount * intervalDays);
+
           const localDateStr = sessionDate.toISOString().split('T')[0];
           const timeStr = `${timeHours.toString().padStart(2, '0')}:${timeMinutes.toString().padStart(2, '0')}`;
           const parsedDate = new Date(localDateStr + 'T' + timeStr + ':00Z');
@@ -206,7 +196,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
               name: name,
               type: type,
             };
-            
+
             sessionData.duration = duration || 30;
             sessionsToCreate.push(sessionData);
           }
@@ -218,7 +208,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (sessionsToCreate.length === 0) {
       return res.status(400).json({
         success: false,
-        error: "No valid session dates found",
+        error: 'No valid session dates found',
       });
     }
 
@@ -243,19 +233,19 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         },
       },
       orderBy: {
-        date: "asc",
+        date: 'asc',
       },
     });
 
-    const logEntries = createdSessions.map(session => ({
+    const logEntries = createdSessions.map((session) => ({
       sessionId: session.id,
       actorId: BigInt(req.auth.userId),
-      action: "session_created",
+      action: 'session_created',
       metadata: {
         sessionType: sessionType.name,
         sessionName: name,
         type: type,
-        creationType: "scheduled",
+        creationType: 'scheduled',
         frequency: frequency,
         date: session.date.toISOString(),
         scheduleId: session.scheduleId,
@@ -268,7 +258,13 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
     try {
       const { logAudit } = await import('@/utils/logs');
-      await logAudit(Number(req.query.id), Number(req.auth.userId), 'session.create.scheduled', `session_bulk:${sessionType.id}`, { count: createdSessions.length, sessionType: sessionType.name });
+      await logAudit(
+        Number(req.query.id),
+        Number(req.auth.userId),
+        'session.create.scheduled',
+        `session_bulk:${sessionType.id}`,
+        { count: createdSessions.length, sessionType: sessionType.name },
+      );
     } catch (e) {}
 
     res.status(200).json({
@@ -276,14 +272,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       sessionsCreated: sessionsToCreate.length,
       sessions: JSON.parse(
         JSON.stringify(createdSessions, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Error creating scheduled sessions:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to create scheduled sessions" });
+    console.error('Error creating scheduled sessions:', error);
+    res.status(500).json({ success: false, error: 'Failed to create scheduled sessions' });
   }
 }

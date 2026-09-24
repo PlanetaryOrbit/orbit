@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiResponse } from "next";
-import prisma, { schedule } from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma, { schedule } from '@/utils/database';
 type Data = {
   success: boolean;
   error?: string;
@@ -11,23 +12,16 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   const { id, sid } = req.query;
   if (!id || !sid)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   const { date } = req.body;
-  if (!date)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+  if (!date) return res.status(400).json({ success: false, error: 'Missing required fields' });
   const day = new Date(date);
 
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const user = await prisma.user.findUnique({
     where: {
@@ -65,20 +59,24 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     },
   });
-  
 
   const existingSessionType = schedule?.sessions?.[0]?.type?.toLowerCase() || 'other';
   const validTypes = ['shift', 'training', 'event', 'other'];
   const type = validTypes.includes(existingSessionType) ? existingSessionType : 'other';
   const userRoles = user?.roles || [];
-  const hasHostPermission = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes(`sessions_${type}_host`));
-  const hasAdminPerm = userRoles.some((ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes("admin"));
+  const hasHostPermission = userRoles.some(
+    (ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes(`sessions_${type}_host`),
+  );
+  const hasAdminPerm = userRoles.some(
+    (ur: any) => Array.isArray(ur.permissions) && ur.permissions.includes('admin'),
+  );
 
   if (!hasHostPermission && !isAdmin && !hasAdminPerm) {
-    return res.status(403).json({ success: false, error: "You do not have permission to claim this session" });
+    return res
+      .status(403)
+      .json({ success: false, error: 'You do not have permission to claim this session' });
   }
-  if (!schedule)
-    return res.status(400).json({ success: false, error: "Invalid schedule" });
+  if (!schedule) return res.status(400).json({ success: false, error: 'Invalid schedule' });
   //get date to utc
   const dateTime = new Date();
   dateTime.setUTCHours(schedule.Hour);
@@ -122,16 +120,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     });
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        session: JSON.parse(
-          JSON.stringify(schedulewithsession, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+    return res.status(200).json({
+      success: true,
+      session: JSON.parse(
+        JSON.stringify(schedulewithsession, (key, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
         ),
-      });
+      ),
+    });
   }
 
   const schedulewithsession = await prisma.schedule.update({
@@ -158,14 +154,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     },
   });
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      session: JSON.parse(
-        JSON.stringify(schedulewithsession, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+  res.status(200).json({
+    success: true,
+    session: JSON.parse(
+      JSON.stringify(schedulewithsession, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
       ),
-    });
+    ),
+  });
 }

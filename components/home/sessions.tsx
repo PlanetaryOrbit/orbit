@@ -1,9 +1,10 @@
-import axios from "axios";
-import React, { useState } from "react";
-import type { Session } from "@/utils/database";
-import { useRouter } from "next/router";
-import { useSessionColors } from "@/hooks/useSessionColors";
-import { HomeEmpty, HomeList, HomeListItem } from "@/components/home/shell";
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+
+import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
+import { useSessionColors } from '@/hooks/useSessionColors';
+import type { Session } from '@/utils/database';
 
 type SessionWithRelations = Session & {
   owner: {
@@ -34,12 +35,12 @@ const Sessions: React.FC = () => {
 
     axios
       .get(
-        `/api/workspace/${workspaceId}/home/activeSessions?startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`
+        `/api/workspace/${workspaceId}/home/activeSessions?startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`,
       )
       .then((res) => {
         if (res.status === 200) {
           const sessionsWithOwner = (res.data.sessions || []).filter(
-            (s: SessionWithRelations) => s.owner
+            (s: SessionWithRelations) => s.owner,
           );
           setActiveSessions(sessionsWithOwner);
           const next = res.data.nextSession as SessionWithRelations | null | undefined;
@@ -53,7 +54,12 @@ const Sessions: React.FC = () => {
 
   if (sessions.length === 0) {
     return (
-      <HomeEmpty action={{ label: "View schedule", onClick: () => router.push(`/workspace/${workspaceId}/sessions`) }}>
+      <HomeEmpty
+        action={{
+          label: 'View schedule',
+          onClick: () => router.push(`/workspace/${workspaceId}/sessions`),
+        }}
+      >
         Nothing on the calendar for today.
       </HomeEmpty>
     );
@@ -63,7 +69,7 @@ const Sessions: React.FC = () => {
     const now = new Date();
     const sessionStart = new Date(session.date);
     const sessionEnd = new Date(sessionStart.getTime() + (session.duration || 30) * 60 * 1000);
-    if (now > sessionEnd) return "Concluded";
+    if (now > sessionEnd) return 'Concluded';
     const minutesFromStart = (now.getTime() - sessionStart.getTime()) / 1000 / 60;
     const statues = session.sessionType?.statues || [];
     const sorted = [...statues].sort((a, b) => b.timeAfter - a.timeAfter);
@@ -74,7 +80,7 @@ const Sessions: React.FC = () => {
   };
 
   const sessionLabel = (session: SessionWithRelations) =>
-    session.name || session.sessionType?.name || "Session";
+    session.name || session.sessionType?.name || 'Session';
 
   return (
     <HomeList>
@@ -87,11 +93,11 @@ const Sessions: React.FC = () => {
           <HomeListItem key={session.id}>
             <div className="flex items-start gap-3">
               <img
-                src={session.owner?.picture ?? "/default-avatar.jpg"}
+                src={session.owner?.picture ?? '/default-avatar.jpg'}
                 alt=""
                 className="h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700"
                 onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.jpg";
+                  e.currentTarget.src = '/default-avatar.jpg';
                 }}
               />
               <div className="min-w-0 flex-1">
@@ -109,18 +115,18 @@ const Sessions: React.FC = () => {
                       {typeLabel}
                     </span>
                   )}
-                  {status && status !== "Open" && status !== "Concluded" && (
+                  {status && status !== 'Open' && status !== 'Concluded' && (
                     <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{status}</span>
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                  {session.owner?.username ? `Hosted by ${session.owner.username}` : "No host"}
+                  {session.owner?.username ? `Hosted by ${session.owner.username}` : 'No host'}
                   {activeSessions.length === 0 && nextSession && (
                     <>
-                      {" · "}
+                      {' · '}
                       {new Date(session.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </>
                   )}

@@ -1,6 +1,7 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 const sessionCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkSessionCreationRateLimit(req: AuthenticatedRequest, res: NextApiResponse): boolean {
@@ -21,7 +22,7 @@ function checkSessionCreationRateLimit(req: AuthenticatedRequest, res: NextApiRe
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many session creation requests.'
+      error: 'Too many session creation requests.',
     });
     return false;
   }
@@ -38,31 +39,25 @@ export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (!checkSessionCreationRateLimit(req, res)) return;
-  
-  if (req.method !== "POST")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+
+  if (req.method !== 'POST')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { sessionTypeId, date, time, name, type, timezoneOffset, duration } = req.body;
 
   if (!sessionTypeId || !date || !time || !name || !type) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   }
 
-  const validTypes = ["shift", "training", "event", "other"];
+  const validTypes = ['shift', 'training', 'event', 'other'];
   if (!validTypes.includes(type)) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Invalid session type" });
+    return res.status(400).json({ success: false, error: 'Invalid session type' });
   }
 
   if (!req.session?.userid) {
-    return res.status(401).json({ 
-      success: false, 
-      error: "Not authenticated" 
+    return res.status(401).json({
+      success: false,
+      error: 'Not authenticated',
     });
   }
 
@@ -86,9 +81,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   const requiredPermission = `sessions_${type}_unscheduled`;
 
   if (!isAdmin && (!userRole || !userRole.permissions.includes(requiredPermission))) {
-    return res.status(403).json({ 
-      success: false, 
-      error: `You don't have permission to create unscheduled ${type} sessions` 
+    return res.status(403).json({
+      success: false,
+      error: `You don't have permission to create unscheduled ${type} sessions`,
     });
   }
 
@@ -99,18 +94,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     if (!sessionType) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Session type not found" });
+      return res.status(404).json({ success: false, error: 'Session type not found' });
     }
 
     if (!sessionType.allowUnscheduled) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "This session type does not allow unscheduled sessions",
-        });
+      return res.status(400).json({
+        success: false,
+        error: 'This session type does not allow unscheduled sessions',
+      });
     }
 
     const parsedDate = new Date(date + 'T' + time + ':00Z');
@@ -147,12 +138,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       data: {
         sessionId: session.id,
         actorId: BigInt(req.auth.userId),
-        action: "session_created",
+        action: 'session_created',
         metadata: {
           sessionType: sessionType.name,
           sessionName: name,
           type: type,
-          creationType: "unscheduled",
+          creationType: 'unscheduled',
           date: sessionDate.toISOString(),
         },
       },
@@ -160,19 +151,25 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
 
     try {
       const { logAudit } = await import('@/utils/logs');
-      await logAudit(Number(req.query.id), Number(req.auth.userId), 'session.create.unscheduled', `session:${session.id}`, { id: session.id, sessionType: sessionType.name });
+      await logAudit(
+        Number(req.query.id),
+        Number(req.auth.userId),
+        'session.create.unscheduled',
+        `session:${session.id}`,
+        { id: session.id, sessionType: sessionType.name },
+      );
     } catch (e) {}
 
     res.status(200).json({
       success: true,
       session: JSON.parse(
         JSON.stringify(session, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Error creating unscheduled session:", error);
-    res.status(500).json({ success: false, error: "Failed to create session" });
+    console.error('Error creating unscheduled session:', error);
+    res.status(500).json({ success: false, error: 'Failed to create session' });
   }
 }

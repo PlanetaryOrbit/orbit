@@ -1,4 +1,4 @@
-import type { GetServerSideProps } from "next";
+import type { GetServerSideProps } from 'next';
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const id = params?.id;

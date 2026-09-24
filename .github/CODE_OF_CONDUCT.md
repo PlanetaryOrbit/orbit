@@ -1,5 +1,6 @@
 # Code of Conduct
-*Last Updated / Effective Date:* September 24th, 2026
+
+_Last Updated / Effective Date:_ September 24th, 2026
 
 ## Our Pledge
 
@@ -15,23 +16,23 @@ appearance, race, religion, or sexual identity and orientation.
 Examples of behaviour that contributes to a positive environment for our
 community include:
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologising to those affected by our mistakes,
-and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the
-overall community
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologising to those affected by our mistakes,
+  and learning from the experience
+- Focusing on what is best not just for us as individuals, but for the
+  overall community
 
 Examples of unacceptable behaviour include:
 
-* The use of sexualised language or imagery, and sexual attention or advances
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email
-address, without their explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-professional setting
+- The use of sexualised language or imagery, and sexual attention or advances
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information, such as a physical or email
+  address, without their explicit permission
+- Other conduct which could reasonably be considered inappropriate in a
+  professional setting
 
 ## Our Responsibilities
 

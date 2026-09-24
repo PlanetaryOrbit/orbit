@@ -1,5 +1,4 @@
-import React, { FC, Fragment, useMemo } from "react";
-import { Disclosure, Transition, Listbox, Dialog } from "@headlessui/react";
+import { Disclosure, Transition, Listbox, Dialog } from '@headlessui/react';
 import {
   IconCheck,
   IconChevronDown,
@@ -9,15 +8,15 @@ import {
   IconSearch,
   IconChevronLeft,
   IconChevronRight,
-} from "@tabler/icons-react";
-import { loginState, workspacestate } from "@/state";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import React, { FC, Fragment, useMemo } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { useRecoilState } from 'recoil';
 
-import { useForm, FormProvider } from "react-hook-form";
-import { role } from "@/utils/database";
-
-import { useRecoilState } from "recoil";
-import axios from "axios";
-import clsx from "clsx";
+import { loginState, workspacestate } from '@/state';
+import { role } from '@/utils/database';
 
 type Props = {
   users: any[];
@@ -36,7 +35,7 @@ const Button: FC<Props> = (props) => {
   const [login, setLogin] = useRecoilState(loginState);
   const [showRemoveModal, setShowRemoveModal] = React.useState(false);
   const [userToRemove, setUserToRemove] = React.useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState('');
   const [currentPages, setCurrentPages] = React.useState<Record<string, number>>({});
 
   const userForm = useForm<form>();
@@ -47,12 +46,12 @@ const Button: FC<Props> = (props) => {
     return users.filter(
       (user: any) =>
         user.username?.toLowerCase().includes(query) ||
-        user.displayName?.toLowerCase().includes(query)
+        user.displayName?.toLowerCase().includes(query),
     );
   }, [users, searchQuery]);
 
   const getPageForRole = (roleId: string) => currentPages[roleId] || 1;
-  
+
   const setPageForRole = (roleId: string, page: number) => {
     setCurrentPages((prev) => ({ ...prev, [roleId]: page }));
   };
@@ -78,29 +77,26 @@ const Button: FC<Props> = (props) => {
     if (!role) return;
     usi[userIndex].roles = [role];
     setUsers([...usi]);
-    await axios.post(
-      `/api/workspace/${workspace.groupId}/settings/users/${id}/update`,
-      { role: role.id }
-    );
+    await axios.post(`/api/workspace/${workspace.groupId}/settings/users/${id}/update`, {
+      role: role.id,
+    });
   };
 
   const removeUser = async (id: number) => {
     if (id === login.userId) {
-      if (typeof window !== "undefined") {
-        const toast = (await import("react-hot-toast")).default;
-        toast.error("You cannot remove yourself.");
+      if (typeof window !== 'undefined') {
+        const toast = (await import('react-hot-toast')).default;
+        toast.error('You cannot remove yourself.');
       }
       return;
     }
     const user = users.find((user: any) => user.userid === id);
     if (!user) return;
     setUsers(users.filter((user: any) => user.userid !== id));
-    await axios.delete(
-      `/api/workspace/${workspace.groupId}/settings/users/${id}/remove`
-    );
-    if (typeof window !== "undefined") {
-      const toast = (await import("react-hot-toast")).default;
-      toast.success("User removed successfully.");
+    await axios.delete(`/api/workspace/${workspace.groupId}/settings/users/${id}/remove`);
+    if (typeof window !== 'undefined') {
+      const toast = (await import('react-hot-toast')).default;
+      toast.success('User removed successfully.');
     }
   };
 
@@ -110,8 +106,8 @@ const Button: FC<Props> = (props) => {
         username: userForm.getValues().username,
       })
       .catch((err) => {
-        userForm.setError("username", {
-          type: "custom",
+        userForm.setError('username', {
+          type: 'custom',
           message: err.response.data.error,
         });
       });
@@ -125,9 +121,7 @@ const Button: FC<Props> = (props) => {
       <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5 space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
-              Users
-            </h3>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Users</h3>
             <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
               Invite by Roblox username and assign roles per section below.
             </p>
@@ -136,14 +130,14 @@ const Button: FC<Props> = (props) => {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3 w-full lg:w-auto lg:min-w-[min(100%,20rem)]">
               <div className="relative flex-1 min-w-0">
                 <input
-                  {...userForm.register("username")}
+                  {...userForm.register('username')}
                   placeholder="Roblox username"
                   autoComplete="off"
                   className={clsx(
-                    "w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 shadow-sm focus:ring-2 focus:ring-primary/30 focus:border-primary transition focus-visible:outline-none",
+                    'w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 shadow-sm focus:ring-2 focus:ring-primary/30 focus:border-primary transition focus-visible:outline-none',
                     userForm.formState.errors.username
-                      ? "border-red-500"
-                      : "border-zinc-200 dark:border-zinc-600"
+                      ? 'border-red-500'
+                      : 'border-zinc-200 dark:border-zinc-600',
                   )}
                 />
                 {userForm.formState.errors.username && (
@@ -185,7 +179,7 @@ const Button: FC<Props> = (props) => {
         {roles.map((role) => {
           const { users: roleUsers, total, totalPages, currentPage } = getUsersForRole(role.id);
           const allRoleUsers = filteredUsers.filter((user: any) => user.roles[0]?.id === role.id);
-          
+
           return (
             <Disclosure
               as="div"
@@ -201,13 +195,13 @@ const Button: FC<Props> = (props) => {
                           {role.name}
                         </span>
                         <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-                          {total} user{total !== 1 ? "s" : ""}
+                          {total} user{total !== 1 ? 's' : ''}
                         </span>
                       </div>
                       <span
                         className={clsx(
-                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200/80 bg-zinc-50 text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400",
-                          open && "rotate-180"
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200/80 bg-zinc-50 text-zinc-500 transition-transform dark:border-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400',
+                          open && 'rotate-180',
                         )}
                       >
                         <IconChevronDown className="h-4 w-4" stroke={2} />
@@ -226,7 +220,7 @@ const Button: FC<Props> = (props) => {
                     <Disclosure.Panel className="border-t border-zinc-100 px-4 pb-4 pt-1 dark:border-zinc-700/80">
                       {total === 0 ? (
                         <p className="py-3 text-sm text-zinc-500 dark:text-zinc-400">
-                          {searchQuery ? "No users match your search" : "No users in this role"}
+                          {searchQuery ? 'No users match your search' : 'No users in this role'}
                         </p>
                       ) : (
                         <div className="space-y-2 pt-3">
@@ -260,18 +254,14 @@ const Button: FC<Props> = (props) => {
                               <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
                                 <Listbox
                                   value={user.roles[0].id}
-                                  onChange={(value) =>
-                                    updateRole(user.userid, value)
-                                  }
+                                  onChange={(value) => updateRole(user.userid, value)}
                                 >
                                   <div className="relative min-w-0 flex-1 sm:flex-initial sm:min-w-[12.5rem]">
                                     <Listbox.Button
                                       title={user.roles[0].name}
                                       className="relative w-full py-2 pl-3 pr-9 text-left text-sm bg-white dark:bg-zinc-800 dark:text-white rounded-lg border border-zinc-200 dark:border-zinc-600 shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
                                     >
-                                      <span className="block truncate">
-                                        {user.roles[0].name}
-                                      </span>
+                                      <span className="block truncate">{user.roles[0].name}</span>
                                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                         <IconChevronDown className="h-4 w-4 text-zinc-400" />
                                       </span>
@@ -291,10 +281,10 @@ const Button: FC<Props> = (props) => {
                                               value={role.id}
                                               className={({ active }) =>
                                                 clsx(
-                                                  "relative cursor-pointer select-none py-2 pl-10 pr-4",
+                                                  'relative cursor-pointer select-none py-2 pl-10 pr-4',
                                                   active
-                                                    ? "bg-primary/10 text-primary"
-                                                    : "text-zinc-900 dark:text-zinc-100"
+                                                    ? 'bg-primary/10 text-primary'
+                                                    : 'text-zinc-900 dark:text-zinc-100',
                                                 )
                                               }
                                             >
@@ -325,14 +315,14 @@ const Button: FC<Props> = (props) => {
                                   disabled={user.workspaceMemberships?.[0]?.isAdmin}
                                   title={
                                     user.workspaceMemberships?.[0]?.isAdmin
-                                      ? "Workspace admins cannot be removed here"
-                                      : "Remove from workspace"
+                                      ? 'Workspace admins cannot be removed here'
+                                      : 'Remove from workspace'
                                   }
                                   className={clsx(
-                                    "inline-flex items-center justify-center gap-1 rounded-lg border px-2.5 py-2 text-sm font-medium transition-colors whitespace-nowrap sm:px-3",
+                                    'inline-flex items-center justify-center gap-1 rounded-lg border px-2.5 py-2 text-sm font-medium transition-colors whitespace-nowrap sm:px-3',
                                     user.workspaceMemberships?.[0]?.isAdmin
-                                      ? "cursor-not-allowed border-zinc-200 text-zinc-400 opacity-60 dark:border-zinc-700"
-                                      : "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+                                      ? 'cursor-not-allowed border-zinc-200 text-zinc-400 opacity-60 dark:border-zinc-700'
+                                      : 'border-red-200 text-red-700 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10',
                                   )}
                                 >
                                   <IconCircleMinus size={16} className="shrink-0" />
@@ -341,11 +331,12 @@ const Button: FC<Props> = (props) => {
                               </div>
                             </div>
                           ))}
-                          
+
                           {totalPages > 1 && (
                             <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-zinc-700 mt-4">
                               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                Showing {((currentPage - 1) * USERS_PER_PAGE) + 1}-{Math.min(currentPage * USERS_PER_PAGE, total)} of {total} users
+                                Showing {(currentPage - 1) * USERS_PER_PAGE + 1}-
+                                {Math.min(currentPage * USERS_PER_PAGE, total)} of {total} users
                               </p>
                               <div className="flex items-center space-x-2">
                                 <button
@@ -355,10 +346,10 @@ const Button: FC<Props> = (props) => {
                                   }}
                                   disabled={currentPage === 1}
                                   className={clsx(
-                                    "p-1.5 rounded-md transition-colors",
+                                    'p-1.5 rounded-md transition-colors',
                                     currentPage === 1
-                                      ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
-                                      : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                                      ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                                      : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700',
                                   )}
                                 >
                                   <IconChevronLeft size={18} />
@@ -373,10 +364,10 @@ const Button: FC<Props> = (props) => {
                                   }}
                                   disabled={currentPage === totalPages}
                                   className={clsx(
-                                    "p-1.5 rounded-md transition-colors",
+                                    'p-1.5 rounded-md transition-colors',
                                     currentPage === totalPages
-                                      ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
-                                      : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                                      ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                                      : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700',
                                   )}
                                 >
                                   <IconChevronRight size={18} />
@@ -396,11 +387,7 @@ const Button: FC<Props> = (props) => {
       </div>
 
       <Transition appear show={showRemoveModal} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={() => setShowRemoveModal(false)}
-        >
+        <Dialog as="div" className="relative z-50" onClose={() => setShowRemoveModal(false)}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -437,8 +424,8 @@ const Button: FC<Props> = (props) => {
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                        Are you sure you want to remove this user from the
-                        workspace? This action cannot be undone.
+                        Are you sure you want to remove this user from the workspace? This action
+                        cannot be undone.
                       </p>
                     </div>
                   </div>

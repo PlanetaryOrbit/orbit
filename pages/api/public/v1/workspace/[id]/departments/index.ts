@@ -1,24 +1,21 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withKey } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { withKey } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withKey(handler);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = Number.parseInt(req.query.id as string);
   if (!workspaceId) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing workspace ID" });
+    return res.status(400).json({ success: false, error: 'Missing workspace ID' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const departments = await prisma.department.findMany({
         where: {
@@ -43,34 +40,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({ success: true, data: formattedResponse });
     } catch (error) {
-      console.error("Error fetching departments:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error fetching departments:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { name, color } = req.body;
 
-    if (!name || typeof name !== "string") {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Role name is required and must be a string" 
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Role name is required and must be a string',
       });
     }
 
     const existingDepartment = await prisma.department.findFirst({
       where: {
         workspaceGroupId: workspaceId,
-        name: name
-      }
+        name: name,
+      },
     });
 
     if (existingDepartment) {
       return res.status(409).json({
         success: false,
-        error: "A department with this name already exists in this workspace"
+        error: 'A department with this name already exists in this workspace',
       });
     }
 
@@ -80,15 +75,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           name,
           color: color || null,
           workspaceGroupId: workspaceId,
-        }
+        },
       });
-      
+
       return res.status(201).json({ success: true, data: newDepartment });
     } catch (error) {
-      console.error("Error creating department:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Internal server error" });
+      console.error('Error creating department:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 }

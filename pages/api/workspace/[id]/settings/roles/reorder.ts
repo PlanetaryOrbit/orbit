@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import cache from "@/utils/cache";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -13,16 +14,13 @@ type RolePosition = {
   position: number;
 };
 
-export default withPermissionCheck(handler, "admin");
+export default withPermissionCheck(handler, 'admin');
 
-export async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "POST") {
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -31,7 +29,7 @@ export async function handler(
   if (!Number.isInteger(workspaceId)) {
     return res.status(400).json({
       success: false,
-      error: "Invalid workspace id",
+      error: 'Invalid workspace id',
     });
   }
 
@@ -42,7 +40,7 @@ export async function handler(
   if (!Array.isArray(roles) || roles.length === 0) {
     return res.status(400).json({
       success: false,
-      error: "roles must be a non-empty array",
+      error: 'roles must be a non-empty array',
     });
   }
 
@@ -50,7 +48,7 @@ export async function handler(
   if (new Set(positions).size !== positions.length) {
     return res.status(400).json({
       success: false,
-      error: "Duplicate role positions are not allowed",
+      error: 'Duplicate role positions are not allowed',
     });
   }
 
@@ -58,7 +56,7 @@ export async function handler(
   if (new Set(ids).size !== ids.length) {
     return res.status(400).json({
       success: false,
-      error: "Duplicate role IDs are not allowed",
+      error: 'Duplicate role IDs are not allowed',
     });
   }
 
@@ -113,15 +111,11 @@ export async function handler(
       workspaceGroupId: workspaceId,
     },
     orderBy: {
-      position: "asc",
+      position: 'asc',
     },
   });
 
-  await cache.set(
-    roleCacheKey,
-    updatedRoles,
-    300,
-  );
+  await cache.set(roleCacheKey, updatedRoles, 300);
 
   return res.status(200).json({
     success: true,

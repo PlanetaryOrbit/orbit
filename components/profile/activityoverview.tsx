@@ -1,15 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { ActivitySessionDetailsDialog } from "@/components/activity/ActivitySessionDetailsDialog";
+import type { ActivitySession, inactivityNotice } from '@prisma/client';
 import {
-  ProfileEmptyState,
-  ProfileSection,
-  ProfileStatCard,
-} from "@/components/profile/shell";
-import { useRouter } from "next/router";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { Line } from "react-chartjs-2";
-import { useTheme } from "next-themes";
+  IconPlayerPlay,
+  IconUsers,
+  IconCalendarTime,
+  IconClipboardList,
+  IconClock,
+} from '@tabler/icons-react';
+import axios from 'axios';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,16 +18,16 @@ import {
   Legend,
   ChartData,
   ScatterDataPoint,
-} from "chart.js";
-import {
-  IconPlayerPlay,
-  IconUsers,
-  IconCalendarTime,
-  IconClipboardList,
-  IconClock,
-} from "@tabler/icons-react";
-import moment from "moment";
-import type { ActivitySession, inactivityNotice } from "@prisma/client";
+} from 'chart.js';
+import moment from 'moment';
+import { useTheme } from 'next-themes';
+import { useRouter } from 'next/router';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Line } from 'react-chartjs-2';
+import toast from 'react-hot-toast';
+
+import { ActivitySessionDetailsDialog } from '@/components/activity/ActivitySessionDetailsDialog';
+import { ProfileEmptyState, ProfileSection, ProfileStatCard } from '@/components/profile/shell';
 
 ChartJS.register(
   CategoryScale,
@@ -43,11 +40,11 @@ ChartJS.register(
 );
 
 type TimelineItem =
-  | ({ __type: "session" } & ActivitySession & {
+  | ({ __type: 'session' } & ActivitySession & {
         user: { picture: string | null };
       })
-  | ({ __type: "notice" } & inactivityNotice)
-  | ({ __type: "adjustment" } & any);
+  | ({ __type: 'notice' } & inactivityNotice)
+  | ({ __type: 'adjustment' } & any);
 
 type Props = {
   data: any;
@@ -83,14 +80,14 @@ export function ActivityOverview({
   const { id } = router.query;
 
   const [chartData, setChartData] = useState<
-    ChartData<"line", (number | ScatterDataPoint | null)[], unknown>
+    ChartData<'line', (number | ScatterDataPoint | null)[], unknown>
   >({
     datasets: [],
   });
   const [chartOptions, setChartOptions] = useState({});
   const [timeline, setTimeline] = useState<TimelineItem[]>(() => {
-    const adj = adjustments.map((a) => ({ ...a, __type: "adjustment" }));
-    return [...sessions.map((s) => ({ ...s, __type: "session" })), ...adj];
+    const adj = adjustments.map((a) => ({ ...a, __type: 'adjustment' }));
+    return [...sessions.map((s) => ({ ...s, __type: 'session' })), ...adj];
   });
   const [isOpen, setIsOpen] = useState(false);
   const [dialogData, setDialogData] = useState<any>({});
@@ -99,16 +96,16 @@ export function ActivityOverview({
   const liveSessionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const isDark = resolvedTheme === 'dark';
 
   const sortedTimeline = useMemo(() => {
     return [...timeline].sort((a, b) => {
       const aDate =
-        a.__type === "adjustment"
+        a.__type === 'adjustment'
           ? new Date((a as any).createdAt).getTime()
           : new Date((a as any).startTime || (a as any).createdAt).getTime();
       const bDate =
-        b.__type === "adjustment"
+        b.__type === 'adjustment'
           ? new Date((b as any).createdAt).getTime()
           : new Date((b as any).startTime || (b as any).createdAt).getTime();
       return bDate - aDate;
@@ -117,10 +114,7 @@ export function ActivityOverview({
 
   useEffect(() => {
     const hasLiveSessions = timeline.some(
-      (item) =>
-        item.__type === "session" &&
-        (item as any).active &&
-        !(item as any).endTime,
+      (item) => item.__type === 'session' && (item as any).active && !(item as any).endTime,
     );
 
     if (hasLiveSessions) {
@@ -143,11 +137,8 @@ export function ActivityOverview({
   }, [timeline]);
 
   useEffect(() => {
-    const adj = adjustments.map((a) => ({ ...a, __type: "adjustment" }));
-    setTimeline([
-      ...sessions.map((s) => ({ ...s, __type: "session" })),
-      ...adj,
-    ]);
+    const adj = adjustments.map((a) => ({ ...a, __type: 'adjustment' }));
+    setTimeline([...sessions.map((s) => ({ ...s, __type: 'session' })), ...adj]);
   }, [sessions, adjustments]);
 
   const fetchSession = async (sessionId: string) => {
@@ -156,21 +147,19 @@ export function ActivityOverview({
     setConcurrentUsers([]);
 
     try {
-      const { data, status } = await axios.get(
-        `/api/workspace/${id}/activity/${sessionId}`,
-      );
-      if (status !== 200) return toast.error("Could not fetch session.");
+      const { data, status } = await axios.get(`/api/workspace/${id}/activity/${sessionId}`);
+      if (status !== 200) return toast.error('Could not fetch session.');
       if (!data.universe) {
         setLoading(false);
         return setDialogData({
-          type: "session",
+          type: 'session',
           data: data.message,
           universe: null,
         });
       }
 
       setDialogData({
-        type: "session",
+        type: 'session',
         data: data.message,
         universe: data.universe,
       });
@@ -185,33 +174,25 @@ export function ActivityOverview({
             setConcurrentUsers(concurrentResponse.data.users || []);
           }
         } catch (error) {
-          console.error("Failed to fetch concurrent users:", error);
+          console.error('Failed to fetch concurrent users:', error);
         }
       }
 
       setLoading(false);
     } catch (error) {
-      return toast.error("Could not fetch session.");
+      return toast.error('Could not fetch session.');
     }
   };
 
   useEffect(() => {
     setChartData({
-      labels: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
+      labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
       datasets: [
         {
-          label: "Activity in minutes",
+          label: 'Activity in minutes',
           data,
-          borderColor: "rgb(var(--group-theme))",
-          backgroundColor: "rgb(var(--group-theme))",
+          borderColor: 'rgb(var(--group-theme))',
+          backgroundColor: 'rgb(var(--group-theme))',
           tension: 0.25,
         },
       ],
@@ -221,23 +202,23 @@ export function ActivityOverview({
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: "top",
-          labels: { color: isDark ? "#fff" : "#222" },
+          position: 'top',
+          labels: { color: isDark ? '#fff' : '#222' },
         },
       },
       scales: {
         y: {
           beginAtZero: true,
           grid: {
-            color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+            color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
           },
-          ticks: { color: isDark ? "#fff" : "#222" },
+          ticks: { color: isDark ? '#fff' : '#222' },
         },
         x: {
           grid: {
-            color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+            color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
           },
-          ticks: { color: isDark ? "#fff" : "#222" },
+          ticks: { color: isDark ? '#fff' : '#222' },
         },
       },
     });
@@ -282,11 +263,12 @@ export function ActivityOverview({
         ) : (
           <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
             {sortedTimeline.map((item: TimelineItem) => {
-              if (item.__type === "session") {
+              if (item.__type === 'session') {
                 const isLive = (item as any).active && !(item as any).endTime;
                 const sessionDuration = isLive
                   ? Math.floor(
-                      (new Date().getTime() - new Date((item as any).startTime).getTime()) / (1000 * 60),
+                      (new Date().getTime() - new Date((item as any).startTime).getTime()) /
+                        (1000 * 60),
                     )
                   : Math.floor(
                       (new Date((item as any).endTime || new Date()).getTime() -
@@ -298,7 +280,7 @@ export function ActivityOverview({
                   <div
                     key={`session-${(item as any).id}`}
                     onClick={() => !isLive && fetchSession((item as any).id)}
-                    className={`flex items-start justify-between gap-3 py-3.5 ${!isLive ? "cursor-pointer" : ""}`}
+                    className={`flex items-start justify-between gap-3 py-3.5 ${!isLive ? 'cursor-pointer' : ''}`}
                   >
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="mt-0.5 shrink-0">
@@ -332,8 +314,9 @@ export function ActivityOverview({
                           </p>
                         ) : (
                           <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
-                            {moment((item as any).startTime).format("HH:mm")}–{moment((item as any).endTime).format("HH:mm")} ·{" "}
-                            {moment((item as any).startTime).format("D MMM")} · {sessionDuration}m
+                            {moment((item as any).startTime).format('HH:mm')}–
+                            {moment((item as any).endTime).format('HH:mm')} ·{' '}
+                            {moment((item as any).startTime).format('D MMM')} · {sessionDuration}m
                           </p>
                         )}
                       </div>
@@ -352,29 +335,41 @@ export function ActivityOverview({
                   </div>
                 );
               }
-              if (item.__type === "adjustment") {
+              if (item.__type === 'adjustment') {
                 const positive = (item as any).minutes > 0;
                 return (
-                  <div key={`adjust-${(item as any).id}`} className="flex items-start justify-between gap-3 py-3.5">
+                  <div
+                    key={`adjust-${(item as any).id}`}
+                    className="flex items-start justify-between gap-3 py-3.5"
+                  >
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className={`mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${positive ? "bg-emerald-500" : "bg-red-500"}`}>
-                        {positive ? "+" : "−"}
+                      <div
+                        className={`mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${positive ? 'bg-emerald-500' : 'bg-red-500'}`}
+                      >
+                        {positive ? '+' : '−'}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-zinc-900 dark:text-white">
                           Manual Adjustment
                         </p>
                         <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
-                          <span className={positive ? "font-medium text-emerald-600 dark:text-emerald-400" : "font-medium text-red-600 dark:text-red-400"}>
-                            {positive ? "+" : "−"}{Math.abs((item as any).minutes)} min
-                          </span>{" "}
-                          by {(item as any).actor?.username || "Unknown"}
+                          <span
+                            className={
+                              positive
+                                ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                                : 'font-medium text-red-600 dark:text-red-400'
+                            }
+                          >
+                            {positive ? '+' : '−'}
+                            {Math.abs((item as any).minutes)} min
+                          </span>{' '}
+                          by {(item as any).actor?.username || 'Unknown'}
                           {(item as any).reason && <> · {(item as any).reason}</>}
                         </p>
                       </div>
                     </div>
                     <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
-                      {moment((item as any).createdAt).format("D MMM, HH:mm")}
+                      {moment((item as any).createdAt).format('D MMM, HH:mm')}
                     </time>
                   </div>
                 );

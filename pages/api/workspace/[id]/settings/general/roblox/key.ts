@@ -1,14 +1,15 @@
-import { NextApiResponse } from "next";
-import { getConfig, setConfig } from "@/utils/configEngine";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
+import { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { getConfig, setConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = parseInt(req.query.id as string);
   const userId = req.auth.userId;
 
   if (!userId || isNaN(workspaceId)) {
-    return res.status(400).json({ success: false, error: "Invalid request" });
+    return res.status(400).json({ success: false, error: 'Invalid request' });
   }
 
   const user = await prisma.user.findFirst({
@@ -26,14 +27,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const membership = user?.workspaceMemberships?.[0];
   const isAdmin = membership?.isAdmin || false;
   const userRole = user?.roles?.[0];
-  const hasAdminPermission =
-    userRole?.permissions?.includes("admin") || isAdmin;
+  const hasAdminPermission = userRole?.permissions?.includes('admin') || isAdmin;
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
-      const config = await getConfig("roblox_opencloud", workspaceId);
-      const raw = config || { enabled: false, key: "" };
-      const keyStr = typeof raw.key === "string" ? raw.key : "";
+      const config = await getConfig('roblox_opencloud', workspaceId);
+      const raw = config || { enabled: false, key: '' };
+      const keyStr = typeof raw.key === 'string' ? raw.key : '';
       return res.status(200).json({
         success: true,
         value: {
@@ -42,31 +42,31 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error("Error fetching OpenCloud config:", error);
-      return res.status(500).json({ success: false, error: "Internal server error" });
+      console.error('Error fetching OpenCloud config:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  if (req.method === "PATCH") {
+  if (req.method === 'PATCH') {
     if (!hasAdminPermission) {
-      return res.status(403).json({ success: false, error: "Forbidden" });
+      return res.status(403).json({ success: false, error: 'Forbidden' });
     }
 
     try {
       const { enabled } = req.body as { enabled?: boolean; key?: string };
-      const hasKeyField = Object.prototype.hasOwnProperty.call(req.body, "key");
+      const hasKeyField = Object.prototype.hasOwnProperty.call(req.body, 'key');
 
-      if (typeof enabled !== "boolean") {
-        return res.status(400).json({ success: false, error: "Invalid enabled value" });
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ success: false, error: 'Invalid enabled value' });
       }
 
-      const existing = (await getConfig("roblox_opencloud", workspaceId)) as
+      const existing = (await getConfig('roblox_opencloud', workspaceId)) as
         | { enabled?: boolean; key?: string }
         | undefined;
-      const existingKey = typeof existing?.key === "string" ? existing.key : "";
+      const existingKey = typeof existing?.key === 'string' ? existing.key : '';
 
       let nextKey = existingKey;
-      if (hasKeyField && typeof req.body.key === "string") {
+      if (hasKeyField && typeof req.body.key === 'string') {
         const incoming = req.body.key.trim();
         if (incoming.length > 0) {
           nextKey = incoming;
@@ -76,27 +76,27 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       if (enabled && !nextKey) {
         return res.status(400).json({
           success: false,
-          error: "OpenCloud key is required when enabled",
+          error: 'OpenCloud key is required when enabled',
         });
       }
 
       await setConfig(
-        "roblox_opencloud",
+        'roblox_opencloud',
         {
           enabled,
           key: nextKey,
         },
-        workspaceId
+        workspaceId,
       );
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Error updating Opencloud Key config:", error);
-      return res.status(500).json({ success: false, error: "Internal server error" });
+      console.error('Error updating Opencloud Key config:', error);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" });
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }
 
 export default withAuth(handler);

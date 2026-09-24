@@ -1,17 +1,5 @@
-import type { pageWithLayout } from "@/layoutTypes";
-import { loginState, workspacestate } from "@/state";
-import Workspace from "@/layouts/workspace";
-import { useState, useRef, useEffect, Fragment } from "react";
-import { useRecoilState } from "recoil";
-import { GetServerSideProps } from "next";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import prisma from "@/utils/database";
-import type { wallPost } from "@prisma/client";
-import moment from "moment";
-import toast from "react-hot-toast";
-import { useRouter } from "next/router";
-import axios from "axios";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Transition } from '@headlessui/react';
+import type { wallPost } from '@prisma/client';
 import {
   IconSend,
   IconPhoto,
@@ -20,28 +8,41 @@ import {
   IconTrash,
   IconInbox,
   IconMessageCircle,
-} from "@tabler/icons-react";
-import clsx from "clsx";
-import EmojiPicker, { Theme } from "emoji-picker-react";
-import sanitizeHtml from "sanitize-html";
-import ReactMarkdown from "react-markdown";
-import rehypeSanitize from "rehype-sanitize";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
+import moment from 'moment';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useState, useRef, useEffect, Fragment } from 'react';
+import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import { useRecoilState } from 'recoil';
+import rehypeSanitize from 'rehype-sanitize';
+import sanitizeHtml from 'sanitize-html';
+
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 const sanitizePosts = (posts: wallPost[]) =>
   posts.map((post) => ({
     ...post,
     content:
-      typeof post.content === "string"
+      typeof post.content === 'string'
         ? sanitizeHtml(post.content, SANITIZE_OPTIONS)
         : post.content,
-    image: typeof post.image === "string" ? post.image : null,
+    image: typeof post.image === 'string' ? post.image : null,
   }));
 
 const SANITIZE_OPTIONS = {
   allowedTags: [],
   allowedAttributes: {},
-  disallowedTagsMode: "recursiveEscape" as const,
+  disallowedTagsMode: 'recursiveEscape' as const,
 };
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
@@ -51,7 +52,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
         workspaceGroupId: parseInt(query.id as string),
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
       include: {
         author: {
@@ -71,7 +72,7 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       include: {
         roles: {
           where: { workspaceGroupId: parseInt(query.id as string) },
-          orderBy: { isOwnerRole: "desc" },
+          orderBy: { isOwnerRole: 'desc' },
         },
       },
     });
@@ -82,13 +83,13 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
       props: {
         posts: JSON.parse(
           JSON.stringify(posts, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ) as typeof posts,
         userPermissions,
       },
     };
-  }
+  },
 );
 
 type pageProps = {
@@ -102,7 +103,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
-  const [wallMessage, setWallMessage] = useState("");
+  const [wallMessage, setWallMessage] = useState('');
   //const [posts, setPosts] = useState(props.posts);
   const [posts, setPosts] = useState(() => sanitizePosts(props.posts));
   const userPermissions = props.userPermissions;
@@ -126,10 +127,10 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     try {
       await axios.delete(`/api/workspace/${id}/wall/${postToDelete}/delete`);
       setPosts((prev) => prev.filter((p) => p.id !== postToDelete));
-      toast.success("Post deleted");
+      toast.success('Post deleted');
     } catch (e: any) {
       console.error(e);
-      toast.error("Failed to delete post");
+      toast.error('Failed to delete post');
     } finally {
       setShowDeleteModal(false);
       setPostToDelete(null);
@@ -149,8 +150,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         image: selectedImage,
       })
       .then((req) => {
-        toast.success("Wall message posted!");
-        setWallMessage("");
+        toast.success('Wall message posted!');
+        setWallMessage('');
         setSelectedImage(null);
         //setPosts([req.data.post, ...posts]);
         setPosts((prev) => [req.data.post, ...prev]);
@@ -158,9 +159,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       })
       .catch((error) => {
         console.error(error);
-        toast.error(
-          error.response?.data?.error || "Could not post wall message."
-        );
+        toast.error(error.response?.data?.error || 'Could not post wall message.');
         setLoading(false);
       });
   }
@@ -174,22 +173,20 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        "Invalid file type. Only JPEG, PNG, GIF, and WEBP are supported."
-      );
+      toast.error('Invalid file type. Only JPEG, PNG, GIF, and WEBP are supported.');
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error("File too large. Maximum size is 5MB.");
+      toast.error('File too large. Maximum size is 5MB.');
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
       return;
     }
@@ -197,12 +194,12 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = reader.result as string;
-      if (typeof result === "string" && result.startsWith("data:image/")) {
+      if (typeof result === 'string' && result.startsWith('data:image/')) {
         setSelectedImage(result);
       } else {
-        toast.error("Invalid image format.");
+        toast.error('Invalid image format.');
         if (fileInputRef.current) {
-          fileInputRef.current.value = "";
+          fileInputRef.current.value = '';
         }
       }
     };
@@ -212,31 +209,31 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const removeImage = () => {
     setSelectedImage(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
   const BG_COLORS = [
-    "bg-rose-300",
-    "bg-lime-300",
-    "bg-teal-200",
-    "bg-amber-300",
-    "bg-rose-200",
-    "bg-lime-200",
-    "bg-green-100",
-    "bg-red-100",
-    "bg-yellow-200",
-    "bg-amber-200",
-    "bg-emerald-300",
-    "bg-green-300",
-    "bg-red-300",
-    "bg-emerald-200",
-    "bg-green-200",
-    "bg-red-200",
+    'bg-rose-300',
+    'bg-lime-300',
+    'bg-teal-200',
+    'bg-amber-300',
+    'bg-rose-200',
+    'bg-lime-200',
+    'bg-green-100',
+    'bg-red-100',
+    'bg-yellow-200',
+    'bg-amber-200',
+    'bg-emerald-300',
+    'bg-green-300',
+    'bg-red-300',
+    'bg-emerald-200',
+    'bg-green-200',
+    'bg-red-200',
   ];
 
   function getRandomBg(userid: string, username?: string) {
-    const key = `${userid ?? ""}:${username ?? ""}`;
+    const key = `${userid ?? ''}:${username ?? ''}`;
     let hash = 5381;
     for (let i = 0; i < key.length; i++) {
       hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -247,11 +244,9 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   const canPostOnWall = () => {
     try {
-      const role = workspace?.roles?.find(
-        (r: any) => r.id === workspace?.yourRole
-      );
+      const role = workspace?.roles?.find((r: any) => r.id === workspace?.yourRole);
       const isOwner = !!(role && role.isOwnerRole);
-      const hasPerm = !!workspace?.yourPermission?.includes("post_on_wall");
+      const hasPerm = !!workspace?.yourPermission?.includes('post_on_wall');
       return isOwner || hasPerm || !!login?.canMakeWorkspace;
     } catch (e) {
       return false;
@@ -260,11 +255,9 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   const canAddPhotos = () => {
     try {
-      const role = workspace?.roles?.find(
-        (r: any) => r.id === workspace?.yourRole
-      );
+      const role = workspace?.roles?.find((r: any) => r.id === workspace?.yourRole);
       const isOwner = !!(role && role.isOwnerRole);
-      const hasPerm = !!workspace?.yourPermission?.includes("add_wall_photos");
+      const hasPerm = !!workspace?.yourPermission?.includes('add_wall_photos');
       return isOwner || hasPerm || !!login?.canMakeWorkspace;
     } catch (e) {
       return false;
@@ -272,16 +265,13 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   };
 
   const iconButtonClass =
-    "p-2.5 text-zinc-500 dark:text-zinc-400 rounded-xl hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors";
+    'p-2.5 text-zinc-500 dark:text-zinc-400 rounded-xl hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors';
 
   return (
     <div className="pagePadding">
       <div className="mx-auto max-w-3xl space-y-6">
-
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
-            Group Wall
-          </h1>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Group Wall</h1>
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
             Share updates and announcements with your team
           </p>
@@ -290,8 +280,17 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         {canPostOnWall() ? (
           <div className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
             <div className="flex items-start gap-3">
-              <div className={clsx("h-9 w-9 shrink-0 overflow-hidden rounded-full", getRandomBg(login.userId.toString()))}>
-                <img src={login.thumbnail} alt="Your avatar" className="h-full w-full object-cover" />
+              <div
+                className={clsx(
+                  'h-9 w-9 shrink-0 overflow-hidden rounded-full',
+                  getRandomBg(login.userId.toString()),
+                )}
+              >
+                <img
+                  src={login.thumbnail}
+                  alt="Your avatar"
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <textarea
@@ -327,19 +326,31 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       onChange={handleImageSelect}
                     />
                     {canAddPhotos() && (
-                      <button className={iconButtonClass} onClick={() => fileInputRef.current?.click()} type="button">
+                      <button
+                        className={iconButtonClass}
+                        onClick={() => fileInputRef.current?.click()}
+                        type="button"
+                      >
                         <IconPhoto size={18} stroke={1.5} />
                       </button>
                     )}
                     <div className="relative z-10">
-                      <button type="button" className={iconButtonClass} onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                      <button
+                        type="button"
+                        className={iconButtonClass}
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      >
                         <IconMoodSmile size={18} stroke={1.5} />
                       </button>
                       {showEmojiPicker && (
                         <div className="absolute left-0 top-full z-20 mt-2 overflow-hidden rounded-xl shadow-lg">
                           <EmojiPicker
                             onEmojiClick={onEmojiClick}
-                            theme={document.documentElement.classList.contains("dark") ? Theme.DARK : Theme.LIGHT}
+                            theme={
+                              document.documentElement.classList.contains('dark')
+                                ? Theme.DARK
+                                : Theme.LIGHT
+                            }
                             width={320}
                             height={380}
                             lazyLoadEmojis
@@ -356,14 +367,30 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                     className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loading ? (
-                      <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                     ) : (
                       <IconSend size={16} stroke={1.75} />
                     )}
-                    {loading ? "Posting…" : "Post"}
+                    {loading ? 'Posting…' : 'Post'}
                   </button>
                 </div>
               </div>
@@ -393,12 +420,21 @@ const Wall: pageWithLayout<pageProps> = (props) => {
           <div className="space-y-3">
             {posts.map((post: any) => {
               const isAuthor = String(post.authorId) === String(login.userId);
-              const canDelete = isAuthor || userPermissions.includes("delete_wall_posts");
+              const canDelete = isAuthor || userPermissions.includes('delete_wall_posts');
               return (
                 <div key={post.id} className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
                   <div className="flex items-start gap-3">
-                    <div className={clsx("h-9 w-9 shrink-0 overflow-hidden rounded-full", getRandomBg(post.authorId))}>
-                      <img alt={post.author.username} src={post.author.picture} className="h-full w-full object-cover" />
+                    <div
+                      className={clsx(
+                        'h-9 w-9 shrink-0 overflow-hidden rounded-full',
+                        getRandomBg(post.authorId),
+                      )}
+                    >
+                      <img
+                        alt={post.author.username}
+                        src={post.author.picture}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
@@ -407,13 +443,16 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                             {post.author.username}
                           </p>
                           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                            {moment(post.createdAt).format("D MMM YYYY [at] h:mm A")}
+                            {moment(post.createdAt).format('D MMM YYYY [at] h:mm A')}
                           </p>
                         </div>
                         {canDelete && (
                           <button
                             type="button"
-                            onClick={() => { setPostToDelete(post.id); setShowDeleteModal(true); }}
+                            onClick={() => {
+                              setPostToDelete(post.id);
+                              setShowDeleteModal(true);
+                            }}
                             className="shrink-0 rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-500/10 hover:text-red-500"
                             aria-label="Delete post"
                           >
@@ -433,8 +472,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                             alt=""
                             className="w-full max-h-96 rounded-xl object-contain bg-zinc-200 dark:bg-zinc-700"
                             onError={(e) => {
-                              e.currentTarget.src = "/placeholder-image-error.png";
-                              toast.error("Failed to load image");
+                              e.currentTarget.src = '/placeholder-image-error.png';
+                              toast.error('Failed to load image');
                             }}
                           />
                         </div>
@@ -452,8 +491,12 @@ const Wall: pageWithLayout<pageProps> = (props) => {
             <Dialog as="div" className="relative z-50" onClose={() => setShowDeleteModal(false)}>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
-                leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
+                enter="ease-out duration-200"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-150"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
               >
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
               </Transition.Child>
@@ -461,14 +504,21 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                 <div className="flex min-h-full items-center justify-center p-4">
                   <Transition.Child
                     as={Fragment}
-                    enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
-                    leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
+                    enter="ease-out duration-200"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-150"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
                   >
                     <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all dark:bg-zinc-900">
                       <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
                         <IconTrash className="h-5 w-5 text-red-500" stroke={1.75} />
                       </div>
-                      <Dialog.Title as="h3" className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
+                      <Dialog.Title
+                        as="h3"
+                        className="mb-1 text-base font-semibold text-zinc-900 dark:text-white"
+                      >
                         Delete post
                       </Dialog.Title>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -497,7 +547,6 @@ const Wall: pageWithLayout<pageProps> = (props) => {
             </Dialog>
           </Transition>
         )}
-
       </div>
     </div>
   );

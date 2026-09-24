@@ -1,9 +1,10 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { logAudit } from "@/utils/logs";
-import { AuthenticatedRequest } from "@/lib/withAuth";
-import { isValidFolderIcon } from "@/utils/folderIcons";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { isValidFolderIcon } from '@/utils/folderIcons';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -11,11 +12,11 @@ type Data = {
   folder?: { id: string; name: string; parentId: string | null; icon: string };
 };
 
-export default withPermissionCheck(handler, "create_docs");
+export default withPermissionCheck(handler, 'create_docs');
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const workspaceId = parseInt(req.query.id as string);
@@ -26,11 +27,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   };
 
   if (!name?.trim()) {
-    return res.status(400).json({ success: false, error: "Folder name is required" });
+    return res.status(400).json({ success: false, error: 'Folder name is required' });
   }
 
   if (icon !== undefined && icon !== null && !isValidFolderIcon(icon)) {
-    return res.status(400).json({ success: false, error: "Invalid folder icon" });
+    return res.status(400).json({ success: false, error: 'Invalid folder icon' });
   }
 
   if (parentId) {
@@ -38,14 +39,14 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
       where: { id: parentId, workspaceGroupId: workspaceId },
     });
     if (!parent) {
-      return res.status(400).json({ success: false, error: "Parent folder not found" });
+      return res.status(400).json({ success: false, error: 'Parent folder not found' });
     }
   }
 
   const folder = await prisma.documentFolder.create({
     data: {
       name: name.trim(),
-      icon: icon && isValidFolderIcon(icon) ? icon : "folder",
+      icon: icon && isValidFolderIcon(icon) ? icon : 'folder',
       workspaceGroupId: workspaceId,
       parentId: parentId || null,
     },
@@ -55,9 +56,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
     await logAudit(
       workspaceId,
       Number(req.auth.userId),
-      "document.folder.create",
+      'document.folder.create',
       `folder:${folder.id}`,
-      { id: folder.id, name: folder.name, parentId: folder.parentId }
+      { id: folder.id, name: folder.name, parentId: folder.parentId },
     );
   } catch {}
 

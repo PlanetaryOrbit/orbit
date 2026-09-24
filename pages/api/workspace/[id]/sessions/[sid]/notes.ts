@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import { validateCsrf } from "@/utils/csrf";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { validateCsrf } from '@/utils/csrf';
+import prisma from '@/utils/database';
 
 // Simple in-memory rate limiting for notes creation
 const notesCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
@@ -25,7 +26,7 @@ function checkNotesCreationRateLimit(req: NextApiRequest, res: NextApiResponse):
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many notes created. Please wait a moment before adding more notes.'
+      error: 'Too many notes created. Please wait a moment before adding more notes.',
     });
     return false;
   }
@@ -42,14 +43,12 @@ type Data = {
 export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     if (!checkNotesCreationRateLimit(req, res)) return;
   }
   const { id, sid } = req.query;
   if (!id || !sid)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
 
   const session = await prisma.session.findFirst({
     where: {
@@ -61,20 +60,20 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   });
 
   if (!session) {
-    return res.status(404).json({ success: false, error: "Session not found" });
+    return res.status(404).json({ success: false, error: 'Session not found' });
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     if (!validateCsrf(req, res)) {
       return res.status(403).json({
         success: false,
-        error: "CSRF validation failed. Invalid origin or referer.",
+        error: 'CSRF validation failed. Invalid origin or referer.',
       });
     }
 
     const userId = req.session?.userid;
     if (!userId) {
-      return res.status(401).json({ success: false, error: "Not authenticated" });
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
 
     const user = await prisma.user.findFirst({
@@ -95,19 +94,20 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     const sessionCategory = session.type?.toLowerCase() || 'other';
     const validTypes = ['shift', 'training', 'event', 'other'];
     const type = validTypes.includes(sessionCategory) ? sessionCategory : 'other';
-    const hasNotesPermission = isAdmin || 
-      userPermissions.includes(`sessions_${type}_notes`) || 
+    const hasNotesPermission =
+      isAdmin ||
+      userPermissions.includes(`sessions_${type}_notes`) ||
       userPermissions.includes('admin');
 
     if (!hasNotesPermission) {
-      return res.status(403).json({ 
-        success: false, 
-        error: "You do not have permission to add notes to this session" 
+      return res.status(403).json({
+        success: false,
+        error: 'You do not have permission to add notes to this session',
       });
     }
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const notes = await prisma.sessionNote.findMany({
         where: {
@@ -123,7 +123,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
       });
 
@@ -131,24 +131,20 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         success: true,
         notes: JSON.parse(
           JSON.stringify(notes, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
       });
     } catch (error) {
-      console.error("Failed to fetch notes:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Failed to fetch notes" });
+      console.error('Failed to fetch notes:', error);
+      return res.status(500).json({ success: false, error: 'Failed to fetch notes' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { content } = req.body;
     if (!content || !content.trim()) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Note content is required" });
+      return res.status(400).json({ success: false, error: 'Note content is required' });
     }
 
     try {
@@ -173,17 +169,15 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         success: true,
         note: JSON.parse(
           JSON.stringify(note, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
       });
     } catch (error) {
-      console.error("Failed to create note:", error);
-      return res
-        .status(500)
-        .json({ success: false, error: "Failed to create note" });
+      console.error('Failed to create note:', error);
+      return res.status(500).json({ success: false, error: 'Failed to create note' });
     }
   }
 
-  return res.status(405).json({ success: false, error: "Method not allowed" });
+  return res.status(405).json({ success: false, error: 'Method not allowed' });
 }

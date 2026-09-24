@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 const roleAssignmentLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {
@@ -21,7 +22,7 @@ function checkRoleAssignmentRateLimit(req: NextApiRequest, res: NextApiResponse)
   if (entry.count > maxRequests) {
     res.status(429).json({
       success: false,
-      error: 'Too many role assignment requests. Slow down!'
+      error: 'Too many role assignment requests. Slow down!',
     });
     return false;
   }
@@ -35,11 +36,9 @@ type Data = {
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (!checkRoleAssignmentRateLimit(req, res)) return;
-  
-  if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   const { sid } = req.query;
@@ -47,18 +46,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const currentUserId = (req as any).auth?.userId;
 
   if (!sid || !roleId || slot === undefined || !action) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required parameters" });
+    return res.status(400).json({ success: false, error: 'Missing required parameters' });
   }
 
-  if (action !== "claim" && action !== "unclaim") {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        error: 'Invalid action. Must be "claim" or "unclaim"',
-      });
+  if (action !== 'claim' && action !== 'unclaim') {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid action. Must be "claim" or "unclaim"',
+    });
   }
 
   try {
@@ -71,9 +66,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
 
     if (!session) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Session not found" });
+      return res.status(404).json({ success: false, error: 'Session not found' });
     }
     const currentUser = await prisma.user.findFirst({
       where: { userid: BigInt(currentUserId) },
@@ -92,9 +85,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
 
     if (!currentUser || !currentUser.roles[0]) {
-      return res.status(403).json({ 
-        success: false, 
-        error: "You do not have permission to perform this action" 
+      return res.status(403).json({
+        success: false,
+        error: 'You do not have permission to perform this action',
       });
     }
 
@@ -104,14 +97,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     const sessionCategory = session.type?.toLowerCase() || 'other';
     const validTypes = ['shift', 'training', 'event', 'other'];
     const type = validTypes.includes(sessionCategory) ? sessionCategory : 'other';
-    const hasAssignPermission = isAdmin || userPermissions.includes(`sessions_${type}_assign`) || userPermissions.includes("admin"); 
-    const hasClaimPermission = isAdmin || userPermissions.includes(`sessions_${type}_claim`) || userPermissions.includes("admin")
-    const hasHostPermission = isAdmin || userPermissions.includes(`sessions_${type}_host`) || userPermissions.includes("admin")
+    const hasAssignPermission =
+      isAdmin ||
+      userPermissions.includes(`sessions_${type}_assign`) ||
+      userPermissions.includes('admin');
+    const hasClaimPermission =
+      isAdmin ||
+      userPermissions.includes(`sessions_${type}_claim`) ||
+      userPermissions.includes('admin');
+    const hasHostPermission =
+      isAdmin ||
+      userPermissions.includes(`sessions_${type}_host`) ||
+      userPermissions.includes('admin');
     const isAssigningToSelf = userId && userId.toString() === currentUserId.toString();
     const sessionSlots = (session.sessionType as any)?.slots || [];
     const matchingSlot = sessionSlots.find((s: any) => s.id === roleId);
     const slotName = matchingSlot?.name?.toLowerCase() || '';
-    const isHostRole = slotName.includes("host") || slotName.includes("co-host");
+    const isHostRole = slotName.includes('host') || slotName.includes('co-host');
 
     console.log('[claim-role] Permission check:', {
       sessionType: session.type,
@@ -133,7 +135,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       action,
     });
 
-    if (action === "unclaim") {
+    if (action === 'unclaim') {
       const existingAssignment = await prisma.sessionUser.findFirst({
         where: {
           sessionid: sid as string,
@@ -142,9 +144,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         },
       });
 
-      const isRemovingSelf = !!(existingAssignment && existingAssignment.userid.toString() === currentUserId.toString());
+      const isRemovingSelf = !!(
+        existingAssignment && existingAssignment.userid.toString() === currentUserId.toString()
+      );
       let canUnclaim = false;
-      
+
       if (isHostRole) {
         if (isRemovingSelf) {
           canUnclaim = hasHostPermission;
@@ -158,16 +162,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           canUnclaim = hasAssignPermission;
         }
       }
-      
+
       if (!canUnclaim) {
-        return res.status(403).json({ 
-          success: false, 
-          error: "You do not have permission to remove this role" 
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to remove this role',
         });
       }
-    } else if (action === "claim") {
+    } else if (action === 'claim') {
       let canClaim = false;
-      
+
       if (isHostRole) {
         if (isAssigningToSelf) {
           canClaim = hasHostPermission;
@@ -181,27 +185,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           canClaim = hasAssignPermission;
         }
       }
-      
+
       if (!canClaim) {
-        return res.status(403).json({ 
-          success: false, 
-          error: "You do not have permission to assign this role" 
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to assign this role',
         });
       }
     }
 
     console.log(
-      `Role ${action} attempt: session=${sid}, roleId=${roleId}, slot=${slot}, userId=${userId}`
+      `Role ${action} attempt: session=${sid}, roleId=${roleId}, slot=${slot}, userId=${userId}`,
     );
 
-    if (action === "claim") {
+    if (action === 'claim') {
       if (!userId) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: "userId is required for claim action",
-          });
+        return res.status(400).json({
+          success: false,
+          error: 'userId is required for claim action',
+        });
       }
 
       const targetUser = await prisma.user.findFirst({
@@ -216,9 +218,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
 
       if (!targetUser) {
-        return res
-          .status(404)
-          .json({ success: false, error: "User not found" });
+        return res.status(404).json({ success: false, error: 'User not found' });
       }
 
       const existingClaim = await prisma.sessionUser.findFirst({
@@ -230,12 +230,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
 
       if (existingClaim && existingClaim.userid.toString() !== userId) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: "This slot is already claimed by another user",
-          });
+        return res.status(400).json({
+          success: false,
+          error: 'This slot is already claimed by another user',
+        });
       }
 
       const result = await prisma.sessionUser.create({
@@ -258,8 +256,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error managing role claim:", error);
-    res.status(500).json({ success: false, error: "Internal server error" });
+    console.error('Error managing role claim:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }
 

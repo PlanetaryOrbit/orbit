@@ -1,26 +1,24 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { fetchworkspace } from "@/utils/configEngine";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { logAudit } from "@/utils/logs";
-import cache from "@/utils/cache";
-import * as noblox from "noblox.js";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
+
+import cache from '@/utils/cache';
+import { fetchworkspace } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
   error?: string;
 };
 
-export default withPermissionCheck(handler, "admin");
+export default withPermissionCheck(handler, 'admin');
 
-export async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "POST") {
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -36,7 +34,7 @@ export async function handler(
   if (!role) {
     return res.status(404).json({
       success: false,
-      error: "Role not found",
+      error: 'Role not found',
     });
   }
 
@@ -48,7 +46,7 @@ export async function handler(
     if (!workspace) {
       return res.status(404).json({
         success: false,
-        error: "Workspace not found",
+        error: 'Workspace not found',
       });
     }
 
@@ -57,11 +55,14 @@ export async function handler(
 
     if (
       guestRole &&
-      groupRoles.map(BigInt).map(String).includes(String(BigInt(guestRole.id)))
+      groupRoles
+        .map(BigInt)
+        .map(String)
+        .includes(String(BigInt(guestRole.id)))
     ) {
       return res.status(400).json({
         success: false,
-        error: "Guest rank cannot be assigned to roles",
+        error: 'Guest rank cannot be assigned to roles',
       });
     }
 
@@ -80,7 +81,7 @@ export async function handler(
     if (conflictingRoles.length > 0) {
       return res.status(400).json({
         success: false,
-        error: "Each rank can only be assigned to one role.",
+        error: 'Each rank can only be assigned to one role.',
       });
     }
   }
@@ -90,7 +91,7 @@ export async function handler(
       id: roleId,
     },
     data: {
-      name: req.body.name || "Untitled Role",
+      name: req.body.name || 'Untitled Role',
       permissions: req.body.permissions || [],
       groupRoles: req.body.groupRoles || [],
       color: req.body.color || null,
@@ -109,7 +110,7 @@ export async function handler(
     await logAudit(
       workspaceId,
       (req as any).auth?.userId || null,
-      "settings.roles.update",
+      'settings.roles.update',
       `role:${roleId}`,
       {
         roleName: after?.name || role.name,
@@ -128,15 +129,11 @@ export async function handler(
       workspaceGroupId: workspaceId,
     },
     orderBy: {
-      position: "asc",
+      position: 'asc',
     },
   });
 
-  await cache.set(
-    roleCacheKey,
-    updatedRoles,
-    300,
-  );
+  await cache.set(roleCacheKey, updatedRoles, 300);
 
   return res.status(200).json({
     success: true,

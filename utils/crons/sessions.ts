@@ -1,4 +1,4 @@
-import prisma from "@/utils/database";
+import prisma from '@/utils/database';
 
 export async function runSessionUpdateCron() {
   try {
@@ -19,10 +19,7 @@ export async function runSessionUpdateCron() {
     for (const s of candidates) {
       const duration = (s as any).duration || 30;
 
-      const endTime = new Date(
-        new Date(s.date).getTime() +
-          duration * 60 * 1000
-      );
+      const endTime = new Date(new Date(s.date).getTime() + duration * 60 * 1000);
 
       if (endTime <= now) {
         await prisma.session.update({
@@ -55,10 +52,7 @@ export async function runSessionUpdateCron() {
       updatedEnded,
     };
   } catch (e: any) {
-    console.error(
-      "Cron update-sessions error:",
-      e
-    );
+    console.error('Cron update-sessions error:', e);
 
     return {
       success: false,

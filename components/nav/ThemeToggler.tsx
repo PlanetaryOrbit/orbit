@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { MoonIcon, SunIcon } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { MoonIcon, SunIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useState, useEffect } from 'react';
 
-import Button from "@/components/Button";
+import Button from '@/components/Button';
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
@@ -25,21 +25,17 @@ export default function ThemeToggle() {
     );
   }
 
-  const isDark = resolvedTheme === "dark";
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Toggle theme"
       className="h-9 w-9 rounded-xl p-0"
     >
-      {isDark ? (
-        <SunIcon className="h-5 w-5" />
-      ) : (
-        <MoonIcon className="h-5 w-5" />
-      )}
+      {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
     </Button>
   );
 }

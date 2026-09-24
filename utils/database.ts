@@ -1,3 +1,4 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import {
   PrismaClient,
   role,
@@ -16,8 +17,7 @@ import {
   allyVisit,
   RoleMember,
   AuthSession,
-} from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+} from '@prisma/client';
 
 declare global {
   var prisma: PrismaClient | undefined;
@@ -33,7 +33,7 @@ const prisma =
     adapter,
   });
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = prisma;
 }
 

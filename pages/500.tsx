@@ -1,7 +1,7 @@
-import Head from "next/head";
-import Router from "next/router";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
+import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
 
 export default function Error() {
   return (
@@ -32,10 +32,12 @@ export default function Error() {
             </div>
 
             <div className="text-left flex-1">
-              <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-200">Internal server error</h1>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-zinc-200">
+                Internal server error
+              </h1>
               <p className="mt-3 text-zinc-400 max-w-xl">
-                Sorry — something went wrong on our end. The team has been notified,
-                but you can try the options below to continue.
+                Sorry — something went wrong on our end. The team has been notified, but you can try
+                the options below to continue.
               </p>
 
               <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:gap-4 gap-3">
@@ -69,7 +71,9 @@ export default function Error() {
                 </Link>
               </div>
 
-              <p className="mt-4 text-sm text-zinc-500">If this keeps happening, contact the workspace admin or try again later.</p>
+              <p className="mt-4 text-sm text-zinc-500">
+                If this keeps happening, contact the workspace admin or try again later.
+              </p>
             </div>
           </div>
         </motion.div>

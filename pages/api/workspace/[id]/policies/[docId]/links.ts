@@ -1,8 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { logAudit } from "@/utils/logs";
-import { withPermissionCheck } from "@/utils/permissionsManager";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -11,15 +12,13 @@ type Data = {
   link?: any;
 };
 
-export default withPermissionCheck(handler, "manage_policies");
+export default withPermissionCheck(handler, 'manage_policies');
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   const { id, docId } = req.query;
 
   if (!id || !docId)
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing required fields" });
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
   const document = await prisma.document.findFirst({
     where: {
       id: docId as string,
@@ -29,12 +28,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   });
 
   if (!document) {
-    return res
-      .status(404)
-      .json({ success: false, error: "Policy document not found" });
+    return res.status(404).json({ success: false, error: 'Policy document not found' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     const links = await prisma.policyShareableLink.findMany({
       where: {
         documentId: docId as string,
@@ -49,7 +46,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         },
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
 
@@ -57,17 +54,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
       baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
-      const forwardedProto = req.headers["x-forwarded-proto"];
-      let protocol = Array.isArray(forwardedProto)
-        ? forwardedProto[0]
-        : forwardedProto;
-      if (protocol && protocol.includes(",")) {
-        protocol = protocol.split(",")[0];
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      let protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+      if (protocol && protocol.includes(',')) {
+        protocol = protocol.split(',')[0];
       }
       const finalProtocol =
-        protocol ||
-        (req.headers.host?.includes("localhost") ? "http" : "https");
-      const host = req.headers["x-forwarded-host"] || req.headers.host;
+        protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
       baseUrl = `${finalProtocol}://${host}`;
     }
     const linksWithUrls = links.map((link) => ({
@@ -80,17 +74,15 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       success: true,
       links: JSON.parse(
         JSON.stringify(linksWithUrls, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
-  } else if (req.method === "POST") {
+  } else if (req.method === 'POST') {
     const { name, description, expiresInHours } = req.body;
 
     if (!name || !name.trim()) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Link name is required" });
+      return res.status(400).json({ success: false, error: 'Link name is required' });
     }
 
     let expiresAt = null;
@@ -121,17 +113,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
       baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
-      const forwardedProto = req.headers["x-forwarded-proto"];
-      let protocol = Array.isArray(forwardedProto)
-        ? forwardedProto[0]
-        : forwardedProto;
-      if (protocol && protocol.includes(",")) {
-        protocol = protocol.split(",")[0];
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      let protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+      if (protocol && protocol.includes(',')) {
+        protocol = protocol.split(',')[0];
       }
       const finalProtocol =
-        protocol ||
-        (req.headers.host?.includes("localhost") ? "http" : "https");
-      const host = req.headers["x-forwarded-host"] || req.headers.host;
+        protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
       baseUrl = `${finalProtocol}://${host}`;
     }
     const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${newLink.id}`;
@@ -140,7 +129,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       await logAudit(
         parseInt(id as string),
         Number(req.auth.userId),
-        "policy.link_created",
+        'policy.link_created',
         `policy:${docId}`,
         {
           linkId: newLink.id,
@@ -148,7 +137,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           documentId: docId,
           documentName: document.name,
           expiresAt: newLink.expiresAt?.toISOString(),
-        }
+        },
       );
     } catch (e) {
       // ignore audit log errors
@@ -159,20 +148,18 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       link: {
         ...JSON.parse(
           JSON.stringify(newLink, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
         url,
         isExpired: false,
       },
     });
-  } else if (req.method === "DELETE") {
+  } else if (req.method === 'DELETE') {
     const { linkId } = req.body;
 
     if (!linkId) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Link ID is required" });
+      return res.status(400).json({ success: false, error: 'Link ID is required' });
     }
 
     const linkToDelete = await prisma.policyShareableLink.findFirst({
@@ -184,7 +171,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     if (!linkToDelete) {
-      return res.status(404).json({ success: false, error: "Link not found" });
+      return res.status(404).json({ success: false, error: 'Link not found' });
     }
 
     await prisma.policyShareableLink.delete({
@@ -197,27 +184,25 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       await logAudit(
         parseInt(id as string),
         Number(req.auth.userId),
-        "policy.link_deleted",
+        'policy.link_deleted',
         `policy:${docId}`,
         {
           linkId: linkToDelete.id,
           linkName: linkToDelete.name,
           documentId: docId,
           documentName: document.name,
-        }
+        },
       );
     } catch (e) {
       // ignore audit log errors
     }
 
     return res.status(200).json({ success: true });
-  } else if (req.method === "PATCH") {
+  } else if (req.method === 'PATCH') {
     const { linkId, isActive, name, description } = req.body;
 
     if (!linkId) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Link ID is required" });
+      return res.status(400).json({ success: false, error: 'Link ID is required' });
     }
 
     const linkToUpdate = await prisma.policyShareableLink.findFirst({
@@ -229,7 +214,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
 
     if (!linkToUpdate) {
-      return res.status(404).json({ success: false, error: "Link not found" });
+      return res.status(404).json({ success: false, error: 'Link not found' });
     }
 
     const updatedLink = await prisma.policyShareableLink.update({
@@ -257,7 +242,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       await logAudit(
         parseInt(id as string),
         Number(req.auth.userId),
-        "policy.link_updated",
+        'policy.link_updated',
         `policy:${docId}`,
         {
           linkId: updatedLink.id,
@@ -265,7 +250,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           documentId: docId,
           documentName: document.name,
           changes: { isActive, name, description },
-        }
+        },
       );
     } catch (e) {
       // ignore audit log errors
@@ -275,17 +260,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
       baseUrl = process.env.NEXTAUTH_URL! || process.env.PUBLIC_URL!;
     } else {
-      const forwardedProto = req.headers["x-forwarded-proto"];
-      let protocol = Array.isArray(forwardedProto)
-        ? forwardedProto[0]
-        : forwardedProto;
-      if (protocol && protocol.includes(",")) {
-        protocol = protocol.split(",")[0];
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      let protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+      if (protocol && protocol.includes(',')) {
+        protocol = protocol.split(',')[0];
       }
       const finalProtocol =
-        protocol ||
-        (req.headers.host?.includes("localhost") ? "http" : "https");
-      const host = req.headers["x-forwarded-host"] || req.headers.host;
+        protocol || (req.headers.host?.includes('localhost') ? 'http' : 'https');
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
       baseUrl = `${finalProtocol}://${host}`;
     }
     const url = `${baseUrl}/workspace/${id}/policies/sign/${docId}?link=${updatedLink.id}`;
@@ -295,18 +277,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       link: {
         ...JSON.parse(
           JSON.stringify(updatedLink, (key, value) =>
-            typeof value === "bigint" ? value.toString() : value
-          )
+            typeof value === 'bigint' ? value.toString() : value,
+          ),
         ),
         url,
-        isExpired: updatedLink.expiresAt
-          ? new Date() > new Date(updatedLink.expiresAt)
-          : false,
+        isExpired: updatedLink.expiresAt ? new Date() > new Date(updatedLink.expiresAt) : false,
       },
     });
   } else {
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 }

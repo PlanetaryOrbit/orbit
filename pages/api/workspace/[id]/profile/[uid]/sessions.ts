@@ -1,15 +1,11 @@
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default withAuth(async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+
+export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   const { id, uid } = req.query;
   const workspaceGroupId = parseInt(id as string);
@@ -20,7 +16,7 @@ export default withAuth(async function handler(
   const isHistoricalView = !!(periodStart && periodEnd);
 
   if (!sessionUserId) {
-    return res.status(401).json({ success: false, error: "Unauthorized" });
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
   const isOwnProfile = BigInt(sessionUserId) === targetUserId;
@@ -44,14 +40,14 @@ export default withAuth(async function handler(
     });
 
     if (!user) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     const membership = user.workspaceMemberships[0];
     const isAdmin = membership?.isAdmin || false;
     const userRole = user.roles[0];
-    if (!isAdmin && !userRole?.permissions?.includes("view_member_profiles")) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (!isAdmin && !userRole?.permissions?.includes('view_member_profiles')) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
   }
 
@@ -61,11 +57,11 @@ export default withAuth(async function handler(
         workspaceGroupId: workspaceGroupId,
       },
       orderBy: {
-        resetAt: "desc",
+        resetAt: 'desc',
       },
     });
 
-    const nov30 = new Date("2025-11-30T00:00:00Z");
+    const nov30 = new Date('2025-11-30T00:00:00Z');
     const startDate = lastReset?.resetAt
       ? lastReset.resetAt > nov30
         ? lastReset.resetAt
@@ -130,7 +126,7 @@ export default withAuth(async function handler(
         },
       },
       orderBy: {
-        date: "desc",
+        date: 'desc',
       },
     });
 
@@ -208,7 +204,7 @@ export default withAuth(async function handler(
     });
 
     const allSessions = Array.from(sessionMap.values()).sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
     const serializedSessions = allSessions.map((session) => ({
@@ -237,10 +233,10 @@ export default withAuth(async function handler(
       sessions: serializedSessions,
     });
   } catch (error) {
-    console.error("Error fetching session history:", error);
+    console.error('Error fetching session history:', error);
     return res.status(500).json({
       success: false,
-      error: "Failed to fetch session history",
+      error: 'Failed to fetch session history',
     });
   }
 });

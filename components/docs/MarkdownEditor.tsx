@@ -1,6 +1,6 @@
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 
-const RichDocumentEditor = dynamic(() => import("./RichDocumentEditor"), {
+const RichDocumentEditor = dynamic(() => import('./RichDocumentEditor'), {
   ssr: false,
   loading: () => (
     <div className="flex min-h-[50vh] items-center justify-center">

@@ -10,16 +10,15 @@
  * @module utils/cache
  */
 
-import redis from "./redis";
-import { MemoryCache } from "./memory";
-
-import type { CacheProvider } from "./memory";
+import { MemoryCache } from './memory';
+import type { CacheProvider } from './memory';
+import redis from './redis';
 
 const memory = new MemoryCache();
 
 const provider: CacheProvider = redis ?? memory;
 
-export const providerName = redis ? "redis" : "memory";
+export const providerName = redis ? 'redis' : 'memory';
 
 /**
  * Retrieves a value from cache.
@@ -38,11 +37,7 @@ export async function get<T>(key: string): Promise<T | null> {
  * @param value - Value to cache
  * @param ttl - Expiration time in seconds
  */
-export async function set(
-  key: string,
-  value: unknown,
-  ttl = 300,
-): Promise<void> {
+export async function set(key: string, value: unknown, ttl = 300): Promise<void> {
   return provider.set(key, value, ttl);
 }
 
@@ -89,7 +84,7 @@ const cache = {
   del,
   has,
   increment,
-  clear
+  clear,
 };
 
 export default cache;

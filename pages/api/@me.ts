@@ -1,12 +1,9 @@
-import type { NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import {
-  getUsername,
-  getThumbnail,
-  getDisplayName,
-} from "@/utils/userinfoEngine";
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import cache from "@/utils/cache";
+import type { NextApiResponse } from 'next';
+
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 
 type User = {
   userId: bigint;
@@ -45,14 +42,11 @@ type Data = {
 
 export default withAuth(handler);
 
-export async function handler(
-  req: AuthenticatedRequest,
-  res: NextApiResponse<Data>,
-) {
-  if (req.method !== "GET") {
+export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'GET') {
     return res.status(405).json({
       success: false,
-      error: "Method not allowed",
+      error: 'Method not allowed',
     });
   }
 
@@ -131,12 +125,10 @@ export async function handler(
 
   const workspaceCacheKey = `user:${userId}:workspaces`;
 
-  let workspaces = await cache.get<Data["workspaces"]>(workspaceCacheKey);
+  let workspaces = await cache.get<Data['workspaces']>(workspaceCacheKey);
 
   if (!workspaces) {
-    const ids = [
-      ...new Set(dbuser?.roles.map((role) => role.workspaceGroupId) ?? []),
-    ];
+    const ids = [...new Set(dbuser?.roles.map((role) => role.workspaceGroupId) ?? [])];
 
     const workspaceRows = ids.length
       ? await prisma.workspace.findMany({
@@ -228,7 +220,7 @@ export async function handler(
         },
       });
     } catch (err) {
-      console.error("[User Sync]", err);
+      console.error('[User Sync]', err);
     }
   });
 

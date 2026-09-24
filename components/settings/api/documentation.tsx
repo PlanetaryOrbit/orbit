@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { IconCopy, IconApi } from "@tabler/icons-react";
+import { IconCopy, IconApi } from '@tabler/icons-react';
 
 export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    triggerToast.success("Copied to clipboard")
-  }
+    navigator.clipboard.writeText(text);
+    triggerToast.success('Copied to clipboard');
+  };
 
   return (
     <>
@@ -43,7 +43,7 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
               </div>
               {/* Documentation link */}
               <div className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">
-                Check out the{" "}
+                Check out the{' '}
                 <a
                   href="https://docs.planetaryapp.cloud/api-references/introduction"
                   target="_blank"
@@ -51,14 +51,15 @@ export const ApiDocumentation = ({ triggerToast }: { triggerToast: any }) => {
                   className="text-primary underline hover:opacity-80"
                 >
                   Orbit API Documentation
-                </a>.
+                </a>
+                .
               </div>
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-ApiDocumentation.title = "API Documentation"
+ApiDocumentation.title = 'API Documentation';

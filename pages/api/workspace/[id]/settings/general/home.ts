@@ -1,27 +1,26 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine'
-import { logAudit } from '@/utils/logs'
-import prisma, { role } from '@/utils/database';
-import { withPermissionCheck } from '@/utils/permissionsManager'
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine'
-import * as noblox from 'noblox.js'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 import { get } from 'react-hook-form';
+
+import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine';
+import prisma, { role } from '@/utils/database';
+import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
+import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 type Data = {
-  success: boolean
-  error?: string
-  widgets?: string[]
-}
+  success: boolean;
+  error?: string;
+  widgets?: string[];
+};
 
 export default withPermissionCheck(handler, 'workspace_customisation');
 
-export async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  if (req.method !== 'PATCH') return res.status(405).json({ success: false, error: 'Method not allowed' })
+export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  if (req.method !== 'PATCH')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   let updateWidgetsState = false;
-  let workspaceUpdateState = false
+  let workspaceUpdateState = false;
   try {
     const workspaceId = parseInt(req.query.id as string);
     const before = await getConfig('home', workspaceId);
@@ -29,24 +28,29 @@ export async function handler(
     const newName = req.body.name;
 
     await setConfig('home', after, workspaceId);
-    updateWidgetsState = true
-    try { await logAudit(workspaceId, (req as any).auth?.userId || null, 'settings.general.home.update', 'home', { before, after }); } catch (e) { }
+    updateWidgetsState = true;
     try {
-      await prisma.workspace.update(
-        {
-          where: {
-            groupId: workspaceId
-          },
-          data: {
-            customName: newName
-          }
-        }
-      )
-
+      await logAudit(
+        workspaceId,
+        (req as any).auth?.userId || null,
+        'settings.general.home.update',
+        'home',
+        { before, after },
+      );
+    } catch (e) {}
+    try {
+      await prisma.workspace.update({
+        where: {
+          groupId: workspaceId,
+        },
+        data: {
+          customName: newName,
+        },
+      });
     } catch (e) {
-      console.log(`Failed to update the workspace: ${e}`)
+      console.log(`Failed to update the workspace: ${e}`);
     }
-    res.status(200).json({ success: true })
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('Failed to save home settings:', error);
     return res.status(500).json({ success: false, error: 'Server error' });

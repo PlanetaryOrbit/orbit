@@ -1,5 +1,6 @@
 # LLM Usage Policy
-*Last Updated / Effective Date:* September 24th, 2026
+
+_Last Updated / Effective Date:_ September 24th, 2026
 
 This policy establishes the rules for using large language models (LLMs) when contributing to Orbit.
 

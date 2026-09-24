@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/utils/database";
-import { withPermissionCheck } from "@/utils/permissionsManager";
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from '@/utils/database';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
   success: boolean;
@@ -9,21 +10,19 @@ type Data = {
 };
 
 export default withPermissionCheck(handler, [
-  "sessions_shift_see",
-  "sessions_shift_unscheduled",
-  "sessions_training_see",
-  "sessions_training_unscheduled",
-  "sessions_event_see",
-  "sessions_event_unscheduled",
-  "sessions_other_see",
-  "sessions_other_unscheduled"
+  'sessions_shift_see',
+  'sessions_shift_unscheduled',
+  'sessions_training_see',
+  'sessions_training_unscheduled',
+  'sessions_event_see',
+  'sessions_event_unscheduled',
+  'sessions_other_see',
+  'sessions_other_unscheduled',
 ]);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== "GET")
-    return res
-      .status(405)
-      .json({ success: false, error: "Method not allowed" });
+  if (req.method !== 'GET')
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
 
   try {
     const sessionTypes = await prisma.sessionType.findMany({
@@ -40,14 +39,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       success: true,
       sessionTypes: JSON.parse(
         JSON.stringify(sessionTypes, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
       ),
     });
   } catch (error) {
-    console.error("Error fetching session types:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch session types" });
+    console.error('Error fetching session types:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch session types' });
   }
 }

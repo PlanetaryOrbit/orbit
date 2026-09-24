@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
-import { loginState, workspacestate } from "@/state";
-import axios from "axios";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
-import { useRecoilState } from "recoil";
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { useRecoilState } from 'recoil';
+
+import { loginState, workspacestate } from '@/state';
 
 export default function AuthProvider({
   loading,
@@ -19,8 +20,7 @@ export default function AuthProvider({
 
   useEffect(() => {
     const path = Router.pathname;
-    const publicPath =
-      path === "/login" || path === "/welcome" || path === "/forgot-password";
+    const publicPath = path === '/login' || path === '/welcome' || path === '/forgot-password';
 
     if (publicPath) {
       setLoading(false);
@@ -29,7 +29,7 @@ export default function AuthProvider({
 
     const checkLogin = async () => {
       try {
-        const req = await axios.get("/api/@me");
+        const req = await axios.get('/api/@me');
 
         setLogin({
           ...req.data.user,
@@ -40,19 +40,19 @@ export default function AuthProvider({
       } catch (err: any) {
         const error = err.response?.data?.error;
 
-        if (error === "Workspace not setup") {
-          Router.push("/welcome");
+        if (error === 'Workspace not setup') {
+          Router.push('/welcome');
           setLoading(false);
           return;
         }
 
-        if (error === "Not logged in") {
-          Router.push("/login");
+        if (error === 'Not logged in') {
+          Router.push('/login');
           setLoading(false);
           return;
         }
 
-        console.error("Login check error:", err.response?.data ?? err);
+        console.error('Login check error:', err.response?.data ?? err);
 
         setLoading(false);
       }

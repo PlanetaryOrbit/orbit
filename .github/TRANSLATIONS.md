@@ -1,5 +1,6 @@
 # Translations
-*Last Updated / Effective Date:* September 24th, 2026
+
+_Last Updated / Effective Date:_ September 24th, 2026
 
 > [!NOTE]
 > Translating is not implemented into Orbit fully yet, and translations are not yet available.

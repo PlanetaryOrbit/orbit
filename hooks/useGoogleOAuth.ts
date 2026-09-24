@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export const GoogleOAuthAvailable = () => {
   const [isAvailable, setIsAvailable] = useState(false);
@@ -8,12 +8,12 @@ export const GoogleOAuthAvailable = () => {
   useEffect(() => {
     const checkOAuthConfig = async () => {
       try {
-        const response = await fetch("/api/auth/google/config-check");
+        const response = await fetch('/api/auth/google/config-check');
         const data = await response.json();
         setIsAvailable(data.available || false);
         setOauthOnly(data.oauthOnly || false);
       } catch (error) {
-        console.error("Failed to check OAuth config:", error);
+        console.error('Failed to check OAuth config:', error);
         setIsAvailable(false);
         setOauthOnly(false);
       } finally {
@@ -25,4 +25,4 @@ export const GoogleOAuthAvailable = () => {
   }, []);
 
   return { isAvailable, oauthOnly, loading };
-}
+};

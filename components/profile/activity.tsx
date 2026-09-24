@@ -1,10 +1,5 @@
-import { Fragment, useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
-import { workspacestate } from "@/state";
-import { FC } from "@/types/settingsComponent";
-import type { ActivitySession, Quota, inactivityNotice } from "@prisma/client";
-import moment from "moment";
-import { Dialog, Transition, Tab } from "@headlessui/react";
+import { Dialog, Transition, Tab } from '@headlessui/react';
+import type { ActivitySession, Quota, inactivityNotice } from '@prisma/client';
 import {
   IconCalendarTime,
   IconChartBar,
@@ -13,13 +8,17 @@ import {
   IconChevronRight,
   IconCalendarEvent,
   IconTarget,
-} from "@tabler/icons-react";
-import axios from "axios";
-import { toast } from "react-hot-toast";
-import { useRouter } from "next/router";
-import { ActivityOverview } from "@/components/profile/activityoverview";
-import { SessionsHistory } from "@/components/profile/sessions";
-import { QuotasProgress } from "@/components/profile/quotas";
+} from '@tabler/icons-react';
+import axios from 'axios';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import { Fragment, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import { ActivityOverview } from '@/components/profile/activityoverview';
+import { QuotasProgress } from '@/components/profile/quotas';
+import { SessionsHistory } from '@/components/profile/sessions';
 import {
   profileTabClass,
   profileTabListClass,
@@ -27,7 +26,9 @@ import {
   profilePanelShadow,
   profilePrimaryButtonClass,
   profileSecondaryButtonClass,
-} from "@/components/profile/shell";
+} from '@/components/profile/shell';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 
 type Props = {
   timeSpent: number;
@@ -65,13 +66,13 @@ type Props = {
 
 type TimelineItem =
   | (ActivitySession & {
-      __type: "session";
+      __type: 'session';
       user: { picture: string | null };
       active: boolean;
     })
-  | (inactivityNotice & { __type: "notice" })
+  | (inactivityNotice & { __type: 'notice' })
   | {
-      __type: "adjustment";
+      __type: 'adjustment';
       id: string;
       minutes: number;
       actor?: { username?: string };
@@ -113,8 +114,8 @@ const Activity: FC<Props> = ({
   const [idleTimeEnabled, setIdleTimeEnabled] = useState(true);
   const [adjustModal, setAdjustModal] = useState(false);
   const [adjustMinutes, setAdjustMinutes] = useState<number>(0);
-  const [adjustReason, setAdjustReason] = useState("");
-  const [adjustType, setAdjustType] = useState<"award" | "remove">("award");
+  const [adjustReason, setAdjustReason] = useState('');
+  const [adjustType, setAdjustType] = useState<'award' | 'remove'>('award');
   const [submittingAdjust, setSubmittingAdjust] = useState(false);
   const [localSessions, setLocalSessions] = useState(sessions);
 
@@ -132,12 +133,10 @@ const Activity: FC<Props> = ({
     const fetchConfig = async () => {
       if (id) {
         try {
-          const res = await axios.get(
-            `/api/workspace/${id}/settings/activity/getConfig`,
-          );
+          const res = await axios.get(`/api/workspace/${id}/settings/activity/getConfig`);
           setIdleTimeEnabled(res.data.idleTimeEnabled ?? true);
         } catch (error) {
-          console.error("Failed to fetch activity config:", error);
+          console.error('Failed to fetch activity config:', error);
         }
       }
     };
@@ -160,36 +159,31 @@ const Activity: FC<Props> = ({
   const types: {
     [key: string]: string;
   } = {
-    mins: "minutes",
-    sessions_hosted: "sessions hosted",
-    sessions_attended: "sessions attended",
+    mins: 'minutes',
+    sessions_hosted: 'sessions hosted',
+    sessions_attended: 'sessions attended',
   };
 
   const submitAdjustment = async () => {
     const val = Math.min(Math.max(adjustMinutes, 0), 1000);
-    if (!val || val <= 0) return toast.error("Enter minutes > 0");
+    if (!val || val <= 0) return toast.error('Enter minutes > 0');
     if (val !== adjustMinutes) setAdjustMinutes(val);
     setSubmittingAdjust(true);
     try {
-      const { data } = await axios.post(
-        `/api/workspace/${id}/activity/adjustment`,
-        {
-          userId: router.query.uid,
-          minutes: val,
-          action: adjustType,
-          reason: adjustReason,
-        },
-      );
-      if (!data.success) throw new Error("Failed");
-      setDisplayMinutes(
-        (prev) => prev + (adjustType === "remove" ? -val : val),
-      );
-      toast.success("Adjustment saved!");
+      const { data } = await axios.post(`/api/workspace/${id}/activity/adjustment`, {
+        userId: router.query.uid,
+        minutes: val,
+        action: adjustType,
+        reason: adjustReason,
+      });
+      if (!data.success) throw new Error('Failed');
+      setDisplayMinutes((prev) => prev + (adjustType === 'remove' ? -val : val));
+      toast.success('Adjustment saved!');
       setAdjustModal(false);
       setAdjustMinutes(0);
-      setAdjustReason("");
+      setAdjustReason('');
     } catch (e) {
-      toast.error("Could not save adjustment.");
+      toast.error('Could not save adjustment.');
     } finally {
       setSubmittingAdjust(false);
     }
@@ -204,10 +198,7 @@ const Activity: FC<Props> = ({
             Activity
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
-            <IconCalendarEvent
-              className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-              stroke={1.75}
-            />
+            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
             Sessions
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
@@ -230,13 +221,8 @@ const Activity: FC<Props> = ({
                 <p className="text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap truncate">
                   {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
                     <>
-                      {moment(
-                        availableHistory[selectedWeek - 1].period.start,
-                      ).format("MMM DD")}{" "}
-                      -{" "}
-                      {moment(
-                        availableHistory[selectedWeek - 1].period.end,
-                      ).format("MMM DD, YYYY")}
+                      {moment(availableHistory[selectedWeek - 1].period.start).format('MMM DD')} -{' '}
+                      {moment(availableHistory[selectedWeek - 1].period.end).format('MMM DD, YYYY')}
                     </>
                   ) : (
                     getCurrentWeekLabel()
@@ -284,9 +270,8 @@ const Activity: FC<Props> = ({
                       Historical Activity Data
                     </h3>
                     <p className="text-xs text-amber-700 dark:text-amber-300">
-                      Showing activity from{" "}
-                      {moment(historicalPeriod.start).format("MMM DD")} -{" "}
-                      {moment(historicalPeriod.end).format("MMM DD, YYYY")}
+                      Showing activity from {moment(historicalPeriod.start).format('MMM DD')} -{' '}
+                      {moment(historicalPeriod.end).format('MMM DD, YYYY')}
                     </p>
                   </div>
                 </div>
@@ -308,28 +293,26 @@ const Activity: FC<Props> = ({
                 )}
                 <ActivityOverview
                   onEndSession={(sid, wid) => {
-                    toast.loading("Ending session...", {
+                    toast.loading('Ending session...', {
                       id: `session-${sid}`,
                     });
                     axios
-                      .post("/api/activity/force-end", {
+                      .post('/api/activity/force-end', {
                         sessionId: sid,
                         workspaceId: wid,
                       })
                       .then(() => {
-                        toast.success("Session ended", {
+                        toast.success('Session ended', {
                           id: `session-${sid}`,
                         });
                         setLocalSessions((prev) =>
                           prev.map((s) =>
-                            s.id === sid
-                              ? { ...s, active: false, endTime: new Date() }
-                              : s,
+                            s.id === sid ? { ...s, active: false, endTime: new Date() } : s,
                           ),
                         );
                       })
                       .catch(() => {
-                        toast.error("Failed to end session", {
+                        toast.error('Failed to end session', {
                           id: `session-${sid}`,
                         });
                       });
@@ -375,11 +358,7 @@ const Activity: FC<Props> = ({
       </Tab.Group>
 
       <Transition appear show={adjustModal} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-10"
-          onClose={() => setAdjustModal(false)}
-        >
+        <Dialog as="div" className="relative z-10" onClose={() => setAdjustModal(false)}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -415,18 +394,16 @@ const Activity: FC<Props> = ({
                     <div className={profileTabListClass}>
                       <button
                         type="button"
-                        onClick={() => setAdjustType("award")}
-                        className={`flex-1 ${profileTabClass(adjustType === "award")}`}
+                        onClick={() => setAdjustType('award')}
+                        className={`flex-1 ${profileTabClass(adjustType === 'award')}`}
                       >
                         Award
                       </button>
                       <button
                         type="button"
-                        onClick={() => setAdjustType("remove")}
-                        className={`flex-1 ${profileTabClass(adjustType === "remove")} ${
-                          adjustType === "remove"
-                            ? "!bg-red-600 !text-white dark:!bg-red-600"
-                            : ""
+                        onClick={() => setAdjustType('remove')}
+                        className={`flex-1 ${profileTabClass(adjustType === 'remove')} ${
+                          adjustType === 'remove' ? '!bg-red-600 !text-white dark:!bg-red-600' : ''
                         }`}
                       >
                         Remove
@@ -443,10 +420,7 @@ const Activity: FC<Props> = ({
                         value={adjustMinutes}
                         onChange={(e) =>
                           setAdjustMinutes(
-                            Math.min(
-                              1000,
-                              Math.max(0, parseInt(e.target.value, 10) || 0),
-                            ),
+                            Math.min(1000, Math.max(0, parseInt(e.target.value, 10) || 0)),
                           )
                         }
                         className={profileInputClass}
@@ -477,16 +451,16 @@ const Activity: FC<Props> = ({
                       disabled={submittingAdjust}
                       onClick={submitAdjustment}
                       className={`flex-1 justify-center px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60 ${
-                        adjustType === "remove"
-                          ? "inline-flex items-center gap-1.5 rounded-xl bg-red-600 text-sm font-medium text-white transition hover:bg-red-700"
+                        adjustType === 'remove'
+                          ? 'inline-flex items-center gap-1.5 rounded-xl bg-red-600 text-sm font-medium text-white transition hover:bg-red-700'
                           : profilePrimaryButtonClass
                       }`}
                     >
                       {submittingAdjust
-                        ? "Saving..."
-                        : adjustType === "award"
-                          ? "Award Minutes"
-                          : "Remove Minutes"}
+                        ? 'Saving...'
+                        : adjustType === 'award'
+                          ? 'Award Minutes'
+                          : 'Remove Minutes'}
                     </button>
                   </div>
                 </Dialog.Panel>

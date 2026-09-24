@@ -1,72 +1,69 @@
-import type { pageWithLayout } from "@/layoutTypes";
-import { workspacestate } from "@/state";
-import Workspace from "@/layouts/workspace";
-import { useRecoilState } from "recoil";
-import { useState } from "react";
-import { IconCheck, IconWorld } from "@tabler/icons-react";
-import { useRouter } from "next/router";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import axios from "axios";
-import prisma from "@/utils/database";
-import { FormProvider, useForm } from "react-hook-form";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { toast } from "react-hot-toast";
+import { IconCheck, IconWorld } from '@tabler/icons-react';
+import axios from 'axios';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
 import {
   DocEditorPage,
   DocWritingSurface,
   DocEditorSidebar,
-} from "@/components/docs/DocEditorPage";
+} from '@/components/docs/DocEditorPage';
+import { FolderPicker, type DocFolderOption } from '@/components/docs/folders';
+import { MarkdownEditor } from '@/components/docs/MarkdownEditor';
 import {
   DocTypePickerModal,
   ExternalLinkModal,
   useExternalLinkModal,
-} from "@/components/docs/modals";
-import { MarkdownEditor } from "@/components/docs/MarkdownEditor";
-import { FolderPicker, type DocFolderOption } from "@/components/docs/folders";
+} from '@/components/docs/modals';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 const serializeBigInt = (obj: unknown) =>
-  JSON.parse(
-    JSON.stringify(obj, (_k, v) => (typeof v === "bigint" ? v.toString() : v))
-  );
+  JSON.parse(JSON.stringify(obj, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)));
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
-  async (context) => {
-    const { id } = context.query;
-    const [roles, departments, folders] = await Promise.all([
-      prisma.role.findMany({
-        where: { workspaceGroupId: Number(id) },
-        orderBy: { isOwnerRole: "desc" },
-      }),
-      prisma.department.findMany({
-        where: { workspaceGroupId: Number(id) },
-        orderBy: { name: "asc" },
-      }),
-      prisma.documentFolder.findMany({
-        where: { workspaceGroupId: Number(id) },
-        select: { id: true, name: true, parentId: true, icon: true },
-        orderBy: { name: "asc" },
-      }),
-    ]);
-    return { props: serializeBigInt({ roles, departments, folders }) };
-  },
-  "create_docs"
-);
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
+  const { id } = context.query;
+  const [roles, departments, folders] = await Promise.all([
+    prisma.role.findMany({
+      where: { workspaceGroupId: Number(id) },
+      orderBy: { isOwnerRole: 'desc' },
+    }),
+    prisma.department.findMany({
+      where: { workspaceGroupId: Number(id) },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.documentFolder.findMany({
+      where: { workspaceGroupId: Number(id) },
+      select: { id: true, name: true, parentId: true, icon: true },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
+  return { props: serializeBigInt({ roles, departments, folders }) };
+}, 'create_docs');
 
-const CreateDocument: pageWithLayout<
-  InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ roles, departments, folders }) => {
+const CreateDocument: pageWithLayout<InferGetServerSidePropsType<typeof getServerSideProps>> = ({
+  roles,
+  departments,
+  folders,
+}) => {
   const [workspace] = useRecoilState(workspacestate);
   const router = useRouter();
-  const form = useForm({ defaultValues: { name: "" } });
+  const form = useForm({ defaultValues: { name: '' } });
   const externalLink = useExternalLinkModal();
 
-  const initialFolderId =
-    typeof router.query.folder === "string" ? router.query.folder : null;
+  const initialFolderId = typeof router.query.folder === 'string' ? router.query.folder : null;
 
   const [showTypeModal, setShowTypeModal] = useState(true);
-  const [mode, setMode] = useState<"internal" | "external">("internal");
-  const [markdownContent, setMarkdownContent] = useState("");
-  const [externalUrl, setExternalUrl] = useState("");
+  const [mode, setMode] = useState<'internal' | 'external'>('internal');
+  const [markdownContent, setMarkdownContent] = useState('');
+  const [externalUrl, setExternalUrl] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(initialFolderId);
@@ -77,7 +74,7 @@ const CreateDocument: pageWithLayout<
 
   const toggleRole = (roleId: string) => {
     setSelectedRoles((prev) =>
-      prev.includes(roleId) ? prev.filter((r) => r !== roleId) : [...prev, roleId]
+      prev.includes(roleId) ? prev.filter((r) => r !== roleId) : [...prev, roleId],
     );
   };
 
@@ -85,52 +82,50 @@ const CreateDocument: pageWithLayout<
     setSelectedDepartments((prev) =>
       prev.includes(departmentId)
         ? prev.filter((d) => d !== departmentId)
-        : [...prev, departmentId]
+        : [...prev, departmentId],
     );
   };
 
   const createDoc = async () => {
     const name = form.getValues().name?.trim();
     if (!name) {
-      form.setError("name", { type: "required", message: "Title is required" });
+      form.setError('name', { type: 'required', message: 'Title is required' });
       return;
     }
 
-    let content: unknown = mode === "external"
-      ? { external: true, url: externalUrl.trim(), title: form.getValues().name }
-      : markdownContent;
+    let content: unknown =
+      mode === 'external'
+        ? { external: true, url: externalUrl.trim(), title: form.getValues().name }
+        : markdownContent;
 
-    if (mode === "external" && !externalUrl.trim()) {
-      form.setError("name", { type: "custom", message: "External URL required" });
+    if (mode === 'external' && !externalUrl.trim()) {
+      form.setError('name', { type: 'custom', message: 'External URL required' });
       return;
     }
 
     try {
-      const session = await axios.post(
-        `/api/workspace/${workspace.groupId}/guides/create`,
-        {
-          name: form.getValues().name.trim(),
-          content,
-          roles: selectedRoles,
-          departments: selectedDepartments,
-          folderId: selectedFolderId,
-        }
-      );
-      toast.success("Document created!");
-      if (mode === "external") {
+      const session = await axios.post(`/api/workspace/${workspace.groupId}/guides/create`, {
+        name: form.getValues().name.trim(),
+        content,
+        roles: selectedRoles,
+        departments: selectedDepartments,
+        folderId: selectedFolderId,
+      });
+      toast.success('Document created!');
+      if (mode === 'external') {
         router.push(docsHref);
       } else {
         router.push(`${docsHref}/${session.data.document.id}`);
       }
     } catch (err: any) {
-      form.setError("name", {
-        type: "custom",
-        message: err?.response?.data?.error || "Failed to create",
+      form.setError('name', {
+        type: 'custom',
+        message: err?.response?.data?.error || 'Failed to create',
       });
     }
   };
 
-  const titleValue = form.watch("name") ?? "";
+  const titleValue = form.watch('name') ?? '';
 
   return (
     <>
@@ -169,18 +164,14 @@ const CreateDocument: pageWithLayout<
           <DocWritingSurface
             title={titleValue}
             onTitleChange={(v) =>
-              form.setValue("name", v, { shouldValidate: true, shouldDirty: true })
+              form.setValue('name', v, { shouldValidate: true, shouldDirty: true })
             }
             titleError={
-              form.formState.errors.name
-                ? String(form.formState.errors.name.message)
-                : undefined
+              form.formState.errors.name ? String(form.formState.errors.name.message) : undefined
             }
-            titlePlaceholder={
-              mode === "external" ? "Link title" : "Untitled document"
-            }
+            titlePlaceholder={mode === 'external' ? 'Link title' : 'Untitled document'}
             footer={
-              mode === "external" ? (
+              mode === 'external' ? (
                 <div className="flex items-center gap-2">
                   <IconWorld className="h-4 w-4 shrink-0 text-zinc-400" stroke={1.75} />
                   <input
@@ -194,7 +185,7 @@ const CreateDocument: pageWithLayout<
               ) : undefined
             }
           >
-            {mode === "internal" ? (
+            {mode === 'internal' ? (
               <MarkdownEditor
                 value={markdownContent}
                 onChange={setMarkdownContent}

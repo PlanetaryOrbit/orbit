@@ -1,29 +1,30 @@
-import type { pageWithLayout } from "@/layoutTypes";
-import { workspacestate } from "@/state";
-import Workspace from "@/layouts/workspace";
-import { useRecoilState } from "recoil";
-import prisma from "@/utils/database";
-import { withPermissionCheckSsr } from "@/utils/permissionsManager";
-import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-import { IconPencil, IconTrash, IconExternalLink, IconLink } from "@tabler/icons-react";
-import { toast } from "react-hot-toast";
-import axios from "axios";
-import { useState } from "react";
+import { IconPencil, IconTrash, IconExternalLink, IconLink } from '@tabler/icons-react';
+import axios from 'axios';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
+
+import { isExternalContent } from '@/components/docs/content';
 import {
   DocEditorPage,
   DocViewSurface,
   DocViewMeta,
   DocPermissionsSidebar,
-} from "@/components/docs/DocEditorPage";
+} from '@/components/docs/DocEditorPage';
+import { DocViewer } from '@/components/docs/DocViewer';
 import {
   DeleteDocumentModal,
   ExternalLinkModal,
   useExternalLinkModal,
-} from "@/components/docs/modals";
-import { DocViewer } from "@/components/docs/DocViewer";
-import { isExternalContent } from "@/components/docs/content";
-import { AuthenticatedRequest } from "@/lib/withAuth";
+} from '@/components/docs/modals';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import { workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 type Props = {
   document: any;
@@ -31,78 +32,68 @@ type Props = {
   canDelete: boolean;
 };
 
-export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
-  async (context) => {
-    const { gid, id } = context.query;
-    const authReq = context.req as AuthenticatedRequest;
-    if (!gid || !id) return { notFound: true };
+export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(async (context) => {
+  const { gid, id } = context.query;
+  const authReq = context.req as AuthenticatedRequest;
+  if (!gid || !id) return { notFound: true };
 
-    const workspaceGroupId = parseInt(id as string);
+  const workspaceGroupId = parseInt(id as string);
 
-    const [user, guide, membership] = await Promise.all([
-      prisma.user.findUnique({
-        where: { userid: BigInt(authReq.auth.userId) },
-        include: {
-          roles: { where: { workspaceGroupId } },
-        },
-      }),
-      prisma.document.findUnique({
-        where: { id: gid as string },
-        include: {
-          owner: { select: { userid: true, username: true, picture: true } },
-          roles: true,
-          departments: true,
-        },
-      }),
-      prisma.workspaceMember.findFirst({
-        where: {
-          workspaceGroupId,
-          userId: BigInt(authReq.auth.userId),
-        },
-        include: { departmentMembers: true },
-      }),
-    ]);
-
-    if (!guide || guide.requiresAcknowledgment) return { notFound: true };
-
-    const userRoles = user?.roles || [];
-    const isAdmin = membership?.isAdmin || false;
-    const isOwner = userRoles.some((r: any) => r.isOwnerRole);
-    const canEdit =
-      isAdmin || userRoles.some((r: any) => r.permissions?.includes("edit_docs"));
-    const canDelete =
-      isAdmin || userRoles.some((r: any) => r.permissions?.includes("delete_docs"));
-    const canManageDocs =
-      canEdit ||
-      canDelete ||
-      userRoles.some((r: any) => r.permissions?.includes("create_docs"));
-
-    const userRoleIds = userRoles.map((r: any) => r.id);
-    const userDepartmentIds =
-      membership?.departmentMembers.map((d) => d.departmentId) ?? [];
-
-    const hasRoleAccess = guide.roles.some((gr) => userRoleIds.includes(gr.id));
-    const hasDeptAccess = guide.departments.some((gd) =>
-      userDepartmentIds.includes(gd.id)
-    );
-    const isOpenToAll =
-      guide.roles.length === 0 && guide.departments.length === 0;
-
-    if (!isOwner && !canManageDocs && !isOpenToAll && !hasRoleAccess && !hasDeptAccess) {
-      return { notFound: true };
-    }
-
-    return {
-      props: {
-        document: JSON.parse(
-          JSON.stringify(guide, (_k, v) => (typeof v === "bigint" ? v.toString() : v))
-        ),
-        canEdit,
-        canDelete,
+  const [user, guide, membership] = await Promise.all([
+    prisma.user.findUnique({
+      where: { userid: BigInt(authReq.auth.userId) },
+      include: {
+        roles: { where: { workspaceGroupId } },
       },
-    };
+    }),
+    prisma.document.findUnique({
+      where: { id: gid as string },
+      include: {
+        owner: { select: { userid: true, username: true, picture: true } },
+        roles: true,
+        departments: true,
+      },
+    }),
+    prisma.workspaceMember.findFirst({
+      where: {
+        workspaceGroupId,
+        userId: BigInt(authReq.auth.userId),
+      },
+      include: { departmentMembers: true },
+    }),
+  ]);
+
+  if (!guide || guide.requiresAcknowledgment) return { notFound: true };
+
+  const userRoles = user?.roles || [];
+  const isAdmin = membership?.isAdmin || false;
+  const isOwner = userRoles.some((r: any) => r.isOwnerRole);
+  const canEdit = isAdmin || userRoles.some((r: any) => r.permissions?.includes('edit_docs'));
+  const canDelete = isAdmin || userRoles.some((r: any) => r.permissions?.includes('delete_docs'));
+  const canManageDocs =
+    canEdit || canDelete || userRoles.some((r: any) => r.permissions?.includes('create_docs'));
+
+  const userRoleIds = userRoles.map((r: any) => r.id);
+  const userDepartmentIds = membership?.departmentMembers.map((d) => d.departmentId) ?? [];
+
+  const hasRoleAccess = guide.roles.some((gr) => userRoleIds.includes(gr.id));
+  const hasDeptAccess = guide.departments.some((gd) => userDepartmentIds.includes(gd.id));
+  const isOpenToAll = guide.roles.length === 0 && guide.departments.length === 0;
+
+  if (!isOwner && !canManageDocs && !isOpenToAll && !hasRoleAccess && !hasDeptAccess) {
+    return { notFound: true };
   }
-);
+
+  return {
+    props: {
+      document: JSON.parse(
+        JSON.stringify(guide, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)),
+      ),
+      canEdit,
+      canDelete,
+    },
+  };
+});
 
 const ViewDocument: pageWithLayout<Props> = ({ document, canEdit, canDelete }) => {
   const [workspace] = useRecoilState(workspacestate);
@@ -113,20 +104,17 @@ const ViewDocument: pageWithLayout<Props> = ({ document, canEdit, canDelete }) =
 
   const docsHref = `/workspace/${workspace.groupId}/docs`;
   const external = isExternalContent(document.content);
-  const authorName = document.owner?.username ?? "Unknown";
+  const authorName = document.owner?.username ?? 'Unknown';
   const authorId = document.owner?.userid;
 
   const deleteDoc = async () => {
     setDeleting(true);
     try {
-      await axios.post(
-        `/api/workspace/${workspace.groupId}/guides/${document.id}/delete`,
-        {}
-      );
-      toast.success("Document deleted");
+      await axios.post(`/api/workspace/${workspace.groupId}/guides/${document.id}/delete`, {});
+      toast.success('Document deleted');
       router.push(docsHref);
     } catch {
-      toast.error("Failed to delete document");
+      toast.error('Failed to delete document');
       setDeleting(false);
     }
   };

@@ -1,30 +1,31 @@
-import { Fragment } from "react";
-import moment from "moment";
-import { Dialog, Transition } from "@headlessui/react";
-import { IconClock, IconMessageCircle2 } from "@tabler/icons-react";
-import { normalizeChatLogLines } from "@/utils/activitySessionChat";
+import { Dialog, Transition } from '@headlessui/react';
+import { IconClock, IconMessageCircle2 } from '@tabler/icons-react';
+import moment from 'moment';
+import { Fragment } from 'react';
+
+import { normalizeChatLogLines } from '@/utils/activitySessionChat';
 
 const BG_COLORS = [
-  "bg-rose-300",
-  "bg-lime-300",
-  "bg-teal-200",
-  "bg-amber-300",
-  "bg-rose-200",
-  "bg-lime-200",
-  "bg-green-100",
-  "bg-red-100",
-  "bg-yellow-200",
-  "bg-amber-200",
-  "bg-emerald-300",
-  "bg-green-300",
-  "bg-red-300",
-  "bg-emerald-200",
-  "bg-green-200",
-  "bg-red-200",
+  'bg-rose-300',
+  'bg-lime-300',
+  'bg-teal-200',
+  'bg-amber-300',
+  'bg-rose-200',
+  'bg-lime-200',
+  'bg-green-100',
+  'bg-red-100',
+  'bg-yellow-200',
+  'bg-amber-200',
+  'bg-emerald-300',
+  'bg-green-300',
+  'bg-red-300',
+  'bg-emerald-200',
+  'bg-green-200',
+  'bg-red-200',
 ];
 
 function avatarRingBg(userid: string, username?: string) {
-  const key = `${userid ?? ""}:${username ?? ""}`;
+  const key = `${userid ?? ''}:${username ?? ''}`;
   let hash = 5381;
   for (let i = 0; i < key.length; i++) {
     hash = ((hash << 5) - hash) ^ key.charCodeAt(i);
@@ -54,27 +55,28 @@ export function ActivitySessionDetailsDialog({
   concurrentUsers,
   idleTimeEnabled,
 }: ActivitySessionDetailsDialogProps) {
-  const title =
-    session?.sessionMessage || universe?.name || "Unknown experience";
+  const title = session?.sessionMessage || universe?.name || 'Unknown experience';
   const chatLines = normalizeChatLogLines(session?.chatLog);
-  const messageCountFallback = typeof session?.messages === "number" ? session.messages : Number(session?.messages) || 0;
+  const messageCountFallback =
+    typeof session?.messages === 'number' ? session.messages : Number(session?.messages) || 0;
 
-  let durationLabel = "—";
-  let durationSub = "Duration";
+  let durationLabel = '—';
+  let durationSub = 'Duration';
   if (session?.endTime && session?.startTime) {
     const minutes = Math.floor(
-      moment.duration(moment(session.endTime).diff(moment(session.startTime))).asMinutes()
+      moment.duration(moment(session.endTime).diff(moment(session.startTime))).asMinutes(),
     );
     durationLabel = `${minutes}`;
-    durationSub = `${minutes === 1 ? "minute" : "minutes"} total`;
+    durationSub = `${minutes === 1 ? 'minute' : 'minutes'} total`;
   } else if (session?.startTime && !session?.endTime) {
-    durationLabel = "Live";
-    durationSub = "Session ongoing";
+    durationLabel = 'Live';
+    durationSub = 'Session ongoing';
   }
 
-  const idleVal = typeof session?.idleTime === "bigint"
-    ? Number(session.idleTime)
-    : Number(session?.idleTime ?? 0);
+  const idleVal =
+    typeof session?.idleTime === 'bigint'
+      ? Number(session.idleTime)
+      : Number(session?.idleTime ?? 0);
 
   const hasTranscript = chatLines.length > 0;
 
@@ -116,7 +118,7 @@ export function ActivitySessionDetailsDialog({
                       className="absolute inset-0 opacity-85"
                       style={{
                         background:
-                          "linear-gradient(135deg, rgb(var(--group-theme) / 0.65) 0%, transparent 55%, rgba(0,0,0,0.5) 100%)",
+                          'linear-gradient(135deg, rgb(var(--group-theme) / 0.65) 0%, transparent 55%, rgba(0,0,0,0.5) 100%)',
                       }}
                     />
                   </div>
@@ -125,7 +127,7 @@ export function ActivitySessionDetailsDialog({
                     className="h-28 w-full"
                     style={{
                       background:
-                        "linear-gradient(135deg, rgb(var(--group-theme)) 0%, rgb(var(--group-theme) / 0.4) 100%)",
+                        'linear-gradient(135deg, rgb(var(--group-theme)) 0%, rgb(var(--group-theme) / 0.4) 100%)',
                     }}
                   />
                 )}
@@ -162,14 +164,14 @@ export function ActivitySessionDetailsDialog({
                             key={String(user.userId)}
                             className={`h-8 w-8 shrink-0 overflow-hidden rounded-full bg-cover bg-center ring-2 ring-white dark:ring-zinc-900 ${avatarRingBg(
                               String(user.userId),
-                              user.username
+                              user.username,
                             )}`}
                             style={{
-                              backgroundImage: `url(${user.picture || "/default-avatar.jpg"})`,
+                              backgroundImage: `url(${user.picture || '/default-avatar.jpg'})`,
                             }}
                             title={user.username}
                             role="img"
-                            aria-label={user.username || "User"}
+                            aria-label={user.username || 'User'}
                           />
                         ))}
                       </div>
@@ -199,7 +201,7 @@ export function ActivitySessionDetailsDialog({
                               {idleVal}
                             </p>
                             <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                              Idle {idleVal === 1 ? "minute" : "minutes"}
+                              Idle {idleVal === 1 ? 'minute' : 'minutes'}
                             </p>
                           </div>
                         ) : (
@@ -208,7 +210,7 @@ export function ActivitySessionDetailsDialog({
                               {hasTranscript ? chatLines.length : messageCountFallback}
                             </p>
                             <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                              {hasTranscript ? "Lines in chat transcript" : "Messages (total)"}
+                              {hasTranscript ? 'Lines in chat transcript' : 'Messages (total)'}
                             </p>
                           </div>
                         )}
@@ -217,7 +219,9 @@ export function ActivitySessionDetailsDialog({
                       {idleTimeEnabled && (
                         <div className="mt-3 rounded-xl border border-dashed border-zinc-200 bg-white/60 px-3 py-2 text-center dark:border-zinc-700 dark:bg-zinc-800/30">
                           <span className="text-xs font-medium tabular-nums text-zinc-600 dark:text-zinc-300">
-                            <span className="text-zinc-400 dark:text-zinc-500">Messages logged: </span>
+                            <span className="text-zinc-400 dark:text-zinc-500">
+                              Messages logged:{' '}
+                            </span>
                             {messageCountFallback}
                           </span>
                         </div>
@@ -225,18 +229,13 @@ export function ActivitySessionDetailsDialog({
 
                       <div className="mt-4">
                         <div className="mb-2 flex items-center gap-2">
-                          <IconMessageCircle2
-                            className="h-4 w-4 text-primary"
-                            stroke={1.75}
-                          />
+                          <IconMessageCircle2 className="h-4 w-4 text-primary" stroke={1.75} />
                           <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                             Chat
                           </span>
                         </div>
                         {hasTranscript ? (
-                          <ul
-                            className="max-h-[min(42vh,340px)] space-y-2 overflow-y-auto rounded-xl border border-zinc-200/90 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-950/40"
-                          >
+                          <ul className="max-h-[min(42vh,340px)] space-y-2 overflow-y-auto rounded-xl border border-zinc-200/90 bg-white p-2 dark:border-zinc-700 dark:bg-zinc-950/40">
                             {chatLines.map((line, i) => (
                               <li
                                 key={`${i}-${line.slice(0, 24)}`}
@@ -250,8 +249,8 @@ export function ActivitySessionDetailsDialog({
                           <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/50 px-3 py-4 text-center dark:border-zinc-700 dark:bg-zinc-800/35">
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
                               {messageCountFallback > 0
-                                ? "Only a total message count was stored for this session. When your game sends a chat transcript on session end, lines appear here."
-                                : "No chat was recorded for this session."}
+                                ? 'Only a total message count was stored for this session. When your game sends a chat transcript on session end, lines appear here.'
+                                : 'No chat was recorded for this session.'}
                             </p>
                           </div>
                         )}
