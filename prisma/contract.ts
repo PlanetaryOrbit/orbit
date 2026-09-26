@@ -28,7 +28,7 @@ export const contract = defineContract({}, ({ field, model }) => {
     },
   });
 
-  const InstanceSettings = model('InstanceSettings', {
+  const Instance = model('Instance', {
     fields: {
       id: field.id.cuid2(),
       name: field.text().default('Orbit'),
@@ -144,7 +144,16 @@ export const contract = defineContract({}, ({ field, model }) => {
         ],
       })),
 
-      InstanceSettings,
+      Instance: Instance.sql(({ cols, constraints }) => ({
+        indexes: [
+          constraints.index([cols.createdAt], {
+            name: 'Instance_createdAt_idx',
+          }),
+          constraints.index([cols.name], {
+            name: 'Instance_name_idx',
+          }),
+        ],
+      })),
 
       Media: Media.sql(({ cols, constraints }) => ({
         indexes: [
