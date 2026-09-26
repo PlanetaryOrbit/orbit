@@ -8,7 +8,7 @@ export const contract = defineContract({}, ({ field, model }) => {
       robloxId: field.bigint().unique(),
       robloxData: field.json().optional(),
       discordData: field.json().optional(),
-      googleData: field.json().optional(),
+      fluxxerData: field.json().optional(),
       banned: field.boolean().default(false),
       bannedAt: field.temporal.timestamp().optional(),
       bannedFor: field.text().optional(),
