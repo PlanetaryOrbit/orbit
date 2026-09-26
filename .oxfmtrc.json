@@ -13,5 +13,6 @@
   "endOfLine": "lf",
   "quoteProps": "as-needed",
   "jsxSingleQuote": false,
-  "vueIndentScriptAndStyle": false
+  "vueIndentScriptAndStyle": false,
+  "ignorePatterns": ["prisma/"]
 }
