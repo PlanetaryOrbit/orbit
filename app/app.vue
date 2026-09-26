@@ -17,27 +17,25 @@ const authBackground = computed(() => {
 
 <template>
   <NuxtLayout>
-    <header
-      class="sticky top-0 z-50 border-b border-ctp-surface0 bg-ctp-crust/80 backdrop-blur-xl select-none"
-    >
-      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <NuxtLink to="/" :aria-label="settings.name" class="flex items-center gap-3">
+    <header class="orbit-header">
+      <div class="orbit-header__inner">
+        <NuxtLink to="/" :aria-label="settings.name" class="orbit-header__brand">
           <img
             :src="settings.logoUrl"
             :alt="settings.name"
             width="40"
             height="40"
-            class="h-10 w-10 object-contain"
+            class="orbit-header__logo"
             loading="eager"
             fetchpriority="high"
           />
 
-          <span class="text-lg font-semibold text-ctp-text">
+          <span class="orbit-header__name">
             {{ settings.name }}
           </span>
         </NuxtLink>
 
-        <div class="flex items-center gap-3">
+        <nav class="orbit-header__actions" aria-label="Main navigation">
           <Button
             variant="ghost"
             size="md"
@@ -47,11 +45,11 @@ const authBackground = computed(() => {
             @click="toggle"
           />
 
-          <div v-if="user">
-            <!-- User menu -->
-          </div>
+          <template v-if="user">
+            <!-- use thing -->
+          </template>
 
-          <div v-else class="flex items-center gap-3">
+          <template v-else>
             <Button v-if="settings.allowPasswordAuth" variant="ghost" href="/login">
               Log in
             </Button>
@@ -64,8 +62,8 @@ const authBackground = computed(() => {
             >
               Sign Up
             </Button>
-          </div>
-        </div>
+          </template>
+        </nav>
       </div>
     </header>
 

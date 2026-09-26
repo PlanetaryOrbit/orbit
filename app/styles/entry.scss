@@ -1,1 +1,29 @@
-@use 'normalize.scss';
+@use 'normalize';
+@use 'themes';
+@use 'tokens' as *;
+@use 'components';
+@use 'vue-sonner/style.css';
+
+body {
+  min-block-size: 100vh;
+  background-color: var(--slate-950);
+  color: var(--slate-50);
+  font-family: $font-sans;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: var(--pink-700);
+  color: var(--pink-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,0 +1,5 @@
+@forward 'dark';
+@forward 'light';
+html {
+  --color-primary: #fb019c; // fallback incase something breaks
+}

@@ -1,5 +1,3 @@
-import tailwindcss from '@tailwindcss/vite';
-
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
@@ -15,9 +13,7 @@ export default defineNuxtConfig({
     experimental: {
       websocket: true,
     },
-
     compressPublicAssets: true,
-
     minify: true,
   },
 
@@ -30,7 +26,7 @@ export default defineNuxtConfig({
 
   vite: {
     build: {
-      target: 'es2022',
+      target: 'baseline-widely-available',
       cssMinify: 'lightningcss',
       minify: 'esbuild',
       sourcemap: false,

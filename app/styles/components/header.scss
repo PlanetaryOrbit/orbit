@@ -1,0 +1,194 @@
+.orbit-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 50;
+  user-select: none;
+  background: color-mix(in oklch, var(--slate-950) 88%, transparent);
+  border-block-end: 1px solid var(--slate-800);
+  box-shadow:
+    0 1px 0 color-mix(in oklch, var(--slate-700) 35%, transparent),
+    0 8px 24px color-mix(in oklch, var(--gray-950) 12%, transparent);
+  backdrop-filter: blur(20px) saturate(1.15);
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--slate-950);
+  }
+  &__inner {
+    width: min(calc(100% - 3rem), 80rem);
+    min-block-size: 4rem;
+
+    margin-inline: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__brand {
+    min-width: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    color: var(--slate-50);
+    text-decoration: none;
+
+    border-radius: 0.5rem;
+
+    outline: none;
+
+    &:hover {
+      color: var(--slate-50);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--pink-400);
+      outline-offset: 4px;
+    }
+
+    &:active {
+      opacity: 0.85;
+    }
+  }
+
+  &__logo {
+    display: block;
+
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+
+    flex: 0 0 2.5rem;
+
+    object-fit: contain;
+
+    border-radius: 0.5rem;
+  }
+
+  &__name {
+    min-width: 0;
+
+    overflow: hidden;
+
+    color: var(--slate-50);
+
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    &__inner {
+      width: min(calc(100% - 2rem), 80rem);
+    }
+
+    &__actions {
+      gap: 0.5rem;
+    }
+
+    &__name {
+      max-inline-size: 30vw;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__inner {
+      width: min(calc(100% - 1.5rem), 80rem);
+    }
+
+    &__brand {
+      gap: 0.625rem;
+    }
+
+    &__logo {
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+
+      flex-basis: 2.25rem;
+    }
+
+    &__name {
+      max-inline-size: 25vw;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    &__name {
+      max-inline-size: 20vw;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    background: var(--slate-950);
+
+    border-block-end-color: var(--slate-700);
+
+    box-shadow: none;
+
+    &__brand:focus-visible {
+      outline-width: 3px;
+      outline-offset: 3px;
+    }
+  }
+
+  @media (forced-colors: active) {
+    background: Canvas;
+    border-block-end-color: CanvasText;
+
+    box-shadow: none;
+
+    &__brand {
+      color: CanvasText;
+
+      &:focus-visible {
+        outline: 2px solid Highlight;
+      }
+    }
+
+    &__name {
+      color: CanvasText;
+    }
+
+    &__logo {
+      forced-color-adjust: auto;
+    }
+  }
+
+  @media print {
+    position: static;
+
+    background: none;
+    border-block-end: 1px solid #000;
+    box-shadow: none;
+
+    backdrop-filter: none;
+
+    &__inner {
+      width: 100%;
+      min-block-size: auto;
+      padding-block: 0.5rem;
+    }
+
+    &__actions {
+      display: none;
+    }
+
+    &__brand,
+    &__name {
+      color: #000;
+    }
+  }
+}
