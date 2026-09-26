@@ -2,7 +2,7 @@ import type { FieldOutputTypes } from '@@/prisma/contract.d';
 import { db } from '~~/server/database/client';
 import cache from '~~/server/utils/cache';
 
-export type InstanceSettings = FieldOutputTypes['public']['InstanceSettings'];
+export type InstanceSettings = FieldOutputTypes['public']['Instance'];
 
 type InstanceSettingsData = Omit<InstanceSettings, 'id' | 'createdAt' | 'updatedAt'>;
 

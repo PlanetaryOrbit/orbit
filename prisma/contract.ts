@@ -120,8 +120,8 @@ export const contract = defineContract({}, ({ field, model }) => {
           constraints.index([cols.discordData], {
             name: 'User_discordData_idx',
           }),
-          constraints.index([cols.googleData], {
-            name: 'User_googleData_idx',
+          constraints.index([cols.fluxxerData], {
+            name: 'User_fluxxerData_idx',
           }),
           constraints.index([cols.robloxData], {
             name: 'User_robloxData_idx',
