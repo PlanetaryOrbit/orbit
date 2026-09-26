@@ -6,7 +6,7 @@
   display: grid;
   place-items: center;
   inline-size: 100%;
-  min-block-size: calc(100vh - 1rem);
+  min-block-size: 100dvh;
   padding: 3rem 1.5rem;
   text-align: center;
 
@@ -64,23 +64,8 @@
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    &__icon {
-      transition: none;
-    }
-  }
-
   @media (forced-colors: active) {
-    &__icon {
-      border-color: CanvasText;
-      background: Canvas;
-      color: CanvasText;
-    }
-
-    &__code {
-      color: CanvasText;
-    }
-
+    &__code,
     &__title,
     &__message {
       color: CanvasText;

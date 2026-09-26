@@ -23,6 +23,7 @@
   "dependencies": {
     "@nuxt/fonts": "0.14.0",
     "@nuxt/image": "2.1.0",
+    "@nuxtjs/i18n": "10.6.0",
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "@tabler/icons-vue": "^3.46.0",
     "@tailwindcss/postcss": "^4.3.3",

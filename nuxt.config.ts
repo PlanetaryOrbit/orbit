@@ -78,5 +78,5 @@ export default defineNuxtConfig({
 
   css: ['~/styles/entry.scss', 'vue-sonner/style.css'],
 
-  modules: ['@nuxt/image', '@nuxt/fonts'],
+  modules: ['@nuxt/image', '@nuxt/fonts', '@nuxtjs/i18n'],
 });

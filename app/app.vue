@@ -6,13 +6,26 @@ import Button from '~/components/ui/Button.vue';
 
 const { isDark, toggle } = useTheme();
 const { settings } = useInstance();
-const user = null;
+const { user, refreshUser } = useUser();
+await refreshUser();
 
-const authBackground = computed(() => {
+const instanceBackground = computed(() => {
   return isDark.value
     ? (settings.value.darkBackground ?? settings.value.lightBackground)
     : (settings.value.lightBackground ?? settings.value.darkBackground);
 });
+
+useHead(() => ({
+  titleTemplate: (pageTitle) =>
+    pageTitle ? `${pageTitle} - ${settings.value.name}` : settings.value.name,
+  link: [
+    {
+      rel: 'icon',
+      type: 'image/png',
+      href: settings.value.logoUrl,
+    },
+  ],
+}));
 </script>
 
 <template>
@@ -46,7 +59,7 @@ const authBackground = computed(() => {
           />
 
           <template v-if="user">
-            <!-- use thing -->
+            <!-- user thing -->
           </template>
 
           <template v-else>
@@ -68,10 +81,8 @@ const authBackground = computed(() => {
     </header>
 
     <main>
-      <div v-if="!authBackground" class="orbit-background" />
-
-      <img v-else :src="authBackground" alt="" class="orbit-background" />
-
+      <div v-if="!instanceBackground" class="orbit-background" />
+      <img v-else :src="instanceBackground" alt="" class="orbit-background" />
       <div class="page">
         <NuxtPage />
       </div>

@@ -49,6 +49,7 @@ main {
 }
 
 .page {
+  position: relative;
   z-index: 10;
   inline-size: 100%;
   min-block-size: 100vh;
