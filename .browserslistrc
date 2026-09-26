@@ -1,0 +1,17 @@
+[production]
+> 0.5%
+last 2 versions
+not dead
+not ie 11
+
+[development]
+last 1 chrome version
+
+[orbit]
+chrome >= 120
+edge >= 120
+firefox >= 120
+safari >= 17
+ios_saf >= 17
+opera >= 106
+samsung >= 25

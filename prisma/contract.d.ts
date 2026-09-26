@@ -3,17 +3,6 @@
 // To regenerate, run: prisma contract emit
 import type { QueryOperationTypes as PgAdapterQueryOps } from '@prisma/orm-postgres/adapter/operation-types';
 import type {
-  Contract as ContractType,
-  ExecutionHashBase,
-  NamespaceId,
-  ProfileHashBase,
-  StorageHashBase,
-} from '@prisma/orm-postgres/contract/types';
-import type {
-  ContractWithTypeMaps,
-  TypeMaps as TypeMapsType,
-} from '@prisma/orm-postgres/family-contract/types';
-import type {
   Bit,
   Char,
   CodecTypes as PgTypes,
@@ -30,6 +19,18 @@ import type {
   VarBit,
   Varchar,
 } from '@prisma/orm-postgres/target/codec-types';
+
+import type {
+  ContractWithTypeMaps,
+  TypeMaps as TypeMapsType,
+} from '@prisma/orm-postgres/family-contract/types';
+import type {
+  Contract as ContractType,
+  ExecutionHashBase,
+  NamespaceId,
+  ProfileHashBase,
+  StorageHashBase,
+} from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
   StorageHashBase<'6dff90f9a1f074ce4f5ca78e36892052b44ba5d54c12ae04d2814b5103c82fd4'>;

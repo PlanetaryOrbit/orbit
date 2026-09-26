@@ -29,20 +29,13 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()],
     build: {
       target: 'es2022',
-
       cssMinify: 'lightningcss',
-
       minify: 'esbuild',
-
       sourcemap: false,
-
       reportCompressedSize: false,
-
       cssCodeSplit: true,
-
       modulePreload: {
         polyfill: false,
       },
@@ -59,10 +52,6 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'en',
         translate: 'no',
-      },
-
-      bodyAttrs: {
-        class: 'bg-ctp-crust text-ctp-text font-sans antialiased',
       },
 
       meta: [
@@ -91,7 +80,7 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/styles.css', 'vue-sonner/style.css'],
+  css: ['~/styles/entry.scss', 'vue-sonner/style.css'],
 
   modules: ['@nuxt/image', '@nuxt/fonts'],
 });
