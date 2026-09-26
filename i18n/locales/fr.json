@@ -8,5 +8,35 @@
       }
     ],
     "lastUpdated": "2026-09-26"
+  },
+  "common": {
+    "actions": {
+      "back": "Retourner",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "save": "Enregistrer"
+    },
+    "language": "Langue",
+    "navigation": {
+      "actions": "Navigateur"
+    }
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "S'inscrire"
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "Aucun accès!",
+      "message": "Vous avez besoin de se connexion pour voir cette page."
+    },
+    "forbidden": {
+      "title": "Accès refusé",
+      "message": "Vous n'avez pas des autorisations pour accèder cette page."
+    },
+    "noWorkspaces": {
+      "title": "Aucun Workspaces",
+      "message": "Vous ne disposez aucun d'accès aux workspaces au moment."
+    }
   }
 }
