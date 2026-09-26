@@ -1,0 +1,42 @@
+{
+  "$meta": {
+    "locale": "en-US",
+    "maintainers": [
+      {
+        "github": "buddywinte",
+        "discordId": "1357429661834936510"
+      }
+    ],
+    "lastUpdated": "2026-09-26"
+  },
+  "common": {
+    "actions": {
+      "back": "Go back",
+      "cancel": "Cancel",
+      "close": "Close",
+      "save": "Save"
+    },
+    "language": "Language",
+    "navigation": {
+      "actions": "Navigation"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign up"
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "No Access!",
+      "message": "You need to sign in to view this page."
+    },
+    "forbidden": {
+      "title": "Access Denied",
+      "message": "You don't have permission to access this page."
+    },
+    "noWorkspaces": {
+      "title": "No Workspaces",
+      "message": "You don't have access to any workspaces yet."
+    }
+  }
+}

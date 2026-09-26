@@ -7,16 +7,19 @@ const { user } = useUser();
 
 const hasPermission = true;
 const hasWorkspaces = true;
+const { t } = useI18n();
 </script>
 
 <template>
   <div v-if="!user" class="error-page">
     <div class="error-page__content">
       <span class="error-page__code">401</span>
-      <h1 class="error-page__title">No Access!</h1>
-      <p class="error-page__message">You need to sign in to view this page.</p>
+      <h1 class="error-page__title">{{ t('errors.unauthorized.title') }}</h1>
+      <p class="error-page__message">{{ t('errors.unauthorized.message') }}</p>
       <div class="error-page__actions">
-        <Button variant="primary" size="lg" :icon="IconUserPlus" href="/login"> Sign in </Button>
+        <Button variant="primary" size="lg" :icon="IconUserPlus" href="/login">{{
+          t('auth.login')
+        }}</Button>
       </div>
     </div>
   </div>
@@ -24,10 +27,10 @@ const hasWorkspaces = true;
   <div v-else-if="!hasPermission" class="error-page">
     <div class="error-page__content">
       <span class="error-page__code">403</span>
-      <h1 class="error-page__title">Access Denied</h1>
-      <p class="error-page__message">You don't have permission to access this page.</p>
+      <h1 class="error-page__title">{{ t('errors.forbidden.title') }}</h1>
+      <p class="error-page__message">{{ t('errors.forbidden.message') }}</p>
       <div class="error-page__actions">
-        <Button variant="ghost" size="lg" href="/"> Go home </Button>
+        <Button variant="ghost" size="lg" href="/">{{ t('actions.common.back') }}</Button>
       </div>
     </div>
   </div>
@@ -35,10 +38,10 @@ const hasWorkspaces = true;
   <div v-else-if="!hasWorkspaces" class="error-page">
     <div class="error-page__content">
       <span class="error-page__code">—</span>
-      <h1 class="error-page__title">No Workspaces</h1>
-      <p class="error-page__message">You don't have access to any workspaces yet.</p>
+      <h1 class="error-page__title">{{ t('errors.noWorkspaces.title') }}</h1>
+      <p class="error-page__message">{{ t('errors.noWorkspaces.message') }}</p>
       <div class="error-page__actions">
-        <Button variant="ghost" size="lg" href="/"> Go home </Button>
+        <Button variant="ghost" size="lg" href="/">{{ t('actions.common.back') }}</Button>
       </div>
     </div>
   </div>

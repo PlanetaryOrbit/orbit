@@ -46,10 +46,8 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: {
-        lang: 'en',
         translate: 'no',
       },
-
       meta: [
         {
           charset: 'utf-8',
@@ -79,4 +77,55 @@ export default defineNuxtConfig({
   css: ['~/styles/entry.scss', 'vue-sonner/style.css'],
 
   modules: ['@nuxt/image', '@nuxt/fonts', '@nuxtjs/i18n'],
+
+  i18n: {
+    defaultLocale: 'en',
+    strategy: 'prefix_except_default',
+    locales: [
+      {
+        code: 'en',
+        name: 'English',
+        language: 'en-US',
+        file: 'en.json',
+        dir: 'ltr',
+      },
+      {
+        code: 'de',
+        name: 'Deutsch',
+        language: 'de-DE',
+        file: 'de.json',
+        dir: 'ltr',
+      },
+      {
+        code: 'cs',
+        name: 'Čeština',
+        language: 'cs-CZ',
+        file: 'cs.json',
+        dir: 'ltr',
+      },
+      {
+        code: 'fr',
+        name: 'Français',
+        language: 'fr-FR',
+        file: 'fr.json',
+        dir: 'ltr',
+      },
+      {
+        code: 'ur',
+        name: 'اردو',
+        language: 'ur-PK',
+        file: 'ur.json',
+        dir: 'rtl',
+      },
+    ],
+
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'locale',
+      redirectOn: 'root',
+      fallbackLocale: 'en',
+    },
+
+    defaultDirection: 'ltr',
+  },
 });

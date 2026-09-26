@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { IconMoon, IconSun, IconUserPlus } from '@tabler/icons-vue';
+import { IconLanguage, IconUserPlus } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
 import Button from '~/components/ui/Button.vue';
 
-const { isDark, toggle } = useTheme();
+const { isDark } = useTheme();
 const { settings } = useInstance();
 const { user, refreshUser } = useUser();
+const { t, locale, locales } = useI18n();
+const switchLocalePath = useSwitchLocalePath();
+
 await refreshUser();
 
 const instanceBackground = computed(() => {
@@ -15,7 +18,26 @@ const instanceBackground = computed(() => {
     : (settings.value.lightBackground ?? settings.value.darkBackground);
 });
 
+const i18nHead = useLocaleHead({
+  dir: true,
+  lang: true,
+});
+
+async function changeLocale() {
+  const otherLocale = locales.value.find((item) => item.code !== locale.value);
+
+  if (!otherLocale) {
+    return;
+  }
+
+  await navigateTo(switchLocalePath(otherLocale.code));
+}
+
 useHead(() => ({
+  htmlAttrs: {
+    dir: i18nHead.value.htmlAttrs.dir,
+    lang: i18nHead.value.htmlAttrs.lang,
+  },
   titleTemplate: (pageTitle) =>
     pageTitle ? `${pageTitle} - ${settings.value.name}` : settings.value.name,
   link: [
@@ -48,15 +70,16 @@ useHead(() => ({
           </span>
         </NuxtLink>
 
-        <nav class="orbit-header__actions" aria-label="Main navigation">
+        <nav class="orbit-header__actions" :aria-label="t('common.navigation.actions')">
           <Button
             variant="ghost"
             size="md"
-            aria-label="Toggle theme"
-            icon-only
-            :icon="isDark ? IconSun : IconMoon"
-            @click="toggle"
-          />
+            :icon="IconLanguage"
+            :aria-label="t('common.language')"
+            @click="changeLocale"
+          >
+            {{ locales.find((item) => item.code !== locale)?.name }}
+          </Button>
 
           <template v-if="user">
             <!-- user thing -->
@@ -64,7 +87,7 @@ useHead(() => ({
 
           <template v-else>
             <Button v-if="settings.allowPasswordAuth" variant="ghost" href="/login">
-              Log in
+              {{ t('auth.login') }}
             </Button>
 
             <Button
@@ -73,7 +96,7 @@ useHead(() => ({
               href="/signup"
               :icon="IconUserPlus"
             >
-              Sign Up
+              {{ t('auth.signup') }}
             </Button>
           </template>
         </nav>
@@ -83,6 +106,7 @@ useHead(() => ({
     <main>
       <div v-if="!instanceBackground" class="orbit-background" />
       <img v-else :src="instanceBackground" alt="" class="orbit-background" />
+
       <div class="page">
         <NuxtPage />
       </div>

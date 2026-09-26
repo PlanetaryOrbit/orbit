@@ -8,9 +8,11 @@
     0 1px 0 color-mix(in oklch, var(--slate-700) 35%, transparent),
     0 8px 24px color-mix(in oklch, var(--gray-950) 12%, transparent);
   backdrop-filter: blur(20px) saturate(1.15);
+
   @supports not (backdrop-filter: blur(1px)) {
     background: var(--slate-950);
   }
+
   &__inner {
     width: min(calc(100% - 3rem), 80rem);
     min-block-size: 4rem;
@@ -23,16 +25,12 @@
 
   &__brand {
     min-width: 0;
-
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-
     color: var(--slate-50);
     text-decoration: none;
-
     border-radius: 0.5rem;
-
     outline: none;
 
     &:hover {
@@ -51,28 +49,20 @@
 
   &__logo {
     display: block;
-
     inline-size: 2.5rem;
     block-size: 2.5rem;
-
     flex: 0 0 2.5rem;
-
     object-fit: contain;
-
     border-radius: 0.5rem;
   }
 
   &__name {
     min-width: 0;
-
     overflow: hidden;
-
     color: var(--slate-50);
-
     font-size: 1.125rem;
     font-weight: 600;
     line-height: 1.25;
-
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -82,7 +72,6 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.75rem;
-
     flex-shrink: 0;
   }
 
@@ -112,7 +101,6 @@
     &__logo {
       inline-size: 2.25rem;
       block-size: 2.25rem;
-
       flex-basis: 2.25rem;
     }
 
@@ -130,9 +118,7 @@
 
   @media (prefers-contrast: more) {
     background: var(--slate-950);
-
     border-block-end-color: var(--slate-700);
-
     box-shadow: none;
 
     &__brand:focus-visible {
@@ -144,7 +130,6 @@
   @media (forced-colors: active) {
     background: Canvas;
     border-block-end-color: CanvasText;
-
     box-shadow: none;
 
     &__brand {
@@ -166,11 +151,9 @@
 
   @media print {
     position: static;
-
     background: none;
     border-block-end: 1px solid #000;
     box-shadow: none;
-
     backdrop-filter: none;
 
     &__inner {
