@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconLanguage } from '@tabler/icons-vue';
+import { IconLanguage, IconUserPlus } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
 import Button from '~/components/ui/Button.vue';
@@ -28,9 +28,9 @@ const currentLocale = computed(() => locales.value.find((item) => item.code === 
 
 const languageItems = computed(() =>
   locales.value.map((item) => ({
-    label: item.name,
+    label: item.name ?? item.code,
     value: item.code,
-    flag: item.flag,
+    flag: typeof item.flag === 'string' ? item.flag : undefined,
     selected: item.code === locale.value,
     onSelect: async () => {
       await navigateTo(switchLocalePath(item.code));
@@ -99,7 +99,12 @@ useHead(() => ({
               {{ t('auth.login') }}
             </Button>
 
-            <Button v-if="settings.enableRegistration" variant="primary" href="/signup">
+            <Button
+              v-if="settings.enableRegistration"
+              variant="primary"
+              :icon="IconUserPlus"
+              href="/signup"
+            >
               {{ t('auth.signup') }}
             </Button>
           </template>
