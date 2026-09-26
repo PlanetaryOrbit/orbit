@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { IconLanguage, IconUserPlus } from '@tabler/icons-vue';
+import { IconLanguage } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
 import Button from '~/components/ui/Button.vue';
+import Dropdown from '~/components/ui/Dropdown.vue';
 
 const { isDark } = useTheme();
 const { settings } = useInstance();
@@ -23,15 +24,19 @@ const i18nHead = useLocaleHead({
   lang: true,
 });
 
-async function changeLocale() {
-  const otherLocale = locales.value.find((item) => item.code !== locale.value);
+const currentLocale = computed(() => locales.value.find((item) => item.code === locale.value));
 
-  if (!otherLocale) {
-    return;
-  }
-
-  await navigateTo(switchLocalePath(otherLocale.code));
-}
+const languageItems = computed(() =>
+  locales.value.map((item) => ({
+    label: item.name,
+    value: item.code,
+    flag: item.flag,
+    selected: item.code === locale.value,
+    onSelect: async () => {
+      await navigateTo(switchLocalePath(item.code));
+    },
+  })),
+);
 
 useHead(() => ({
   htmlAttrs: {
@@ -71,15 +76,19 @@ useHead(() => ({
         </NuxtLink>
 
         <nav class="orbit-header__actions" :aria-label="t('common.navigation.actions')">
-          <Button
-            variant="ghost"
-            size="md"
-            :icon="IconLanguage"
-            :aria-label="t('common.language')"
-            @click="changeLocale"
-          >
-            {{ locales.find((item) => item.code !== locale)?.name }}
-          </Button>
+          <Dropdown :items="languageItems" align="end" :trigger-label="t('common.language')">
+            <template #trigger>
+              <span
+                v-if="currentLocale?.flag"
+                :class="['fi', `fi-${currentLocale.flag}`]"
+                aria-hidden="true"
+              />
+
+              <IconLanguage v-else class="orbit-button__icon-svg" aria-hidden="true" />
+
+              <span>{{ currentLocale?.name }}</span>
+            </template>
+          </Dropdown>
 
           <template v-if="user">
             <!-- user thing -->
@@ -90,12 +99,7 @@ useHead(() => ({
               {{ t('auth.login') }}
             </Button>
 
-            <Button
-              v-if="settings.enableRegistration"
-              variant="primary"
-              href="/signup"
-              :icon="IconUserPlus"
-            >
+            <Button v-if="settings.enableRegistration" variant="primary" href="/signup">
               {{ t('auth.signup') }}
             </Button>
           </template>

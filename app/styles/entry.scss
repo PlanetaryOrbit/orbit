@@ -3,6 +3,7 @@
 @use 'tokens' as *;
 @use 'components';
 @use 'vue-sonner/style.css';
+@use 'flag-icons/css/flag-icons.min.css';
 
 body {
   min-block-size: 100vh;
