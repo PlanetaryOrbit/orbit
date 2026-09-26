@@ -18,7 +18,8 @@
     "prisma:plan": "prisma migration plan",
     "prisma:migrate": "prisma db migrate",
     "prisma:update": "prisma db update",
-    "prisma:status": "prisma migration status"
+    "prisma:status": "prisma migration status",
+    "i18n:check": "bun scripts/check-translations.ts"
   },
   "dependencies": {
     "@nuxt/fonts": "0.14.0",

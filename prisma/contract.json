@@ -8,8 +8,8 @@
       "model": "Credential",
       "namespace": "public"
     },
-    "InstanceSettings": {
-      "model": "InstanceSettings",
+    "Instance": {
+      "model": "Instance",
       "namespace": "public"
     },
     "Media": {
@@ -113,7 +113,7 @@
               "table": "Credential"
             }
           },
-          "InstanceSettings": {
+          "Instance": {
             "fields": {
               "allowPasswordAuth": {
                 "nullable": false,
@@ -244,7 +244,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "InstanceSettings"
+              "table": "Instance"
             }
           },
           "Media": {
@@ -714,7 +714,7 @@
                   "kind": "scalar"
                 }
               },
-              "googleData": {
+              "fluxxerData": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/jsonb@1",
@@ -819,8 +819,8 @@
                 "discordData": {
                   "column": "discordData"
                 },
-                "googleData": {
-                  "column": "googleData"
+                "fluxxerData": {
+                  "column": "fluxxerData"
                 },
                 "id": {
                   "column": "id"
@@ -916,7 +916,7 @@
                 }
               ]
             },
-            "InstanceSettings": {
+            "Instance": {
               "columns": {
                 "allowPasswordAuth": {
                   "codecId": "pg/bool@1",
@@ -1023,7 +1023,20 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": ["createdAt"],
+                  "name": "Instance_createdAt_idx_9575dbd7",
+                  "prefix": "Instance_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": ["name"],
+                  "name": "Instance_name_idx_ce87e6ba",
+                  "prefix": "Instance_name_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": ["id"]
               },
@@ -1395,7 +1408,7 @@
                   "nativeType": "jsonb",
                   "nullable": true
                 },
-                "googleData": {
+                "fluxxerData": {
                   "codecId": "pg/jsonb@1",
                   "nativeType": "jsonb",
                   "nullable": true
@@ -1465,9 +1478,9 @@
                   "unique": false
                 },
                 {
-                  "columns": ["googleData"],
-                  "name": "User_googleData_idx_7b9fee95",
-                  "prefix": "User_googleData_idx",
+                  "columns": ["fluxxerData"],
+                  "name": "User_fluxxerData_idx_f4787f2e",
+                  "prefix": "User_fluxxerData_idx",
                   "unique": false
                 },
                 {
@@ -1495,10 +1508,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6dff90f9a1f074ce4f5ca78e36892052b44ba5d54c12ae04d2814b5103c82fd4"
+    "storageHash": "c441e4fd72d04680275552d23a559f22cf38dc75f16530f2ea9c0b941e6b4426"
   },
   "execution": {
-    "executionHash": "18e4077ff6169bff4afe7a40dbdfba0a821210256ea8f0eadf66b1a8c2571efb",
+    "executionHash": "7be8f4e0d5ec3a81d8a52f1d89287f8a363bebda5d9966140f3a477e732241ad",
     "mutations": {
       "defaults": [
         {
@@ -1535,7 +1548,7 @@
           "ref": {
             "column": "id",
             "namespace": "public",
-            "table": "InstanceSettings"
+            "table": "Instance"
           }
         },
         {
@@ -1550,7 +1563,7 @@
           "ref": {
             "column": "updatedAt",
             "namespace": "public",
-            "table": "InstanceSettings"
+            "table": "Instance"
           }
         },
         {
