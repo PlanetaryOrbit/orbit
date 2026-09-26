@@ -81,7 +81,6 @@ export default defineNuxtConfig({
   i18n: {
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
-    baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://localhost:3000/',
     locales: [
       {
         code: 'en',
@@ -89,6 +88,14 @@ export default defineNuxtConfig({
         language: 'en-US',
         flag: 'us',
         file: 'en.json',
+        dir: 'ltr',
+      },
+      {
+        code: 'es',
+        name: 'Español',
+        language: 'es-ES',
+        flag: 'es',
+        file: 'es.json',
         dir: 'ltr',
       },
       {
