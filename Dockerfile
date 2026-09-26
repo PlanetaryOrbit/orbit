@@ -7,6 +7,7 @@ WORKDIR /usr/src/app
 
 COPY package.json bun.lock ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 RUN bun install --frozen-lockfile
 RUN bun run prisma:emit
