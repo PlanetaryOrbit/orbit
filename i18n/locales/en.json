@@ -14,9 +14,9 @@
       "back": "Go back",
       "cancel": "Cancel",
       "close": "Close",
-      "save": "Save"
+      "save": "Save",
+      "home": "Go home"
     },
-    "language": "Language",
     "navigation": {
       "actions": "Navigation"
     }
@@ -37,6 +37,14 @@
     "noWorkspaces": {
       "title": "No Workspaces",
       "message": "You don't have access to any workspaces yet."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "message": "The page you're looking for doesn't exist or may have been moved."
+    },
+    "somethingWentWrong": {
+      "title": "Something went wrong",
+      "message": "Orbit encountered an unexpected error while loading this page."
     }
   }
 }

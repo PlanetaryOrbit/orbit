@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { IconAlertTriangle, IconHome, IconSearch } from '@tabler/icons-vue';
 
-import type { NuxtError } from '#app';
-
 import Button from '../ui/Button.vue';
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -35,7 +34,9 @@ const isNotFound = computed(() => props.statusCode === 404);
       </p>
 
       <div class="error-page__actions">
-        <Button variant="primary" size="lg" :icon="IconHome" href="/">Go home</Button>
+        <Button variant="primary" size="lg" :icon="IconHome" href="/">{{
+          t('common.actions.home')
+        }}</Button>
 
         <Button
           v-if="isNotFound"
@@ -44,7 +45,7 @@ const isNotFound = computed(() => props.statusCode === 404);
           :icon="IconSearch"
           @click="$router.back()"
         >
-          Go back
+          {{ t('common.actions.back') }}
         </Button>
       </div>
     </div>
