@@ -1,4 +1,3 @@
-````md
 # Orbit v3
 
 This README is more of a TODO list and memory board.
@@ -33,7 +32,6 @@ Translation keys are organized by feature or purpose:
   }
 }
 ```
-````
 
 In Vue components, use `useI18n()` and the `t()` function:
 
