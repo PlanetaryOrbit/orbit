@@ -14,14 +14,15 @@ RUN bun run prisma:emit
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/src/app/.nuxt \
-    bun run build
+RUN bun run build
 
 FROM oven/bun:1 AS runner
 
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
 
 COPY --from=builder /usr/src/app/.output ./.output
 COPY --from=builder /usr/src/app/prisma ./prisma
