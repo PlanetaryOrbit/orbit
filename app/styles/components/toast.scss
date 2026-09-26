@@ -1,0 +1,99 @@
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  inline-size: min(24rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--slate-700);
+  border-radius: 1rem;
+  background: color-mix(in oklch, var(--slate-900) 90%, transparent);
+  color: var(--slate-50);
+  box-shadow:
+    0 16px 40px color-mix(in oklch, var(--gray-950) 28%, transparent),
+    0 2px 8px color-mix(in oklch, var(--gray-950) 12%, transparent);
+  backdrop-filter: blur(20px) saturate(1.15);
+  font-family: inherit;
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    flex: 0 0 2.25rem;
+    border-radius: 0.75rem;
+  }
+  &__icon-svg {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+  &__message {
+    min-inline-size: 0;
+    flex: 1;
+    margin: 0;
+    padding-block-start: 0.5rem;
+    color: var(--slate-100);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  &--success {
+    .toast__icon {
+      background: color-mix(in oklch, var(--green-500) 12%, transparent);
+      color: var(--green-400);
+    }
+  }
+  &--error {
+    .toast__icon {
+      background: color-mix(in oklch, var(--red-500) 12%, transparent);
+      color: var(--red-400);
+    }
+  }
+  &--info {
+    .toast__icon {
+      background: color-mix(in oklch, var(--blue-500) 12%, transparent);
+      color: var(--blue-400);
+    }
+  }
+  &--warning {
+    .toast__icon {
+      background: color-mix(in oklch, var(--yellow-500) 12%, transparent);
+      color: var(--yellow-400);
+    }
+  }
+  &--loading {
+    .toast__icon {
+      background: color-mix(in oklch, var(--blue-500) 12%, transparent);
+      color: var(--blue-400);
+    }
+    .toast__icon-svg {
+      animation: toast-spin 0.8s linear infinite;
+    }
+  }
+  @media (max-width: 480px) {
+    inline-size: min(24rem, calc(100vw - 1.5rem));
+    padding: 0.875rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toast__icon-svg {
+      animation: none;
+    }
+  }
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    .toast__icon {
+      background: Canvas;
+      color: CanvasText;
+    }
+    .toast__message {
+      color: CanvasText;
+    }
+  }
+}
+@keyframes toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

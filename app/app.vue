@@ -67,20 +67,12 @@ const authBackground = computed(() => {
       </div>
     </header>
 
-    <main class="relative z-0 min-h-screen overflow-hidden bg-ctp-base">
-      <div
-        v-if="!authBackground"
-        class="absolute inset-0 z-0 bg-linear-to-b from-ctp-base/40 via-ctp-base/80 to-ctp-base"
-      />
+    <main>
+      <div v-if="!authBackground" class="orbit-background" />
 
-      <img
-        v-else
-        :src="authBackground"
-        alt=""
-        class="pointer-events-none absolute inset-0 z-0 size-full object-cover"
-      />
+      <img v-else :src="authBackground" alt="" class="orbit-background" />
 
-      <div class="relative z-10">
+      <div class="page">
         <NuxtPage />
       </div>
     </main>

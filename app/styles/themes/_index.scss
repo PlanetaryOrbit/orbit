@@ -1,5 +1,9 @@
 @forward 'dark';
 @forward 'light';
+
 html {
-  --color-primary: #fb019c; // fallback incase something breaks
+  --instance-primary: #fb019c;
+  --instance-primary-text: #fff; // I hope this won't be an issue anytime soon
+  --instance-primary-hover: color-mix(in oklch, var(--instance-primary) 80%, black);
+  --instance-primary-border: color-mix(in oklch, var(--instance-primary) 85%, black);
 }

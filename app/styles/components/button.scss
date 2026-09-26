@@ -115,40 +115,34 @@
 
   &__label {
     display: inline-block;
-
     min-inline-size: 0;
-
     overflow: hidden;
-
     text-overflow: ellipsis;
     white-space: nowrap;
-
     line-height: 1.25;
   }
 
-  /* Primary */
-
   &--primary {
-    background: var(--pink-500);
-    border-color: var(--pink-500);
-    color: var(--pink-50);
+    background: var(--instance-primary);
+    border-color: var(--instance-primary-border);
+    color: var(--instance-primary-text);
 
     box-shadow: 0 1px 2px color-mix(in oklch, var(--gray-950) 18%, transparent);
 
     &:hover:not(:disabled):not(.orbit-button--disabled) {
-      background: var(--pink-400);
-      border-color: var(--pink-400);
+      background: var(--instance-primary-hover);
+      border-color: var(--instance-primary-border);
 
-      box-shadow: 0 4px 12px color-mix(in oklch, var(--pink-500) 25%, transparent);
+      box-shadow: 0 4px 12px color-mix(in oklch, var(--instance-primary) 25%, transparent);
     }
 
     &:active:not(:disabled):not(.orbit-button--disabled) {
-      background: var(--pink-600);
-      border-color: var(--pink-600);
+      background: var(--instance-primary-active);
+      border-color: var(--instance-primary-border);
+
+      box-shadow: none;
     }
   }
-
-  /* Secondary */
 
   &--secondary {
     background: var(--slate-800);
@@ -169,8 +163,6 @@
     }
   }
 
-  /* Ghost */
-
   &--ghost {
     background: transparent;
     border-color: transparent;
@@ -189,8 +181,6 @@
       border-color: var(--slate-700);
     }
   }
-
-  /* Danger */
 
   &--danger {
     background: var(--red-500);
