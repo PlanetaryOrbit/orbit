@@ -22,7 +22,7 @@ const cacheKey = 'instance_settings';
 const cacheTTL = 3600;
 
 async function createSettings(data: Partial<InstanceSettingsData> = {}): Promise<InstanceSettings> {
-  return db.orm.public.InstanceSettings.create({
+  return db.orm.public.Instance.create({
     ...DEFAULTS,
     ...data,
   });
@@ -35,7 +35,7 @@ export async function getSettings(): Promise<InstanceSettings> {
     return cached;
   }
 
-  const existing = await db.orm.public.InstanceSettings.first();
+  const existing = await db.orm.public.Instance.first();
 
   const settings = existing ?? (await createSettings());
 
@@ -47,7 +47,7 @@ export async function getSettings(): Promise<InstanceSettings> {
 export async function updateSettings(
   data: Partial<InstanceSettingsData>,
 ): Promise<InstanceSettings> {
-  const existing = await db.orm.public.InstanceSettings.first();
+  const existing = await db.orm.public.Instance.first();
 
   if (!existing) {
     const settings = await createSettings(data);
@@ -57,7 +57,7 @@ export async function updateSettings(
     return settings;
   }
 
-  const settings = await db.orm.public.InstanceSettings.where({ id: existing.id }).update(data);
+  const settings = await db.orm.public.Instance.where({ id: existing.id }).update(data);
 
   if (!settings) {
     throw new Error('Failed to update instance settings');

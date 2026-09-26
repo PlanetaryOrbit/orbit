@@ -32,9 +32,9 @@ import type {
 } from '@prisma/orm-postgres/target/codec-types';
 
 export type StorageHash =
-  StorageHashBase<'6dff90f9a1f074ce4f5ca78e36892052b44ba5d54c12ae04d2814b5103c82fd4'>;
+  StorageHashBase<'c441e4fd72d04680275552d23a559f22cf38dc75f16530f2ea9c0b941e6b4426'>;
 export type ExecutionHash =
-  ExecutionHashBase<'18e4077ff6169bff4afe7a40dbdfba0a821210256ea8f0eadf66b1a8c2571efb'>;
+  ExecutionHashBase<'7be8f4e0d5ec3a81d8a52f1d89287f8a363bebda5d9966140f3a477e732241ad'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -247,7 +247,7 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
-    readonly InstanceSettings: {
+    readonly Instance: {
       readonly id: Char<24>;
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly logoUrl: CodecTypes['pg/text@1']['output'];
@@ -310,7 +310,7 @@ export type FieldOutputTypes = {
       readonly robloxId: CodecTypes['pg/int8@1']['output'];
       readonly robloxData: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly discordData: CodecTypes['pg/jsonb@1']['output'] | null;
-      readonly googleData: CodecTypes['pg/jsonb@1']['output'] | null;
+      readonly fluxxerData: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly banned: CodecTypes['pg/bool@1']['output'];
       readonly bannedAt: CodecTypes['pg/timestamp-temporal@1']['output'] | null;
       readonly bannedFor: CodecTypes['pg/text@1']['output'] | null;
@@ -329,7 +329,7 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
-    readonly InstanceSettings: {
+    readonly Instance: {
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly logoUrl: CodecTypes['pg/text@1']['input'];
@@ -392,7 +392,7 @@ export type FieldInputTypes = {
       readonly robloxId: CodecTypes['pg/int8@1']['input'];
       readonly robloxData: CodecTypes['pg/jsonb@1']['input'] | null;
       readonly discordData: CodecTypes['pg/jsonb@1']['input'] | null;
-      readonly googleData: CodecTypes['pg/jsonb@1']['input'] | null;
+      readonly fluxxerData: CodecTypes['pg/jsonb@1']['input'] | null;
       readonly banned: CodecTypes['pg/bool@1']['input'];
       readonly bannedAt: CodecTypes['pg/timestamp-temporal@1']['input'] | null;
       readonly bannedFor: CodecTypes['pg/text@1']['input'] | null;
@@ -411,7 +411,7 @@ export type StorageColumnTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly userId: CodecTypes['pg/text@1']['output'];
     };
-    readonly InstanceSettings: {
+    readonly Instance: {
       readonly allowPasswordAuth: CodecTypes['pg/bool@1']['output'];
       readonly allowRobloxAuth: CodecTypes['pg/bool@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -474,7 +474,7 @@ export type StorageColumnTypes = {
       readonly bannedFor: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly discordData: CodecTypes['pg/jsonb@1']['output'] | null;
-      readonly googleData: CodecTypes['pg/jsonb@1']['output'] | null;
+      readonly fluxxerData: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly id: Char<24>;
       readonly isOwner: CodecTypes['pg/bool@1']['output'];
       readonly robloxData: CodecTypes['pg/jsonb@1']['output'] | null;
@@ -493,7 +493,7 @@ export type StorageColumnInputTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly userId: CodecTypes['pg/text@1']['input'];
     };
-    readonly InstanceSettings: {
+    readonly Instance: {
       readonly allowPasswordAuth: CodecTypes['pg/bool@1']['input'];
       readonly allowRobloxAuth: CodecTypes['pg/bool@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -556,7 +556,7 @@ export type StorageColumnInputTypes = {
       readonly bannedFor: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly discordData: CodecTypes['pg/jsonb@1']['input'] | null;
-      readonly googleData: CodecTypes['pg/jsonb@1']['input'] | null;
+      readonly fluxxerData: CodecTypes['pg/jsonb@1']['input'] | null;
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly isOwner: CodecTypes['pg/bool@1']['input'];
       readonly robloxData: CodecTypes['pg/jsonb@1']['input'] | null;
@@ -633,7 +633,7 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly InstanceSettings: {
+            readonly Instance: {
               columns: {
                 readonly id: {
                   readonly nativeType: 'character';
@@ -736,7 +736,20 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Instance_createdAt_idx_9575dbd7';
+                  readonly prefix: 'Instance_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Instance_name_idx_ce87e6ba';
+                  readonly prefix: 'Instance_name_idx';
+                  readonly columns: readonly ['name'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly Media: {
@@ -1055,7 +1068,7 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/jsonb@1';
                   readonly nullable: true;
                 };
-                readonly googleData: {
+                readonly fluxxerData: {
                   readonly nativeType: 'jsonb';
                   readonly codecId: 'pg/jsonb@1';
                   readonly nullable: true;
@@ -1131,9 +1144,9 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'User_googleData_idx_7b9fee95';
-                  readonly prefix: 'User_googleData_idx';
-                  readonly columns: readonly ['googleData'];
+                  readonly name: 'User_fluxxerData_idx_f4787f2e';
+                  readonly prefix: 'User_fluxxerData_idx';
+                  readonly columns: readonly ['fluxxerData'];
                   readonly unique: false;
                 },
                 {
@@ -1161,10 +1174,7 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'Credential';
     };
-    readonly InstanceSettings: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'InstanceSettings';
-    };
+    readonly Instance: { readonly namespace: 'public' & NamespaceId; readonly model: 'Instance' };
     readonly Media: { readonly namespace: 'public' & NamespaceId; readonly model: 'Media' };
     readonly Notification: {
       readonly namespace: 'public' & NamespaceId;
@@ -1235,7 +1245,7 @@ type ContractBase = Omit<
               };
             };
           };
-          readonly InstanceSettings: {
+          readonly Instance: {
             readonly fields: {
               readonly id: {
                 readonly nullable: false;
@@ -1298,7 +1308,7 @@ type ContractBase = Omit<
             };
             readonly relations: Record<string, never>;
             readonly storage: {
-              readonly table: 'InstanceSettings';
+              readonly table: 'Instance';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly id: { readonly column: 'id' };
@@ -1628,7 +1638,7 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
               };
-              readonly googleData: {
+              readonly fluxxerData: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
               };
@@ -1710,7 +1720,7 @@ type ContractBase = Omit<
                 readonly robloxId: { readonly column: 'robloxId' };
                 readonly robloxData: { readonly column: 'robloxData' };
                 readonly discordData: { readonly column: 'discordData' };
-                readonly googleData: { readonly column: 'googleData' };
+                readonly fluxxerData: { readonly column: 'fluxxerData' };
                 readonly banned: { readonly column: 'banned' };
                 readonly bannedAt: { readonly column: 'bannedAt' };
                 readonly bannedFor: { readonly column: 'bannedFor' };
@@ -1767,7 +1777,7 @@ type ContractBase = Omit<
         {
           readonly ref: {
             readonly namespace: 'public';
-            readonly table: 'InstanceSettings';
+            readonly table: 'Instance';
             readonly column: 'id';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'cuid2' };
@@ -1775,7 +1785,7 @@ type ContractBase = Omit<
         {
           readonly ref: {
             readonly namespace: 'public';
-            readonly table: 'InstanceSettings';
+            readonly table: 'Instance';
             readonly column: 'updatedAt';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'instantNow' };
