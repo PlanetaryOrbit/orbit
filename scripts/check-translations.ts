@@ -2,7 +2,6 @@ import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const localesDir = join(import.meta.dir, '..', 'i18n', 'locales');
-const sourceFile = join(localesDir, 'en.json');
 
 type TranslationMeta = {
   locale: string;

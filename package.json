@@ -44,7 +44,8 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
     "@types/ws": "^8.18.1",
     "@types/zxcvbn": "^4.4.5",
     "autoprefixer": "^10.6.1",

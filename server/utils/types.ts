@@ -27,10 +27,6 @@ export type RateLimitMeta = {
 };
 
 export type ResponseMeta = {
-  // DEVELOPMENT TYPES, These are only returned in development environments
-  requestId?: string; // The requestId that uniquely identifies this request, helpful for debugging
-  oauthType?: 'apiKey' | 'user'; // The type of OAuth authentication used for this request
-  // END DEVELOPMENT TYPES
   pagination?: PaginationMeta;
   rateLimit?: RateLimitMeta;
 };
