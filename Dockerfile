@@ -9,7 +9,7 @@ COPY package.json bun.lock ./
 COPY prisma ./prisma/
 
 RUN bun install --frozen-lockfile
-RUN bunx prisma generate
+RUN bun run prisma:emit
 
 COPY . .
 
