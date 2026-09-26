@@ -8,5 +8,35 @@
       }
     ],
     "lastUpdated": "2026-09-26"
+  },
+   "common": {
+    "actions": {
+      "back": "Zpět",
+      "cancel": "Zrušit",
+      "close": "Zavřít",
+      "save": "Uložit"
+    },
+    "language": "Jazyk",
+    "navigation": {
+      "actions": "Navigace"
+    }
+  },
+  "auth": {
+    "login": "Přihlásit se",
+    "signup": "Zaregistrovat se"
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "Žádný přístup!",
+      "message": "Pro zobrazení této stránky se musíš přihlásit."
+    },
+    "forbidden": {
+      "title": "Přístup odepřen",
+      "message": "Nemáš oprávnění k přístupu k této stránce."
+    },
+    "noWorkspaces": {
+      "title": "Žádné pracovní prostory",
+      "message": "Nemáš přístup k žádným pracovním prostorům."
+    }
   }
 }
