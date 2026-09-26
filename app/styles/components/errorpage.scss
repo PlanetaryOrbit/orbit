@@ -1,0 +1,89 @@
+@use '../tokens' as *;
+
+.error-page {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  min-block-size: calc(100vh - 1rem);
+  padding: 3rem 1.5rem;
+  text-align: center;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    inline-size: min(100%, 36rem);
+  }
+
+  &__code {
+    margin: 0;
+    color: var(--instance-primary);
+    font-family: $font-mono;
+    font-size: clamp(3rem, 12vw, 6rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+
+  &__title {
+    margin: 1.5rem 0 0;
+    color: var(--slate-50);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__message {
+    max-inline-size: 32rem;
+    margin: 0.75rem 0 0;
+    color: var(--slate-400);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-block-start: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    padding-inline: 1rem;
+
+    &__actions {
+      flex-direction: column;
+      inline-size: 100%;
+    }
+
+    &__actions .orbit-button {
+      inline-size: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__icon {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    &__icon {
+      border-color: CanvasText;
+      background: Canvas;
+      color: CanvasText;
+    }
+
+    &__code {
+      color: CanvasText;
+    }
+
+    &__title,
+    &__message {
+      color: CanvasText;
+    }
+  }
+}

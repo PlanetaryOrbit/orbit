@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app';
+import ErrorPage from '~/components/errors/ErrorPage.vue';
 
-const props = defineProps({
-  error: Object as () => NuxtError,
-});
+const props = defineProps<{
+  error: NuxtError;
+}>();
 
-const handleError = () => clearError({ redirect: '/' });
+const isNotFound = computed(() => props.error.status === 404);
+
+const title = computed(() => (isNotFound.value ? 'Page not found' : 'Something went wrong'));
+
+const message = computed(() =>
+  isNotFound.value
+    ? "The page you're looking for doesn't exist or may have been moved."
+    : 'Orbit encountered an unexpected error while loading this page.',
+);
 </script>
 
 <template>
-  <div>
-    <h2>{{ error?.status }}</h2>
-    <button @click="handleError">Clear errors</button>
-  </div>
+  <ErrorPage :status-code="error.status ?? 500" :title="title" :message="message" />
 </template>
