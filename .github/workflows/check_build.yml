@@ -1,0 +1,131 @@
+name: Check Builds
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }} / ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: x64
+            runner: ubuntu-latest
+
+          - os: linux
+            arch: arm64
+            runner: ubuntu-24.04-arm
+
+          - os: windows
+            arch: x64
+            runner: windows-latest
+
+          - os: macos
+            arch: x64
+            runner: macos-15-intel
+
+          - os: macos
+            arch: arm64
+            runner: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Emit Prisma contract
+        run: bun run prisma:emit
+
+      - name: Build
+        run: bun run build
+
+  docker:
+    name: Docker (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            service: orbit
+
+          - platform: linux/arm64
+            service: orbit
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: orbit:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start container
+        run: |
+          docker run \
+            --detach \
+            --name orbit \
+            --publish 3000:3000 \
+            --env NUXT_HOST=0.0.0.0 \
+            --env NUXT_PORT=3000 \
+            orbit:ci
+
+      - name: Wait for container
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+
+            if ! docker ps --format '{{.Names}}' | grep -q '^orbit$'; then
+              echo "Orbit container stopped unexpectedly."
+              docker logs orbit
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "Orbit did not become ready."
+          docker logs orbit
+          exit 1
+
+      - name: Check container
+        run: |
+          curl --fail --show-error --silent http://127.0.0.1:3000/
+
+      - name: Show logs
+        if: always()
+        run: docker logs orbit
+
+      - name: Stop container
+        if: always()
+        run: docker rm --force orbit
