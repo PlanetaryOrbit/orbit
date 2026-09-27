@@ -24,7 +24,14 @@
     },
     "labels": {
       "optional": "Optional",
-      "required": "Required"
+      "required": "Required",
+      "passwords": {
+        "0": "Weak",
+        "1": "Weak",
+        "2": "Okay",
+        "3": "Strong",
+        "4": "Super Strong"
+      }
     },
     "status": {
       "loading": "Loading...",
@@ -68,20 +75,12 @@
         "description": "Choose how you'd like to sign up.",
         "fields": {
           "username": {
-            "label": "Username",
-            "placeholder": "Enter your username"
-          },
-          "email": {
-            "label": "Email address",
-            "placeholder": "you{'@'}example.com"
+            "label": "Roblox Username",
+            "placeholder": "builderman"
           },
           "password": {
             "label": "Password",
             "placeholder": "Create a password"
-          },
-          "confirmPassword": {
-            "label": "Confirm password",
-            "placeholder": "Enter your password again"
           }
         },
         "actions": {
@@ -92,29 +91,15 @@
         "footer": {
           "existingAccount": "Already have an account?",
           "login": "Log in"
-        },
-        "terms": "By creating an account, you agree to the terms and conditions."
+        }
       },
       "errors": {
-        "usernameRequired": "Username is required.",
-        "usernameTooShort": "Username must be at least 3 characters.",
-        "usernameTooLong": "Username must be 32 characters or fewer.",
-        "usernameInvalid": "Username contains invalid characters.",
-        "emailRequired": "Email address is required.",
-        "emailInvalid": "Enter a valid email address.",
+        "robloxNotFound": "No roblox user with that username could be found.",
         "passwordRequired": "Password is required.",
         "passwordTooShort": "Password must be at least 8 characters.",
-        "passwordMismatch": "Passwords do not match.",
         "accountExists": "An account with these details already exists.",
         "registrationDisabled": "Registration is currently disabled.",
         "generic": "Unable to create your account. Please try again."
-      },
-      "passwordRequirements": {
-        "title": "Password requirements",
-        "minimumLength": "At least 8 characters",
-        "uppercase": "At least one uppercase letter",
-        "lowercase": "At least one lowercase letter",
-        "number": "At least one number"
       }
     }
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconEye, IconEyeClosed } from '@tabler/icons-vue';
+import { IconEye, IconEyeClosed, IconUserPlus } from '@tabler/icons-vue';
 import { ref } from 'vue';
 
 import Button from '~/components/ui/Button.vue';
@@ -87,7 +87,7 @@ const showPassword = ref(false);
           </Input>
 
           <template #actions>
-            <Button type="submit" variant="primary" size="lg">
+            <Button type="submit" variant="primary" size="lg" :icon="IconUserPlus">
               {{ t('pages.signup.form.actions.submit') }}
             </Button>
           </template>
