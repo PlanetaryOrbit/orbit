@@ -17,7 +17,8 @@
       "save": "Save",
       "home": "Go home",
       "login": "Login",
-      "signup": "Sign up"
+      "signup": "Sign up",
+      "continue": "Continue"
     },
     "navigation": {
       "actions": "Navigation"
@@ -93,13 +94,21 @@
           "login": "Log in"
         }
       },
+      "verification": {
+        "title": "Verify your Roblox account",
+        "description": "Add the code below to your Roblox profile bio to verify that you own this account.",
+        "codeLabel": "Verification code",
+        "copy": "Copy verification code",
+        "copied": "Verification code copied",
+        "instructions": "Add this code to your Roblox profile bio, then continue."
+      },
       "errors": {
         "robloxNotFound": "No roblox user with that username could be found.",
         "passwordRequired": "Password is required.",
         "passwordTooShort": "Password must be at least 8 characters.",
         "accountExists": "An account with these details already exists.",
         "registrationDisabled": "Registration is currently disabled.",
-        "generic": "Unable to create your account. Please try again."
+        "generic": "Something went wrong. Please try again."
       }
     }
   }

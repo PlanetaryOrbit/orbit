@@ -185,6 +185,156 @@
     }
   }
 
+  &__verification {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__roblox-user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding-block: 0.5rem;
+  }
+
+  &__roblox-avatar {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    inline-size: 5rem;
+    block-size: 5rem;
+    overflow: hidden;
+    border: 1px solid var(--slate-700);
+    border-radius: 50%;
+    background: var(--slate-800);
+    color: var(--slate-300);
+    font-size: 1.5rem;
+    font-weight: 700;
+    user-select: none;
+
+    img {
+      display: block;
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__roblox-identity {
+    display: flex;
+    min-inline-size: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+  }
+
+  &__roblox-display-name {
+    overflow: hidden;
+    max-inline-size: 100%;
+    color: var(--slate-100);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+  }
+
+  &__roblox-username {
+    color: var(--slate-400);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  &__verification-code {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  &__verification-label {
+    color: var(--slate-300);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  &__verification-code-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    inline-size: 100%;
+    min-block-size: 4rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--slate-700);
+    border-radius: 0.625rem;
+    background: var(--slate-900);
+    color: var(--slate-100);
+    cursor: pointer;
+    text-align: start;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease,
+      box-shadow 150ms ease;
+
+    &:hover {
+      border-color: var(--slate-600);
+      background: var(--slate-800);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--instance-primary);
+      outline-offset: 2px;
+    }
+
+    &:active {
+      background: var(--slate-850, var(--slate-800));
+    }
+
+    code {
+      overflow: hidden;
+      color: var(--slate-100);
+      font-family: var(--font-mono, monospace);
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    svg {
+      flex: 0 0 auto;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      color: var(--instance-primary);
+    }
+  }
+
+  &__verification-help {
+    margin: 0;
+    color: var(--slate-400);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  &__verification-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-block-start: 0.5rem;
+  }
+
+  &__error {
+    margin: 0;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid color-mix(in oklch, var(--red-500) 35%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in oklch, var(--red-500) 8%, transparent);
+    color: var(--red-400);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
   &__divider {
     position: absolute;
     inset-block: 12%;
