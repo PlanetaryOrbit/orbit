@@ -11,13 +11,13 @@ const { user, refreshUser } = useUser();
 const { t, locale, locales } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
 
-const ready = ref(false);
-
 await Promise.all([refreshSettings(), refreshUser()]);
 
-ready.value = true;
-
 const instanceBackground = computed(() => {
+  if (!settings.value) {
+    return undefined;
+  }
+
   return isDark.value
     ? (settings.value.darkBackground ?? settings.value.lightBackground)
     : (settings.value.lightBackground ?? settings.value.darkBackground);
@@ -42,25 +42,31 @@ const languageItems = computed(() =>
   })),
 );
 
-useHead(() => ({
-  htmlAttrs: {
-    dir: i18nHead.value.htmlAttrs.dir,
-    lang: i18nHead.value.htmlAttrs.lang,
-  },
-  titleTemplate: (pageTitle) =>
-    pageTitle ? `${pageTitle} - ${settings.value.name}` : settings.value.name,
-  link: [
-    {
-      rel: 'icon',
-      type: 'image/png',
-      href: settings.value.logoUrl,
+useHead(() => {
+  if (!settings.value) {
+    return {};
+  }
+
+  return {
+    htmlAttrs: {
+      dir: i18nHead.value.htmlAttrs.dir,
+      lang: i18nHead.value.htmlAttrs.lang,
     },
-  ],
-}));
+    titleTemplate: (pageTitle) =>
+      pageTitle ? `${pageTitle} - ${settings.value?.name}` : settings.value?.name || null,
+    link: [
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: settings.value.logoUrl,
+      },
+    ],
+  };
+});
 </script>
 
 <template>
-  <template v-if="ready">
+  <template v-if="settings">
     <NuxtLayout>
       <header class="orbit-header">
         <div class="orbit-header__inner">

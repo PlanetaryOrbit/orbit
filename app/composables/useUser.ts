@@ -2,11 +2,12 @@ import type { FetchError } from 'ofetch';
 import type { ApiResponse, User } from '~~/shared/types';
 
 export function useUser() {
-  const user = useState<User | null>('user', () => null);
+  const user = useState<User | undefined | null>('user', () => undefined);
+  const requestFetch = useRequestFetch();
 
   async function refreshUser() {
     try {
-      const response = await $fetch<ApiResponse<User>>('/api/v1/@me');
+      const response = await requestFetch<ApiResponse<User>>('/api/v1/@me');
 
       if (!response.success) {
         user.value = null;

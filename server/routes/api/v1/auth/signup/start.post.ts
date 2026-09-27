@@ -7,26 +7,11 @@ import { getSettings } from '~~/server/lib/instance';
 import fetchAvatar from '~~/server/utils/avatar';
 import cache from '~~/server/utils/cache';
 import { encrypt } from '~~/server/utils/password';
-import type { ApiResponse } from '~~/shared/types';
+import type { ApiResponse, ErrorBody, SignupResponse } from '~~/shared/types';
 
 type SignupRequest = {
   username: string;
   password: string;
-};
-
-type SignupResponse = {
-  signupId: string;
-  user: {
-    id: string;
-    username: string;
-    displayName: string;
-    avatar: string | null;
-  };
-  verification: {
-    type: 'roblox_bio';
-    code: string;
-    expiresAt: string;
-  };
 };
 
 type RobloxUser = {
@@ -42,6 +27,7 @@ type RobloxUsersResponse = {
 const verificationCharacters = [
   '🐱',
   '🐈',
+  '🐈‍⬛',
   '🐾',
   '😺',
   '😸',
@@ -52,13 +38,177 @@ const verificationCharacters = [
   '🙀',
   '😿',
   '😾',
+  '😹',
+  '😻',
+  '🐶',
+  '🐕',
+  '🐩',
+  '🦊',
+  '🐻',
+  '🐼',
+  '🐨',
+  '🐯',
+  '🦁',
+  '🐮',
+  '🐷',
+  '🐭',
+  '🐹',
+  '🐰',
+  '🦝',
+  '🦄',
+  '🐸',
+  '🐵',
+  '🙈',
+  '🙉',
+  '🙊',
+  '🐔',
+  '🐧',
+  '🐦',
+  '🐤',
+  '🐣',
+  '🦆',
+  '🦉',
+  '🦋',
+  '🐌',
+  '🐞',
+  '🐝',
+  '🐛',
+  '🪲',
+  '🐢',
+  '🐍',
+  '🦎',
+  '🐙',
+  '🦑',
+  '🦀',
+  '🐠',
+  '🐟',
+  '🐡',
+  '🐬',
+  '🐳',
+  '🐋',
   '🌸',
-  '⭐',
+  '🌺',
+  '🌻',
+  '🌹',
+  '🌷',
+  '🌼',
+  '💐',
+  '🪻',
+  '🌱',
+  '🌿',
+  '☘️',
+  '🍀',
+  '🍃',
+  '🍂',
+  '🍁',
+  '🌴',
+  '🌳',
+  '🌲',
+  '🌵',
+  '🌾',
   '🌙',
   '☀️',
-  '🍀',
+  '🌞',
+  '🌝',
+  '⭐',
+  '🌟',
+  '✨',
+  '💫',
   '🌈',
+  '☁️',
+  '🌤️',
+  '🌥️',
+  '🌦️',
+  '🌧️',
+  '⛈️',
+  '🌩️',
+  '❄️',
+  '☃️',
+  '⛄',
+  '🌊',
+  '💧',
+  '🔥',
+  '🍎',
+  '🍏',
+  '🍐',
+  '🍊',
+  '🍋',
+  '🍌',
+  '🍉',
+  '🍇',
+  '🍓',
+  '🫐',
+  '🍒',
+  '🍑',
+  '🍍',
+  '🥝',
+  '🍅',
+  '🥕',
+  '🌽',
+  '🥑',
+  '🍄',
+  '🍞',
+  '🥐',
+  '🥨',
+  '🧀',
+  '🍕',
+  '🍔',
+  '🍟',
+  '🌭',
+  '🍿',
+  '🍩',
+  '🍪',
+  '🍰',
+  '🧁',
+  '🍫',
+  '🍬',
+  '🍭',
+  '🍨',
+  '🍦',
+  '🍮',
+  '🧋',
+  '☕',
+  '🍵',
+  '❤️',
+  '🧡',
+  '💛',
+  '💚',
   '💙',
+  '💜',
+  '🩷',
+  '🩵',
+  '🤍',
+  '🖤',
+  '🤎',
+  '🩶',
+  '💖',
+  '💗',
+  '💓',
+  '💞',
+  '💕',
+  '💘',
+  '💝',
+  '💟',
+  '❣️',
+  '💌',
+  '💎',
+  '🔮',
+  '🎀',
+  '🎁',
+  '🎈',
+  '🎉',
+  '🎊',
+  '🪄',
+  '🔔',
+  '⭐',
+  '🌟',
+  '✨',
+  '💫',
+  '☀️',
+  '☁️',
+  '☂️',
+  '⚡',
+  '❄️',
 ];
 
 const verificationExpiration = 30 * 60 * 1000;
@@ -71,11 +221,11 @@ const ipRateLimitWindow = 10 * 60;
 const accountRateLimit = 2;
 const accountRateLimitWindow = 10 * 60;
 
-function error(statusCode: number, code: string, message: string) {
-  return createError({
+function error(statusCode: number, body: ErrorBody): never {
+  throw createError({
     statusCode,
-    statusMessage: message,
-    data: { code },
+    statusMessage: body.message,
+    data: body,
   });
 }
 
@@ -105,7 +255,10 @@ async function rateLimit(key: string, limit: number, ttl: number) {
   const count = (await cache.get<number>(cacheKey)) ?? 0;
 
   if (count >= limit) {
-    throw error(429, 'RATE_LIMITED', 'Too many signup attempts. Please try again later.');
+    error(429, {
+      code: 'RATE_LIMITED',
+      message: 'Too many signup attempts. Please try again later.',
+    });
   }
 
   await cache.set(cacheKey, count + 1, ttl);
@@ -125,6 +278,7 @@ async function getRobloxUser(username: string): Promise<RobloxUser | null> {
     response = await fetch('https://users.roblox.com/v1/usernames/users', {
       method: 'POST',
       headers: {
+        Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -133,15 +287,24 @@ async function getRobloxUser(username: string): Promise<RobloxUser | null> {
       }),
     });
   } catch {
-    throw error(502, 'ROBLOX_UNAVAILABLE', 'Unable to contact Roblox services.');
+    error(502, {
+      code: 'ROBLOX_UNAVAILABLE',
+      message: 'Unable to contact Roblox services.',
+    });
   }
 
   if (response.status === 429) {
-    throw error(429, 'ROBLOX_RATE_LIMITED', 'Roblox is rate limiting requests.');
+    error(429, {
+      code: 'ROBLOX_RATE_LIMITED',
+      message: 'Roblox is rate limiting requests.',
+    });
   }
 
   if (!response.ok) {
-    throw error(502, 'ROBLOX_UNAVAILABLE', 'Unable to contact Roblox services.');
+    error(502, {
+      code: 'ROBLOX_UNAVAILABLE',
+      message: 'Unable to contact Roblox services.',
+    });
   }
 
   const body = (await response.json()) as RobloxUsersResponse;
@@ -170,13 +333,15 @@ async function getSignup(robloxId: string): Promise<SignupResponse | null> {
     return null;
   }
 
+  const avatar = await fetchAvatar(robloxId).catch(() => null);
+
   const response: SignupResponse = {
     signupId: attempt.id,
     user: {
       id: robloxId,
       username: attempt.username,
       displayName: attempt.username,
-      avatar: null,
+      avatar,
     },
     verification: {
       type: 'roblox_bio',
@@ -194,11 +359,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
   const settings = await getSettings();
 
   if (!settings.enableRegistration) {
-    throw error(403, 'REGISTRATION_DISABLED', 'Registration is disabled.');
+    error(403, {
+      code: 'REGISTRATION_DISABLED',
+      message: 'Registration is disabled.',
+    });
   }
 
   if (!settings.allowPasswordAuth) {
-    throw error(403, 'PASSWORD_AUTH_DISABLED', 'Password authentication is disabled.');
+    error(403, {
+      code: 'PASSWORD_AUTH_DISABLED',
+      message: 'Password authentication is disabled.',
+    });
   }
 
   const ip = getRequestIP(event, {
@@ -210,39 +381,55 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
   const body = await readBody<SignupRequest>(event);
 
   if (typeof body?.username !== 'string' || typeof body?.password !== 'string') {
-    throw error(400, 'INVALID_REQUEST', 'Username and password are required.');
+    error(400, {
+      code: 'INVALID_REQUEST',
+      message: 'Username and password are required.',
+    });
   }
 
   const username = body.username.trim();
   const password = body.password;
 
   if (username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
-    throw error(400, 'INVALID_USERNAME', 'Invalid Roblox username.');
+    error(400, {
+      code: 'INVALID_USERNAME',
+      message: 'Invalid Roblox username.',
+    });
   }
 
   if (password.length < 8) {
-    throw error(400, 'WEAK_PASSWORD', 'Password must be at least 8 characters.');
+    error(400, {
+      code: 'WEAK_PASSWORD',
+      message: 'Password must be at least 8 characters.',
+    });
   }
 
   const robloxUser = await getRobloxUser(username);
 
   if (!robloxUser) {
-    throw error(404, 'ROBLOX_USER_NOT_FOUND', 'Roblox user not found.');
+    error(404, {
+      code: 'ROBLOX_USER_NOT_FOUND',
+      message: 'Roblox user not found.',
+    });
   }
 
   const robloxId = String(robloxUser.id);
 
   await rateLimit(`account:${robloxId}`, accountRateLimit, accountRateLimitWindow);
 
-  const existingUser = await db.orm.public.User.where({
-    robloxId,
-  }).first();
+  const [existingUser, existingSignup] = await Promise.all([
+    db.orm.public.User.where({
+      robloxId,
+    }).first(),
+    getSignup(robloxId),
+  ]);
 
   if (existingUser) {
-    throw error(409, 'ACCOUNT_EXISTS', 'An account already exists for this Roblox account.');
+    error(409, {
+      code: 'ACCOUNT_EXISTS',
+      message: 'An account already exists for this Roblox account.',
+    });
   }
-
-  const existingSignup = await getSignup(robloxId);
 
   if (existingSignup) {
     existingSignup.user.username = robloxUser.name;
@@ -257,7 +444,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
   const verificationCode = generateVerificationCode();
   const expiresAt = createExpiration();
 
-  const [passwordHash, avatar] = await Promise.all([encrypt(password), fetchAvatar(robloxUser.id)]);
+  const [passwordHash, avatar] = await Promise.all([encrypt(password), fetchAvatar(robloxId)]);
 
   const signup = await db.orm.public.SignupAttempt.create({
     id: createId(),

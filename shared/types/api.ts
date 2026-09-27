@@ -43,3 +43,19 @@ export type PaginatedResponse<T> = ApiResponse<
     pagination: PaginationMeta;
   }
 >;
+
+// Specific API Requests
+export type SignupResponse = {
+  signupId: string;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+  verification: {
+    type: 'roblox_bio';
+    code: string;
+    expiresAt: string;
+  };
+};
