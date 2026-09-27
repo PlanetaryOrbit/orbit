@@ -1,4 +1,4 @@
-import type { ApiResponse } from '~~/server/utils/types';
+import type { ApiResponse } from '~~/shared/types';
 
 const heartbeatInterval = 120000; // 2 minutes - interval between heartbeat pings
 const clientTimeout = heartbeatInterval + 30000; // 30 seconds - time before a client is considered inactive (after the heartbeat interval)

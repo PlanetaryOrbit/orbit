@@ -1,9 +1,3 @@
-import type { FieldOutputTypes } from '~~/prisma/contract.d';
-
-type PublicModels = FieldOutputTypes['public'];
-
-export type User = PublicModels['User'];
-
 export type ErrorBody = {
   code: string;
   message: string;
@@ -27,10 +21,6 @@ export type RateLimitMeta = {
 };
 
 export type ResponseMeta = {
-  // DEVELOPMENT TYPES, These are only returned in development environments
-  requestId?: string; // The requestId that uniquely identifies this request, helpful for debugging
-  oauthType?: 'apiKey' | 'user'; // The type of OAuth authentication used for this request
-  // END DEVELOPMENT TYPES
   pagination?: PaginationMeta;
   rateLimit?: RateLimitMeta;
 };
@@ -53,3 +43,19 @@ export type PaginatedResponse<T> = ApiResponse<
     pagination: PaginationMeta;
   }
 >;
+
+// Specific API Requests
+export type SignupResponse = {
+  signupId: string;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatar: string | null;
+  };
+  verification: {
+    type: 'roblox_bio';
+    code: string;
+    expiresAt: string;
+  };
+};

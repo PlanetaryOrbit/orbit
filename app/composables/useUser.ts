@@ -1,11 +1,13 @@
-import type { ApiResponse, User } from '~/utils/types';
+import type { FetchError } from 'ofetch';
+import type { ApiResponse, User } from '~~/shared/types';
 
 export function useUser() {
-  const user = useState<User | null>('user', () => null);
+  const user = useState<User | undefined | null>('user', () => undefined);
+  const requestFetch = useRequestFetch();
 
   async function refreshUser() {
     try {
-      const response = await $fetch<ApiResponse<User>>('/api/v1/@me');
+      const response = await requestFetch<ApiResponse<User>>('/api/v1/@me');
 
       if (!response.success) {
         user.value = null;
@@ -14,6 +16,13 @@ export function useUser() {
 
       user.value = response.data;
     } catch (error) {
+      const fetchError = error as FetchError;
+
+      if (fetchError.statusCode === 401 || fetchError.statusCode === 404) {
+        user.value = null;
+        return;
+      }
+
       console.error('Failed to fetch authenticated user:', error);
       user.value = null;
     }

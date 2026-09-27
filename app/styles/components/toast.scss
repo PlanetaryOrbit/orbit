@@ -73,11 +73,6 @@
     inline-size: min(24rem, calc(100vw - 1.5rem));
     padding: 0.875rem;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .toast__icon-svg {
-      animation: none;
-    }
-  }
   @media (forced-colors: active) {
     border-color: CanvasText;
     background: Canvas;

@@ -5,15 +5,14 @@ import ErrorPage from '~/components/errors/ErrorPage.vue';
 const props = defineProps<{
   error: NuxtError;
 }>();
-
+const { t } = useI18n();
 const isNotFound = computed(() => props.error.status === 404);
-
-const title = computed(() => (isNotFound.value ? 'Page not found' : 'Something went wrong'));
+const title = computed(() =>
+  isNotFound.value ? t('errors.notFound.title') : t('errors.somethingWentWrong.title'),
+);
 
 const message = computed(() =>
-  isNotFound.value
-    ? "The page you're looking for doesn't exist or may have been moved."
-    : 'Orbit encountered an unexpected error while loading this page.',
+  isNotFound.value ? t('errors.notFound.message') : t('errors.somethingWentWrong.message'),
 );
 </script>
 

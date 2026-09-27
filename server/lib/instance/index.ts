@@ -1,10 +1,8 @@
-import type { FieldOutputTypes } from '@@/prisma/contract.d';
 import { db } from '~~/server/database/client';
 import cache from '~~/server/utils/cache';
+import type { Instance } from '~~/shared/types';
 
-export type InstanceSettings = FieldOutputTypes['public']['Instance'];
-
-type InstanceSettingsData = Omit<InstanceSettings, 'id' | 'createdAt' | 'updatedAt'>;
+type InstanceSettingsData = Omit<Instance, 'id' | 'createdAt' | 'updatedAt'>;
 
 export const DEFAULTS: InstanceSettingsData = {
   name: 'Orbit',
@@ -21,22 +19,21 @@ export const DEFAULTS: InstanceSettingsData = {
 const cacheKey = 'instance_settings';
 const cacheTTL = 3600;
 
-async function createSettings(data: Partial<InstanceSettingsData> = {}): Promise<InstanceSettings> {
+async function createSettings(data: Partial<InstanceSettingsData> = {}): Promise<Instance> {
   return db.orm.public.Instance.create({
     ...DEFAULTS,
     ...data,
   });
 }
 
-export async function getSettings(): Promise<InstanceSettings> {
-  const cached = await cache.get<InstanceSettings>(cacheKey);
+export async function getSettings(): Promise<Instance> {
+  const cached = await cache.get<Instance>(cacheKey);
 
   if (cached) {
     return cached;
   }
 
   const existing = await db.orm.public.Instance.first();
-
   const settings = existing ?? (await createSettings());
 
   await cache.set(cacheKey, settings, cacheTTL);
@@ -44,9 +41,7 @@ export async function getSettings(): Promise<InstanceSettings> {
   return settings;
 }
 
-export async function updateSettings(
-  data: Partial<InstanceSettingsData>,
-): Promise<InstanceSettings> {
+export async function updateSettings(data: Partial<InstanceSettingsData>): Promise<Instance> {
   const existing = await db.orm.public.Instance.first();
 
   if (!existing) {
@@ -57,7 +52,9 @@ export async function updateSettings(
     return settings;
   }
 
-  const settings = await db.orm.public.Instance.where({ id: existing.id }).update(data);
+  const settings = await db.orm.public.Instance.where({
+    id: existing.id,
+  }).update(data);
 
   if (!settings) {
     throw new Error('Failed to update instance settings');

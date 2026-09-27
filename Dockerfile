@@ -1,32 +1,34 @@
-FROM oven/bun:1 AS builder
-
-ARG NODE_OPTIONS="--max-old-space-size=4096"
-ENV NODE_OPTIONS="${NODE_OPTIONS}"
+FROM oven/bun:1.4.2 AS builder
 
 WORKDIR /usr/src/app
 
 COPY package.json bun.lock ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 RUN bun install --frozen-lockfile
-RUN bunx prisma generate
+
+RUN bun run prisma:emit
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/src/app/.nuxt \
-    bun run build
+RUN bun run build
 
-FROM oven/bun:1 AS runner
+
+FROM node:22-bookworm-slim AS runner
 
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
+COPY --from=builder /usr/src/app/package.json ./package.json
+COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.output ./.output
 COPY --from=builder /usr/src/app/prisma ./prisma
-COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /usr/src/app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
 
-CMD ["bun", ".output/server/index.mjs"]
+CMD ["node", ".output/server/index.mjs"]

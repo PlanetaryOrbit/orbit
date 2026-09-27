@@ -5,36 +5,31 @@ export default defineNitroPlugin(async () => {
     [globalKey]?: boolean;
   };
 
-  if (globalState[globalKey]) {
-    return;
-  }
-
+  if (globalState[globalKey]) return;
   globalState[globalKey] = true;
 
-  const config = useRuntimeConfig();
+  if (!process.env.SESSION_SECRET || !process.env.DATABASE_URL) {
+    throw new Error(
+      'SESSION_SECRET and DATABASE_URL must be set, see .env.example for instructions',
+    );
+  }
+
   const dev = import.meta.dev;
 
   if (dev) {
-    const cache = await import('~~/server/utils/cache');
-
-    await cache.clear();
-
+    const { clear } = await import('~~/server/utils/cache');
+    await clear();
     console.log('[STARTUP] Cache cleared.');
   }
 
   const { getSettings } = await import('~~/server/lib/instance');
-
   const settings = await getSettings();
 
   if (dev) {
     console.log('[STARTUP] Settings loaded.', settings);
-  }
 
-  if (!settings.isSetup && dev) {
-    console.warn('[STARTUP] Instance is not setup!');
-  }
-
-  if (dev) {
-    console.log('[STARTUP] Roblox sync scheduler started.');
+    if (!settings.isSetup) {
+      console.warn('[STARTUP] Instance is not setup!');
+    }
   }
 });

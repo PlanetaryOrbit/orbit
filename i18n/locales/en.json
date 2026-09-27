@@ -14,16 +14,33 @@
       "back": "Go back",
       "cancel": "Cancel",
       "close": "Close",
-      "save": "Save"
+      "save": "Save",
+      "home": "Go home",
+      "login": "Login",
+      "signup": "Sign up",
+      "continue": "Continue"
     },
-    "language": "Language",
     "navigation": {
       "actions": "Navigation"
-    }
-  },
-  "auth": {
-    "login": "Login",
-    "signup": "Sign up"
+    },
+    "labels": {
+      "optional": "Optional",
+      "required": "Required",
+      "passwords": {
+        "0": "Weak",
+        "1": "Weak",
+        "2": "Okay",
+        "3": "Strong",
+        "4": "Super Strong"
+      }
+    },
+    "status": {
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "error": "Error"
+    },
+    "language": "Language"
   },
   "errors": {
     "unauthorized": {
@@ -37,6 +54,62 @@
     "noWorkspaces": {
       "title": "No Workspaces",
       "message": "You don't have access to any workspaces yet."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "message": "The page you're looking for doesn't exist or may have been moved."
+    },
+    "somethingWentWrong": {
+      "title": "Something went wrong",
+      "message": "Orbit encountered an unexpected error while loading this page."
+    }
+  },
+  "pages": {
+    "login": {},
+    "signup": {
+      "intro": {
+        "title": "Welcome to",
+        "description": "Create an account to get started at {name}."
+      },
+      "form": {
+        "title": "Create your account",
+        "description": "Choose how you'd like to sign up.",
+        "fields": {
+          "username": {
+            "label": "Roblox Username",
+            "placeholder": "builderman"
+          },
+          "password": {
+            "label": "Password",
+            "placeholder": "Create a password"
+          }
+        },
+        "actions": {
+          "submit": "Create account",
+          "showPassword": "Show password",
+          "hidePassword": "Hide password"
+        },
+        "footer": {
+          "existingAccount": "Already have an account?",
+          "login": "Log in"
+        }
+      },
+      "verification": {
+        "title": "Verify your Roblox account",
+        "description": "Add the code below to your Roblox profile bio to verify that you own this account.",
+        "codeLabel": "Verification code",
+        "copy": "Copy verification code",
+        "copied": "Verification code copied",
+        "instructions": "Add this code to your Roblox profile bio, then continue."
+      },
+      "errors": {
+        "robloxNotFound": "No roblox user with that username could be found.",
+        "passwordRequired": "Password is required.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "accountExists": "An account with these details already exists.",
+        "registrationDisabled": "Registration is currently disabled.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   }
 }
