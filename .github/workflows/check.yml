@@ -30,14 +30,8 @@ jobs:
       - name: Emit Prisma contract
         run: bun run prisma:emit
 
-      - name: Type check
-        run: bun run typecheck
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Format check
-        run: bun run format:check
+      - name: Check
+        run: bun run check
 
       - name: Build
         run: bun run build
