@@ -2,7 +2,8 @@ import type { FetchError } from 'ofetch';
 import type { ApiResponse, User } from '~~/shared/types';
 
 export function useUser() {
-  const user = useState<User | undefined | null>('user', () => undefined);
+  const user = useState<User | null | undefined>('user', () => undefined);
+  const initialized = useState<boolean>('user-initialized', () => false);
   const requestFetch = useRequestFetch();
 
   async function refreshUser() {
@@ -25,11 +26,14 @@ export function useUser() {
 
       console.error('Failed to fetch authenticated user:', error);
       user.value = null;
+    } finally {
+      initialized.value = true;
     }
   }
 
   return {
     user,
+    initialized,
     refreshUser,
   };
 }

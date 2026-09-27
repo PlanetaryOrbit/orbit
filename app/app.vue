@@ -6,12 +6,12 @@ import Button from '~/components/ui/Button.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
 
 const { isDark } = useTheme();
-const { settings, refreshSettings } = useInstance();
-const { user, refreshUser } = useUser();
+const { settings, initialized, refreshSettings } = useInstance();
+const { user, initialized: userInitialized, refreshUser } = useUser();
 const { t, locale, locales } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
 
-await Promise.all([refreshSettings(), refreshUser()]);
+void Promise.all([refreshSettings(), refreshUser()]);
 
 const instanceBackground = computed(() => {
   if (!settings.value) {
@@ -66,7 +66,7 @@ useHead(() => {
 </script>
 
 <template>
-  <template v-if="settings">
+  <template v-if="initialized && userInitialized">
     <NuxtLayout>
       <header class="orbit-header">
         <div class="orbit-header__inner">
