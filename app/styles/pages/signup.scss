@@ -131,6 +131,60 @@
     line-height: 1.6;
   }
 
+  &__password-strength {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-block-start: 0.5rem;
+  }
+
+  &__password-strength-bar {
+    position: relative;
+    flex: 1;
+    block-size: 0.375rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--slate-800);
+  }
+
+  &__password-strength-fill {
+    display: block;
+    block-size: 100%;
+    border-radius: inherit;
+    background: var(--instance-primary);
+    transition:
+      inline-size 200ms ease,
+      background-color 200ms ease;
+  }
+
+  &__password-strength-label {
+    min-inline-size: 5.5rem;
+    color: var(--slate-400);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: end;
+  }
+
+  &__password-strength[data-strength='1'] {
+    .signup__password-strength-fill {
+      background: var(--red-500);
+    }
+  }
+
+  &__password-strength[data-strength='2'] {
+    .signup__password-strength-fill {
+      background: var(--yellow-400);
+    }
+  }
+
+  &__password-strength[data-strength='3'],
+  &__password-strength[data-strength='4'] {
+    .signup__password-strength-fill {
+      background: var(--green-400);
+    }
+  }
+
   &__divider {
     position: absolute;
     inset-block: 12%;

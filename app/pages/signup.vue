@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { IconEye, IconEyeClosed, IconUserPlus } from '@tabler/icons-vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import Button from '~/components/ui/Button.vue';
 import Form from '~/components/ui/Form.vue';
 import Input from '~/components/ui/Input.vue';
 import { useInstance } from '~/composables/useInstance';
+import { calculatePasswordStrength } from '~/utils/passwordStrength';
 
 const { t } = useI18n();
 const { settings } = useInstance();
@@ -17,6 +18,20 @@ useHead({
 const username = ref('');
 const password = ref('');
 const showPassword = ref(false);
+
+const passwordStrength = computed(() => calculatePasswordStrength(password.value));
+const passwordStrengthLabel = computed(() => {
+  if (!password.value) {
+    return '';
+  }
+  return t(`common.labels.passwords.${passwordStrength.value}`);
+});
+const passwordStrengthPercentage = computed(() => {
+  if (!password.value) {
+    return 0;
+  }
+  return (Number(passwordStrength.value) / 4) * 100;
+});
 </script>
 
 <template>
@@ -83,6 +98,32 @@ const showPassword = ref(false);
                 :icon="showPassword ? IconEyeClosed : IconEye"
                 @click="showPassword = !showPassword"
               />
+            </template>
+
+            <template #after>
+              <div
+                class="signup__password-strength"
+                :data-strength="passwordStrength"
+                aria-live="polite"
+              >
+                <div
+                  class="signup__password-strength-bar"
+                  role="progressbar"
+                  :aria-valuenow="Number(passwordStrength)"
+                  aria-valuemin="0"
+                  aria-valuemax="4"
+                  :aria-label="passwordStrengthLabel"
+                >
+                  <span
+                    class="signup__password-strength-fill"
+                    :style="{ inlineSize: `${passwordStrengthPercentage}%` }"
+                  />
+                </div>
+
+                <span class="signup__password-strength-label">
+                  {{ passwordStrengthLabel }}
+                </span>
+              </div>
             </template>
           </Input>
 

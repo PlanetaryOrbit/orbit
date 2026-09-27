@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { IconAlertCircle } from '@tabler/icons-vue';
 withDefaults(
   defineProps<{
     title?: string;
@@ -30,7 +31,7 @@ defineEmits<{
     </header>
 
     <div v-if="error" class="orbit-form__error" role="alert" aria-live="assertive">
-      <Icon name="tabler:alert-circle" class="orbit-form__error-icon" aria-hidden="true" />
+      <IconAlertCircle class="orbit-form__error-icon" aria-hidden="true" />
 
       <span class="orbit-form__error-message">
         {{ error }}

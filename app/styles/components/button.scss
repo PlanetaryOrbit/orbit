@@ -55,16 +55,34 @@
     transform: none;
   }
 
+  &--icon-only {
+    aspect-ratio: 1;
+    inline-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    padding: 0;
+    gap: 0;
+  }
+
   &--sm {
     min-block-size: 2.25rem;
     padding-inline: 0.75rem;
     font-size: 0.8125rem;
+
+    &.orbit-button--icon-only {
+      inline-size: 2.25rem;
+      min-inline-size: 2.25rem;
+    }
   }
 
   &--md {
     min-block-size: 2.75rem;
     padding-inline: 1rem;
     font-size: 0.875rem;
+
+    &.orbit-button--icon-only {
+      inline-size: 2.75rem;
+      min-inline-size: 2.75rem;
+    }
   }
 
   &--lg {
@@ -72,12 +90,11 @@
     padding-inline: 1.25rem;
     gap: 0.5rem;
     font-size: 1rem;
-  }
 
-  &--icon-only {
-    aspect-ratio: 1;
-    padding: 0;
-    gap: 0;
+    &.orbit-button--icon-only {
+      inline-size: 3rem;
+      min-inline-size: 3rem;
+    }
   }
 
   &__icon {
