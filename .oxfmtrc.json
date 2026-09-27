@@ -14,5 +14,5 @@
   "quoteProps": "as-needed",
   "jsxSingleQuote": false,
   "vueIndentScriptAndStyle": false,
-  "ignorePatterns": ["prisma/"]
+  "ignorePatterns": ["prisma/", "node_modules/"]
 }
