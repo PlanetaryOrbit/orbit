@@ -5,6 +5,8 @@ import { Toaster } from 'vue-sonner';
 import Button from '~/components/ui/Button.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
 
+import LoadingScreen from './components/LoadingScreen.vue';
+
 const { isDark } = useTheme();
 const { settings, initialized, refreshSettings } = useInstance();
 const { user, initialized: userInitialized, refreshUser } = useUser();
@@ -66,7 +68,9 @@ useHead(() => {
 </script>
 
 <template>
-  <template v-if="initialized && userInitialized">
+  <LoadingScreen v-if="!initialized || !userInitialized" message="Loading..." />
+
+  <template v-else>
     <NuxtLayout>
       <header class="orbit-header">
         <div class="orbit-header__inner">
@@ -133,8 +137,6 @@ useHead(() => {
       </main>
     </NuxtLayout>
   </template>
-
-  <div v-else class="orbit-loading">Loading...</div>
 
   <Toaster
     position="bottom-right"

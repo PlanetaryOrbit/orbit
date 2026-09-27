@@ -1,0 +1,129 @@
+@use '../tokens' as *;
+
+.loading {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  min-block-size: 100dvh;
+  padding: 1.5rem;
+  background: var(--slate-950);
+  color: var(--slate-50);
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    inline-size: min(100%, 22rem);
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__mark {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--instance-primary);
+
+    svg {
+      display: block;
+      inline-size: 100%;
+      block-size: 100%;
+    }
+  }
+
+  &__name {
+    color: var(--slate-50);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: 2.75rem;
+    margin-block-start: 1.75rem;
+    padding-inline: 0.875rem;
+    border: 1px solid var(--slate-800);
+    border-radius: 0.75rem;
+    background: color-mix(in oklch, var(--slate-900) 72%, transparent);
+    color: var(--slate-400);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    box-shadow:
+      0 1px 2px color-mix(in oklch, var(--gray-950) 30%, transparent),
+      inset 0 1px 0 color-mix(in oklch, var(--slate-700) 20%, transparent);
+  }
+
+  &__spinner {
+    flex: 0 0 auto;
+    inline-size: 1rem;
+    block-size: 1rem;
+    color: var(--instance-primary);
+    animation: loading-spin 900ms linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__spinner {
+      animation: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    &__status {
+      border-color: var(--slate-500);
+      background: var(--slate-900);
+      color: var(--slate-100);
+    }
+  }
+
+  @media (forced-colors: active) {
+    background: Canvas;
+    color: CanvasText;
+
+    &__mark,
+    &__name,
+    &__status,
+    &__spinner {
+      color: CanvasText;
+    }
+
+    &__status {
+      border-color: CanvasText;
+      background: Canvas;
+      box-shadow: none;
+    }
+  }
+
+  @media print {
+    position: static;
+    min-block-size: auto;
+    padding: 0;
+    background: transparent;
+
+    &__status {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    &__spinner {
+      display: none;
+    }
+  }
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
