@@ -18,7 +18,8 @@
       "home": "Domů",
       "login": "Přihlásit se",
       "signup": "Zaregistrovat se",
-      "continue": "Pokračovat"
+      "continue": "Pokračovat",
+      "open": "Otevřít"
     },
     "navigation": {
       "actions": "Navigace"
