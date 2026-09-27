@@ -8,6 +8,12 @@ export default defineNitroPlugin(async () => {
   if (globalState[globalKey]) return;
   globalState[globalKey] = true;
 
+  if (!process.env.SESSION_SECRET || !process.env.DATABASE_URL) {
+    throw new Error(
+      'SESSION_SECRET and DATABASE_URL must be set, see .env.example for instructions',
+    );
+  }
+
   const dev = import.meta.dev;
 
   if (dev) {

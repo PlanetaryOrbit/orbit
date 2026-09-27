@@ -96,7 +96,7 @@ useHead(() => ({
 
           <template v-else>
             <Button v-if="settings.allowPasswordAuth" variant="ghost" href="/login">
-              {{ t('auth.login') }}
+              {{ t('common.actions.login') }}
             </Button>
 
             <Button
@@ -105,7 +105,7 @@ useHead(() => ({
               :icon="IconUserPlus"
               href="/signup"
             >
-              {{ t('auth.signup') }}
+              {{ t('common.actions.signup') }}
             </Button>
           </template>
         </nav>

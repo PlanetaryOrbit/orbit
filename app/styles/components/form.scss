@@ -1,0 +1,154 @@
+@use '../tokens' as *;
+
+.orbit-form {
+  display: flex;
+  flex-direction: column;
+
+  min-inline-size: 0;
+
+  gap: 1.25rem;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+
+    min-inline-size: 0;
+
+    gap: 0.375rem;
+  }
+
+  &__title {
+    margin: 0;
+
+    color: var(--slate-50);
+
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+
+  &__description {
+    max-inline-size: 42rem;
+
+    margin: 0;
+
+    color: var(--slate-400);
+
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+
+    min-inline-size: 0;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+
+    gap: 1rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+
+    min-inline-size: 0;
+
+    gap: 0.75rem;
+  }
+
+  &__error {
+    display: flex;
+    align-items: flex-start;
+
+    min-inline-size: 0;
+
+    gap: 0.625rem;
+
+    padding: 0.75rem;
+
+    border: 1px solid var(--red-700);
+    border-radius: 0.625rem;
+
+    background: color-mix(in oklch, var(--red-950) 45%, var(--slate-950));
+    color: var(--red-300);
+
+    font-size: 0.8125rem;
+    line-height: 1.5;
+
+    box-shadow: 0 1px 2px color-mix(in oklch, var(--gray-950) 18%, transparent);
+  }
+
+  &__error-icon {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+
+    flex: 0 0 auto;
+
+    margin-block-start: 0.125rem;
+
+    color: currentColor;
+  }
+
+  &__error-message {
+    min-inline-size: 0;
+  }
+
+  &--loading {
+    cursor: progress;
+  }
+
+  @media (max-width: 480px) {
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__actions > * {
+      inline-size: 100%;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    &__error {
+      border-width: 2px;
+      background: transparent;
+      box-shadow: none;
+      color: var(--red-200);
+    }
+  }
+
+  @media (forced-colors: active) {
+    &__error {
+      border-color: CanvasText;
+      background: Canvas;
+      color: CanvasText;
+      box-shadow: none;
+    }
+
+    &__error-icon {
+      color: currentColor;
+    }
+  }
+
+  @media print {
+    gap: 1rem;
+
+    &__title,
+    &__description,
+    &__error {
+      color: #000;
+    }
+
+    &__error {
+      border-color: #000;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+}

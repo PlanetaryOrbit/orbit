@@ -15,15 +15,23 @@
       "cancel": "Cancel",
       "close": "Close",
       "save": "Save",
-      "home": "Go home"
+      "home": "Go home",
+      "login": "Login",
+      "signup": "Sign up"
     },
     "navigation": {
       "actions": "Navigation"
+    },
+    "labels": {
+      "optional": "Optional",
+      "required": "Required"
+    },
+    "status": {
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "error": "Error"
     }
-  },
-  "auth": {
-    "login": "Login",
-    "signup": "Sign up"
   },
   "errors": {
     "unauthorized": {
@@ -45,6 +53,68 @@
     "somethingWentWrong": {
       "title": "Something went wrong",
       "message": "Orbit encountered an unexpected error while loading this page."
+    }
+  },
+  "pages": {
+    "login": {},
+    "signup": {
+      "intro": {
+        "title": "Welcome to",
+        "description": "Create an account to get started at {name}."
+      },
+      "form": {
+        "title": "Create your account",
+        "description": "Choose how you'd like to sign up.",
+        "fields": {
+          "username": {
+            "label": "Username",
+            "placeholder": "Enter your username"
+          },
+          "email": {
+            "label": "Email address",
+            "placeholder": "you{'@'}example.com"
+          },
+          "password": {
+            "label": "Password",
+            "placeholder": "Create a password"
+          },
+          "confirmPassword": {
+            "label": "Confirm password",
+            "placeholder": "Enter your password again"
+          }
+        },
+        "actions": {
+          "submit": "Create account",
+          "showPassword": "Show password",
+          "hidePassword": "Hide password"
+        },
+        "footer": {
+          "existingAccount": "Already have an account?",
+          "login": "Log in"
+        },
+        "terms": "By creating an account, you agree to the terms and conditions."
+      },
+      "errors": {
+        "usernameRequired": "Username is required.",
+        "usernameTooShort": "Username must be at least 3 characters.",
+        "usernameTooLong": "Username must be 32 characters or fewer.",
+        "usernameInvalid": "Username contains invalid characters.",
+        "emailRequired": "Email address is required.",
+        "emailInvalid": "Enter a valid email address.",
+        "passwordRequired": "Password is required.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match.",
+        "accountExists": "An account with these details already exists.",
+        "registrationDisabled": "Registration is currently disabled.",
+        "generic": "Unable to create your account. Please try again."
+      },
+      "passwordRequirements": {
+        "title": "Password requirements",
+        "minimumLength": "At least 8 characters",
+        "uppercase": "At least one uppercase letter",
+        "lowercase": "At least one lowercase letter",
+        "number": "At least one number"
+      }
     }
   }
 }

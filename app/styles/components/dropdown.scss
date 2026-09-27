@@ -430,15 +430,6 @@
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    &__item,
-    &__item-icon,
-    &__menu {
-      transition: none;
-      animation: none;
-    }
-  }
-
   @media (prefers-contrast: more) {
     &__menu {
       border-width: 2px;

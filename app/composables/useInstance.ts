@@ -17,9 +17,7 @@ export const DEFAULTS: InstanceSettings = {
 
 export function useInstance() {
   const settings = useState<InstanceSettings>('instance-settings', () => DEFAULTS);
-
   const toast = useToast();
-
   async function refreshSettings() {
     try {
       const response = await $fetch<{
