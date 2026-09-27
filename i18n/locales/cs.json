@@ -14,16 +14,33 @@
       "back": "Zpět",
       "cancel": "Zrušit",
       "close": "Zavřít",
-      "save": "Uložit"
+      "save": "Uložit",
+      "home": "Domů",
+      "login": "Přihlásit se",
+      "signup": "Zaregistrovat se",
+      "continue": "Pokračovat"
     },
-    "language": "Jazyk",
     "navigation": {
       "actions": "Navigace"
-    }
-  },
-  "auth": {
-    "login": "Přihlásit se",
-    "signup": "Zaregistrovat se"
+    },
+    "labels": {
+      "optional": "Volitelné",
+      "required": "Povinné",
+      "passwords": {
+        "0": "Slabé",
+        "1": "Slabé",
+        "2": "Průměrné",
+        "3": "Silné",
+        "4": "Výborné"
+      }
+    },
+    "status": {
+      "loading": "Načítání...",
+      "saving": "Ukládání...",
+      "saved": "Uloženo",
+      "error": "Chyba"
+    },
+    "language": "Jazyk"
   },
   "errors": {
     "unauthorized": {
@@ -37,6 +54,62 @@
     "noWorkspaces": {
       "title": "Žádné pracovní prostory",
       "message": "Nemáš přístup k žádným pracovním prostorům."
+    },
+    "notFound": {
+      "title": "Stránka nenalezena",
+      "message": "Stránka, kterou hledáš, neexistuje nebo mohla být přesunuta."
+    },
+    "somethingWentWrong": {
+      "title": "Něco se pokazilo",
+      "message": "Orbit narazil na neočekávanou chybu při načítání této stránky."
+    }
+  },
+  "pages": {
+    "login": {},
+    "signup": {
+      "intro": {
+        "title": "Vítej v",
+        "description": "Vytvoř si účet a začni používat {name}."
+      },
+      "form": {
+        "title": "Vytvoř si účet",
+        "description": "Vyber, jak se chceš zaregistrovat.",
+        "fields": {
+          "username": {
+            "label": "Roblox Uživatelské Jméno",
+            "placeholder": "builderman"
+          },
+          "password": {
+            "label": "Heslo",
+            "placeholder": "Vytvoř si heslo"
+          }
+        },
+        "actions": {
+          "submit": "Vytvořit Účet",
+          "showPassword": "Zobrazit heslo",
+          "hidePassword": "Skrýt heslo"
+        },
+        "footer": {
+          "existingAccount": "Už máš účet?",
+          "login": "Přihlásit se"
+        }
+      },
+      "verification": {
+        "title": "Ověř svůj Roblox účet",
+        "description": "Přidej tento kód do svého Roblox bia, abychom mohli ověřit, že ti účet patří.",
+        "codeLabel": "Verifikační kód",
+        "copy": "Zkopírovat verifikační kód",
+        "copied": "Verifikační kód zkopírován",
+        "instructions": "Přidej tento kód do svého Roblox bia abys mohl pokračovat."
+      },
+      "errors": {
+        "robloxNotFound": "Nemohli jsme najít žádného Roblox uživatele s tímto uživatelským jménem.",
+        "passwordRequired": "Vyžadováno heslo.",
+        "passwordTooShort": "Heslo musí mít alespoň 8 znaků.",
+        "accountExists": "Účet s těmito údaji již existuje.",
+        "registrationDisabled": "Registrace je momentálně vypnuta.",
+        "generic": "Něco se pokazilo. Zkus to znovu později."
+      }
     }
   }
 }
