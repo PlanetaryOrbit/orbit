@@ -1,6 +1,6 @@
 import { db } from '~~/server/database/client';
 import { authenticate } from '~~/server/utils/auth';
-import type { ApiResponse, User } from '~~/server/utils/types';
+import type { ApiResponse, User } from '~~/shared/types';
 
 export default defineEventHandler(async (event): Promise<ApiResponse<User>> => {
   const auth = await authenticate(event);

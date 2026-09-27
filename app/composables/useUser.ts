@@ -1,4 +1,4 @@
-import type { ApiResponse, User } from '~/utils/types';
+import type { ApiResponse, User } from '~~/shared/types';
 
 export function useUser() {
   const user = useState<User | null>('user', () => null);

@@ -1,10 +1,8 @@
 import { createHash } from 'node:crypto';
 
 import type { H3Event } from 'h3';
-import type { FieldOutputTypes } from '~~/prisma/contract.d';
 import { db } from '~~/server/database/client';
-
-type User = FieldOutputTypes['public']['User'];
+import type { User } from '~~/shared/types';
 
 export type AuthUser = Pick<User, 'id' | 'username'>;
 

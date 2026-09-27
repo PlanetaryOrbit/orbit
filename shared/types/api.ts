@@ -1,9 +1,3 @@
-import type { FieldOutputTypes } from '~~/prisma/contract.d';
-
-type PublicModels = FieldOutputTypes['public'];
-
-export type User = PublicModels['User'];
-
 export type ErrorBody = {
   code: string;
   message: string;
