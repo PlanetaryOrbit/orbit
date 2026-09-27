@@ -31,7 +31,8 @@
       "saving": "Saving...",
       "saved": "Saved",
       "error": "Error"
-    }
+    },
+    "language": "Language"
   },
   "errors": {
     "unauthorized": {

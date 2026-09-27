@@ -1,3 +1,4 @@
+import type { FetchError } from 'ofetch';
 import type { ApiResponse, User } from '~~/shared/types';
 
 export function useUser() {
@@ -14,6 +15,13 @@ export function useUser() {
 
       user.value = response.data;
     } catch (error) {
+      const fetchError = error as FetchError;
+
+      if (fetchError.statusCode === 401 || fetchError.statusCode === 404) {
+        user.value = null;
+        return;
+      }
+
       console.error('Failed to fetch authenticated user:', error);
       user.value = null;
     }
