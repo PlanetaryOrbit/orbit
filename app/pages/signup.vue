@@ -11,7 +11,10 @@ import {
 import { computed, ref } from 'vue';
 import type { ApiResponse, User } from '~~/shared/types';
 const router = useRouter();
-const { refreshUser } = useUser();
+const { user, refreshUser } = useUser();
+if (user) {
+  router.push('/');
+}
 
 import Button from '~/components/ui/Button.vue';
 import Form from '~/components/ui/Form.vue';
