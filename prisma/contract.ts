@@ -23,6 +23,11 @@ export const contract = defineContract({}, ({ field, model }) => {
       id: field.text().unique(),
       userId: field.text().unique(),
       passwordHash: field.text(),
+
+      robloxAccessToken: field.text().optional(),
+      robloxRefreshToken: field.text().optional(),
+      robloxExpiresAt: field.temporal.timestamp().optional(),
+
       createdAt: field.temporal.createdAt(),
       updatedAt: field.temporal.updatedAt(),
     },

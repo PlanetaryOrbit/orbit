@@ -10,7 +10,7 @@ on:
       - '.github/workflows/translations.yml'
   push:
     branches:
-      - main
+      - v3-vue
     paths:
       - 'i18n/locales/**'
       - 'scripts/check-translations.ts'

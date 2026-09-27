@@ -2,28 +2,13 @@ import { db } from '~~/server/database/client';
 import cache from '~~/server/utils/cache';
 import type { Instance } from '~~/shared/types';
 
-type InstanceSettingsData = Omit<Instance, 'id' | 'createdAt' | 'updatedAt'>;
-
-export const DEFAULTS: InstanceSettingsData = {
-  name: 'Orbit',
-  logoUrl: '/favicon.png',
-  allowPasswordAuth: true,
-  allowRobloxAuth: false,
-  enableRegistration: true,
-  primaryColor: '#fb019c',
-  darkBackground: '/orbitbackground-dark.svg',
-  lightBackground: '/orbitbackground-light.svg',
-  isSetup: false,
-};
+type InstanceSettingsData = Omit<Instance, 'createdAt' | 'updatedAt'>;
 
 const cacheKey = 'instance_settings';
 const cacheTTL = 3600;
 
 async function createSettings(data: Partial<InstanceSettingsData> = {}): Promise<Instance> {
-  return db.orm.public.Instance.create({
-    ...DEFAULTS,
-    ...data,
-  });
+  return db.orm.public.Instance.create(data as never);
 }
 
 export async function getSettings(): Promise<Instance> {
@@ -52,9 +37,7 @@ export async function updateSettings(data: Partial<InstanceSettingsData>): Promi
     return settings;
   }
 
-  const settings = await db.orm.public.Instance.where({
-    id: existing.id,
-  }).update(data);
+  const settings = await db.orm.public.Instance.where({}).update(data);
 
   if (!settings) {
     throw new Error('Failed to update instance settings');

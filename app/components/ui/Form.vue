@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { IconAlertCircle } from '@tabler/icons-vue';
+
 withDefaults(
   defineProps<{
     title?: string;
     description?: string;
-    error?: string;
+    error?: string | null;
   }>(),
   {
     title: undefined,
     description: undefined,
-    error: undefined,
+    error: null,
   },
 );
 
