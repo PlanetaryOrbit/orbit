@@ -1,7 +1,7 @@
 import type { ApiResponse, Instance } from '~~/shared/types';
 
 export function useInstance() {
-  const settings = useState<Instance | null>('instance-settings', () => null);
+  const state = useState<Instance | null>('instance-settings', () => null);
   const toast = useToast();
 
   async function refreshSettings() {
@@ -13,13 +13,22 @@ export function useInstance() {
         return;
       }
 
-      settings.value = response.data;
-      toast.success('Instance settings refreshed successfully.');
+      state.value = response.data;
     } catch (error) {
-      console.error('Failed to refresh instance settings:', error);
-      toast.error('Failed to refresh instance settings.');
+      console.error('Failed to fetch instance settings:', error);
+      toast.error('Failed to fetch instance settings.');
     }
   }
+
+  const settings = new Proxy({} as Instance, {
+    get(_, property) {
+      if (!state.value) {
+        throw new Error('Instance settings have not been loaded.');
+      }
+
+      return Reflect.get(state.value, property);
+    },
+  });
 
   return {
     settings,

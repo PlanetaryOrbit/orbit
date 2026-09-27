@@ -15,8 +15,8 @@ await refreshUser();
 
 const instanceBackground = computed(() => {
   return isDark.value
-    ? (settings.value.darkBackground ?? settings.value.lightBackground)
-    : (settings.value.lightBackground ?? settings.value.darkBackground);
+    ? (settings.darkBackground ?? settings.lightBackground)
+    : (settings.lightBackground ?? settings.darkBackground);
 });
 
 const i18nHead = useLocaleHead({
@@ -43,13 +43,12 @@ useHead(() => ({
     dir: i18nHead.value.htmlAttrs.dir,
     lang: i18nHead.value.htmlAttrs.lang,
   },
-  titleTemplate: (pageTitle) =>
-    pageTitle ? `${pageTitle} - ${settings.value.name}` : settings.value.name,
+  titleTemplate: (pageTitle) => (pageTitle ? `${pageTitle} - ${settings.name}` : settings.name),
   link: [
     {
       rel: 'icon',
       type: 'image/png',
-      href: settings.value.logoUrl,
+      href: settings.logoUrl,
     },
   ],
 }));
