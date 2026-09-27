@@ -18,7 +18,8 @@
       "home": "Go home",
       "login": "Login",
       "signup": "Sign up",
-      "continue": "Continue"
+      "continue": "Continue",
+      "open": "Open"
     },
     "navigation": {
       "actions": "Navigation"
@@ -109,6 +110,24 @@
         "accountExists": "An account with these details already exists.",
         "registrationDisabled": "Registration is currently disabled.",
         "generic": "Something went wrong. Please try again."
+      }
+    },
+    "home": {
+      "greeting": "Welcome back, {username}",
+      "description": "Pick a workspace to get started.",
+      "workspaces": {
+        "title": "Workspaces",
+        "count": "{count} workspace | {count} workspaces",
+        "syncRoles": "Sync roles",
+        "create": "Create workspace",
+        "empty": {
+          "title": "No workspaces",
+          "message": "You don't have access to any workspaces yet."
+        }
+      },
+      "workspace": {
+        "roles": "Role | Roles",
+        "members": "Member | Members"
       }
     }
   }
