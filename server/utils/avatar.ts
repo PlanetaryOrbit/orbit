@@ -31,7 +31,7 @@ export interface FetchAvatarOptions {
 }
 
 export async function fetchAvatar(
-  userId: bigint | number | string,
+  userId: string,
   options: FetchAvatarOptions = {},
 ): Promise<string> {
   const { type = 'headshot', size = '180x180', circular = false } = options;

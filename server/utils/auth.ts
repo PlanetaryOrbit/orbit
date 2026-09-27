@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto';
 
 import type { H3Event } from 'h3';
+import { Temporal } from 'temporal-polyfill';
 import { db } from '~~/server/database/client';
 import type { User } from '~~/shared/types';
+
+type SessionId = Parameters<typeof db.orm.public.Session.where>[0]['id'];
 
 export type AuthUser = Pick<User, 'id' | 'username'>;
 
@@ -21,13 +24,15 @@ export async function authenticate(event: H3Event): Promise<AuthUser | null> {
     return null;
   }
 
-  if (session.expiresAt <= Temporal.Now.plainDateTimeISO()) {
+  if (Temporal.PlainDateTime.compare(session.expiresAt, Temporal.Now.plainDateTimeISO()) <= 0) {
     await db.orm.public.Session.where({ id: session.id }).delete();
 
     return null;
   }
 
-  const user = await db.orm.public.User.where({ id: session.id }).first();
+  const user = await db.orm.public.User.where({
+    id: session.userId as SessionId,
+  }).first();
 
   if (!user) {
     return null;

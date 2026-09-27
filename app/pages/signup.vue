@@ -9,7 +9,9 @@ import {
   IconUserPlus,
 } from '@tabler/icons-vue';
 import { computed, ref } from 'vue';
-import type { ApiResponse } from '~~/shared/types';
+import type { ApiResponse, User } from '~~/shared/types';
+const router = useRouter();
+const { refreshUser } = useUser();
 
 import Button from '~/components/ui/Button.vue';
 import Form from '~/components/ui/Form.vue';
@@ -127,8 +129,47 @@ async function copyCode() {
   }
 }
 
-function continueSignup() {
-  // The final signup verification endpoint will go here.
+async function continueSignup() {
+  if (!signup.value || loading.value) {
+    return;
+  }
+
+  error.value = null;
+  loading.value = true;
+
+  try {
+    const response = await $fetch<ApiResponse<{ user: User; isFirst: boolean }>>(
+      '/api/v1/auth/signup/verify',
+      {
+        method: 'POST',
+        body: {
+          signupId: signup.value.signupId,
+        },
+      },
+    );
+
+    if (!response.success) {
+      error.value = response.error.message;
+      return;
+    }
+
+    await refreshUser();
+
+    await router.push('/');
+  } catch (err) {
+    const fetchError = err as {
+      data?: {
+        code?: string;
+        message?: string;
+      };
+      statusMessage?: string;
+    };
+
+    error.value =
+      fetchError.data?.message ?? fetchError.statusMessage ?? t('pages.signup.error.generic');
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -325,11 +366,17 @@ function continueSignup() {
                 variant="primary"
                 size="lg"
                 :icon="IconArrowRight"
+                :loading="loading"
+                :disabled="loading"
                 @click="continueSignup"
               >
                 {{ t('common.actions.continue') }}
               </Button>
             </div>
+
+            <p v-if="error" class="signup__verification-error" role="alert">
+              {{ error }}
+            </p>
           </div>
         </template>
       </div>

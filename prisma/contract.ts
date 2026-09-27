@@ -3,9 +3,9 @@ import { defineContract, rel } from '@prisma/orm-postgres/contract-builder';
 export const contract = defineContract({}, ({ field, model }) => {
   const User = model('User', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       username: field.text().unique(),
-      robloxId: field.bigint().unique(),
+      robloxId: field.text().unique(),
       robloxData: field.json().optional(),
       discordData: field.json().optional(),
       fluxxerData: field.json().optional(),
@@ -20,7 +20,7 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Credential = model('Credential', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       userId: field.text().unique(),
       passwordHash: field.text(),
       createdAt: field.temporal.createdAt(),
@@ -30,7 +30,6 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Instance = model('Instance', {
     fields: {
-      id: field.id.cuid2(),
       name: field.text().default('Orbit'),
       logoUrl: field.text().default('/favicon.png'),
       allowPasswordAuth: field.boolean().default(true),
@@ -47,7 +46,7 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Media = model('Media', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       filename: field.text(),
       mimeType: field.text(),
       size: field.int(),
@@ -63,7 +62,7 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Notification = model('Notification', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       userId: field.text(),
       title: field.text(),
       description: field.text().optional(),
@@ -79,7 +78,7 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const Session = model('Session', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       tokenHash: field.text().unique(),
       userId: field.text(),
       expiresAt: field.temporal.timestamp(),
@@ -89,10 +88,10 @@ export const contract = defineContract({}, ({ field, model }) => {
 
   const SignupAttempt = model('SignupAttempt', {
     fields: {
-      id: field.id.cuid2(),
+      id: field.text().unique(),
       username: field.text(),
       passwordHash: field.text(),
-      robloxId: field.bigint(),
+      robloxId: field.text(),
       verificationCode: field.text(),
       expiresAt: field.temporal.timestamp(),
       createdAt: field.temporal.createdAt(),

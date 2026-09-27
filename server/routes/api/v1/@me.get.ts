@@ -12,7 +12,9 @@ export default defineEventHandler(async (event): Promise<ApiResponse<User>> => {
     });
   }
 
-  const user = await db.orm.public.User.where({ id: auth.id }).first();
+  const user = await db.orm.public.User.where({
+    id: auth.id,
+  }).first();
 
   if (!user) {
     throw createError({

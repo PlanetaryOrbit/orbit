@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 
+import { createId } from '@paralleldrive/cuid2';
 import { Temporal } from 'temporal-polyfill';
 import { db } from '~~/server/database/client';
 import { getSettings } from '~~/server/lib/instance';
@@ -38,13 +39,33 @@ type RobloxUsersResponse = {
   data?: RobloxUser[];
 };
 
-const verificationCharacters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+const verificationCharacters = [
+  '🐱',
+  '🐈',
+  '🐾',
+  '😺',
+  '😸',
+  '😹',
+  '😻',
+  '😼',
+  '😽',
+  '🙀',
+  '😿',
+  '😾',
+  '🌸',
+  '⭐',
+  '🌙',
+  '☀️',
+  '🍀',
+  '🌈',
+  '💙',
+];
 
 const verificationExpiration = 30 * 60 * 1000;
 const robloxCacheTtl = 5 * 60;
 const signupCacheTtl = 5 * 60;
 
-const ipRateLimit = 5;
+const ipRateLimit = 25;
 const ipRateLimitWindow = 10 * 60;
 
 const accountRateLimit = 2;
@@ -133,7 +154,7 @@ async function getRobloxUser(username: string): Promise<RobloxUser | null> {
   return user;
 }
 
-async function getSignup(robloxId: bigint): Promise<SignupResponse | null> {
+async function getSignup(robloxId: string): Promise<SignupResponse | null> {
   const cacheKey = `signup:attempt:${robloxId}`;
   const cached = await cache.get<SignupResponse>(cacheKey);
 
@@ -152,7 +173,7 @@ async function getSignup(robloxId: bigint): Promise<SignupResponse | null> {
   const response: SignupResponse = {
     signupId: attempt.id,
     user: {
-      id: robloxId.toString(),
+      id: robloxId,
       username: attempt.username,
       displayName: attempt.username,
       avatar: null,
@@ -209,7 +230,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
     throw error(404, 'ROBLOX_USER_NOT_FOUND', 'Roblox user not found.');
   }
 
-  const robloxId = BigInt(robloxUser.id);
+  const robloxId = String(robloxUser.id);
 
   await rateLimit(`account:${robloxId}`, accountRateLimit, accountRateLimitWindow);
 
@@ -239,6 +260,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
   const [passwordHash, avatar] = await Promise.all([encrypt(password), fetchAvatar(robloxUser.id)]);
 
   const signup = await db.orm.public.SignupAttempt.create({
+    id: createId(),
     username: robloxUser.name,
     passwordHash,
     robloxId,
@@ -249,7 +271,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<SignupRespo
   const response: SignupResponse = {
     signupId: signup.id,
     user: {
-      id: robloxId.toString(),
+      id: robloxId,
       username: robloxUser.name,
       displayName: robloxUser.displayName,
       avatar,
