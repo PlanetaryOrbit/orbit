@@ -18,7 +18,8 @@
       "home": "Domů",
       "login": "Přihlásit se",
       "signup": "Zaregistrovat se",
-      "continue": "Pokračovat"
+      "continue": "Pokračovat",
+      "open": "Otevřít"
     },
     "navigation": {
       "actions": "Navigace"
@@ -109,6 +110,24 @@
         "accountExists": "Účet s těmito údaji již existuje.",
         "registrationDisabled": "Registrace je momentálně vypnuta.",
         "generic": "Něco se pokazilo. Zkus to znovu později."
+      }
+    },
+    "home": {
+      "greeting": "Vítej zpět, {username}",
+      "description": "Vyber pracovní prostor, abys mohl začít.",
+      "workspaces": {
+        "title": "Pracovní prostory",
+        "count": "{count} pracovní prostor | {count} pracovní prostory",
+        "syncRoles": "Synchroizovat role",
+        "create": "Vytvořit pracovní prostor",
+        "empty": {
+          "title": "Žádné pracovní prostory",
+          "message": "Nemáš přístup k žádným pracovním prostorům."
+        }
+      },
+      "workspace": {
+        "roles": "Role | Role",
+        "members": "Člen | Členové"
       }
     }
   }
