@@ -7,6 +7,128 @@
         "discordId": "1149841240897114154"
       }
     ],
-    "lastUpdated": "2026-09-26"
+    "lastUpdated": "2026-09-27"
+  },
+  "common": {
+    "actions": {
+      "back": "Volver",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "save": "Guardar",
+      "home": "Ir al inicio",
+      "login": "Iniciar sesión",
+      "signup": "Registrarse",
+      "continue": "Continuar",
+      "open": "Abrir"
+    },
+    "navigation": {
+      "actions": "Navegación"
+    },
+    "labels": {
+      "optional": "Opcional",
+      "required": "Obligatorio",
+      "passwords": {
+        "0": "Débil",
+        "1": "Débil",
+        "2": "Aceptable",
+        "3": "Segura",
+        "4": "Muy segura"
+      }
+    },
+    "status": {
+      "loading": "Cargando...",
+      "saving": "Guardando...",
+      "saved": "Guardado",
+      "error": "Error"
+    },
+    "language": "Idioma"
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "Inicio de sesión necesario",
+      "message": "Debes iniciar sesión para ver esta página."
+    },
+    "forbidden": {
+      "title": "Acceso denegado",
+      "message": "No tienes permiso para acceder a esta página."
+    },
+    "noWorkspaces": {
+      "title": "No hay espacios de trabajo",
+      "message": "Todavía no tienes acceso a ningún espacio de trabajo."
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "message": "La página que buscas no existe o puede haber cambiado de ubicación."
+    },
+    "somethingWentWrong": {
+      "title": "Algo ha salido mal",
+      "message": "Orbit ha encontrado un error inesperado al cargar esta página."
+    }
+  },
+  "pages": {
+    "login": {},
+    "signup": {
+      "intro": {
+        "title": "Bienvenido a",
+        "description": "Crea una cuenta para empezar en {name}."
+      },
+      "form": {
+        "title": "Crea tu cuenta",
+        "description": "Elige cómo quieres registrarte.",
+        "fields": {
+          "username": {
+            "label": "Nombre de usuario de Roblox",
+            "placeholder": "builderman"
+          },
+          "password": {
+            "label": "Contraseña",
+            "placeholder": "Crea una contraseña"
+          }
+        },
+        "actions": {
+          "submit": "Crear cuenta",
+          "showPassword": "Mostrar contraseña",
+          "hidePassword": "Ocultar contraseña"
+        },
+        "footer": {
+          "existingAccount": "¿Ya tienes una cuenta?",
+          "login": "Iniciar sesión"
+        }
+      },
+      "verification": {
+        "title": "Verifica tu cuenta de Roblox",
+        "description": "Añade el código de abajo a la biografía de tu perfil de Roblox para verificar que eres el propietario de esta cuenta.",
+        "codeLabel": "Código de verificación",
+        "copy": "Copiar código de verificación",
+        "copied": "Código de verificación copiado",
+        "instructions": "Añade este código a la biografía de tu perfil de Roblox y después continúa."
+      },
+      "errors": {
+        "robloxNotFound": "No se ha encontrado ningún usuario de Roblox con ese nombre de usuario.",
+        "passwordRequired": "La contraseña es obligatoria.",
+        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+        "accountExists": "Ya existe una cuenta con estos datos.",
+        "registrationDisabled": "El registro está desactivado actualmente.",
+        "generic": "Algo ha salido mal. Inténtalo de nuevo."
+      }
+    },
+    "home": {
+      "greeting": "Bienvenido de nuevo, {username}",
+      "description": "Elige un espacio de trabajo para empezar.",
+      "workspaces": {
+        "title": "Espacios de trabajo",
+        "count": "{count} espacio de trabajo | {count} espacios de trabajo",
+        "syncRoles": "Sincronizar roles",
+        "create": "Crear espacio de trabajo",
+        "empty": {
+          "title": "No hay espacios de trabajo",
+          "message": "Todavía no tienes acceso a ningún espacio de trabajo."
+        }
+      },
+      "workspace": {
+        "roles": "Rol | Roles",
+        "members": "Miembro | Miembros"
+      }
+    }
   }
 }
