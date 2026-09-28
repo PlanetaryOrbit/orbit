@@ -7,6 +7,128 @@
         "discordId": "1282023005605593175"
       }
     ],
-    "lastUpdated": "2026-09-26"
+    "lastUpdated": "2026-09-28"
+  },
+  "common": {
+    "actions": {
+      "back": "Zurück",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "save": "Speichern",
+      "home": "Startseite",
+      "login": "Anmelden",
+      "signup": "Registrieren",
+      "continue": "Weiter",
+      "open": "Öffnen"
+    },
+    "navigation": {
+      "actions": "Navigation"
+    },
+    "labels": {
+      "optional": "Optional",
+      "required": "Erforderlich",
+      "passwords": {
+        "0": "Schwach",
+        "1": "Schwach",
+        "2": "Okay",
+        "3": "Stark",
+        "4": "Sehr stark"
+      }
+    },
+    "status": {
+      "loading": "Lädt...",
+      "saving": "Speichert...",
+      "saved": "Gespeichert",
+      "error": "Fehler"
+    },
+    "language": "Sprache"
+  },
+  "errors": {
+    "unauthorized": {
+      "title": "Kein Zugriff!",
+      "message": "Du musst dich anmelden, um diese Seite zu öffnen."
+    },
+    "forbidden": {
+      "title": "Zugriff verweigert",
+      "message": "Du hast keine Berechtigung, diese Seite zu öffnen."
+    },
+    "noWorkspaces": {
+      "title": "Keine Arbeitsbereiche",
+      "message": "Du hast noch keinen Zugriff auf einen Arbeitsbereich."
+    },
+    "notFound": {
+      "title": "Seite nicht gefunden",
+      "message": "Die Seite, die du suchst, wurde nicht gefunden oder verschoben."
+    },
+    "somethingWentWrong": {
+      "title": "Etwas ist schiefgelaufen",
+      "message": "Orbit hatte ein Problem beim Laden dieser Seite."
+    }
+  },
+  "pages": {
+    "login": {},
+    "signup": {
+      "intro": {
+        "title": "Willkommen bei",
+        "description": "Erstelle ein Konto, um bei {name} anzufangen."
+      },
+      "form": {
+        "title": "Erstelle dein Konto",
+        "description": "Wähle aus, wie du dich registrieren möchtest.",
+        "fields": {
+          "username": {
+            "label": "Roblox Benutzername",
+            "placeholder": "builderman"
+          },
+          "password": {
+            "label": "Passwort",
+            "placeholder": "Sicheres Passwort eingeben"
+          }
+        },
+        "actions": {
+          "submit": "Account erstellen",
+          "showPassword": "Passwort anzeigen",
+          "hidePassword": "Passwort ausblenden"
+        },
+        "footer": {
+          "existingAccount": "Du hast schon ein Konto?",
+          "login": "Anmelden"
+        }
+      },
+      "verification": {
+        "title": "Verifiziere dein Roblox-Konto",
+        "description": "Füge den folgenden Code zu deiner Roblox-Profil-Bio hinzu, um zu bestätigen, dass dieses Konto dir gehört.",
+        "codeLabel": "Verifizierungscode",
+        "copy": "Code kopieren",
+        "copied": "Code kopiert",
+        "instructions": "Füge diesen Code zu deiner Roblox-Bio hinzu und klicke dann auf Weiter."
+      },
+      "errors": {
+        "robloxNotFound": "Es konnte kein Roblox-Benutzer mit diesem Benutzernamen gefunden werden.",
+        "passwordRequired": "Passwort ist erforderlich.",
+        "passwordTooShort": "Dein Passwort muss mindestens 8 Zeichen lang sein.",
+        "accountExists": "Ein Konto mit diesem Benutzernamen existiert bereits.",
+        "registrationDisabled": "Neue Registrierungen sind zurzeit deaktiviert.",
+        "generic": "Etwas ist schiefgelaufen. Probiere es noch einmal."
+      }
+    },
+    "home": {
+      "greeting": "Willkommen zurück, {username}!",
+      "description": "Wähle einen Arbeitsbereich aus, um fortzufahren.",
+      "workspaces": {
+        "title": "Arbeitsbereiche",
+        "count": "{count} Arbeitsbereich | {count} Arbeitsbereiche",
+        "syncRoles": "Rollen synchronisieren",
+        "create": "Arbeitsbereich erstellen",
+        "empty": {
+          "title": "Keine Arbeitsbereiche",
+          "message": "Du hast noch keinen Zugriff auf einen Arbeitsbereich."
+        }
+      },
+      "workspace": {
+        "roles": "Rolle | Rollen",
+        "members": "Mitglied | Mitglieder"
+      }
+    }
   }
 }
