@@ -74,7 +74,7 @@ useHead(() => {
     <NuxtLayout>
       <header class="orbit-header">
         <div class="orbit-header__inner">
-          <NuxtLink to="/" :aria-label="settings.name" class="orbit-header__brand">
+          <NuxtLinkLocale to="/" :aria-label="settings.name" class="orbit-header__brand">
             <img
               :src="settings.logoUrl"
               :alt="settings.name"
@@ -88,7 +88,7 @@ useHead(() => {
             <span class="orbit-header__name">
               {{ settings.name }}
             </span>
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <nav class="orbit-header__actions" :aria-label="t('common.navigation.actions')">
             <Dropdown :items="languageItems" align="end" :trigger-label="t('common.language')">

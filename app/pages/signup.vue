@@ -293,9 +293,9 @@ async function continueSignup() {
 
           <p class="signup__footer">
             {{ t('pages.signup.form.footer.existingAccount') }}
-            <NuxtLink to="/login">
+            <NuxtLinkLocale to="/login">
               {{ t('pages.signup.form.footer.login') }}
-            </NuxtLink>
+            </NuxtLinkLocale>
           </p>
         </template>
 

@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
           </span>
 
           <template v-for="item in entry.items" :key="item.value ?? item.label">
-            <NuxtLink
+            <NuxtLinkLocale
               v-if="item.href && !item.disabled"
               :id="getItemId(item)"
               :to="item.href"
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
               <span v-if="item.selected" class="orbit-dropdown__item-check" aria-hidden="true">
                 <IconCheck class="orbit-dropdown__item-icon-svg" />
               </span>
-            </NuxtLink>
+            </NuxtLinkLocale>
 
             <button
               v-else
@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
         </div>
 
         <template v-else>
-          <NuxtLink
+          <NuxtLinkLocale
             v-if="entry.href && !entry.disabled"
             :id="getItemId(entry)"
             :to="entry.href"
@@ -498,7 +498,7 @@ onBeforeUnmount(() => {
             <span v-if="entry.selected" class="orbit-dropdown__item-check" aria-hidden="true">
               <IconCheck class="orbit-dropdown__item-icon-svg" />
             </span>
-          </NuxtLink>
+          </NuxtLinkLocale>
 
           <button
             v-else

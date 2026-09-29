@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
 const isDisabled = computed(() => props.disabled || props.loading);
 </script>
 <template>
-  <NuxtLink
+  <NuxtLinkLocale
     v-if="href"
     :to="href"
     :class="[
@@ -59,7 +59,7 @@ const isDisabled = computed(() => props.disabled || props.loading);
       <component :is="icon" v-else-if="icon" class="orbit-button__icon-svg" />
     </span>
     <span v-if="!iconOnly" class="orbit-button__label"> <slot /> </span>
-  </NuxtLink>
+  </NuxtLinkLocale>
   <button
     v-else
     :type="type"

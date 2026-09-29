@@ -146,14 +146,14 @@ async function sync() {
               <div class="home__workspace-stat">
                 <span class="home__workspace-stat-value">12</span>
                 <span class="home__workspace-stat-label">
-                  {{ t('pages.home.workspace.roles') }}
+                  {{ t('pages.home.workspace.roles', 12) }}
                 </span>
               </div>
 
               <div class="home__workspace-stat">
                 <span class="home__workspace-stat-value">48</span>
                 <span class="home__workspace-stat-label">
-                  {{ t('pages.home.workspace.members') }}
+                  {{ t('pages.home.workspace.members', 48) }}
                 </span>
               </div>
             </div>
