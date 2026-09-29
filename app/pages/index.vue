@@ -151,9 +151,9 @@ async function sync() {
               </div>
 
               <div class="home__workspace-stat">
-                <span class="home__workspace-stat-value">48</span>
+                <span class="home__workspace-stat-value">6</span>
                 <span class="home__workspace-stat-label">
-                  {{ t('pages.home.workspace.members', 48) }}
+                  {{ t('pages.home.workspace.members', 6) }}
                 </span>
               </div>
             </div>

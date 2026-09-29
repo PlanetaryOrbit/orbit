@@ -83,7 +83,7 @@ export default defineNuxtConfig({
     strategy: 'prefix_except_default',
     locales: [
       {
-        code: 'en',
+        code: 'en-US',
         name: 'English',
         language: 'en-US',
         flag: 'us',
@@ -91,7 +91,7 @@ export default defineNuxtConfig({
         dir: 'ltr',
       },
       {
-        code: 'es',
+        code: 'es-ES',
         name: 'Español',
         language: 'es-ES',
         flag: 'es',
@@ -99,7 +99,7 @@ export default defineNuxtConfig({
         dir: 'ltr',
       },
       {
-        code: 'de',
+        code: 'de-DE',
         name: 'Deutsch',
         language: 'de-DE',
         flag: 'de',
@@ -107,7 +107,7 @@ export default defineNuxtConfig({
         dir: 'ltr',
       },
       {
-        code: 'cs',
+        code: 'cs-CZ',
         name: 'Čeština',
         language: 'cs-CZ',
         flag: 'cz',
@@ -115,7 +115,7 @@ export default defineNuxtConfig({
         dir: 'ltr',
       },
       {
-        code: 'fr',
+        code: 'fr-FR',
         name: 'Français',
         language: 'fr-FR',
         flag: 'fr',
@@ -123,7 +123,7 @@ export default defineNuxtConfig({
         dir: 'ltr',
       },
       {
-        code: 'ur',
+        code: 'ur-PK',
         name: 'اردو',
         language: 'ur-PK',
         flag: 'pk',
