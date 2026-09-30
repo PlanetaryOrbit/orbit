@@ -13,17 +13,17 @@
   <h1>Orbit</h1>
   <p><strong>A modern, open-source staff management platform for Roblox groups — maintained by Team Planetary and the pawesome contributors.</strong></p>
 
-<a href="https://planetaryapp.us">Website</a> ·
-<a href="https://docs.planetaryapp.us">Documentation</a> ·
-<a href="https://feedback.planetaryapp.us/bugs">Report a Bug</a> ·
-<a href="https://feedback.planetaryapp.us/changelog">Changelog</a> ·
+<a href="https://planetaryapp.cloud">Website</a> ·
+<a href="https://docs.planetaryapp.cloud">Documentation</a> ·
+<a href="https://feedback.planetaryapp.cloud/bugs">Report a Bug</a> ·
+<a href="https://feedback.planetaryapp.cloud/changelog">Changelog</a> ·
 <a href="https://discord.com/invite/mWqdZmEkDc">Discord</a>
 </div>
 
 ---
 
 > [!NOTE]
-> **Orbit is currently in beta.** We've resolved the critical issues present in Tovy and continue to ship improvements, but you may encounter bugs. Please [report any issues](https://feedback.planetaryapp.us/bugs) you find or submit a pull request.
+> **Orbit is currently in beta.** We've resolved the critical issues present in Tovy and continue to ship improvements, but you may encounter bugs. Please [report any issues](https://feedback.planetaryapp.cloud/bugs) you find or submit a pull request.
 
 ---
 
@@ -74,7 +74,7 @@ Orbit ships with a comprehensive set of management tools out of the box:
 
 The fastest and easiest way to run Orbit is through **Planetary Cloud** — our free, managed hosting service. No configuration required.
 
-👉 **[Get started at planetaryapp.us](https://planetaryapp.us)**
+👉 **[Get started at planetaryapp.cloud](https://planetaryapp.cloud)**
 
 ---
 
@@ -88,7 +88,7 @@ The fastest and easiest way to run Orbit is through **Planetary Cloud** — our 
 > Vercel support ended with v2.1.11beta.1. Version v2.1.10beta21 is the last Vercel-supported release. Later releases do not receive Vercel support because Vercel's serverless infrastructure limits memory caching.
 > More information can be found in the latest update announcement ([Discord Announcement](https://discord.com/channels/1348101138670682156/1363239258659487864/1534022285453951087)).
 >
-> **[Planetary Cloud](https://planetaryapp.us) is free, purpose-built for Orbit, and works out of the box — no configuration needed.** We can't guarantee a great experience on Vercel, and support for Vercel-specific issues is limited.
+> **[Planetary Cloud](https://planetaryapp.cloud) is free, purpose-built for Orbit, and works out of the box — no configuration needed.** We can't guarantee a great experience on Vercel, and support for Vercel-specific issues is limited.
 
 Prefer to host on your own Vercel account? Deploy in seconds:
 
@@ -108,7 +108,7 @@ Prefer to host on your own Vercel account? Deploy in seconds:
 
 ### Self-Hosting
 
-For full self-hosting instructions, refer to the [official documentation](https://docs.planetaryapp.us).
+For full self-hosting instructions, refer to the [official documentation](https://docs.planetaryapp.cloud).
 
 #### System Requirements
 
@@ -273,5 +273,5 @@ Orbit is licensed under the [GNU General Public License v3.0](./LICENSE). You ar
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://planetaryapp.us">Team Planetary</a>. meow</sub>.
+  <sub>Built with ❤️ by <a href="https://planetaryapp.cloud">Team Planetary</a>. meow</sub>.
 </div>
