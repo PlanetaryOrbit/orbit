@@ -1,21 +1,17 @@
+@use '../tokens' as *;
+
 .orbit-footer {
   position: relative;
   z-index: 10;
-
   border-block-start: 1px solid var(--slate-800);
-
   background: color-mix(in oklch, var(--slate-950) 92%, transparent);
-
   box-shadow:
     0 -1px 0 color-mix(in oklch, var(--slate-700) 25%, transparent),
     0 -8px 24px color-mix(in oklch, var(--gray-950) 10%, transparent);
-
   backdrop-filter: blur(20px) saturate(1.1);
-
   @supports not (backdrop-filter: blur(1px)) {
     background: var(--slate-950);
   }
-
   &__inner {
     display: flex;
     align-items: center;
@@ -71,7 +67,7 @@
 
   &__version {
     color: var(--slate-600);
-    font-family: ui-monospace, monospace;
+    font-family: $font-mono;
     font-size: 0.6875rem;
   }
 
