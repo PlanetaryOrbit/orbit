@@ -19,7 +19,8 @@
       "login": "Login",
       "signup": "Sign up",
       "continue": "Continue",
-      "open": "Open"
+      "open": "Open",
+      "or": "or"
     },
     "navigation": {
       "actions": "Navigation"
@@ -88,7 +89,8 @@
         "actions": {
           "submit": "Create account",
           "showPassword": "Show password",
-          "hidePassword": "Hide password"
+          "hidePassword": "Hide password",
+          "connectWithRoblox": "Connect with Roblox"
         },
         "footer": {
           "existingAccount": "Already have an account?",
@@ -108,8 +110,15 @@
         "passwordRequired": "Password is required.",
         "passwordTooShort": "Password must be at least 8 characters.",
         "accountExists": "An account with these details already exists.",
-        "registrationDisabled": "Registration is currently disabled.",
-        "generic": "Something went wrong. Please try again."
+        "registrationDisabled": {
+          "title": "Registration disabled",
+          "message": "Registration is currently disabled. Please try contacting your instance administrator."
+        },
+        "generic": "Something went wrong. Please try again.",
+        "noAvailableMethods": {
+          "title": "No available methods",
+          "message": "No available methods for signing up. Please try contacting your instance administrator."
+        }
       }
     },
     "home": {

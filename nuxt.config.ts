@@ -79,7 +79,7 @@ export default defineNuxtConfig({
   modules: ['@nuxt/image', '@nuxt/fonts', '@nuxtjs/i18n'],
 
   i18n: {
-    defaultLocale: 'en',
+    defaultLocale: 'en-US',
     strategy: 'prefix_except_default',
     locales: [
       {
