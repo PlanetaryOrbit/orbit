@@ -2,6 +2,7 @@
 import { IconLanguage, IconUserPlus, IconMoon, IconSun } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
+import OrbitBackground from '~/components/Background.vue';
 import Button from '~/components/ui/Button.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
 
@@ -73,6 +74,7 @@ useHead(() => {
 
   <template v-else>
     <NuxtLayout>
+      <OrbitBackground />
       <header class="orbit-header">
         <div class="orbit-header__inner">
           <NuxtLinkLocale to="/" :aria-label="settings.name" class="orbit-header__brand">
@@ -115,9 +117,6 @@ useHead(() => {
       </header>
 
       <main>
-        <div v-if="!instanceBackground" class="orbit-background" />
-        <img v-else :src="instanceBackground" alt="" class="orbit-background" />
-
         <div class="page">
           <NuxtPage />
         </div>
