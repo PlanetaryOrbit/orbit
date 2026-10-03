@@ -1,27 +1,42 @@
-export type Theme = 'dark' | 'light';
+import { defaultTheme, themes, type ThemeDefinition } from '~/themes';
+
+export type Theme = ThemeDefinition['id'];
 
 export function useTheme() {
-  const theme = useState<Theme>('theme', () => 'dark');
-  const isDark = computed(() => theme.value === 'dark');
+  const theme = useState<Theme>('theme', () => defaultTheme.id);
 
-  function applyTheme(newTheme: Theme) {
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  const currentTheme = computed(
+    () => themes.find((item) => item.id === theme.value) ?? defaultTheme,
+  );
+
+  function applyTheme(themeId: Theme) {
+    const root = document.documentElement;
+
+    for (const item of themes) {
+      root.classList.remove(item.className);
+    }
+
+    const selectedTheme = themes.find((item) => item.id === themeId) ?? defaultTheme;
+
+    root.classList.add(selectedTheme.className);
   }
 
-  async function setTheme(newTheme: Theme) {
-    theme.value = newTheme;
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
-  }
+  function setTheme(themeId: Theme) {
+    const selectedTheme = themes.find((item) => item.id === themeId);
 
-  function toggle() {
-    return setTheme(isDark.value ? 'light' : 'dark');
+    if (!selectedTheme) {
+      return;
+    }
+
+    theme.value = selectedTheme.id;
+    localStorage.setItem('theme', selectedTheme.id);
+    applyTheme(selectedTheme.id);
   }
 
   if (import.meta.client) {
     const storedTheme = localStorage.getItem('theme');
 
-    if (storedTheme === 'dark' || storedTheme === 'light') {
+    if (storedTheme && themes.some((item) => item.id === storedTheme)) {
       theme.value = storedTheme;
     }
 
@@ -30,8 +45,8 @@ export function useTheme() {
 
   return {
     theme,
-    isDark,
+    themes,
+    currentTheme,
     setTheme,
-    toggle,
   };
 }

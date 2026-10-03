@@ -9,23 +9,13 @@ import Dropdown from '~/components/ui/Dropdown.vue';
 import packageJson from '../package.json';
 import LoadingScreen from './components/LoadingScreen.vue';
 
-const { isDark, toggle } = useTheme();
+const { theme, themes, currentTheme, setTheme } = useTheme();
 const { settings, initialized, refreshSettings } = useInstance();
 const { user, initialized: userInitialized, refreshUser } = useUser();
 const { t, locale, locales } = useI18n();
 const switchLocalePath = useSwitchLocalePath();
 
 void Promise.all([refreshSettings(), refreshUser()]);
-
-const instanceBackground = computed(() => {
-  if (!settings.value) {
-    return undefined;
-  }
-
-  return isDark.value
-    ? (settings.value.darkBackground ?? settings.value.lightBackground)
-    : (settings.value.lightBackground ?? settings.value.darkBackground);
-});
 
 const i18nHead = useLocaleHead({
   dir: true,
@@ -43,6 +33,15 @@ const languageItems = computed(() =>
     onSelect: async () => {
       await navigateTo(switchLocalePath(item.code));
     },
+  })),
+);
+
+const themeItems = computed(() =>
+  themes.map((item) => ({
+    label: item.name,
+    value: item.id,
+    selected: item.id === theme.value,
+    onSelect: () => setTheme(item.id),
   })),
 );
 
@@ -140,14 +139,17 @@ useHead(() => {
                 <span>{{ currentLocale?.name }}</span>
               </template>
             </Dropdown>
-            <Button
-              variant="ghost"
-              size="md"
-              icon-only
-              :aria-label="isDark ? t('common.actions.lightMode') : t('common.actions.darkMode')"
-              @click="toggle"
-              :icon="isDark ? IconSun : IconMoon"
-            />
+            <Dropdown :items="themeItems" align="start" placement="top" trigger-label="Theme">
+              <template #trigger>
+                <IconMoon
+                  v-if="currentTheme.colorScheme === 'dark'"
+                  class="orbit-button__icon-svg"
+                  aria-hidden="true"
+                />
+                <IconSun v-else class="orbit-button__icon-svg" aria-hidden="true" />
+                <span>{{ currentTheme.name }}</span>
+              </template>
+            </Dropdown>
           </nav>
 
           <div class="orbit-footer__meta">

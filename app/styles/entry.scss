@@ -6,6 +6,12 @@
 @use 'vue-sonner/style.css';
 @use 'flag-icons/css/flag-icons.min.css';
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   min-block-size: 100%;
   background-color: var(--slate-950);
