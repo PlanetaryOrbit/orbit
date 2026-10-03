@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { IconLanguage, IconUserPlus } from '@tabler/icons-vue';
+import { IconLanguage, IconUserPlus, IconMoon, IconSun } from '@tabler/icons-vue';
 import { Toaster } from 'vue-sonner';
 
 import Button from '~/components/ui/Button.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
 
+import packageJson from '../package.json';
 import LoadingScreen from './components/LoadingScreen.vue';
 
-const { isDark } = useTheme();
+const { isDark, toggle } = useTheme();
 const { settings, initialized, refreshSettings } = useInstance();
 const { user, initialized: userInitialized, refreshUser } = useUser();
 const { t, locale, locales } = useI18n();
@@ -91,20 +92,6 @@ useHead(() => {
           </NuxtLinkLocale>
 
           <nav class="orbit-header__actions" :aria-label="t('common.navigation.actions')">
-            <Dropdown :items="languageItems" align="end" :trigger-label="t('common.language')">
-              <template #trigger>
-                <span
-                  v-if="currentLocale?.flag"
-                  :class="['fi', `fi-${currentLocale.flag}`]"
-                  aria-hidden="true"
-                />
-
-                <IconLanguage v-else class="orbit-button__icon-svg" aria-hidden="true" />
-
-                <span>{{ currentLocale?.name }}</span>
-              </template>
-            </Dropdown>
-
             <template v-if="user">
               <!-- user thing -->
             </template>
@@ -135,6 +122,45 @@ useHead(() => {
           <NuxtPage />
         </div>
       </main>
+      <footer class="orbit-footer">
+        <div class="orbit-footer__inner">
+          <nav class="orbit-footer__links" :aria-label="t('common.navigation.footer')">
+            <Dropdown :items="languageItems" align="start" :trigger-label="t('common.language')">
+              <template #trigger>
+                <span
+                  v-if="currentLocale?.flag"
+                  :class="['fi', `fi-${currentLocale.flag}`]"
+                  aria-hidden="true"
+                />
+                <IconLanguage v-else class="orbit-button__icon-svg" aria-hidden="true" />
+                <span>{{ currentLocale?.name }}</span>
+              </template>
+            </Dropdown>
+            <Button
+              variant="ghost"
+              size="md"
+              icon-only
+              :aria-label="isDark ? t('common.actions.lightMode') : t('common.actions.darkMode')"
+              @click="toggle"
+              :icon="isDark ? IconSun : IconMoon"
+            />
+          </nav>
+
+          <div class="orbit-footer__meta">
+            <span
+              >Powered by
+              <a
+                href="https://github.com/PlanetaryOrbit/orbit"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Orbit</a
+              ></span
+            >
+            <span class="orbit-footer__separator" aria-hidden="true">·</span>
+            <span class="orbit-footer__version">{{ packageJson.version }}</span>
+          </div>
+        </div>
+      </footer>
     </NuxtLayout>
   </template>
 
