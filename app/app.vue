@@ -124,7 +124,12 @@ useHead(() => {
       <footer class="orbit-footer">
         <div class="orbit-footer__inner">
           <nav class="orbit-footer__links" :aria-label="t('common.navigation.footer')">
-            <Dropdown :items="languageItems" align="start" :trigger-label="t('common.language')">
+            <Dropdown
+              :items="languageItems"
+              align="start"
+              :trigger-label="t('common.language')"
+              placement="top"
+            >
               <template #trigger>
                 <span
                   v-if="currentLocale?.flag"
