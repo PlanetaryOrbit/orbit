@@ -52,8 +52,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     const webhookBody = {
       content: `This is a test.`,
-      username: 'Orbit',
-      avatar_url: `http://cdn.planetaryapp.us/brand/planetary.png`,
     };
 
     const response = await fetch(url, {
