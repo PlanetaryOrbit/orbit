@@ -12,6 +12,8 @@ import Other from './other';
 import Policies from './policies';
 import Resignations from './resignations';
 import Sessions from './sessions';
+import Recommendations from './recommendations';
+
 export {
   home,
   Color,
@@ -25,6 +27,7 @@ export {
   Policies,
   Notices,
   Resignations,
+  Recommendations,
   Admin,
   Other,
 };

@@ -38,6 +38,7 @@ model workspace {
   policyLinks          PolicyShareableLink[]
   stickyAnnouncements  StickyAnnouncement[]
   staffResignations    staffResignation[]
+  promotionRecommendations promotionRecommendation[]
 }
 
 model config {
@@ -101,6 +102,9 @@ model user {
   quotaCustomCompletions   QuotaCustomCompletion[] @relation("QuotaCompletionUser")
   quotaCompletionsReviewed QuotaCustomCompletion[] @relation("QuotaCompletionReviewer")
   quotaUsers               QuotaUser[]
+  promotionRecommendationsGiven    promotionRecommendation[] @relation("RecommendationRecommender")
+  promotionRecommendationsReceived promotionRecommendation[] @relation("RecommendationTarget")
+  promotionRecommendationsReviewed promotionRecommendation[] @relation("RecommendationReviewer")
 }
 
 model AuthSession {
@@ -743,4 +747,32 @@ model PolicyShareableLink {
   @@index([documentId])
   @@index([workspaceGroupId])
   @@index([createdById])
+}
+
+model promotionRecommendation {
+  id               String    @id @unique @default(uuid()) @db.Uuid
+  workspaceGroupId Int
+  recommenderId    BigInt
+  targetId         BigInt
+  recommenderRank  Int
+  targetRank       Int
+  reason           String
+  status           String    @default("pending")
+  reviewerId       BigInt?
+  reviewReason     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  reviewedAt       DateTime?
+
+  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
+  recommender      user      @relation("RecommendationRecommender", fields: [recommenderId], references: [userid])
+  target           user      @relation("RecommendationTarget", fields: [targetId], references: [userid])
+  reviewer         user?     @relation("RecommendationReviewer", fields: [reviewerId], references: [userid], onDelete: SetNull)
+
+  @@index([workspaceGroupId, status])
+  @@index([workspaceGroupId, targetId])
+  @@index([workspaceGroupId, recommenderId])
+  @@index([recommenderId])
+  @@index([targetId])
+  @@index([reviewerId])
 }

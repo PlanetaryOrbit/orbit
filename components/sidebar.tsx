@@ -28,7 +28,7 @@ import {
   IconClockFilled,
   IconTarget,
   IconGridDots,
-  IconChevronRight,
+  IconChevronRight, IconArrowUp
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
@@ -61,6 +61,7 @@ function MobileWorkspaceSwitcher({
   onGoHome: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+
 
   const otherWorkspaces =
     login?.workspaces?.filter((ws: any) => ws.groupId !== workspace.groupId) ?? [];
@@ -158,6 +159,7 @@ function MobileWorkspaceSwitcher({
 }
 
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
+
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -171,6 +173,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const [pendingPolicyCount, setPendingPolicyCount] = useState(0);
   const [pendingNoticesCount, setPendingNoticesCount] = useState(0);
   const [pendingResignationsCount, setPendingResignationsCount] = useState(0);
+  const [recommendationsEnabled, setRecommendationsEnabled] = useState(false);
+  const [pendingRecommendationCount, setPendingRecommendationCount] = useState(0);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [mobileMoreVisible, setMobileMoreVisible] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -240,6 +244,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const navBadgeCount = (pageName: string) => {
     if (pageName === 'Policies') return pendingPolicyCount;
     if (pageName === 'Notices') return pendingNoticesCount + pendingResignationsCount;
+    if (pageName === 'Recommendations') return pendingRecommendationCount;
     return 0;
   };
 
@@ -338,7 +343,21 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           },
         ]
       : []),
-    {
+    ...(recommendationsEnabled &&
+      (workspace.yourPermission?.includes('recommend_promotions') ||
+        workspace.yourPermission?.includes('manage_recommendations') ||
+        workspace.yourPermission?.includes('admin'))
+      ? [
+          {
+            name: 'Recommendations',
+            href: `/workspace/${workspace.groupId}/recommendations`,
+            icon: IconArrowUp,
+            accessible: true,
+          },
+        ]
+      : []),
+
+      {
       name: 'Settings',
       href: `/workspace/${workspace.groupId}/settings`,
       icon: IconSettings,
@@ -399,6 +418,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         setNoticesEnabled(data.value?.notices?.enabled ?? false);
         setResignationsEnabled(data.value?.resignations?.enabled ?? false);
         setPoliciesEnabled(data.value?.policies?.enabled ?? false);
+        setRecommendationsEnabled(data.value?.recommendations?.enabled ?? false);
       })
       .catch(() => setDocsEnabled(false));
   }, [workspace.groupId]);
@@ -411,6 +431,31 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         .catch(() => setPendingPolicyCount(0));
     }
   }, [workspace.groupId, policiesEnabled]);
+
+  useEffect(() => {
+    if (
+      recommendationsEnabled &&
+      (workspace.yourPermission?.includes('manage_recommendations') ||
+        workspace.yourPermission?.includes('admin'))
+    ) {
+      fetch(
+        `/api/workspace/${workspace.groupId}/recommendations?count=pending`,
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setPendingRecommendationCount(data.count || 0);
+          }
+        })
+        .catch(() => setPendingRecommendationCount(0));
+    } else {
+      setPendingRecommendationCount(0);
+    }
+  }, [
+    workspace.groupId,
+    recommendationsEnabled,
+    workspace.yourPermission,
+  ]);
 
   useEffect(() => {
     if (

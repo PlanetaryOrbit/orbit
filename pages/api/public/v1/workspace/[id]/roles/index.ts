@@ -91,6 +91,8 @@ const VALID_PERMISSIONS = [
   'create_docs',
   'edit_docs',
   'delete_docs',
+  'recommend_promotions',
+  'manage_recommendations',
 ] as const;
 
 type ValidPermission = (typeof VALID_PERMISSIONS)[number];
