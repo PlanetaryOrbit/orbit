@@ -31,6 +31,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
     getConfig('resignations', parseInt(req.query.id as string)),
     getConfig('leaderboard', parseInt(req.query.id as string)),
     getConfig('policies', parseInt(req.query.id as string)),
+    getConfig('recommendations', parseInt(req.query.id as string)),
   ]);
 
   const keys = [
@@ -41,6 +42,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
     'resignations',
     'leaderboard',
     'policies',
+    'recommendations'
   ];
   return res.status(200).json({
     success: true,

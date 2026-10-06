@@ -32,6 +32,7 @@ import { loginState } from '@/state';
 import prisma from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import { getDisplayName, getUsername, getThumbnail } from '@/utils/userinfoEngine';
+import Recommendation from '@/components/profile/recommendation';
 
 export const getServerSideProps = withPermissionCheckSsr(async ({ query, req }) => {
   const currentUserId = (req as any).auth?.userId as bigint;
@@ -1176,6 +1177,10 @@ const Profile: pageWithLayout<pageProps> = ({
                 <img src="/roblox.svg" alt="" className="h-4 w-4" aria-hidden />
                 Open on Roblox
               </a>
+              <Recommendation
+                targetId={String(user.userid)}
+                targetName={info.displayName}
+              />
             </div>
           </ProfilePanel>
         </aside>

@@ -182,6 +182,7 @@ const FEATURE_FLAGS = [
   'Resignations',
   'Policies',
   'Forms',
+  'Recommendations',
 ];
 
 const SECTIONS = {

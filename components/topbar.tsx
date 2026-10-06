@@ -213,22 +213,24 @@ const Topbar: NextPage = () => {
 
                   <div className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
 
-                  <Menu.Item>
-                    {login.canMakeWorkspace && (
-                      <>
+                  {login.canMakeWorkspace && (
+                    <Menu.Item>
+                      {({ active }) => (
                         <button
                           onClick={() => {
                             setPanel('settings');
                             setOpen(true);
                           }}
-                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                            active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+                          }`}
                         >
                           <IconSettings className="h-4 w-4" />
                           Account Settings
                         </button>
-                      </>
-                    )}
-                  </Menu.Item>
+                      )}
+                    </Menu.Item>
+                  )}
 
                   <Menu.Item>
                     <button

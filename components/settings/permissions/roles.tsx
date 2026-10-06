@@ -215,6 +215,8 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
       'Logbook - Demotion': 'logbook_demotion',
       'Logbook - Termination': 'logbook_termination',
       'Logbook - Use Ranking Integration': 'rank_users',
+      'Promotion Recommendations - Submit': 'recommend_promotions',
+      'Promotion Recommendations - Manage': 'manage_recommendations',
     },
     Alliances: {
       'Create alliances': 'create_alliances',

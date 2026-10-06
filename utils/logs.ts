@@ -106,6 +106,8 @@ const PERMISSION_LABELS: Record<string, string> = {
   training: 'Training',
   event: 'Event',
   other: 'Other',
+  recommend_promotions: 'Promotion Recommendations - Submit',
+  manage_recommendations: 'Promotion Recommendations - Manage',
 };
 
 type WebhookRes = {
