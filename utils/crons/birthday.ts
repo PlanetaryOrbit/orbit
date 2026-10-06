@@ -74,8 +74,6 @@ export async function runBirthdayCron() {
 
         const webhookBody: any = {
           embeds: [embed],
-          username: 'Planetary Birthdays',
-          avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
         };
 
         if (member.discordId) {
