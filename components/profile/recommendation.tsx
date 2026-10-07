@@ -22,6 +22,12 @@ type Eligibility = {
 const Recommendation = ({ targetId, targetName }: Props) => {
   const router = useRouter();
 
+  const getSafeWorkspaceId = (id: string | string[] | undefined): string | null => {
+    const raw = Array.isArray(id) ? id[0] : id;
+    if (!raw) return null;
+    return /^[A-Za-z0-9_-]+$/.test(raw) ? raw : null;
+  };
+
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [loadingEligibility, setLoadingEligibility] = useState(true);
   const [open, setOpen] = useState(false);
@@ -29,7 +35,8 @@ const Recommendation = ({ targetId, targetName }: Props) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!router.query.id || !targetId) return;
+    const workspaceId = getSafeWorkspaceId(router.query.id);
+    if (!workspaceId || !targetId) return;
 
     let cancelled = false;
 
@@ -38,7 +45,7 @@ const Recommendation = ({ targetId, targetName }: Props) => {
 
       try {
         const response = await axios.get(
-          `/api/workspace/${router.query.id}/recommendations/eligibility`,
+          `/api/workspace/${encodeURIComponent(workspaceId)}/recommendations/eligibility`,
           {
             params: {
               target: targetId,
@@ -69,6 +76,12 @@ const Recommendation = ({ targetId, targetName }: Props) => {
 
   const submit = async () => {
     const trimmed = reason.trim();
+    const workspaceId = getSafeWorkspaceId(router.query.id);
+
+    if (!workspaceId) {
+      toast.error('Invalid workspace identifier.');
+      return;
+    }
 
     if (trimmed.length < 10) {
       toast.error('Please provide at least 10 characters explaining the recommendation.');
@@ -83,7 +96,7 @@ const Recommendation = ({ targetId, targetName }: Props) => {
     setSubmitting(true);
 
     try {
-      const response = await axios.post(`/api/workspace/${router.query.id}/recommendations`, {
+      const response = await axios.post(`/api/workspace/${encodeURIComponent(workspaceId)}/recommendations`, {
         targetId,
         reason: trimmed,
       });
