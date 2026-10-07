@@ -258,7 +258,9 @@ function DiscordMilestones({ title = 'Discord Milestones' }: { title?: string })
               <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
                 {preview}
               </div>
-              <p class="text-xxs text-zinc-500"><small>Data is not accurate to current member count</small></p>
+              <p class="text-xxs text-zinc-500">
+                <small>Data is not accurate to current member count</small>
+              </p>
             </div>
           </>
         )}

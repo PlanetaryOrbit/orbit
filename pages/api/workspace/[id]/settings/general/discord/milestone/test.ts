@@ -56,13 +56,14 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const message = getMilestoneMessageTemplate(webhookConfig.message);
 
     const webhookBody = {
-      content: formatMilestoneMessage(message, {
-        groupName: workspace.groupName || 'Your group',
-        crossedMilestone: 57,
-        currentMemberCount: 57,
-        membersRemaining: 43,
-        nextMilestone: 100,
-      }) + "\n -# This is a test activated by a Workspace Adminstrator.",
+      content:
+        formatMilestoneMessage(message, {
+          groupName: workspace.groupName || 'Your group',
+          crossedMilestone: 57,
+          currentMemberCount: 57,
+          membersRemaining: 43,
+          nextMilestone: 100,
+        }) + '\n -# This is a test activated by a Workspace Adminstrator.',
     };
 
     const response = await fetch(webhookConfig.url, {

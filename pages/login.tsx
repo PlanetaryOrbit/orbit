@@ -156,6 +156,8 @@ const Login: NextPage = () => {
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [showTraditionalLogin, setShowTraditionalLogin] = useState(false);
+  const [loginBackgroundTintEnabled, setLoginBackgroundTintEnabled] = useState(false);
+  const [loginBackgroundTintOpacity, setLoginBackgroundTintOpacity] = useState(60);
 
   const errorToastShown = useRef(false);
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -203,6 +205,8 @@ const Login: NextPage = () => {
         if (res.data.themeRgb) {
           document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
         }
+        setLoginBackgroundTintEnabled(res.data.tintEnabled ?? true);
+        setLoginBackgroundTintOpacity(res.data.tintOpacity ?? 60);
       } catch (error) {
         console.error('Failed to fetch background:', error);
       }
@@ -431,6 +435,14 @@ const Login: NextPage = () => {
           <div
             className="fixed inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${loginBg})` }}
+            aria-hidden
+          />
+        ) : null}
+
+        {loginBg && loginBackgroundTintEnabled && loginBackgroundTintOpacity > 0 ? (
+          <div
+            className="pointer-events-none fixed inset-0 bg-zinc-950"
+            style={{ opacity: loginBackgroundTintOpacity / 100 }}
             aria-hidden
           />
         ) : null}

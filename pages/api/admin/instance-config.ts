@@ -60,6 +60,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           google_email_filtration: envGoogleEmailFiltration || null,
           redirectUri: envRedirectUri,
           loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
+          loginBackgroundTintEnabled: configMap.loginBackgroundTintEnabled ?? true,
+          loginBackgroundTintOpacity: configMap.loginBackgroundTintOpacity ?? 60,
           usingEnvVars: true,
         });
       }
@@ -150,6 +152,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       google_id,
       google_secret,
       google_email_filtration,
+      loginBackgroundTintEnabled,
+      loginBackgroundTintOpacity,
     } = req.body;
 
     try {
@@ -182,6 +186,18 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         },
         { key: 'oauthOnlyLogin', value: oauthOnlyLogin || false },
         {
+          key: 'loginBackgroundTintEnabled',
+          value:
+            typeof loginBackgroundTintEnabled === 'boolean' ? loginBackgroundTintEnabled : true,
+        },
+        {
+          key: 'loginBackgroundTintOpacity',
+          value:
+            typeof loginBackgroundTintOpacity === 'number'
+              ? Math.min(100, Math.max(0, loginBackgroundTintOpacity))
+              : 60,
+        },
+        {
           key: 'google_id',
           value: typeof google_id === 'string' ? google_id.trim() : google_id || '',
         },
@@ -196,6 +212,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
               ? google_email_filtration.trim()
               : google_email_filtration || '',
         },
+        { key: 'loginBackgroundTintEnabled', value: loginBackgroundTintEnabled || true },
+        { key: 'loginBackgroundTintOpacity', value: loginBackgroundTintOpacity || 60 },
       ];
 
       if (redirectWorkspaceID) {

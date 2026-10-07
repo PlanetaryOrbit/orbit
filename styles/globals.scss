@@ -17,7 +17,7 @@
   }
 
   .font-mono {
-      font-family: "JetBrains Mono", monospace;
+    font-family: 'JetBrains Mono', monospace;
   }
 
   html {
@@ -122,14 +122,6 @@
       scroll-behavior: auto !important;
     }
   }
-}
-
-.font-sans {
-  font-family: var(--font-sans);
-}
-
-.font-mono {
-  font-family: var(--font-mono);
 }
 
 @layer components {
