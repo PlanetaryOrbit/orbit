@@ -1,7 +1,7 @@
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Disclosure, Transition } from '@headlessui/react';
+import { Disclosure, Transition, Dialog } from '@headlessui/react';
 import {
   IconChevronDown,
   IconPlus,
@@ -103,6 +103,8 @@ const AutoSaveContent = ({
 };
 
 const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
+  const [syncModalOpen, setSyncModalOpen] = React.useState(false);
+  const [syncing, setSyncing] = React.useState(false);
   const [workspace] = useRecoilState(workspacestate);
   const router = useRouter();
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
@@ -389,35 +391,43 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   const checkRoles = async () => {
+    setSyncing(true);
+
     try {
       const keyres = await axios.get(
         `/api/workspace/${workspace.groupId}/settings/general/roblox/key`,
       );
 
       if (!keyres.data.success) {
-        return toast.error('An error occurred while checking your API key');
+        throw new Error('An error occurred while checking your API key');
       }
 
       const { enabled, keySet } = keyres.data.value;
 
       if (!enabled) {
-        return toast.error('Open Cloud API key is not configured');
+        throw new Error('Open Cloud API key is not configured');
       }
 
       if (!keySet) {
-        return toast.error('Open Cloud API key cannot be empty.');
+        throw new Error('Open Cloud API key cannot be empty.');
       }
-    } catch (err) {
-      console.log(err);
-      return toast.error('An error occurred while checking your API key');
-    }
 
-    const res = axios.post(`/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`);
-    toast.promise(res, {
-      loading: 'Checking roles...',
-      success: 'Roles updated!',
-      error: 'Error updating roles',
-    });
+      const { data } = await axios.post(
+        `/api/workspace/${workspace.groupId}/settings/roles/checkgrouproles`,
+      );
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to sync roles');
+      }
+
+      setRoles(data.roles);
+      setSyncModalOpen(false);
+      toast.success('Roles synced with Roblox group');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err?.message || 'Error syncing roles');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const deleteRole = async (id: string) => {
@@ -448,6 +458,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   return (
+
     <div className="mt-6 space-y-5">
       <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -468,7 +479,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
             </button>
             <button
               type="button"
-              onClick={checkRoles}
+              onClick={() => setSyncModalOpen(true)}
               className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 transition-colors whitespace-nowrap w-full sm:w-auto"
             >
               <IconRefresh size={16} className="mr-1.5 shrink-0" />
@@ -894,6 +905,52 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
           </SortableContext>
         </DndContext>
       </div>
+
+      <Dialog
+        open={syncModalOpen}
+        onClose={() => {
+          if (!syncing) setSyncModalOpen(false);
+        }}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
+
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+            <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
+              Sync roles from Roblox?
+            </Dialog.Title>
+
+            <Dialog.Description className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              This will delete all existing Orbit roles except the Owner role and override them with your existing roblox group roles. Custom permissions, colors, names, assignments, quotas, will be lost.
+            </Dialog.Description>
+
+            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+              This action cannot be undone.
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={syncing}
+                onClick={() => setSyncModalOpen(false)}
+                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={syncing}
+                onClick={checkRoles}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {syncing ? 'Syncing...' : 'Delete and sync'}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 };

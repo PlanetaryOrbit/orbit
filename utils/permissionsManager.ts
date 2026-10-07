@@ -634,13 +634,74 @@ export async function checkGroupRoles(groupID: number) {
         }));
       }),
     );
+
     if (!rss) {
       console.log(`[update-group] No roles found for group ${groupID}, aborting.`);
       return;
     }
 
+    const existingRoles = await prisma.role.findMany({
+      where: {
+        workspaceGroupId: groupID,
+        isOwnerRole: false,
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      for (const role of existingRoles) {
+        for (const member of role.members) {
+          await tx.user.update({
+            where: {
+              userid: member.userid,
+            },
+            data: {
+              roles: {
+                disconnect: {
+                  id: role.id,
+                },
+              },
+            },
+          });
+        }
+
+        await tx.roleMember.deleteMany({
+          where: {
+            roleId: role.id,
+          },
+        });
+      }
+
+      await tx.role.deleteMany({
+        where: {
+          workspaceGroupId: groupID,
+          isOwnerRole: false,
+        },
+      });
+
+      for (const [index, groupRole] of rss
+        .filter((role) => role.name !== 'Guest')
+        .sort((a, b) => a.rank - b.rank)
+        .entries()) {
+        await tx.role.create({
+          data: {
+            workspaceGroupId: groupID,
+            name: groupRole.name,
+            groupRoles: [BigInt(groupRole.id)],
+            permissions: [],
+            position: index,
+            isOwnerRole: false,
+          },
+        });
+      }
+    });
+
     const [rs, config] = await Promise.all([
-      prisma.role.findMany({ where: { workspaceGroupId: groupID } }).catch((err) => {
+      prisma.role.findMany({
+        where: { workspaceGroupId: groupID },
+      }).catch((err) => {
         console.error(`[update-group] Failed to fetch workspace roles:`, err);
         return [] as Awaited<ReturnType<typeof prisma.role.findMany>>;
       }),
@@ -900,12 +961,22 @@ export async function checkGroupRoles(groupID: number) {
     }
 
     console.log(`[update-group] ${successful ? 'Completed' : 'Failed'} sync for group ${groupID}`);
+
     await prisma.workspace.update({
       where: {
         groupId: groupID,
       },
       data: {
         lastSyncedSuccessful: successful,
+      },
+    });
+
+    return await prisma.role.findMany({
+      where: {
+        workspaceGroupId: groupID,
+      },
+      orderBy: {
+        position: 'asc',
       },
     });
   } catch (err) {

@@ -231,7 +231,7 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
       footer={
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <a
-            href="https://docs.planetaryapp.us/workspace/external"
+            href="https://docs.planetaryapp.cloud/workspace/external"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-[color:rgb(var(--group-theme))] dark:text-zinc-400"

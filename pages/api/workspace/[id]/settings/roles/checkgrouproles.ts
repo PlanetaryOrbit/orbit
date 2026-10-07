@@ -1,15 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+import { checkGroupRoles } from '@/utils/permissionsManager';
 import cache from '@/utils/cache';
-import prisma from '@/utils/database';
-import { withPermissionCheck, checkGroupRoles } from '@/utils/permissionsManager';
+import { withAuth } from '@/lib/withAuth';
 
-type Data = {
-  success: boolean;
-  error?: string;
-};
-
-export default withPermissionCheck(handler, 'admin');
+export default withAuth(handler);
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'POST') {
@@ -29,24 +24,16 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       });
     }
 
-    await checkGroupRoles(workspaceId);
+    const roles = await checkGroupRoles(workspaceId);
 
     const roleCacheKey = `workspace:${workspaceId}:roles`;
+
     await cache.del(roleCacheKey);
-
-    const roles = await prisma.role.findMany({
-      where: {
-        workspaceGroupId: workspaceId,
-      },
-      orderBy: {
-        position: 'asc',
-      },
-    });
-
     await cache.set(roleCacheKey, roles, 300);
 
     return res.status(200).json({
       success: true,
+      roles,
     });
   } catch (error) {
     console.error('Error in checkgrouproles handler:', error);

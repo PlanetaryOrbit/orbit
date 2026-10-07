@@ -562,7 +562,7 @@ export function HelpFloatingButton() {
         <div className="mx-3 mb-2 h-px bg-zinc-200/80 dark:bg-zinc-600/80" role="separator" />
 
         <a
-          href="https://docs.planetaryapp.us"
+          href="https://docs.planetaryapp.cloud"
           target="_blank"
           rel="noopener noreferrer"
           className={menuItemClasses}
@@ -584,7 +584,7 @@ export function HelpFloatingButton() {
         </a>
 
         <a
-          href="https://feedback.planetaryapp.us/feature-requests"
+          href="https://feedback.planetaryapp.cloud/feature-requests"
           target="_blank"
           rel="noopener noreferrer"
           className={menuItemClasses}

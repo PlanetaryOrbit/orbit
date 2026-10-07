@@ -31,7 +31,7 @@ const defaultAnnouncement: Announcement = {
     {
       title: '📚 Documentation rework',
       content:
-        'We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.us/',
+        'We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.cloud/',
     },
     {
       title: '🔧 Backend improvements',
@@ -318,7 +318,7 @@ export default function StickyNoteAnnouncement() {
                     </a>
                     . Submit suggestions in
                     <a
-                      href="https://suggestions.planetaryapp.us"
+                      href="https://suggestions.planetaryapp.cloud"
                       target="_blank"
                       rel="noreferrer noopener"
                       className="ml-1 text-primary underline"
