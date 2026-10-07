@@ -119,7 +119,7 @@ async function revalidate<T>(
 
       await set(key, entry, options.staleFor);
     } catch (error) {
-      console.error('[Cache] Revalidation failed for %s:', key, error);
+      console.error('[Cache] Revalidation failed for key %s:', key, error);
     } finally {
       revalidating.delete(key);
     }
@@ -152,7 +152,7 @@ async function revalidateAndWait<T>(
   try {
     value = await loader();
   } catch (error) {
-    console.error('[Cache] Initial load failed for %s:', key, error);
+    console.error('[Cache] Initial load failed for key %s:', key, error);
     throw error;
   }
 
