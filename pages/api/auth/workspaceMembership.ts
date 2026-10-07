@@ -17,38 +17,39 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const cacheKey = `user:workspaces:${req.auth.userId}`;
 
   try {
-    let data = await cache.get<any[]>(cacheKey);
+    const data = await cache.swr(
+      cacheKey,
+      async () => {
+        const user = await prisma.user.findFirst({
+          where: {
+            userid: req.auth.userId,
+          },
 
-    if (!data) {
-      const user = await prisma.user.findFirst({
-        where: {
-          userid: req.auth.userId,
-        },
-        include: {
-          workspaceMemberships: {
-            include: {
-              workspace: true,
+          include: {
+            workspaceMemberships: {
+              include: {
+                workspace: true,
+              },
             },
           },
-        },
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found',
         });
-      }
 
-      data = user.workspaceMemberships.map((group) => ({
-        groupId: group.workspaceGroupId,
-        groupName: group.workspace.groupName,
-        groupLogo: group.workspace.groupLogo,
-        customName: group.workspace.customName,
-      }));
+        if (!user) {
+          throw new Error('User not found');
+        }
 
-      await cache.set(cacheKey, data, 300);
-    }
+        return user.workspaceMemberships.map((group) => ({
+          groupId: group.workspaceGroupId,
+          groupName: group.workspace.groupName,
+          groupLogo: group.workspace.groupLogo,
+          customName: group.workspace.customName,
+        }));
+      },
+      {
+        freshFor: 30,
+        staleFor: 300,
+      },
+    );
 
     return res.status(200).json({
       success: true,

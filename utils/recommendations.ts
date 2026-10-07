@@ -89,10 +89,7 @@ export async function hasRecommendationPermission(
   return user.roles.some((role) => role.permissions.includes(permission));
 }
 
-export async function getRobloxRank(
-  userId: bigint,
-  workspaceGroupId: number,
-): Promise<number> {
+export async function getRobloxRank(userId: bigint, workspaceGroupId: number): Promise<number> {
   try {
     return await noblox.getRankInGroup(workspaceGroupId, Number(userId));
   } catch {

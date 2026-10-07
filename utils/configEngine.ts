@@ -1,35 +1,49 @@
+import cache from './cache';
 import prisma from './database';
 
-const configCache = new Map<string, any>();
+const cacheFreshFor = 60;
+const cacheStaleFor = 600;
+
+function cacheKey(groupid: number, key: string) {
+  return `config:${groupid}:${key}`;
+}
 
 /** @returns {Promise<object>} */
 
 export async function getConfig(key: string, groupid: number) {
-  if (configCache.has(`${groupid}_${key}`)) {
-    return configCache.get(`${groupid}_${key}`);
-  } else {
-    const config = await prisma.config.findFirst({
-      where: {
-        workspaceGroupId: groupid,
-        key: key,
-      },
-    });
-    if (config) {
-      configCache.set(`${groupid}_${key}`, config.value);
-      return config.value;
-    } else {
-      return null;
-    }
-  }
+  return cache.swr(
+    cacheKey(groupid, key),
+    async () => {
+      const config = await prisma.config.findFirst({
+        where: {
+          workspaceGroupId: groupid,
+          key,
+        },
+      });
+
+      return config?.value ?? null;
+    },
+    {
+      freshFor: cacheFreshFor,
+      staleFor: cacheStaleFor,
+    },
+  );
 }
 
 export async function fetchworkspace(groupid: number) {
-  const workspace = await prisma.workspace.findFirst({
-    where: {
-      groupId: groupid,
+  return cache.swr(
+    `workspace:${groupid}`,
+    () =>
+      prisma.workspace.findFirst({
+        where: {
+          groupId: groupid,
+        },
+      }),
+    {
+      freshFor: 30,
+      staleFor: 300,
     },
-  });
-  return workspace;
+  );
 }
 
 export async function setConfig(key: string, value: any, groupid: number) {
@@ -57,9 +71,9 @@ export async function setConfig(key: string, value: any, groupid: number) {
       },
     });
   }
-  configCache.set(`${groupid}_${key}`, value);
+  await cache.set(cacheKey(groupid, key), value, cacheStaleFor);
 }
 
 export async function refresh(key: string, groupid: number) {
-  configCache.delete(`${groupid}_${key}`);
+  await cache.del(cacheKey(groupid, key));
 }

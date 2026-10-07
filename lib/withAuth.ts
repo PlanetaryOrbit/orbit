@@ -10,6 +10,7 @@ import type {
 } from 'next';
 import zxcvbn from 'zxcvbn';
 
+import { validateApiKey } from '@/utils/api-auth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { getSessionByToken } from '@/utils/session';
@@ -137,23 +138,16 @@ export function withKey(
 
       if (auth.startsWith('Bearer ')) {
         const apiKey = auth.replace('Bearer ', '');
-        const key = await prisma.apiKey.findUnique({
-          where: { key: apiKey },
-        });
+
+        const key = await validateApiKey(apiKey, workspaceId ?? 0);
 
         if (key) {
-          if (key.expiresAt && new Date() > key.expiresAt) {
-            return res.status(401).json({ success: false, error: 'API key expired' });
-          }
-
           if (id && key.workspaceGroupId !== workspaceId) {
-            return res.status(403).json({ success: false, error: 'Access denied' });
+            return res.status(403).json({
+              success: false,
+              error: 'Access denied',
+            });
           }
-
-          await prisma.apiKey.update({
-            where: { id: key.id },
-            data: { lastUsed: new Date() },
-          });
 
           authenticated = true;
         }

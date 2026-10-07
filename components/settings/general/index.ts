@@ -10,9 +10,9 @@ import AuditLogs from './logs';
 import Notices from './notices';
 import Other from './other';
 import Policies from './policies';
+import Recommendations from './recommendations';
 import Resignations from './resignations';
 import Sessions from './sessions';
-import Recommendations from './recommendations';
 
 export {
   home,

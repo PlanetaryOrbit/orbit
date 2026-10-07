@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { withAuth } from '@/lib/withAuth';
-import {
-  getRecommendationEligibility,
-} from '@/utils/recommendations';
+import { getRecommendationEligibility } from '@/utils/recommendations';
 
 type Data = {
   success: boolean;

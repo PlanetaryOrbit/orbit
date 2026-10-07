@@ -28,7 +28,8 @@ import {
   IconClockFilled,
   IconTarget,
   IconGridDots,
-  IconChevronRight, IconArrowUp
+  IconChevronRight,
+  IconArrowUp,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
@@ -61,7 +62,6 @@ function MobileWorkspaceSwitcher({
   onGoHome: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-
 
   const otherWorkspaces =
     login?.workspaces?.filter((ws: any) => ws.groupId !== workspace.groupId) ?? [];
@@ -159,7 +159,6 @@ function MobileWorkspaceSwitcher({
 }
 
 const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-
   const [login, setLogin] = useRecoilState(loginState);
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -344,9 +343,9 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         ]
       : []),
     ...(recommendationsEnabled &&
-      (workspace.yourPermission?.includes('recommend_promotions') ||
-        workspace.yourPermission?.includes('manage_recommendations') ||
-        workspace.yourPermission?.includes('admin'))
+    (workspace.yourPermission?.includes('recommend_promotions') ||
+      workspace.yourPermission?.includes('manage_recommendations') ||
+      workspace.yourPermission?.includes('admin'))
       ? [
           {
             name: 'Recommendations',
@@ -357,7 +356,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         ]
       : []),
 
-      {
+    {
       name: 'Settings',
       href: `/workspace/${workspace.groupId}/settings`,
       icon: IconSettings,
@@ -438,9 +437,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       (workspace.yourPermission?.includes('manage_recommendations') ||
         workspace.yourPermission?.includes('admin'))
     ) {
-      fetch(
-        `/api/workspace/${workspace.groupId}/recommendations?count=pending`,
-      )
+      fetch(`/api/workspace/${workspace.groupId}/recommendations?count=pending`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
@@ -451,11 +448,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     } else {
       setPendingRecommendationCount(0);
     }
-  }, [
-    workspace.groupId,
-    recommendationsEnabled,
-    workspace.yourPermission,
-  ]);
+  }, [workspace.groupId, recommendationsEnabled, workspace.yourPermission]);
 
   useEffect(() => {
     if (

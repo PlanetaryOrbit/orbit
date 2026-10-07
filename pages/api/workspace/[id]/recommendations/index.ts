@@ -3,13 +3,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 import {
   getRecommendationEligibility,
   hasRecommendationPermission,
   recommendationStatus,
   type RecommendationStatus,
 } from '@/utils/recommendations';
-import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type RecommendationResponse = {
   id: string;
@@ -44,9 +44,7 @@ type Data = {
   count?: number;
 };
 
-function serializeRecommendation(
-  recommendation: any,
-): RecommendationResponse {
+function serializeRecommendation(recommendation: any): RecommendationResponse {
   return {
     id: recommendation.id,
     workspaceGroupId: recommendation.workspaceGroupId,
@@ -71,9 +69,7 @@ function serializeRecommendation(
     reviewReason: recommendation.reviewReason,
     createdAt: recommendation.createdAt.toISOString(),
     updatedAt: recommendation.updatedAt.toISOString(),
-    reviewedAt: recommendation.reviewedAt
-      ? recommendation.reviewedAt.toISOString()
-      : null,
+    reviewedAt: recommendation.reviewedAt ? recommendation.reviewedAt.toISOString() : null,
   };
 }
 
@@ -187,309 +183,188 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   }
 
   if (req.method === 'POST') {
-    return withPermissionCheck(
-      async (request: NextApiRequest, response: NextApiResponse<Data>) => {
-        const body = request.body as {
-          targetId?: unknown;
-          reason?: unknown;
-        };
+    return withPermissionCheck(async (request: NextApiRequest, response: NextApiResponse<Data>) => {
+      const body = request.body as {
+        targetId?: unknown;
+        reason?: unknown;
+      };
 
-        const targetId = Number(body.targetId);
-        const reason =
-          typeof body.reason === 'string' ? body.reason.trim() : '';
+      const targetId = Number(body.targetId);
+      const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
 
-        if (!Number.isSafeInteger(targetId) || targetId <= 0) {
-          return response.status(400).json({
-            success: false,
-            error: 'Invalid target user.',
-          });
-        }
-
-        if (reason.length < 10) {
-          return response.status(400).json({
-            success: false,
-            error: 'A recommendation reason must be at least 10 characters.',
-          });
-        }
-
-        if (reason.length > 2000) {
-          return response.status(400).json({
-            success: false,
-            error: 'A recommendation reason cannot exceed 2000 characters.',
-          });
-        }
-
-        const targetUserId = BigInt(targetId);
-
-        const eligibility = await getRecommendationEligibility(
-          userId,
-          targetUserId,
-          workspaceGroupId,
-        );
-
-        if (!eligibility.canRecommend) {
-          return response.status(403).json({
-            success: false,
-            error: eligibility.reason || 'You cannot recommend this user.',
-          });
-        }
-
-        const existing = await prisma.promotionRecommendation.findFirst({
-          where: {
-            workspaceGroupId,
-            recommenderId: userId,
-            targetId: targetUserId,
-            status: 'pending',
-          },
+      if (!Number.isSafeInteger(targetId) || targetId <= 0) {
+        return response.status(400).json({
+          success: false,
+          error: 'Invalid target user.',
         });
+      }
 
-        if (existing) {
-          return response.status(409).json({
-            success: false,
-            error: 'You already have a pending recommendation for this user.',
-          });
-        }
-
-        const recommendation =
-          await prisma.promotionRecommendation.create({
-            data: {
-              workspaceGroupId,
-              recommenderId: userId,
-              targetId: targetUserId,
-              recommenderRank: eligibility.recommenderRank,
-              targetRank: eligibility.targetRank,
-              reason,
-              status: 'pending',
-            },
-            include: {
-              recommender: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-              target: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-              reviewer: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-            },
-          });
-
-        await logAudit(
-          workspaceGroupId,
-          userId,
-          'recommendation.create',
-          `recommendation:${recommendation.id}`,
-          {
-            targetId: targetId.toString(),
-            recommenderRank: eligibility.recommenderRank,
-            targetRank: eligibility.targetRank,
-          },
-        );
-
-        return response.status(201).json({
-          success: true,
-          recommendation: serializeRecommendation(recommendation),
+      if (reason.length < 10) {
+        return response.status(400).json({
+          success: false,
+          error: 'A recommendation reason must be at least 10 characters.',
         });
-      },
-      'recommend_promotions',
-    )(req, res);
+      }
+
+      if (reason.length > 2000) {
+        return response.status(400).json({
+          success: false,
+          error: 'A recommendation reason cannot exceed 2000 characters.',
+        });
+      }
+
+      const targetUserId = BigInt(targetId);
+
+      const eligibility = await getRecommendationEligibility(
+        userId,
+        targetUserId,
+        workspaceGroupId,
+      );
+
+      if (!eligibility.canRecommend) {
+        return response.status(403).json({
+          success: false,
+          error: eligibility.reason || 'You cannot recommend this user.',
+        });
+      }
+
+      const existing = await prisma.promotionRecommendation.findFirst({
+        where: {
+          workspaceGroupId,
+          recommenderId: userId,
+          targetId: targetUserId,
+          status: 'pending',
+        },
+      });
+
+      if (existing) {
+        return response.status(409).json({
+          success: false,
+          error: 'You already have a pending recommendation for this user.',
+        });
+      }
+
+      const recommendation = await prisma.promotionRecommendation.create({
+        data: {
+          workspaceGroupId,
+          recommenderId: userId,
+          targetId: targetUserId,
+          recommenderRank: eligibility.recommenderRank,
+          targetRank: eligibility.targetRank,
+          reason,
+          status: 'pending',
+        },
+        include: {
+          recommender: {
+            select: {
+              userid: true,
+              username: true,
+            },
+          },
+          target: {
+            select: {
+              userid: true,
+              username: true,
+            },
+          },
+          reviewer: {
+            select: {
+              userid: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      await logAudit(
+        workspaceGroupId,
+        userId,
+        'recommendation.create',
+        `recommendation:${recommendation.id}`,
+        {
+          targetId: targetId.toString(),
+          recommenderRank: eligibility.recommenderRank,
+          targetRank: eligibility.targetRank,
+        },
+      );
+
+      return response.status(201).json({
+        success: true,
+        recommendation: serializeRecommendation(recommendation),
+      });
+    }, 'recommend_promotions')(req, res);
   }
 
   if (req.method === 'PATCH') {
-    return withPermissionCheck(
-      async (request: NextApiRequest, response: NextApiResponse<Data>) => {
-        const body = request.body as {
-          id?: unknown;
-          status?: unknown;
-          reviewReason?: unknown;
-        };
+    return withPermissionCheck(async (request: NextApiRequest, response: NextApiResponse<Data>) => {
+      const body = request.body as {
+        id?: unknown;
+        status?: unknown;
+        reviewReason?: unknown;
+      };
 
-        const id = typeof body.id === 'string' ? body.id : '';
-        const status =
-          typeof body.status === 'string'
-            ? body.status
-            : '';
+      const id = typeof body.id === 'string' ? body.id : '';
+      const status = typeof body.status === 'string' ? body.status : '';
 
-        const reviewReason =
-          typeof body.reviewReason === 'string'
-            ? body.reviewReason.trim()
-            : '';
+      const reviewReason = typeof body.reviewReason === 'string' ? body.reviewReason.trim() : '';
 
-        if (!id) {
-          return response.status(400).json({
-            success: false,
-            error: 'Recommendation ID is required.',
-          });
-        }
-
-        if (status !== 'approved' && status !== 'rejected') {
-          return response.status(400).json({
-            success: false,
-            error: 'Recommendations can only be approved or rejected.',
-          });
-        }
-
-        if (reviewReason.length > 2000) {
-          return response.status(400).json({
-            success: false,
-            error: 'Review reason cannot exceed 2000 characters.',
-          });
-        }
-
-        const recommendation =
-          await prisma.promotionRecommendation.findFirst({
-            where: {
-              id,
-              workspaceGroupId,
-            },
-          });
-
-        if (!recommendation) {
-          return response.status(404).json({
-            success: false,
-            error: 'Recommendation not found.',
-          });
-        }
-
-        if (recommendation.status !== 'pending') {
-          return response.status(409).json({
-            success: false,
-            error: 'This recommendation has already been reviewed.',
-          });
-        }
-
-        if (recommendation.recommenderId === userId) {
-          return response.status(403).json({
-            success: false,
-            error: 'You cannot review your own recommendation.',
-          });
-        }
-
-        const updated =
-          await prisma.promotionRecommendation.update({
-            where: {
-              id,
-            },
-            data: {
-              status,
-              reviewerId: userId,
-              reviewReason: reviewReason || null,
-              reviewedAt: new Date(),
-            },
-            include: {
-              recommender: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-              target: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-              reviewer: {
-                select: {
-                  userid: true,
-                  username: true,
-                },
-              },
-            },
-          });
-
-        await logAudit(
-          workspaceGroupId,
-          userId,
-          `recommendation.${status}`,
-          `recommendation:${id}`,
-          {
-            recommenderId: recommendation.recommenderId.toString(),
-            targetId: recommendation.targetId.toString(),
-            reviewReason: reviewReason || null,
-          },
-        );
-
-        return response.status(200).json({
-          success: true,
-          recommendation: serializeRecommendation(updated),
+      if (!id) {
+        return response.status(400).json({
+          success: false,
+          error: 'Recommendation ID is required.',
         });
-      },
-      'manage_recommendations',
-    )(req, res);
-  }
+      }
 
-  if (req.method === 'DELETE') {
-    const body = req.body as {
-      id?: unknown;
-    };
+      if (status !== 'approved' && status !== 'rejected') {
+        return response.status(400).json({
+          success: false,
+          error: 'Recommendations can only be approved or rejected.',
+        });
+      }
 
-    const id = typeof body.id === 'string' ? body.id : '';
+      if (reviewReason.length > 2000) {
+        return response.status(400).json({
+          success: false,
+          error: 'Review reason cannot exceed 2000 characters.',
+        });
+      }
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        error: 'Recommendation ID is required.',
-      });
-    }
-
-    const recommendation =
-      await prisma.promotionRecommendation.findFirst({
+      const recommendation = await prisma.promotionRecommendation.findFirst({
         where: {
           id,
           workspaceGroupId,
         },
       });
 
-    if (!recommendation) {
-      return res.status(404).json({
-        success: false,
-        error: 'Recommendation not found.',
-      });
-    }
+      if (!recommendation) {
+        return response.status(404).json({
+          success: false,
+          error: 'Recommendation not found.',
+        });
+      }
 
-    const canManage = await hasRecommendationPermission(
-      userId,
-      workspaceGroupId,
-      'manage_recommendations',
-    );
+      if (recommendation.status !== 'pending') {
+        return response.status(409).json({
+          success: false,
+          error: 'This recommendation has already been reviewed.',
+        });
+      }
 
-    const canCancel =
-      recommendation.recommenderId === userId || canManage;
+      if (recommendation.recommenderId === userId) {
+        return response.status(403).json({
+          success: false,
+          error: 'You cannot review your own recommendation.',
+        });
+      }
 
-    if (!canCancel) {
-      return res.status(403).json({
-        success: false,
-        error: 'You cannot cancel this recommendation.',
-      });
-    }
-
-    if (recommendation.status !== 'pending') {
-      return res.status(409).json({
-        success: false,
-        error: 'Only pending recommendations can be cancelled.',
-      });
-    }
-
-    const updated =
-      await prisma.promotionRecommendation.update({
+      const updated = await prisma.promotionRecommendation.update({
         where: {
           id,
         },
         data: {
-          status: 'cancelled',
-          reviewerId: canManage && recommendation.recommenderId !== userId
-            ? userId
-            : null,
+          status,
+          reviewerId: userId,
+          reviewReason: reviewReason || null,
           reviewedAt: new Date(),
         },
         include: {
@@ -514,15 +389,103 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         },
       });
 
-    await logAudit(
-      workspaceGroupId,
-      userId,
-      'recommendation.cancel',
-      `recommendation:${id}`,
-      {
+      await logAudit(workspaceGroupId, userId, `recommendation.${status}`, `recommendation:${id}`, {
+        recommenderId: recommendation.recommenderId.toString(),
         targetId: recommendation.targetId.toString(),
+        reviewReason: reviewReason || null,
+      });
+
+      return response.status(200).json({
+        success: true,
+        recommendation: serializeRecommendation(updated),
+      });
+    }, 'manage_recommendations')(req, res);
+  }
+
+  if (req.method === 'DELETE') {
+    const body = req.body as {
+      id?: unknown;
+    };
+
+    const id = typeof body.id === 'string' ? body.id : '';
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Recommendation ID is required.',
+      });
+    }
+
+    const recommendation = await prisma.promotionRecommendation.findFirst({
+      where: {
+        id,
+        workspaceGroupId,
       },
+    });
+
+    if (!recommendation) {
+      return res.status(404).json({
+        success: false,
+        error: 'Recommendation not found.',
+      });
+    }
+
+    const canManage = await hasRecommendationPermission(
+      userId,
+      workspaceGroupId,
+      'manage_recommendations',
     );
+
+    const canCancel = recommendation.recommenderId === userId || canManage;
+
+    if (!canCancel) {
+      return res.status(403).json({
+        success: false,
+        error: 'You cannot cancel this recommendation.',
+      });
+    }
+
+    if (recommendation.status !== 'pending') {
+      return res.status(409).json({
+        success: false,
+        error: 'Only pending recommendations can be cancelled.',
+      });
+    }
+
+    const updated = await prisma.promotionRecommendation.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'cancelled',
+        reviewerId: canManage && recommendation.recommenderId !== userId ? userId : null,
+        reviewedAt: new Date(),
+      },
+      include: {
+        recommender: {
+          select: {
+            userid: true,
+            username: true,
+          },
+        },
+        target: {
+          select: {
+            userid: true,
+            username: true,
+          },
+        },
+        reviewer: {
+          select: {
+            userid: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    await logAudit(workspaceGroupId, userId, 'recommendation.cancel', `recommendation:${id}`, {
+      targetId: recommendation.targetId.toString(),
+    });
 
     return res.status(200).json({
       success: true,
