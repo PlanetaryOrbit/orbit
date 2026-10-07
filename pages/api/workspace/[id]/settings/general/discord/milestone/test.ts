@@ -1,7 +1,12 @@
 import { NextApiResponse } from 'next';
 
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { fetchworkspace, getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import {
+  formatMilestoneMessage,
+  getMilestoneMessageTemplate,
+} from '@/utils/discord/milestoneMessage';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -37,24 +42,30 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 
   try {
-    const { url } = req.body;
+    const webhookConfig = await getConfig('milestone_webhook', workspaceId);
 
-    if (!url || typeof url !== 'string') {
-      return res.status(400).json({ success: false, error: 'Webhook URL is required' });
-    }
+    if (!webhookConfig?.url)
+      return res
+        .status(400)
+        .json({ success: false, error: 'Milestone webhook URL is not configured' });
 
-    if (!url.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+/)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid Discord webhook URL format',
-      });
-    }
+    const workspace = await fetchworkspace(workspaceId);
+
+    if (!workspace) return res.status(404).json({ success: false, error: 'Workspace not found' });
+
+    const message = getMilestoneMessageTemplate(webhookConfig.message);
 
     const webhookBody = {
-      content: `This is a test.`,
+      content: formatMilestoneMessage(message, {
+        groupName: workspace.groupName || 'Your group',
+        crossedMilestone: 57,
+        currentMemberCount: 57,
+        membersRemaining: 43,
+        nextMilestone: 100,
+      }) + "\n -# This is a test activated by a Workspace Adminstrator.",
     };
 
-    const response = await fetch(url, {
+    const response = await fetch(webhookConfig.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +75,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     if (!response.ok) {
       const errorText = await response.text();
+
       console.error('Discord webhook error:', errorText);
+
       return res.status(400).json({
         success: false,
         error: `Discord webhook returned status ${response.status}`,
@@ -73,7 +86,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error testing birthday webhook:', error);
+    console.error('Error testing milestone webhook:', error);
+
     return res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Internal server error',
