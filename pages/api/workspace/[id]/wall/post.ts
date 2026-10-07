@@ -1,12 +1,12 @@
-import { fileTypeFromBuffer } from 'file-type';
-import isSvg from 'is-svg';
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import fs from 'fs/promises';
+
+import formidable from 'formidable';
 import type { NextApiResponse } from 'next';
 import sanitizeHtml from 'sanitize-html';
-import sharp from 'sharp';
 
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import { saveMedia, maxFileSize } from '@/utils/media';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 
 type Data = {
@@ -15,129 +15,81 @@ type Data = {
   post?: any;
 };
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default withPermissionCheck(handler, 'post_on_wall');
 
-// Allowed image MIME types
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-// Max file size (5MB)
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-/**
- * Validates and sanitizes an image
- * @param dataUrl Data URL containing the image
- * @returns Sanitized data URL or throws an error
- */
-async function validateAndSanitizeImage(dataUrl: string): Promise<string> {
-  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
-    throw new Error('Invalid image format');
-  }
-
-  // Extract base64 data and MIME type
-  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!matches) {
-    throw new Error('Invalid data URL format');
-  }
-
-  const [, mimeType, base64Data] = matches;
-
-  // Check if MIME type is allowed
-  if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-    throw new Error('Unsupported image type');
-  }
-
-  // Convert base64 to buffer
-  const buffer = Buffer.from(base64Data, 'base64');
-
-  // Check file size
-  if (buffer.length > MAX_FILE_SIZE) {
-    throw new Error('Image too large. Maximum size is 5MB.');
-  }
-
-  // Detect actual file type using file-type package
-  const fileType = await fileTypeFromBuffer(new Uint8Array(buffer));
-
-  // If file type detection fails or doesn't match claimed type, check if it's SVG
-  if (!fileType) {
-    if (isSvg(buffer.toString())) {
-      throw new Error('SVG images are not supported');
-    }
-    throw new Error('Unable to determine image type');
-  }
-
-  // Verify that detected type matches claimed type
-  if (!ALLOWED_MIME_TYPES.includes(fileType.mime)) {
-    throw new Error('Image type mismatch');
-  }
-
-  // Check if claimed MIME type matches actual MIME type
-  if (fileType.mime !== mimeType) {
-    throw new Error("Image type doesn't match claimed type");
-  }
-
-  // Process with sharp to sanitize the image by fully re-encoding it
-  try {
-    let processedImageBuffer: Buffer;
-
-    if (mimeType === 'image/jpeg') {
-      processedImageBuffer = await sharp(buffer).jpeg({ quality: 85 }).toBuffer();
-    } else if (mimeType === 'image/png') {
-      processedImageBuffer = await sharp(buffer).png({ compressionLevel: 9 }).toBuffer();
-    } else if (mimeType === 'image/webp') {
-      processedImageBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
-    } else if (mimeType === 'image/gif') {
-      processedImageBuffer = await sharp(buffer, { animated: true }).toFormat('png').toBuffer();
-      return `data:image/png;base64,${processedImageBuffer.toString('base64')}`;
-    } else {
-      throw new Error('Unsupported image format');
-    }
-
-    return `data:${mimeType};base64,${processedImageBuffer.toString('base64')}`;
-  } catch (error) {
-    console.error('Image processing error:', error);
-    throw new Error('Failed to process image');
-  }
-}
-
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
-  if (req.method !== 'POST')
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Not logged in' });
-  if (!req.body?.content) return res.status(400).json({ success: false, error: 'Missing content' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed',
+    });
+  }
+
+  if (!req.auth.userId) {
+    return res.status(401).json({
+      success: false,
+      error: 'Not logged in',
+    });
+  }
 
   try {
-    let { content, image } = req.body;
+    const form = formidable({
+      maxFileSize,
+      maxFiles: 1,
+      allowEmptyFiles: false,
+      keepExtensions: true,
+    });
 
-    // Sanitize text content - strip all HTML tags
-    content = sanitizeHtml(content.toString().trim(), {
+    const [fields, files] = await form.parse(req);
+
+    let content = sanitizeHtml(String(fields.content?.[0] || '').trim(), {
       allowedTags: [],
       allowedAttributes: {},
     });
 
-    // Truncate overly long content
-    const MAX_CONTENT_LENGTH = 10000;
-    if (content.length > MAX_CONTENT_LENGTH) {
-      content = content.substring(0, MAX_CONTENT_LENGTH);
+    content = content.slice(0, 10000);
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing content',
+      });
     }
 
-    // Validate and sanitize image (if present)
-    if (image) {
+    const file = files.file?.[0];
+    let mediaId: string | undefined;
+
+    if (file) {
       const workspaceId = parseInt(req.query.id as string);
+
       const user = await prisma.user.findFirst({
-        where: { userid: BigInt(req.auth.userId) },
+        where: {
+          userid: BigInt(req.auth.userId),
+        },
         include: {
           roles: {
-            where: { workspaceGroupId: workspaceId },
+            where: {
+              workspaceGroupId: workspaceId,
+            },
           },
           workspaceMemberships: {
-            where: { workspaceGroupId: workspaceId },
+            where: {
+              workspaceGroupId: workspaceId,
+            },
           },
         },
       });
 
       const isAdmin = user?.workspaceMemberships?.[0]?.isAdmin || false;
+
       const hasPhotoPermission =
-        isAdmin || user?.roles?.[0]?.permissions?.includes('add_wall_photos');
+        isAdmin || user?.roles?.some((role) => role.permissions?.includes('add_wall_photos'));
 
       if (!hasPhotoPermission) {
         return res.status(403).json({
@@ -146,28 +98,43 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         });
       }
 
-      try {
-        image = await validateAndSanitizeImage(image);
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          error: error instanceof Error ? error.message : 'Invalid image',
-        });
-      }
+      const media = await saveMedia(
+        {
+          filepath: file.filepath,
+          originalName: file.originalFilename || 'image',
+          size: file.size,
+        },
+        BigInt(req.auth.userId),
+      );
+
+      mediaId = media.id;
+
+      await fs.rm(file.filepath, { force: true });
     }
 
     const post = await prisma.wallPost.create({
       data: {
         content,
-        image: image || undefined,
-        authorId: req.auth.userId,
+        authorId: BigInt(req.auth.userId),
         workspaceGroupId: parseInt(req.query.id as string),
+        mediaId,
       },
+
       include: {
         author: {
           select: {
             username: true,
             picture: true,
+          },
+        },
+
+        media: {
+          select: {
+            id: true,
+            mimeType: true,
+            width: true,
+            height: true,
+            size: true,
           },
         },
       },
@@ -183,6 +150,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, error: 'Something went wrong' });
+
+    return res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Something went wrong',
+    });
   }
 }

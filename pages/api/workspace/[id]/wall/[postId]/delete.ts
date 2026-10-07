@@ -3,10 +3,14 @@ import { NextApiResponse } from 'next';
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import { deleteMedia } from '@/utils/media';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed',
+    });
   }
 
   const userId = req.auth.userId;
@@ -14,40 +18,88 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const postId = parseInt(req.query.postId as string);
 
   if (!userId || isNaN(groupId) || isNaN(postId)) {
-    return res.status(400).json({ success: false, error: 'Invalid request' });
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid request',
+    });
   }
 
-  const post = await prisma.wallPost.findUnique({ where: { id: postId } });
+  const post = await prisma.wallPost.findUnique({
+    where: {
+      id: postId,
+    },
+    include: {
+      media: true,
+    },
+  });
 
   if (!post || post.workspaceGroupId !== groupId) {
-    return res.status(404).json({ success: false, error: 'Post not found' });
+    return res.status(404).json({
+      success: false,
+      error: 'Post not found',
+    });
   }
 
   const user = await prisma.user.findUnique({
-    where: { userid: userId },
+    where: {
+      userid: BigInt(userId),
+    },
     include: {
-      roles: { where: { workspaceGroupId: groupId } },
-      workspaceMemberships: { where: { workspaceGroupId: groupId } },
+      roles: {
+        where: {
+          workspaceGroupId: groupId,
+        },
+      },
+      workspaceMemberships: {
+        where: {
+          workspaceGroupId: groupId,
+        },
+      },
     },
   });
+
   const membership = user?.workspaceMemberships?.[0];
+
   const isAdmin = membership?.isAdmin || false;
   const isOwner = post.authorId === BigInt(userId);
-  const hasPermission = user?.roles[0]?.permissions.includes('delete_wall_posts');
+  const hasPermission =
+    user?.roles?.some((role) => role.permissions.includes('delete_wall_posts')) || false;
   const isInstanceOwner = user?.isOwner === true;
 
   if (!isOwner && !hasPermission && !isInstanceOwner && !isAdmin) {
-    return res.status(403).json({ success: false, error: 'Not authorized' });
+    return res.status(403).json({
+      success: false,
+      error: 'Not authorized',
+    });
   }
 
-  await prisma.wallPost.delete({ where: { id: postId } });
+  const mediaId = post.mediaId;
+
+  await prisma.wallPost.delete({
+    where: {
+      id: postId,
+    },
+  });
+
+  if (mediaId) {
+    try {
+      await deleteMedia(mediaId);
+    } catch (error) {
+      console.error(`[Wall] Failed to delete media ${mediaId} for post ${postId}`, error);
+    }
+  }
+
   console.log(`[Wall] Post ${postId} deleted by user ${userId} in workspace ${groupId}`);
+
   try {
     await logAudit(groupId, Number(userId), 'wall.post.delete', `wallpost:${postId}`, {
       id: postId,
     });
-  } catch (e) {}
-  return res.status(200).json({ success: true });
+  } catch {}
+
+  return res.status(200).json({
+    success: true,
+  });
 }
 
 export default withAuth(handler);

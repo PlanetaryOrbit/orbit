@@ -465,12 +465,12 @@ const Login: NextPage = () => {
 
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16">
             <div className="w-full max-w-lg">
-            <div
-              className={clsx(
-                'rounded-3xl border border-white/60 bg-white/90 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-8',
-                'dark:border-zinc-700/50 dark:bg-zinc-950/85 dark:shadow-black/30',
-              )}
-            >
+              <div
+                className={clsx(
+                  'rounded-3xl border border-white/60 bg-white/90 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-8',
+                  'dark:border-zinc-700/50 dark:bg-zinc-950/85 dark:shadow-black/30',
+                )}
+              >
                 {mode === 'login' && (
                   <>
                     <div className="mb-1">

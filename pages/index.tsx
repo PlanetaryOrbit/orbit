@@ -1049,7 +1049,8 @@ const Home: NextPage = () => {
                                     </span>
 
                                     <span className="block text-xs text-zinc-500 dark:text-zinc-400">
-                                      Add a dark tint behind the login form so text remains readable.
+                                      Add a dark tint behind the login form so text remains
+                                      readable.
                                     </span>
                                   </span>
                                 </label>

@@ -699,12 +699,14 @@ export async function checkGroupRoles(groupID: number) {
     });
 
     const [rs, config] = await Promise.all([
-      prisma.role.findMany({
-        where: { workspaceGroupId: groupID },
-      }).catch((err) => {
-        console.error(`[update-group] Failed to fetch workspace roles:`, err);
-        return [] as Awaited<ReturnType<typeof prisma.role.findMany>>;
-      }),
+      prisma.role
+        .findMany({
+          where: { workspaceGroupId: groupID },
+        })
+        .catch((err) => {
+          console.error(`[update-group] Failed to fetch workspace roles:`, err);
+          return [] as Awaited<ReturnType<typeof prisma.role.findMany>>;
+        }),
       getConfig('activity', groupID).catch(() => null),
     ]);
 

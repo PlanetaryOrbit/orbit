@@ -458,7 +458,6 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   return (
-
     <div className="mt-6 space-y-5">
       <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -922,7 +921,9 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
             </Dialog.Title>
 
             <Dialog.Description className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-              This will delete all existing Orbit roles except the Owner role and override them with your existing roblox group roles. Custom permissions, colors, names, assignments, quotas, will be lost.
+              This will delete all existing Orbit roles except the Owner role and override them with
+              your existing roblox group roles. Custom permissions, colors, names, assignments,
+              quotas, will be lost.
             </Dialog.Description>
 
             <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">

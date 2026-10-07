@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { checkGroupRoles } from '@/utils/permissionsManager';
-import cache from '@/utils/cache';
 import { withAuth } from '@/lib/withAuth';
+import cache from '@/utils/cache';
+import { checkGroupRoles } from '@/utils/permissionsManager';
 
 export default withAuth(handler);
 
