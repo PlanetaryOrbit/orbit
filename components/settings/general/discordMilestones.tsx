@@ -50,10 +50,18 @@ function DiscordMilestones({ title = 'Discord Milestones' }: { title?: string })
   const [testing, setTesting] = useState(false);
 
   useEffect(() => {
-    if (!router.query.id) return;
+    const rawId = Array.isArray(router.query.id) ? router.query.id[0] : router.query.id;
+    if (!rawId) return;
+
+    if (!/^[A-Za-z0-9_-]+$/.test(rawId)) {
+      console.warn('Invalid workspace id in route query');
+      return;
+    }
+
+    const safeWorkspaceId = encodeURIComponent(rawId);
 
     axios
-      .get(`/api/workspace/${router.query.id}/settings/general/discord/milestone/key`)
+      .get(`/api/workspace/${safeWorkspaceId}/settings/general/discord/milestone/key`)
       .then((res) => {
         if (!res.data.value) return;
 
