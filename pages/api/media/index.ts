@@ -67,7 +67,7 @@ export default withInstanceAuth(async function handler(
   }
 
   const form = formidable({
-    maxFileSize: MAX_FILE_SIZE,
+    maxFileSize,
     maxFiles: 1,
     allowEmptyFiles: false,
     multiples: false,
