@@ -42,7 +42,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 
   try {
-    const webhookConfig = await getConfig('milestone_webhook', workspaceId);
+    const webhookConfig = await getConfig('discord_milestone', workspaceId);
 
     if (!webhookConfig?.url)
       return res
