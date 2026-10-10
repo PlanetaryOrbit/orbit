@@ -41,9 +41,7 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
 
       try {
         const [configResponse, ranksResponse] = await Promise.all([
-          axios.get(
-            `/api/workspace/${workspace.groupId}/settings/general/recommendations`,
-          ),
+          axios.get(`/api/workspace/${workspace.groupId}/settings/general/recommendations`),
           axios.get(`/api/workspace/${workspace.groupId}/ranks`),
         ]);
 
@@ -59,11 +57,7 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
         }
 
         if (ranksResponse.data.success) {
-          setRanks(
-            Array.isArray(ranksResponse.data.ranks)
-              ? ranksResponse.data.ranks
-              : [],
-          );
+          setRanks(Array.isArray(ranksResponse.data.ranks) ? ranksResponse.data.ranks : []);
         }
       } catch {
         if (!cancelled) {
@@ -139,9 +133,7 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
           </div>
 
           <div className="min-w-0">
-            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-              Recommendations
-            </p>
+            <p className="text-sm font-medium text-zinc-900 dark:text-white">Recommendations</p>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               Allow selected Roblox ranks to recommend members for promotion.
             </p>
@@ -160,9 +152,7 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
       {config.enabled && (
         <div className="mt-5 border-t border-zinc-100 pt-5 dark:border-zinc-800">
           <div className="mb-3">
-            <p className="text-sm font-medium text-zinc-900 dark:text-white">
-              Eligible ranks
-            </p>
+            <p className="text-sm font-medium text-zinc-900 dark:text-white">Eligible ranks</p>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               Members with these Roblox ranks can submit promotion recommendations.
             </p>
@@ -207,12 +197,8 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
                       </span>
 
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">
-                          {rank.name}
-                        </span>
-                        <span className="block text-xs text-zinc-400">
-                          Rank {rank.rank}
-                        </span>
+                        <span className="block truncate text-sm font-medium">{rank.name}</span>
+                        <span className="block text-xs text-zinc-400">Rank {rank.rank}</span>
                       </span>
                     </button>
                   );

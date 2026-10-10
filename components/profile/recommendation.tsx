@@ -1,15 +1,8 @@
-import {
-  Dialog,
-  Transition,
-} from '@headlessui/react';
-import {
-  IconArrowUp,
-  IconSend,
-  IconX,
-} from '@tabler/icons-react';
+import { Dialog, Transition } from '@headlessui/react';
+import { IconArrowUp, IconSend, IconX } from '@tabler/icons-react';
 import axios from 'axios';
-import React, { Fragment, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import React, { Fragment, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 type Props = {
@@ -29,6 +22,12 @@ type Eligibility = {
 const Recommendation = ({ targetId, targetName }: Props) => {
   const router = useRouter();
 
+  const getSafeWorkspaceId = (id: string | string[] | undefined): string | null => {
+    const raw = Array.isArray(id) ? id[0] : id;
+    if (!raw) return null;
+    return /^[A-Za-z0-9_-]+$/.test(raw) ? raw : null;
+  };
+
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [loadingEligibility, setLoadingEligibility] = useState(true);
   const [open, setOpen] = useState(false);
@@ -36,7 +35,8 @@ const Recommendation = ({ targetId, targetName }: Props) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!router.query.id || !targetId) return;
+    const workspaceId = getSafeWorkspaceId(router.query.id);
+    if (!workspaceId || !targetId) return;
 
     let cancelled = false;
 
@@ -45,7 +45,7 @@ const Recommendation = ({ targetId, targetName }: Props) => {
 
       try {
         const response = await axios.get(
-          `/api/workspace/${router.query.id}/recommendations/eligibility`,
+          `/api/workspace/${encodeURIComponent(workspaceId)}/recommendations/eligibility`,
           {
             params: {
               target: targetId,
@@ -76,6 +76,12 @@ const Recommendation = ({ targetId, targetName }: Props) => {
 
   const submit = async () => {
     const trimmed = reason.trim();
+    const workspaceId = getSafeWorkspaceId(router.query.id);
+
+    if (!workspaceId) {
+      toast.error('Invalid workspace identifier.');
+      return;
+    }
 
     if (trimmed.length < 10) {
       toast.error('Please provide at least 10 characters explaining the recommendation.');
@@ -90,18 +96,13 @@ const Recommendation = ({ targetId, targetName }: Props) => {
     setSubmitting(true);
 
     try {
-      const response = await axios.post(
-        `/api/workspace/${router.query.id}/recommendations`,
-        {
-          targetId,
-          reason: trimmed,
-        },
-      );
+      const response = await axios.post(`/api/workspace/${encodeURIComponent(workspaceId)}/recommendations`, {
+        targetId,
+        reason: trimmed,
+      });
 
       if (response.status !== 201 || !response.data.success) {
-        throw new Error(
-          response.data.error || 'Failed to submit recommendation.',
-        );
+        throw new Error(response.data.error || 'Failed to submit recommendation.');
       }
 
       toast.success('Promotion recommendation submitted.');
@@ -109,10 +110,7 @@ const Recommendation = ({ targetId, targetName }: Props) => {
       setOpen(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.error ||
-            'Failed to submit recommendation.',
-        );
+        toast.error(error.response?.data?.error || 'Failed to submit recommendation.');
       } else {
         toast.error('Failed to submit recommendation.');
       }
@@ -121,10 +119,7 @@ const Recommendation = ({ targetId, targetName }: Props) => {
     }
   };
 
-  if (
-    loadingEligibility ||
-    !eligibility?.canRecommend
-  ) {
+  if (loadingEligibility || !eligibility?.canRecommend) {
     return null;
   }
 
@@ -193,8 +188,8 @@ const Recommendation = ({ targetId, targetName }: Props) => {
                   </div>
 
                   <div className="mt-5 rounded-xl bg-zinc-50 px-4 py-3 text-xs text-zinc-500 dark:bg-zinc-800/70 dark:text-zinc-400">
-                    Your current Roblox rank is {eligibility.recommenderRank}.
-                    The member's current rank is {eligibility.targetRank}.
+                    Your current Roblox rank is {eligibility.recommenderRank}. The member's current
+                    rank is {eligibility.targetRank}.
                   </div>
 
                   <label className="mt-5 block">

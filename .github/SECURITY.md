@@ -4,7 +4,7 @@ _Last Updated / Effective Date:_ September 24th, 2026
 
 **Do not report security vulnerabilities through GitHub issues, pull requests, discussions, social media, or other public channels.**
 
-If you believe you have discovered a security vulnerability in Orbit, please report it privately by emailing [IT@planetaryapp.us](mailto:IT@planetaryapp.us).
+If you believe you have discovered a security vulnerability in Orbit, please report it privately by emailing [IT@planetaryapp.cloud](mailto:IT@planetaryapp.cloud).
 
 When possible, include:
 

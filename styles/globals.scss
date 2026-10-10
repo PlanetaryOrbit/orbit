@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap';
 
 @layer base {
   :root {
@@ -15,12 +16,17 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
   html {
     min-height: 100%;
     overflow-x: hidden;
     scroll-behavior: smooth;
     text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    font-family: Inter, sans-serif;
   }
 
   html.dark {
@@ -116,14 +122,6 @@
       scroll-behavior: auto !important;
     }
   }
-}
-
-.font-sans {
-  font-family: var(--font-sans);
-}
-
-.font-mono {
-  font-family: var(--font-mono);
 }
 
 @layer components {

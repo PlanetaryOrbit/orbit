@@ -47,7 +47,7 @@ Please report unacceptable behavior to [contact@sleepylab.ca](mailto:contact@sle
 
 ## I Have a Question
 
-> Before asking a question, please make sure you have read the available [documentation](https://docs.planetaryapp.us/).
+> Before asking a question, please make sure you have read the available [documentation](https://docs.planetaryapp.cloud/).
 
 Before asking, check whether your question has already been answered:
 
@@ -169,7 +169,7 @@ When preparing your report, include:
 >
 > Do **not** report security vulnerabilities, exploits, or issues containing sensitive information publicly through GitHub Issues.
 >
-> Security-related reports should be sent privately to [IT@planetaryapp.us](mailto:IT@planetaryapp.us).
+> Security-related reports should be sent privately to [IT@planetaryapp.cloud](mailto:IT@planetaryapp.cloud).
 
 Orbit uses GitHub Issues to track bugs and unexpected behavior.
 

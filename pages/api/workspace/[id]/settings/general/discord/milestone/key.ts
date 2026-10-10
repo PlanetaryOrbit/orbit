@@ -3,6 +3,7 @@ import { NextApiResponse } from 'next';
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import { getDefaultMilestoneMessage } from '@/utils/discord/milestoneMessage';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = parseInt(req.query.id as string);
@@ -48,7 +49,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     }
 
     try {
-      const { enabled, url } = req.body;
+      const { enabled, url, message } = req.body;
 
       if (typeof enabled !== 'boolean') {
         return res.status(400).json({ success: false, error: 'Invalid enabled value' });
@@ -61,10 +62,19 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       }
 
       if (enabled && url && !url.match(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+/)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid Discord webhook URL format',
-        });
+        return res
+          .status(400)
+          .json({ success: false, error: 'Invalid Discord webhook URL format' });
+      }
+
+      if (message !== undefined && typeof message !== 'string') {
+        return res.status(400).json({ success: false, error: 'Invalid message' });
+      }
+
+      if (typeof message === 'string' && message.trim() && message.length > 2000) {
+        return res
+          .status(400)
+          .json({ success: false, error: 'Message must be 2000 characters or less' });
       }
 
       await setConfig(
@@ -72,6 +82,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         {
           enabled,
           url: url || '',
+          message:
+            typeof message === 'string' && message.trim() ? message : getDefaultMilestoneMessage(),
         },
         workspaceId,
       );

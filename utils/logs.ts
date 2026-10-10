@@ -261,7 +261,7 @@ export async function logAudit(
           const avatarUrl =
             (userId && process.env.NEXTAUTH_URL) || process.env.PUBLIC_URL!
               ? `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!}/avatars/${userId}_180.png`
-              : 'https://cdn.planetaryapp.us/brand/planetary.png';
+              : 'https://cdn.planetaryapp.cloud/brand/planetary.png';
 
           let jsonDetails: AuditDetails | null = null;
 

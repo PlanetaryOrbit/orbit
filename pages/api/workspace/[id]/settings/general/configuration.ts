@@ -42,7 +42,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
     'resignations',
     'leaderboard',
     'policies',
-    'recommendations'
+    'recommendations',
   ];
   return res.status(200).json({
     success: true,

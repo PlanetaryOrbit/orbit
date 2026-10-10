@@ -10,9 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const [bgConfig, redirectConfig] = await Promise.all([
+    const [bgConfig, redirectConfig, tintEnabledConfig, tinyOpacityConfig] = await Promise.all([
       prisma.instanceConfig.findUnique({ where: { key: 'loginBackground' } }),
       prisma.instanceConfig.findUnique({ where: { key: 'redirectWorkspace' } }),
+      prisma.instanceConfig.findUnique({ where: { key: 'loginBackgroundTintEnabled' } }),
+      prisma.instanceConfig.findUnique({ where: { key: 'loginBackgroundTintOpacity' } }),
     ]);
 
     const backgroundUrl = typeof bgConfig?.value === 'string' ? bgConfig.value : null;
@@ -24,9 +26,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const themeColor = await getConfig('theme', redirectWid);
       if (themeColor) themeRgb = getRGBFromTailwindColor(themeColor);
     }
+    const tintEnabled =
+      typeof tintEnabledConfig?.value === 'boolean' ? tintEnabledConfig.value : true;
+    const tintOpacity =
+      typeof tinyOpacityConfig?.value === 'number'
+        ? Math.min(100, Math.max(0, tinyOpacityConfig.value))
+        : 60;
 
-    return res.json({ backgroundUrl, themeRgb });
+    return res.json({ backgroundUrl, themeRgb, tintEnabled, tintOpacity });
   } catch {
-    return res.json({ backgroundUrl: null, themeRgb: null });
+    return res.json({ backgroundUrl: null, themeRgb: null, tintEnabled: true, tintOpacity: 60 });
   }
 }

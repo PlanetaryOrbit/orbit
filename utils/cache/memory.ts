@@ -1,12 +1,3 @@
-/**
- * Orbit
- *
- * In-memory cache provider
- *
- * @author BuddyWinte
- * @module utils/v2/cache/memory
- */
-
 export interface CacheProvider {
   get<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown, ttl?: number): Promise<void>;
@@ -16,14 +7,13 @@ export interface CacheProvider {
   clear(): Promise<void>;
 }
 
+interface CacheEntry {
+  value: unknown;
+  expires: number;
+}
+
 export class MemoryCache implements CacheProvider {
-  private cache = new Map<
-    string,
-    {
-      value: unknown;
-      expires: number;
-    }
-  >();
+  private cache = new Map<string, CacheEntry>();
 
   async get<T>(key: string): Promise<T | null> {
     const item = this.cache.get(key);

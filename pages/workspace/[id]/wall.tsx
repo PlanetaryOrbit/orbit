@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
+import sanitizeHtml from 'sanitize-html';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import moment from 'moment';
 import { GetServerSideProps } from 'next';
@@ -20,8 +21,6 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { useRecoilState } from 'recoil';
 import rehypeSanitize from 'rehype-sanitize';
-import sanitizeHtml from 'sanitize-html';
-
 import Workspace from '@/layouts/workspace';
 import type { pageWithLayout } from '@/layoutTypes';
 import { AuthenticatedRequest } from '@/lib/withAuth';
@@ -36,7 +35,6 @@ const sanitizePosts = (posts: wallPost[]) =>
       typeof post.content === 'string'
         ? sanitizeHtml(post.content, SANITIZE_OPTIONS)
         : post.content,
-    image: typeof post.image === 'string' ? post.image : null,
   }));
 
 const SANITIZE_OPTIONS = {
@@ -62,6 +60,15 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
             ranks: true,
           },
         },
+        media: {
+          select: {
+            id: true,
+                  mimeType: true,
+                  width: true,
+                  height: true,
+                  size: true,
+          }
+        }
       },
     });
 
@@ -109,7 +116,8 @@ const Wall: pageWithLayout<pageProps> = (props) => {
   const userPermissions = props.userPermissions;
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
@@ -120,6 +128,14 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       return () => clearTimeout(t);
     }
   }, [showDeleteModal, postToDelete]);
+
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreview) {
+        URL.revokeObjectURL(selectedImagePreview);
+      }
+    };
+  }, [selectedImagePreview]);
 
   const confirmDelete = async () => {
     if (!postToDelete) return;
@@ -137,31 +153,45 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     }
   };
 
-  function sendPost() {
+  async function sendPost() {
     if (!canPostOnWall()) {
       toast.error("You don't have permission to post on the wall.");
       return;
     }
 
+    if (!wallMessage.trim() && !selectedImage) {
+      return;
+    }
+
     setLoading(true);
-    axios
-      .post(`/api/workspace/${id}/wall/post`, {
-        content: wallMessage,
-        image: selectedImage,
-      })
-      .then((req) => {
-        toast.success('Wall message posted!');
-        setWallMessage('');
-        setSelectedImage(null);
-        //setPosts([req.data.post, ...posts]);
-        setPosts((prev) => [req.data.post, ...prev]);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error(error.response?.data?.error || 'Could not post wall message.');
-        setLoading(false);
-      });
+
+    try {
+      const formData = new FormData();
+
+      formData.append('content', wallMessage);
+
+      if (selectedImage) {
+        formData.append('file', selectedImage);
+      }
+
+      const response = await axios.post(
+        `/api/workspace/${id}/wall/post`,
+        formData,
+      );
+
+      toast.success('Wall message posted!');
+      setWallMessage('');
+      removeImage();
+
+      setPosts((prev) => [response.data.post, ...prev]);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.error || 'Could not post wall message.',
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   const onEmojiClick = (emojiObject: any) => {
@@ -171,39 +201,27 @@ const Wall: pageWithLayout<pageProps> = (props) => {
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
     if (!file) return;
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
     if (!allowedTypes.includes(file.type)) {
       toast.error('Invalid file type. Only JPEG, PNG, GIF, and WEBP are supported.');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      event.target.value = '';
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 10485760;
+
     if (file.size > maxSize) {
-      toast.error('File too large. Maximum size is 5MB.');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      toast.error('File too large. Maximum size is 10MB.');
+      event.target.value = '';
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      if (typeof result === 'string' && result.startsWith('data:image/')) {
-        setSelectedImage(result);
-      } else {
-        toast.error('Invalid image format.');
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }
-    };
-    reader.readAsDataURL(file);
+    setSelectedImage(file);
+    setSelectedImagePreview(URL.createObjectURL(file));
   };
 
   const removeImage = () => {
@@ -301,10 +319,10 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   rows={3}
                   maxLength={10000}
                 />
-                {selectedImage && (
+                {selectedImagePreview && (
                   <div className="relative mt-2">
                     <img
-                      src={selectedImage}
+                      src={selectedImagePreview}
                       alt="Selected"
                       className="max-h-56 w-full rounded-xl bg-zinc-200 object-contain dark:bg-zinc-700"
                     />
@@ -465,11 +483,15 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                           {post.content}
                         </ReactMarkdown>
                       </div>
-                      {post.image && (
+                      {post.media && (
                         <div className="mt-3">
                           <img
-                            src={post.image}
+                            src={`/api/media/${post.media.id}`}
                             alt=""
+                            width={post.media.width ?? undefined}
+                            height={post.media.height ?? undefined}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full max-h-96 rounded-xl object-contain bg-zinc-200 dark:bg-zinc-700"
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image-error.png';

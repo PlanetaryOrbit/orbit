@@ -72,6 +72,8 @@ const Home: NextPage = () => {
     google_secret: '',
     google_email_filtration: '',
     oauthOnlyLogin: false,
+    loginBackgroundTintEnabled: true,
+    loginBackgroundTintOpacity: 60,
   });
   const [configLoading, setConfigLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -323,6 +325,8 @@ const Home: NextPage = () => {
         google_id,
         google_secret,
         google_email_filtration,
+        loginBackgroundTintEnabled,
+        loginBackgroundTintOpacity,
       } = response.data;
       const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
       console.log(window.location);
@@ -335,6 +339,8 @@ const Home: NextPage = () => {
         discordAppId: discordApplicationID || '', // was missing the fallback
         discordAppSecret: discordClientSecret || '', // was missing the fallback
         oauthOnlyLogin: oauthOnlyLogin || false,
+        loginBackgroundTintEnabled: loginBackgroundTintEnabled ?? true,
+        loginBackgroundTintOpacity: loginBackgroundTintOpacity ?? 60,
         redirect_wid: redirectWorkspace || '', // was missing the fallback
         google_id: google_id || '',
         google_secret: google_secret || '',
@@ -366,6 +372,8 @@ const Home: NextPage = () => {
             ? externalConfig.google_email_filtration
             : `@${externalConfig.google_email_filtration}`
           : '',
+        loginBackgroundTintEnabled: externalConfig.loginBackgroundTintEnabled,
+        loginBackgroundTintOpacity: externalConfig.loginBackgroundTintOpacity,
       });
       setSaveMessage('Settings saved successfully!');
       setTimeout(() => setSaveMessage(''), 3000);
@@ -940,12 +948,12 @@ const Home: NextPage = () => {
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
                             Need a hand? Check our documentation at{' '}
                             <a
-                              href="https://docs.planetaryapp.us/workspace/roblox-oauth"
+                              href="https://docs.planetaryapp.cloud/workspace/roblox-oauth"
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:underline"
                             >
-                              docs.planetaryapp.us
+                              docs.planetaryapp.cloud
                             </a>
                           </p>
                         </div>
@@ -1019,6 +1027,74 @@ const Home: NextPage = () => {
                             Replaces the default gradient on the login page. Max 5 MB (JPEG, PNG,
                             WebP, GIF).
                           </p>
+                          {loginBackground && (
+                            <div className="mt-4 space-y-4">
+                              <div className="pt-4">
+                                <label className="flex cursor-pointer items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={externalConfig.loginBackgroundTintEnabled}
+                                    onChange={(e) =>
+                                      setExternalConfig((prev) => ({
+                                        ...prev,
+                                        loginBackgroundTintEnabled: e.target.checked,
+                                      }))
+                                    }
+                                    className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-600"
+                                  />
+
+                                  <span>
+                                    <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                      Darken background
+                                    </span>
+
+                                    <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                                      Add a dark tint behind the login form so text remains
+                                      readable.
+                                    </span>
+                                  </span>
+                                </label>
+                              </div>
+
+                              {externalConfig.loginBackgroundTintEnabled && (
+                                <div>
+                                  <div className="mb-2 flex items-center justify-between">
+                                    <label
+                                      htmlFor="login-background-tint"
+                                      className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                                    >
+                                      Background tint
+                                    </label>
+
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                                      {externalConfig.loginBackgroundTintOpacity}%
+                                    </span>
+                                  </div>
+
+                                  <input
+                                    id="login-background-tint"
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="5"
+                                    value={externalConfig.loginBackgroundTintOpacity}
+                                    onChange={(e) =>
+                                      setExternalConfig((prev) => ({
+                                        ...prev,
+                                        loginBackgroundTintOpacity: Number(e.target.value),
+                                      }))
+                                    }
+                                    className="w-full accent-blue-600"
+                                  />
+
+                                  <div className="mt-1 flex justify-between text-[11px] text-zinc-400">
+                                    <span>None</span>
+                                    <span>Heavy</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">

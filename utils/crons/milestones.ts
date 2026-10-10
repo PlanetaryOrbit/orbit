@@ -2,6 +2,10 @@ import axios from 'axios';
 
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import {
+  formatMilestoneMessage,
+  getMilestoneMessageTemplate,
+} from '@/utils/discord/milestoneMessage';
 
 function getNextMilestone(count: number): number {
   const thresholds = [
@@ -17,17 +21,21 @@ function getNextMilestone(count: number): number {
 }
 
 function buildMilestoneMessage(
+  template: string,
   groupName: string,
   currentCount: number,
   crossedMilestone: number,
 ): string {
   const nextMilestone = getNextMilestone(currentCount);
-  const remaining = nextMilestone - currentCount;
+  const membersRemaining = nextMilestone - currentCount;
 
-  return (
-    `:confetti_ball: **${groupName}** has reached **${crossedMilestone.toLocaleString()}** members! ` +
-    `We are **${remaining.toLocaleString()}** members away from **${nextMilestone.toLocaleString()}** members!`
-  );
+  return formatMilestoneMessage(template, {
+    groupName,
+    crossedMilestone,
+    currentMemberCount: currentCount,
+    membersRemaining,
+    nextMilestone,
+  });
 }
 
 function getCrossedMilestone(previous: number, current: number): number | null {
@@ -43,12 +51,15 @@ function getCrossedMilestone(previous: number, current: number): number | null {
   if (current >= 100_000) {
     const prevTenK = Math.floor(previous / 10_000);
     const currTenK = Math.floor(current / 10_000);
+
     if (currTenK > prevTenK) return currTenK * 10_000;
+
     return null;
   }
 
   const prevK = Math.floor(previous / 1_000);
   const currK = Math.floor(current / 1_000);
+
   if (currK > prevK) return currK * 1_000;
 
   return null;
@@ -99,13 +110,18 @@ export async function runMilestoneCron() {
           data: { memberCount: currentCount },
         });
 
+        const template = getMilestoneMessageTemplate(webhookConfig.message);
+
         if (previousCount == null) {
-          const message = buildMilestoneMessage(workspace.groupName!, currentCount, currentCount);
+          const message = buildMilestoneMessage(
+            template,
+            workspace.groupName!,
+            currentCount,
+            currentCount,
+          );
 
           await axios.post(webhookConfig.url, {
             content: message,
-            username: 'Orbit',
-            avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
           });
 
           results.push({
@@ -129,12 +145,15 @@ export async function runMilestoneCron() {
           continue;
         }
 
-        const message = buildMilestoneMessage(workspace.groupName!, currentCount, crossed);
+        const message = buildMilestoneMessage(
+          template,
+          workspace.groupName!,
+          currentCount,
+          crossed,
+        );
 
         await axios.post(webhookConfig.url, {
           content: message,
-          username: 'Orbit',
-          avatar_url: 'http://cdn.planetaryapp.us/brand/planetary.png',
         });
 
         results.push({

@@ -64,7 +64,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
         {
           title: '📚 Documentation rework',
           content:
-            'We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.us/',
+            'We’ve completely reworked our documentation. Everything is clearer, faster, and easier to navigate. Check it out at https://docs.planetaryapp.cloud/',
         },
         {
           title: '🔧 Backend improvements',

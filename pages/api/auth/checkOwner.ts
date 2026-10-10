@@ -30,29 +30,27 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   try {
     const cacheKey = `user:owner:${req.auth.userId}`;
 
-    let isOwner = await cache.get<boolean>(cacheKey);
-
-    if (isOwner === null) {
-      const user = await prisma.user.findUnique({
-        where: {
-          userid: req.auth.userId,
-        },
-        select: {
-          isOwner: true,
-        },
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found',
+    const isOwner = await cache.swr<boolean>(
+      cacheKey,
+      async () => {
+        const user = await prisma.user.findUnique({
+          where: {
+            userid: req.auth.userId,
+          },
+          select: {
+            isOwner: true,
+          },
         });
-      }
 
-      isOwner = user.isOwner || false;
+        if (!user) throw new Error('User not found');
 
-      await cache.set(cacheKey, isOwner, 600);
-    }
+        return user.isOwner ?? false;
+      },
+      {
+        freshFor: 60,
+        staleFor: 600,
+      },
+    );
 
     return res.status(200).json({
       success: true,

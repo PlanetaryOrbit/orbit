@@ -13,7 +13,6 @@ import {
 import '@/styles/globals.scss';
 import { ThemeProvider, useTheme } from 'next-themes';
 import type { AppProps } from 'next/app';
-import { Inter, JetBrains_Mono } from 'next/font/google';
 import Head from 'next/head';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -27,18 +26,6 @@ import { workspacestate } from '@/state';
 import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from '@/utils/themeColor';
 
 import AuthProvider from './AuthProvider';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 type AppPropsWithLayout = AppProps & {
   Component: pageWithLayout;
@@ -171,7 +158,7 @@ function Orbit({ Component, pageProps }: AppPropsWithLayout) {
           <meta name="description" content="Orbit — The all-in-one staff management solution." />
         </Head>
 
-        <div className={`${inter.variable} ${jetbrains.variable}`}>
+        <div>
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:bg-zinc-900 dark:focus:text-white"

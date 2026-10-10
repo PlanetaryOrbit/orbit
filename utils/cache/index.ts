@@ -1,15 +1,3 @@
-/**
- * Orbit
- *
- * Unified cache layer
- *
- * Uses Redis when available, otherwise falls back
- * to in-memory caching.
- *
- * @author BuddyWinte
- * @module utils/cache
- */
-
 import { MemoryCache } from './memory';
 import type { CacheProvider } from './memory';
 import redis from './redis';
@@ -19,63 +7,179 @@ const memory = new MemoryCache();
 const provider: CacheProvider = redis ?? memory;
 
 export const providerName = redis ? 'redis' : 'memory';
+const inflightLoads = new Map<string, Promise<unknown>>();
 
-/**
- * Retrieves a value from cache.
- *
- * @param key - Cache key
- * @returns Cached value or null
- */
+interface SWREntry<T> {
+  value: T;
+  createdAt: number;
+  staleAt: number;
+  expiresAt: number;
+}
+
+export interface SWROptions {
+  freshFor: number;
+  staleFor: number;
+}
+
+const revalidating = new Map<string, Promise<void>>();
+
 export async function get<T>(key: string): Promise<T | null> {
-  return provider.get<T>(key);
+  try {
+    return await provider.get<T>(key);
+  } catch {
+    return null;
+  }
 }
 
-/**
- * Stores a value in cache.
- *
- * @param key - Cache key
- * @param value - Value to cache
- * @param ttl - Expiration time in seconds
- */
 export async function set(key: string, value: unknown, ttl = 300): Promise<void> {
-  return provider.set(key, value, ttl);
+  try {
+    await provider.set(key, value, ttl);
+  } catch {
+    // cache failures should not break requests
+  }
 }
 
-/**
- * Deletes a cache key.
- *
- * @param key - Cache key
- */
 export async function del(key: string): Promise<void> {
-  return provider.del(key);
+  try {
+    await provider.del(key);
+  } catch {
+    // cache failures should not break requests
+  }
 }
 
-/**
- * Checks whether a cache key exists.
- *
- * @param key - Cache key
- */
 export async function has(key: string): Promise<boolean> {
-  return provider.has(key);
+  try {
+    return await provider.has(key);
+  } catch {
+    return false;
+  }
 }
 
-/**
- * Increments a numeric cache key.
- *
- * Useful for rate limits and cooldowns.
- *
- * @param key - Cache key
- * @param ttl - Expiration time in seconds
- */
 export async function increment(key: string, ttl = 60): Promise<number> {
-  return provider.increment(key, ttl);
+  try {
+    return await provider.increment(key, ttl);
+  } catch {
+    return 0;
+  }
 }
 
-/**
- * Clears all cache data.
- */
 export async function clear(): Promise<void> {
-  return provider.clear();
+  try {
+    await provider.clear();
+  } catch {
+    // cache failures should not break startup/requests
+  }
+}
+
+// SWR / Stale-while-revalidate cache
+export async function swr<T>(
+  key: string,
+  loader: () => Promise<T>,
+  options: SWROptions,
+): Promise<T> {
+  const now = Date.now();
+
+  const cached = await get<SWREntry<T>>(key);
+
+  if (cached) {
+    if (now < cached.staleAt) {
+      return cached.value;
+    }
+
+    if (now < cached.expiresAt) {
+      void revalidate(key, loader, options);
+
+      return cached.value;
+    }
+  }
+
+  return revalidateAndWait(key, loader, options);
+}
+
+async function revalidate<T>(
+  key: string,
+  loader: () => Promise<T>,
+  options: SWROptions,
+): Promise<void> {
+  if (revalidating.has(key)) {
+    return revalidating.get(key);
+  }
+
+  const promise = (async () => {
+    try {
+      const value = await loader();
+
+      const now = Date.now();
+
+      const entry: SWREntry<T> = {
+        value,
+        createdAt: now,
+        staleAt: now + options.freshFor * 1000,
+        expiresAt: now + options.staleFor * 1000,
+      };
+
+      await set(key, entry, options.staleFor);
+    } catch (error) {
+      console.error('[Cache] Revalidation failed for key %s:', key, error);
+    } finally {
+      revalidating.delete(key);
+    }
+  })();
+
+  revalidating.set(key, promise);
+
+  return promise;
+}
+
+async function revalidateAndWait<T>(
+  key: string,
+  loader: () => Promise<T>,
+  options: SWROptions,
+): Promise<T> {
+  const existing = revalidating.get(key);
+
+  if (existing) {
+    await existing;
+
+    const cached = await get<SWREntry<T>>(key);
+
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.value;
+    }
+  }
+
+  const inflight = inflightLoads.get(key) as Promise<T> | undefined;
+
+  if (inflight) {
+    return inflight;
+  }
+
+  const promise = (async (): Promise<T> => {
+    try {
+      const value = await loader();
+      const now = Date.now();
+
+      const entry: SWREntry<T> = {
+        value,
+        createdAt: now,
+        staleAt: now + options.freshFor * 1000,
+        expiresAt: now + options.staleFor * 1000,
+      };
+
+      await set(key, entry, options.staleFor);
+
+      return value;
+    } catch (error) {
+      console.error('[Cache] Initial load failed for key %s:', key, error);
+      throw error;
+    } finally {
+      inflightLoads.delete(key);
+    }
+  })();
+
+  inflightLoads.set(key, promise);
+
+  return promise;
 }
 
 const cache = {
@@ -85,6 +189,7 @@ const cache = {
   has,
   increment,
   clear,
+  swr,
 };
 
 export default cache;

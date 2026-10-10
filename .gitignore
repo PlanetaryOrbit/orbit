@@ -60,3 +60,5 @@ deploy.sh
 deploy.sh
 
 certificates
+.zed/
+data/media/

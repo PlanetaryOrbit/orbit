@@ -1,9 +1,4 @@
-import {
-  IconArrowUp,
-  IconCheck,
-  IconExternalLink,
-  IconX,
-} from '@tabler/icons-react';
+import { IconArrowUp, IconCheck, IconExternalLink, IconX } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
 import { useRouter } from 'next/router';
@@ -48,9 +43,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
 
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<'pending' | 'all'>(
-    canManage ? 'pending' : 'all',
-  );
+  const [status, setStatus] = useState<'pending' | 'all'>(canManage ? 'pending' : 'all');
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [reviewReason, setReviewReason] = useState('');
 
@@ -60,16 +53,11 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
     setLoading(true);
 
     try {
-      const response = await axios.get(
-        `/api/workspace/${workspaceId}/recommendations`,
-        {
-          params: {
-            ...(canManage && status !== 'all'
-              ? { status }
-              : {}),
-          },
+      const response = await axios.get(`/api/workspace/${workspaceId}/recommendations`, {
+        params: {
+          ...(canManage && status !== 'all' ? { status } : {}),
         },
-      );
+      });
 
       if (response.data.success) {
         setRecommendations(response.data.recommendations || []);
@@ -85,29 +73,20 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
     void load();
   }, [workspaceId, status]);
 
-  const review = async (
-    recommendationId: string,
-    nextStatus: 'approved' | 'rejected',
-  ) => {
+  const review = async (recommendationId: string, nextStatus: 'approved' | 'rejected') => {
     try {
-      await axios.patch(
-        `/api/workspace/${workspaceId}/recommendations`,
-        {
-          id: recommendationId,
-          status: nextStatus,
-          reviewReason: reviewReason.trim(),
-        },
-      );
+      await axios.patch(`/api/workspace/${workspaceId}/recommendations`, {
+        id: recommendationId,
+        status: nextStatus,
+        reviewReason: reviewReason.trim(),
+      });
 
       setReviewing(null);
       setReviewReason('');
       await load();
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        window.alert(
-          error.response?.data?.error ||
-            'Failed to review recommendation.',
-        );
+        window.alert(error.response?.data?.error || 'Failed to review recommendation.');
       } else {
         window.alert('Failed to review recommendation.');
       }
@@ -116,22 +95,16 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
 
   const cancel = async (recommendationId: string) => {
     try {
-      await axios.delete(
-        `/api/workspace/${workspaceId}/recommendations`,
-        {
-          data: {
-            id: recommendationId,
-          },
+      await axios.delete(`/api/workspace/${workspaceId}/recommendations`, {
+        data: {
+          id: recommendationId,
         },
-      );
+      });
 
       await load();
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        window.alert(
-          error.response?.data?.error ||
-            'Failed to cancel recommendation.',
-        );
+        window.alert(error.response?.data?.error || 'Failed to cancel recommendation.');
       }
     }
   };
@@ -215,10 +188,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
                   <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                     <div className="flex min-w-0 flex-1 gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <IconArrowUp
-                          size={19}
-                          className="text-primary"
-                        />
+                        <IconArrowUp size={19} className="text-primary" />
                       </div>
 
                       <div className="min-w-0">
@@ -227,8 +197,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
                             href={`/workspace/${workspaceId}/profile/${recommendation.target.userid}`}
                             className="text-sm font-semibold text-zinc-900 hover:underline dark:text-white"
                           >
-                            {recommendation.target.username ||
-                              recommendation.target.userid}
+                            {recommendation.target.username || recommendation.target.userid}
                           </a>
 
                           <span className="text-xs text-zinc-400">
@@ -266,10 +235,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
                         </p>
 
                         <p className="mt-3 text-xs text-zinc-400">
-                          Submitted{' '}
-                          {new Date(
-                            recommendation.createdAt,
-                          ).toLocaleString()}
+                          Submitted {new Date(recommendation.createdAt).toLocaleString()}
                         </p>
 
                         {recommendation.reviewReason && (
@@ -294,35 +260,27 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
                         Profile
                       </a>
 
-                      {canManage &&
-                        recommendation.status === 'pending' && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setReviewing(
-                                  isReviewing
-                                    ? null
-                                    : recommendation.id,
-                                )
-                              }
-                              className="rounded-xl bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90"
-                            >
-                              Review
-                            </button>
-                          </>
-                        )}
-
-                      {!canManage &&
-                        recommendation.status === 'pending' && (
+                      {canManage && recommendation.status === 'pending' && (
+                        <>
                           <button
                             type="button"
-                            onClick={() => cancel(recommendation.id)}
-                            className="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                            onClick={() => setReviewing(isReviewing ? null : recommendation.id)}
+                            className="rounded-xl bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90"
                           >
-                            Cancel
+                            Review
                           </button>
-                        )}
+                        </>
+                      )}
+
+                      {!canManage && recommendation.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => cancel(recommendation.id)}
+                          className="rounded-xl bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                        >
+                          Cancel
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -335,9 +293,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
 
                         <textarea
                           value={reviewReason}
-                          onChange={(event) =>
-                            setReviewReason(event.target.value)
-                          }
+                          onChange={(event) => setReviewReason(event.target.value)}
                           maxLength={2000}
                           rows={4}
                           placeholder="Optional note explaining the decision."
@@ -348,12 +304,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
                       <div className="mt-3 flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() =>
-                            review(
-                              recommendation.id,
-                              'rejected',
-                            )
-                          }
+                          onClick={() => review(recommendation.id, 'rejected')}
                           className="flex items-center gap-1.5 rounded-xl bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-500/15 dark:text-red-400"
                         >
                           <IconX size={14} />
@@ -362,12 +313,7 @@ const RecommendationsPage: pageWithLayout<PageProps> = ({ canManage }) => {
 
                         <button
                           type="button"
-                          onClick={() =>
-                            review(
-                              recommendation.id,
-                              'approved',
-                            )
-                          }
+                          onClick={() => review(recommendation.id, 'approved')}
                           className="flex items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400"
                         >
                           <IconCheck size={14} />
@@ -421,9 +367,7 @@ export const getServerSideProps = withPermissionCheckSsr(
 
     const canManage =
       isAdmin ||
-      user?.roles.some((role) =>
-        role.permissions.includes('manage_recommendations'),
-      ) === true;
+      user?.roles.some((role) => role.permissions.includes('manage_recommendations')) === true;
 
     return {
       props: {

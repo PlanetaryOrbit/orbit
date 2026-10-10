@@ -235,7 +235,7 @@ async function getSessionByToken(token: string) {
   }>(cacheKey);
 
   if (cached) {
-    if (cached.expiresAt < Date.now()) {
+    if (cached.expiresAt <= Date.now()) {
       await cache.del(cacheKey);
       return null;
     }
@@ -259,16 +259,19 @@ async function getSessionByToken(token: string) {
     return null;
   }
 
-  if (session.expiresAt < new Date()) {
-    await prisma.authSession
-      .delete({
-        where: {
-          token: hashedToken,
-        },
-      })
-      .catch(() => null);
+  if (session.expiresAt.getTime() <= Date.now()) {
+    await Promise.all([
+      prisma.authSession
+        .delete({
+          where: {
+            token: hashedToken,
+          },
+        })
+        .catch(() => null),
 
-    await cache.del(cacheKey);
+      cache.del(cacheKey),
+    ]);
+
     return null;
   }
 
@@ -278,13 +281,15 @@ async function getSessionByToken(token: string) {
     userAgent: decrypt(session.userAgent),
   };
 
+  const ttl = Math.max(1, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000));
+
   await cache.set(
     cacheKey,
     {
       session: result,
       expiresAt: session.expiresAt.getTime(),
     },
-    Math.max(1, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000)),
+    ttl,
   );
 
   return {
@@ -369,13 +374,37 @@ async function forceDeleteSession(id: string) {
 }
 
 async function deleteAllUserSessions(userId: bigint) {
-  return prisma.authSession.deleteMany({
-    where: { userId },
+  const sessions = await prisma.authSession.findMany({
+    where: {
+      userId,
+    },
+    select: {
+      token: true,
+    },
   });
+  const result = await prisma.authSession.deleteMany({
+    where: {
+      userId,
+    },
+  });
+  await Promise.all(sessions.map((session) => cache.del(`session:${session.token}`)));
+  return result;
 }
 
 async function deleteOtherSessions(userId: bigint, sid: string) {
-  return prisma.authSession.deleteMany({
+  const sessions = await prisma.authSession.findMany({
+    where: {
+      userId,
+      NOT: {
+        id: sid,
+      },
+    },
+    select: {
+      token: true,
+    },
+  });
+
+  const result = await prisma.authSession.deleteMany({
     where: {
       userId,
       NOT: {
@@ -383,6 +412,10 @@ async function deleteOtherSessions(userId: bigint, sid: string) {
       },
     },
   });
+
+  await Promise.all(sessions.map((session) => cache.del(`session:${session.token}`)));
+
+  return result;
 }
 
 async function listActiveSessions(userId: bigint) {

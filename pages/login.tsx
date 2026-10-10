@@ -156,6 +156,8 @@ const Login: NextPage = () => {
   const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [showTraditionalLogin, setShowTraditionalLogin] = useState(false);
+  const [loginBackgroundTintEnabled, setLoginBackgroundTintEnabled] = useState(false);
+  const [loginBackgroundTintOpacity, setLoginBackgroundTintOpacity] = useState(60);
 
   const errorToastShown = useRef(false);
   const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -203,6 +205,8 @@ const Login: NextPage = () => {
         if (res.data.themeRgb) {
           document.documentElement.style.setProperty('--group-theme', res.data.themeRgb);
         }
+        setLoginBackgroundTintEnabled(res.data.tintEnabled ?? true);
+        setLoginBackgroundTintOpacity(res.data.tintOpacity ?? 60);
       } catch (error) {
         console.error('Failed to fetch background:', error);
       }
@@ -434,21 +438,22 @@ const Login: NextPage = () => {
             aria-hidden
           />
         ) : null}
+
+        {loginBg && loginBackgroundTintEnabled && loginBackgroundTintOpacity > 0 ? (
+          <div
+            className="pointer-events-none fixed inset-0 bg-zinc-950"
+            style={{ opacity: loginBackgroundTintOpacity / 100 }}
+            aria-hidden
+          />
+        ) : null}
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)]"
           aria-hidden
         />
 
-        <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
-          <ThemeToggle />
-        </div>
-
         <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
           <div className="flex flex-col justify-center px-6 pb-4 pt-16 sm:px-10 lg:w-[42%] lg:px-16 lg:py-16 xl:w-[38%]">
             <div className="max-w-md">
-              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-primary/80 dark:text-primary/70">
-                Account
-              </p>
               <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                 Welcome to <span className="text-primary">Orbit</span>
               </h1>
@@ -459,18 +464,21 @@ const Login: NextPage = () => {
           </div>
 
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-lg">
               <div
                 className={clsx(
-                  'rounded-2xl bg-white p-6 dark:bg-zinc-900/70 sm:p-8 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30',
+                  'rounded-3xl border border-white/60 bg-white/90 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-8',
+                  'dark:border-zinc-700/50 dark:bg-zinc-950/85 dark:shadow-black/30',
                 )}
               >
                 {mode === 'login' && (
                   <>
-                    <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
-                      Sign in
-                    </h2>
-                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    <div className="mb-1">
+                      <h2 className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                        Sign in
+                      </h2>
+                    </div>
+                    <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                       {effectiveOAuthOnly && !showTraditionalLogin
                         ? 'Use one of the options below to sign in.'
                         : 'Use your username and password to continue.'}
@@ -527,28 +535,34 @@ const Login: NextPage = () => {
                             />
                             <label
                               htmlFor="show-password"
-                              className="select-none text-sm text-zinc-500 dark:text-zinc-400"
+                              className="select-none text-sm leading-6 text-zinc-500 dark:text-zinc-400"
                             >
                               Show password
                             </label>
                           </div>
-                          <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
-                            <div>
+                          <div className="mt-6 flex flex-col gap-5 border-t border-zinc-200/70 pt-5 dark:border-zinc-800/70 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-1.5">
                               <Link
                                 href="/forgot-password"
-                                className="text-sm text-primary transition-colors hover:text-primary/80"
+                                className="w-fit text-sm font-medium text-primary transition-colors hover:text-primary/80"
                               >
                                 Forgot password?
                               </Link>
-                              <p
+
+                              <button
+                                type="button"
                                 onClick={() => setMode('signup')}
-                                className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors hover:text-primary/80 mt-1 cursor-pointer"
+                                className="w-fit text-left text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                               >
-                                Are you new?
-                              </p>
+                                New to Orbit? Create an account
+                              </button>
                             </div>
 
-                            <AuthSubmitButton loading={loading} disabled={loading}>
+                            <AuthSubmitButton
+                              loading={loading}
+                              disabled={loading}
+                              className="w-full justify-center sm:w-auto"
+                            >
                               Sign in
                             </AuthSubmitButton>
                           </div>
@@ -585,7 +599,7 @@ const Login: NextPage = () => {
                         <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
                           Create an account
                         </h2>
-                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                           Choose a username to get started.
                         </p>
                         {!effectiveOAuthOnly && (
@@ -659,7 +673,7 @@ const Login: NextPage = () => {
                       <>
                         <div className="mb-6 flex items-start gap-4">
                           <div
-                            className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 ring-1 ring-zinc-200/80 dark:ring-zinc-700/60"
+                            className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
                             style={{
                               backgroundColor: getAvatarBgColor(signupDisplayName || ''),
                             }}
@@ -718,7 +732,7 @@ const Login: NextPage = () => {
                           Set a password
                         </h2>
 
-                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                           Choose a secure password for your account.
                         </p>
 
@@ -810,11 +824,11 @@ const Login: NextPage = () => {
                         <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
                           Verify your account
                         </h2>
-                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                           Paste this code into your Roblox profile bio, then click Verify.
                         </p>
                         <p
-                          className="mb-4 mt-5 select-all rounded-xl bg-zinc-100 px-4 py-3 text-center font-mono text-sm text-zinc-900 dark:bg-zinc-800 dark:text-white"
+                          className="mb-4 mt-5 select-all rounded-2xl border border-zinc-200/80 bg-zinc-100/80 px-4 py-4 text-center font-mono text-sm text-zinc-900 shadow-inner dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-white"
                           onClick={() => {
                             navigator.clipboard.writeText(verificationCode);
                             toast.success('Verification code copied to clipboard');
@@ -822,7 +836,7 @@ const Login: NextPage = () => {
                         >
                           {verificationCode}
                         </p>
-                        <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <ul className="mb-6 list-inside list-disc space-y-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                           <li>Go to your Roblox profile</li>
                           <li>Click &quot;Edit Profile&quot;</li>
                           <li>Paste the code into your Bio / About section</li>
