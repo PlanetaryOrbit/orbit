@@ -339,8 +339,8 @@ const Home: NextPage = () => {
         discordAppId: discordApplicationID || '', // was missing the fallback
         discordAppSecret: discordClientSecret || '', // was missing the fallback
         oauthOnlyLogin: oauthOnlyLogin || false,
-        loginBackgroundTintEnabled: loginBackgroundTintEnabled || true,
-        loginBackgroundTintOpacity: loginBackgroundTintOpacity || 60,
+        loginBackgroundTintEnabled: loginBackgroundTintEnabled ?? true,
+        loginBackgroundTintOpacity: loginBackgroundTintOpacity ?? 60,
         redirect_wid: redirectWorkspace || '', // was missing the fallback
         google_id: google_id || '',
         google_secret: google_secret || '',
