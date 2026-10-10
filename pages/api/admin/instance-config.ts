@@ -212,8 +212,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
               ? google_email_filtration.trim()
               : google_email_filtration || '',
         },
-        { key: 'loginBackgroundTintEnabled', value: loginBackgroundTintEnabled || true },
-        { key: 'loginBackgroundTintOpacity', value: loginBackgroundTintOpacity || 60 },
       ];
 
       if (redirectWorkspaceID) {
