@@ -162,15 +162,9 @@ async function encodeImage(
   }
 }
 
-export async function saveMedia(
-  file: MediaUpload,
-  uploadedById: bigint,
-): Promise<MediaInfo> {
+export async function saveMedia(file: MediaUpload, uploadedById: bigint): Promise<MediaInfo> {
   const inspected = await inspectMediaFile(file);
-  const encoded = await encodeImage(
-    inspected.buffer,
-    inspected.detectedMime,
-  );
+  const encoded = await encodeImage(inspected.buffer, inspected.detectedMime);
 
   const id = crypto.randomUUID();
   const filename = `${id}.webp`;
@@ -178,10 +172,7 @@ export async function saveMedia(
   await ensureMediaDirectory(id);
 
   const finalPath = getMediaPath(filename);
-  const sha256 = crypto
-    .createHash('sha256')
-    .update(encoded.buffer)
-    .digest('hex');
+  const sha256 = crypto.createHash('sha256').update(encoded.buffer).digest('hex');
 
   try {
     await fs.writeFile(finalPath, encoded.buffer, {

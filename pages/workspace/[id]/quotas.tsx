@@ -939,7 +939,7 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [allQuotas, setAllQuotas] = useState<any[]>(
     Array.isArray(initialAllQuotas) ? initialAllQuotas : [],
   );
-  const [activeTab, setActiveTab] = useState<'my-quotas' | 'manage-quotas'>('my-quotas');
+  const [activeTab, setActiveTab] = useState<'my-quotas' | 'manage-quotas' | 'staff-overview'>('my-quotas');
 
   const text = useMemo(() => randomText(login.displayname), []);
   const canManageQuotas: boolean = !!canManageQuotasProp;
@@ -967,6 +967,12 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [sessionTypeFilter, setSessionTypeFilter] = useState<string>('all');
   const [submittingCustomQuotaId, setSubmittingCustomQuotaId] = useState<string | null>(null);
   const [reviewingCustomKey, setReviewingCustomKey] = useState<string | null>(null);
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffError, setStaffError] = useState('');
+  const [staffSearch, setStaffSearch] = useState('');
+  const [staffQuotaFilter, setStaffQuotaFilter] = useState('all');
+  const [staffLoaFilter, setStaffLoaFilter] = useState('all');
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -1007,6 +1013,51 @@ const Quotas: pageWithLayout<pageProps> = ({
 
     return () => clearTimeout(timeout);
   }, [userSearchQuery, id, selectedUsers]);
+
+  useEffect(() => {
+    if (activeTab !== 'staff-overview' || typeof id !== 'string') return;
+
+    let cancelled = false;
+    setStaffLoading(true);
+    setStaffError('');
+
+    axios
+      .get(`/api/workspace/${id}/quota-review`)
+      .then((response) => {
+        if (!cancelled) setStaffMembers(response.data.members ?? []);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setStaffError(error.response?.data?.error ?? 'Failed to load staff quotas.');
+      })
+      .finally(() => {
+        if (!cancelled) setStaffLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, id]);
+
+  const filteredStaffMembers = useMemo(() => {
+    const query = staffSearch.trim().toLowerCase();
+
+    return staffMembers.filter((member) => {
+      if (query && !member.username.toLowerCase().includes(query)) return false;
+
+      if (
+        staffQuotaFilter !== 'all' &&
+        member.completionStatus !== staffQuotaFilter
+      ) {
+        return false;
+      }
+
+      if (staffLoaFilter === 'loa' && !member.onLoa) return false;
+      if (staffLoaFilter === 'not_loa' && member.onLoa) return false;
+
+      return true;
+    });
+  }, [staffMembers, staffSearch, staffQuotaFilter, staffLoaFilter]);
 
   const selectedUserEntries = useMemo(() => {
     return selectedUsers.map((userId) => {
@@ -1337,7 +1388,9 @@ const Quotas: pageWithLayout<pageProps> = ({
   const pageSubtitle =
     activeTab === 'my-quotas'
       ? "Track your progress and see how you're doing"
-      : 'Create and manage quotas for your workspace';
+      : activeTab === 'manage-quotas'
+        ? 'Create and manage quotas for your workspace'
+        : 'Review staff quota completion and leave status';
 
   return (
     <>
@@ -1393,6 +1446,20 @@ const Quotas: pageWithLayout<pageProps> = ({
               >
                 <IconClipboardList className="h-4 w-4 shrink-0" stroke={1.75} />
                 <span>Manage Quotas</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('staff-overview')}
+                className={clsx(
+                  'flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
+                  activeTab === 'staff-overview'
+                    ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white'
+                    : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
+                )}
+              >
+                <IconUsers className="h-4 w-4 shrink-0" stroke={1.75} />
+                <span>Staff Overview</span>
               </button>
             </nav>
           )}
@@ -1749,6 +1816,205 @@ const Quotas: pageWithLayout<pageProps> = ({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+
+          {activeTab === 'staff-overview' && (
+            <div className="flex flex-col gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {[
+                  {
+                    label: 'Complete',
+                    value: staffMembers.filter((m) => m.completionStatus === 'complete').length,
+                  },
+                  {
+                    label: 'Incomplete',
+                    value: staffMembers.filter((m) => m.completionStatus === 'incomplete').length,
+                  },
+                  {
+                    label: 'On LOA',
+                    value: staffMembers.filter((m) => m.onLoa).length,
+                  },
+                ].map((stat) => (
+                  <QuotaPagePanel key={stat.label} className="p-4">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{stat.label}</p>
+                    <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-white">
+                      {staffLoading || staffError ? '—' : stat.value}
+                    </p>
+                  </QuotaPagePanel>
+                ))}
+              </div>
+
+              <QuotaPagePanel className="overflow-hidden">
+                <div className="flex flex-col gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800 sm:flex-row">
+                  <input
+                    type="search"
+                    value={staffSearch}
+                    onChange={(event) => setStaffSearch(event.target.value)}
+                    placeholder="Search staff..."
+                    aria-label="Search staff by username"
+                    className="min-w-0 flex-1 rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                  />
+
+                  <select
+                    value={staffQuotaFilter}
+                    onChange={(event) => setStaffQuotaFilter(event.target.value)}
+                    aria-label="Filter by quota completion"
+                    className="rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                  >
+                    <option value="all">All quota statuses</option>
+                    <option value="complete">Completed</option>
+                    <option value="incomplete">Incomplete</option>
+                    <option value="no_quotas">No quotas assigned</option>
+                  </select>
+
+                  <select
+                    value={staffLoaFilter}
+                    onChange={(event) => setStaffLoaFilter(event.target.value)}
+                    aria-label="Filter by leave of absence"
+                    className="rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                  >
+                    <option value="all">All LOA statuses</option>
+                    <option value="loa">On LOA</option>
+                    <option value="not_loa">Not on LOA</option>
+                  </select>
+                </div>
+
+                {staffLoading ? (
+                  <p className="p-8 text-center text-sm text-zinc-500">Loading staff quotas...</p>
+                ) : staffError ? (
+                  <p role="alert" className="p-8 text-center text-sm text-red-500">
+                    {staffError}
+                  </p>
+                ) : filteredStaffMembers.length === 0 ? (
+                  <p className="p-8 text-center text-sm text-zinc-500">
+                    No staff members match these filters.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
+                        <tr>
+                          <th scope="col" className="px-4 py-3 font-medium">Staff member</th>
+                          <th scope="col" className="px-4 py-3 font-medium">Quota progress</th>
+                          <th scope="col" className="px-4 py-3 font-medium">Completion</th>
+                          <th scope="col" className="px-4 py-3 font-medium">LOA</th>
+                          <th scope="col" className="px-4 py-3 font-medium">Quota details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        {filteredStaffMembers.map((member) => (
+                          <tr key={member.userId} className="align-top">
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <QuotaMemberAvatar
+                                  userid={member.userId}
+                                  username={member.username}
+                                  picture={member.picture}
+                                  workspaceId={id}
+                                  className="h-8 w-8"
+                                />
+                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {member.username}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {member.quotaCount === 0 ? (
+                                <span className="text-zinc-400">No quotas</span>
+                              ) : (
+                                <>
+                                  <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-100">
+                                    {member.completedCount}/{member.quotaCount}
+                                  </span>
+                                  <div className="mt-2 h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                    <div
+                                      className="h-full rounded-full bg-primary"
+                                      style={{
+                                        width: `${
+                                          (member.completedCount / member.quotaCount) * 100
+                                        }%`,
+                                      }}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={clsx(
+                                  'inline-flex rounded-full px-2 py-1 text-xs font-medium',
+                                  member.completionStatus === 'complete'
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                    : member.completionStatus === 'incomplete'
+                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                      : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
+                                )}
+                              >
+                                {member.completionStatus === 'complete'
+                                  ? 'Complete'
+                                  : member.completionStatus === 'incomplete'
+                                    ? 'Incomplete'
+                                    : 'No quotas'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={clsx(
+                                  'inline-flex rounded-full px-2 py-1 text-xs font-medium',
+                                  member.onLoa
+                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
+                                )}
+                              >
+                                {member.onLoa ? 'On LOA' : 'No'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              {member.quotas.length > 0 ? (
+                                <details className="max-w-xs">
+                                  <summary className="cursor-pointer text-primary hover:underline">
+                                    View quotas
+                                  </summary>
+                                  <ul className="mt-2 space-y-2">
+                                    {member.quotas.map((quota) => (
+                                      <li key={quota.id} className="text-xs">
+                                        <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                                          {quota.name}
+                                        </p>
+                                        <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">
+                                          {quota.type === 'custom'
+                                            ? quota.customStatus === 'approved'
+                                              ? 'Approved'
+                                              : quota.customStatus === 'pending'
+                                                ? 'Awaiting review'
+                                                : quota.customStatus === 'denied'
+                                                  ? 'Denied'
+                                                  : 'Not submitted'
+                                            : `${quota.current} / ${quota.goal}`}
+                                        </p>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </details>
+                              ) : (
+                                <span className="text-zinc-400">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {!staffLoading && !staffError && (
+                  <p className="border-t border-zinc-100 px-4 py-3 text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+                    Showing {filteredStaffMembers.length} of {staffMembers.length} staff members
+                  </p>
+                )}
+              </QuotaPagePanel>
             </div>
           )}
         </div>

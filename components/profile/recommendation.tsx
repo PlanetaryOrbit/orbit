@@ -96,10 +96,13 @@ const Recommendation = ({ targetId, targetName }: Props) => {
     setSubmitting(true);
 
     try {
-      const response = await axios.post(`/api/workspace/${encodeURIComponent(workspaceId)}/recommendations`, {
-        targetId,
-        reason: trimmed,
-      });
+      const response = await axios.post(
+        `/api/workspace/${encodeURIComponent(workspaceId)}/recommendations`,
+        {
+          targetId,
+          reason: trimmed,
+        },
+      );
 
       if (response.status !== 201 || !response.data.success) {
         throw new Error(response.data.error || 'Failed to submit recommendation.');

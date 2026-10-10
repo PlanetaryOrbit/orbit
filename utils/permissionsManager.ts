@@ -609,9 +609,7 @@ export async function checkGroupRoles(groupID: number) {
       console.error(`[update-group] Failed to migrate owner roles:`, err);
       successful = false;
     }
-    const rolesUrl = new URL(
-      `https://apis.roblox.com/cloud/v2/groups/${encGID}/roles`,
-    );
+    const rolesUrl = new URL(`https://apis.roblox.com/cloud/v2/groups/${encGID}/roles`);
     rolesUrl.searchParams.set('maxPageSize', '100');
 
     const rss: { id: number; rank: number; name: string }[] = [];
@@ -630,9 +628,7 @@ export async function checkGroupRoles(groupID: number) {
         });
 
         if (!response.ok) {
-          const error: any = new Error(
-            `Roles API returned ${response.status}`,
-          );
+          const error: any = new Error(`Roles API returned ${response.status}`);
           error.statusCode = response.status;
           throw error;
         }
@@ -648,9 +644,7 @@ export async function checkGroupRoles(groupID: number) {
       });
 
       if (!Array.isArray(body.groupRoles)) {
-        throw new Error(
-          `Invalid roles response for group ${groupID}; aborting sync`,
-        );
+        throw new Error(`Invalid roles response for group ${groupID}; aborting sync`);
       }
 
       rss.push(
@@ -665,9 +659,7 @@ export async function checkGroupRoles(groupID: number) {
     } while (pageToken);
 
     if (rss.length === 0) {
-      throw new Error(
-        `No roles returned for group ${groupID}; aborting sync`,
-      );
+      throw new Error(`No roles returned for group ${groupID}; aborting sync`);
     }
 
     if (!rss) {
