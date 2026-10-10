@@ -584,7 +584,7 @@ export function HelpFloatingButton() {
         </a>
 
         <a
-          href="https://feedback.planetaryapp.cloud/feature-requests"
+          href="https://github.com/planetaryorbit/orbit/issues"
           target="_blank"
           rel="noopener noreferrer"
           className={menuItemClasses}

@@ -4,6 +4,47 @@
 All notable changes to Orbit are documented here. It is fetched by the backend.
 -->
 
+## [2.2.0] - 2026-10-10
+
+- **Added** automatic workspace role synchronization on login, throttled to once per hour per user. (Thanks @tiagoodevs)
+- **Added** promotion recommendations.
+- **Added** a searchable representative picker when creating alliances, including permission-based eligibility indicators. (Thanks @tiagoodevs)
+- **Added** a permission-protected API endpoint for searching alliance representatives. (Thanks @tiagoodevs)
+- **Added** a three-step progress indicator to the setup wizard.
+- **Added** documentation and GitHub links, along with the running Orbit version, to the setup page.
+- **Added** support for customizing milestone messages.
+- **Added** a login tint customization option.
+- **Added** optimization improvements.
+- **Added** potential fixes for CodeQL server-side request forgery and externally controlled format string findings.
+- **Updated** role synchronization to invalidate relevant user and workspace caches after changes.
+- **Updated** workspace membership handling to ensure newly granted workspace roles appear in the workspace list.
+- **Updated** the policies page and policy dashboard to use a consistent documentation-style layout.
+- **Updated** the setup page with improved colors, contrast, disabled states, and hover effects.
+- **Updated** the HelpFloatingButton changelog dialog to display categorized entries with readable labels.
+- **Updated** login page styling and cleaned up its implementation.
+- **Updated** global font configuration and fixed font rendering issues.
+- **Updated** the workspace synchronization button.
+- **Updated** the media API and related endpoints.
+- **Updated** the `.env.example` configuration.
+- **Updated** URL references to use `planetaryapp.cloud`.
+- **Updated** the build tooling to use Turbopack.
+- **Updated** formatting and cleaned up various parts of the codebase.
+- **Fixed** a double redirect in the setup flow.
+- **Fixed** OAuth hostname handling by reverting the change that derived the hostname from the URL.
+- **Fixed** security issues and improved API permission checks.
+- **Fixed** various synchronization issues.
+- **Removed** forced identity from webhooks.
+- **Removed** changelog-related code and references where no longer needed.
+- **Removed** the media API.
+
+### Contributors
+Thanks to everyone who contributed to this release:
+
+- @BuddyWinte
+- @thecamerondev
+- @tiagoodevs
+- @nemusyy
+
 ## [2.1.12] - 2026-08-16
 
 - **Added** an option to give a review comment when approving or denying inactivity notices / resignations. (Thanks @raadtotheraad)
