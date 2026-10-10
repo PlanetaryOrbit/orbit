@@ -38,6 +38,7 @@ All notable changes to Orbit are documented here. It is fetched by the backend.
 - **Removed** the media API.
 
 ### Contributors
+
 Thanks to everyone who contributed to this release:
 
 - @BuddyWinte

@@ -1,6 +1,7 @@
 import type { NextApiResponse } from 'next';
-import cache from '@/utils/cache';
+
 import { AuthenticatedRequest } from '@/lib/withAuth';
+import cache from '@/utils/cache';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 

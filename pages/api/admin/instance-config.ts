@@ -1,13 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { AuthenticatedRequest, withAuth } from "@/lib/withAuth";
-import prisma from "@/utils/database";
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import prisma from '@/utils/database';
 
 export default withAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (!req.auth.userId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(401).json({ error: 'Not authenticated' });
   }
 
   const user = await prisma.user.findUnique({
@@ -16,23 +16,19 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   });
 
   if (!user?.isOwner) {
-    return res
-      .status(403)
-      .json({ error: "Access denied. Owner privileges required." });
+    return res.status(403).json({ error: 'Access denied. Owner privileges required.' });
   }
 
-  if (req.method === "GET") {
+  if (req.method === 'GET') {
     try {
       const envClientId = process.env.ROBLOX_CLIENT_ID;
       const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
-      const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === "true";
+      const envOAuthOnly = process.env.ROBLOX_OAUTH_ONLY === 'true';
       const envRedirectUri =
         process.env.NEXTAUTH_URL || process.env.PUBLIC_URL
           ? `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`
-          : "";
-      const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID
-        ? true
-        : false;
+          : '';
+      const envWorkspaceRedirect = process.env.ROBLOX_WORKSPACE_REDIRECTID ? true : false;
       const envWorkspaceID = process.env.ROBLOX_WORKSPACE_REDIRECTID;
       const envDiscordAppID = process.env.DISCORD_APPLICATION_ID;
       const envDCClientSecret = process.env.DISCORD_SECRET;
@@ -48,33 +44,34 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       );
 
       if (usingEnvVars) {
-        const [bgConfig, tintEnabledConfig, tintOpacityConfig] =
-          await Promise.all([
-            prisma.instanceConfig.findUnique({
-              where: { key: "loginBackground" },
-            }),
-            prisma.instanceConfig.findUnique({
-              where: { key: "loginBackgroundTintEnabled" },
-            }),
-            prisma.instanceConfig.findUnique({
-              where: { key: "loginBackgroundTintOpacity" },
-            }),
-          ]);
+        const [bgConfig, tintEnabledConfig, tintOpacityConfig] = await Promise.all([
+          prisma.instanceConfig.findUnique({
+            where: { key: 'loginBackground' },
+          }),
+          prisma.instanceConfig.findUnique({
+            where: { key: 'loginBackgroundTintEnabled' },
+          }),
+          prisma.instanceConfig.findUnique({
+            where: { key: 'loginBackgroundTintOpacity' },
+          }),
+        ]);
         return res.json({
-          robloxClientId: "••••••••",
-          robloxClientSecret: "••••••••",
-          discordApplicationID: envDiscordAppID ? "••••••••" : "",
-          discordClientSecret: envDCClientSecret ? "••••••••" : "",
+          robloxClientId: '••••••••',
+          robloxClientSecret: '••••••••',
+          discordApplicationID: envDiscordAppID ? '••••••••' : '',
+          discordClientSecret: envDCClientSecret ? '••••••••' : '',
           oauthOnlyLogin: envOAuthOnly,
           redirectWorkspace: envWorkspaceRedirect,
           redirectWID: envWorkspaceID,
-          google_id: envGoogleClientID ? "••••••••" : "",
-          google_secret: envGoogleClientID ? "••••••••" : "",
+          google_id: envGoogleClientID ? '••••••••' : '',
+          google_secret: envGoogleClientID ? '••••••••' : '',
           google_email_filtration: envGoogleEmailFiltration || null,
           redirectUri: envRedirectUri,
-          loginBackground: typeof bgConfig?.value === "string" ? bgConfig.value : null,
-          loginBackgroundTintEnabled: typeof tintEnabledConfig?.value === 'boolean' ? tintEnabledConfig.value : true,
-          loginBackgroundTintOpacity: typeof tintOpacityConfig?.value === 'number' ? tintOpacityConfig.value : 60,
+          loginBackground: typeof bgConfig?.value === 'string' ? bgConfig.value : null,
+          loginBackgroundTintEnabled:
+            typeof tintEnabledConfig?.value === 'boolean' ? tintEnabledConfig.value : true,
+          loginBackgroundTintOpacity:
+            typeof tintOpacityConfig?.value === 'number' ? tintOpacityConfig.value : 60,
           usingEnvVars: true,
         });
       }
@@ -83,17 +80,17 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         where: {
           key: {
             in: [
-              "robloxClientId",
-              "robloxClientSecret",
-              "robloxRedirectUri",
-              "oauthOnlyLogin",
-              "redirectWorkspace",
-              "discordAppID",
-              "discordAppSecret",
-              "loginBackground",
-              "google_id",
-              "google_secret",
-              "google_email_filtration",
+              'robloxClientId',
+              'robloxClientSecret',
+              'robloxRedirectUri',
+              'oauthOnlyLogin',
+              'redirectWorkspace',
+              'discordAppID',
+              'discordAppSecret',
+              'loginBackground',
+              'google_id',
+              'google_secret',
+              'google_email_filtration',
             ],
           },
         },
@@ -108,29 +105,27 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       );
 
       return res.json({
-        robloxClientId: configMap.robloxClientId || "",
-        robloxClientSecret: configMap.robloxClientSecret || "",
-        robloxRedirectUri: configMap.robloxRedirectUri || "",
+        robloxClientId: configMap.robloxClientId || '',
+        robloxClientSecret: configMap.robloxClientSecret || '',
+        robloxRedirectUri: configMap.robloxRedirectUri || '',
         oauthOnlyLogin: configMap.oauthOnlyLogin || false,
         discordApplicationID: configMap.discordAppID,
         discordClientSecret: configMap.discordAppSecret,
         usingEnvVars: false,
-        redirectWorkspace: configMap.redirectWorkspace || "",
-        google_id: configMap.google_id || "",
-        google_secret: configMap.google_secret || "",
+        redirectWorkspace: configMap.redirectWorkspace || '',
+        google_id: configMap.google_id || '',
+        google_secret: configMap.google_secret || '',
         google_email_filtration: configMap.google_email_filtration,
         loginBackground:
-          typeof configMap.loginBackground === "string"
-            ? configMap.loginBackground
-            : null,
+          typeof configMap.loginBackground === 'string' ? configMap.loginBackground : null,
       });
     } catch (error) {
-      console.error("Failed to fetch instance config:", error);
-      return res.status(500).json({ error: "Failed to fetch configuration" });
+      console.error('Failed to fetch instance config:', error);
+      return res.status(500).json({ error: 'Failed to fetch configuration' });
     }
   }
 
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const envClientId = process.env.ROBLOX_CLIENT_ID;
     const envClientSecret = process.env.ROBLOX_CLIENT_SECRET;
     const envRedirectUri = process.env.ROBLOX_REDIRECT_URI;
@@ -151,8 +146,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     if (usingEnvVars) {
       return res.status(403).json({
-        error:
-          "Cannot modify OAuth configuration when environment variables are set",
+        error: 'Cannot modify OAuth configuration when environment variables are set',
         usingEnvVars: true,
       });
     }
@@ -175,84 +169,68 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     try {
       const updates = [
         {
-          key: "robloxClientId",
-          value:
-            typeof robloxClientId === "string"
-              ? robloxClientId.trim()
-              : robloxClientId || "",
+          key: 'robloxClientId',
+          value: typeof robloxClientId === 'string' ? robloxClientId.trim() : robloxClientId || '',
         },
         {
-          key: "robloxClientSecret",
+          key: 'robloxClientSecret',
           value:
-            typeof robloxClientSecret === "string"
+            typeof robloxClientSecret === 'string'
               ? robloxClientSecret.trim()
-              : robloxClientSecret || "",
+              : robloxClientSecret || '',
         },
         {
-          key: "robloxRedirectUri",
+          key: 'robloxRedirectUri',
           value:
-            typeof robloxRedirectUri === "string"
+            typeof robloxRedirectUri === 'string'
               ? robloxRedirectUri.trim()
-              : robloxRedirectUri || "",
+              : robloxRedirectUri || '',
         },
         {
-          key: "discordAppID",
-          value:
-            typeof discordAppId === "string"
-              ? discordAppId.trim()
-              : discordAppId || "",
+          key: 'discordAppID',
+          value: typeof discordAppId === 'string' ? discordAppId.trim() : discordAppId || '',
         },
         {
-          key: "discordAppSecret",
-          value:
-            typeof discordSecret === "string"
-              ? discordSecret.trim()
-              : discordSecret || "",
+          key: 'discordAppSecret',
+          value: typeof discordSecret === 'string' ? discordSecret.trim() : discordSecret || '',
         },
-        { key: "oauthOnlyLogin", value: oauthOnlyLogin || false },
+        { key: 'oauthOnlyLogin', value: oauthOnlyLogin || false },
         {
-          key: "loginBackgroundTintEnabled",
+          key: 'loginBackgroundTintEnabled',
           value:
-            typeof loginBackgroundTintEnabled === "boolean"
-              ? loginBackgroundTintEnabled
-              : true,
+            typeof loginBackgroundTintEnabled === 'boolean' ? loginBackgroundTintEnabled : true,
         },
         {
-          key: "loginBackgroundTintOpacity",
+          key: 'loginBackgroundTintOpacity',
           value:
-            typeof loginBackgroundTintOpacity === "number"
+            typeof loginBackgroundTintOpacity === 'number'
               ? Math.min(100, Math.max(0, loginBackgroundTintOpacity))
               : 60,
         },
         {
-          key: "google_id",
-          value:
-            typeof google_id === "string" ? google_id.trim() : google_id || "",
+          key: 'google_id',
+          value: typeof google_id === 'string' ? google_id.trim() : google_id || '',
         },
         {
-          key: "google_secret",
-          value:
-            typeof google_secret === "string"
-              ? google_secret.trim()
-              : google_id || "",
+          key: 'google_secret',
+          value: typeof google_secret === 'string' ? google_secret.trim() : google_id || '',
         },
         {
-          key: "google_email_filtration",
+          key: 'google_email_filtration',
           value:
-            typeof google_email_filtration === "string"
+            typeof google_email_filtration === 'string'
               ? google_email_filtration.trim()
-              : google_email_filtration || "",
+              : google_email_filtration || '',
         },
       ];
 
       if (redirectWorkspaceID) {
         updates.push({
-          key: "redirectWorkspace",
+          key: 'redirectWorkspace',
           value:
-            typeof redirectWorkspaceID === "string" &&
-            redirectWorkspaceID.length > 0
+            typeof redirectWorkspaceID === 'string' && redirectWorkspaceID.length > 0
               ? redirectWorkspaceID.trim()
-              : "",
+              : '',
         });
       }
 
@@ -267,13 +245,13 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       );
       return res.json({
         success: true,
-        message: "Configuration saved successfully",
+        message: 'Configuration saved successfully',
       });
     } catch (error) {
-      console.error("Failed to save instance config:", error);
-      return res.status(500).json({ error: "Failed to save configuration" });
+      console.error('Failed to save instance config:', error);
+      return res.status(500).json({ error: 'Failed to save configuration' });
     }
   }
 
-  return res.status(405).json({ error: "Method not allowed" });
+  return res.status(405).json({ error: 'Method not allowed' });
 }

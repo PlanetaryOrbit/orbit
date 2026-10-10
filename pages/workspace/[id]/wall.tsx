@@ -11,7 +11,6 @@ import {
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
-import sanitizeHtml from 'sanitize-html';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import moment from 'moment';
 import { GetServerSideProps } from 'next';
@@ -21,6 +20,8 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { useRecoilState } from 'recoil';
 import rehypeSanitize from 'rehype-sanitize';
+import sanitizeHtml from 'sanitize-html';
+
 import Workspace from '@/layouts/workspace';
 import type { pageWithLayout } from '@/layoutTypes';
 import { AuthenticatedRequest } from '@/lib/withAuth';
@@ -63,12 +64,12 @@ export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
         media: {
           select: {
             id: true,
-                  mimeType: true,
-                  width: true,
-                  height: true,
-                  size: true,
-          }
-        }
+            mimeType: true,
+            width: true,
+            height: true,
+            size: true,
+          },
+        },
       },
     });
 
@@ -174,10 +175,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         formData.append('file', selectedImage);
       }
 
-      const response = await axios.post(
-        `/api/workspace/${id}/wall/post`,
-        formData,
-      );
+      const response = await axios.post(`/api/workspace/${id}/wall/post`, formData);
 
       toast.success('Wall message posted!');
       setWallMessage('');
@@ -186,9 +184,7 @@ const Wall: pageWithLayout<pageProps> = (props) => {
       setPosts((prev) => [response.data.post, ...prev]);
     } catch (error: any) {
       console.error(error);
-      toast.error(
-        error.response?.data?.error || 'Could not post wall message.',
-      );
+      toast.error(error.response?.data?.error || 'Could not post wall message.');
     } finally {
       setLoading(false);
     }
