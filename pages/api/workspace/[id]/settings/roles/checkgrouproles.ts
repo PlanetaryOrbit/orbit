@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { withAuth } from '@/lib/withAuth';
+import { withPermissionCheck } from '@/utils/permissionsManager';
 import cache from '@/utils/cache';
 import { checkGroupRoles } from '@/utils/permissionsManager';
 
-export default withAuth(handler);
+export default withPermissionCheck(handler, 'admin');
 
 export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'POST') {
