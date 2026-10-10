@@ -7,6 +7,7 @@ All notable changes to Orbit are documented here. It is fetched by the backend.
 ## [2.2.0] - 2026-10-10
 
 - **Added** automatic workspace role synchronization on login, throttled to once per hour per user. (Thanks @tiagoodevs)
+- **Added** a overview of who completed quota.
 - **Added** promotion recommendations.
 - **Added** a searchable representative picker when creating alliances, including permission-based eligibility indicators. (Thanks @tiagoodevs)
 - **Added** a permission-protected API endpoint for searching alliance representatives. (Thanks @tiagoodevs)

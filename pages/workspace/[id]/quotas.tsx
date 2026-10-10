@@ -939,7 +939,9 @@ const Quotas: pageWithLayout<pageProps> = ({
   const [allQuotas, setAllQuotas] = useState<any[]>(
     Array.isArray(initialAllQuotas) ? initialAllQuotas : [],
   );
-  const [activeTab, setActiveTab] = useState<'my-quotas' | 'manage-quotas' | 'staff-overview'>('my-quotas');
+  const [activeTab, setActiveTab] = useState<'my-quotas' | 'manage-quotas' | 'staff-overview'>(
+    'my-quotas',
+  );
 
   const text = useMemo(() => randomText(login.displayname), []);
   const canManageQuotas: boolean = !!canManageQuotasProp;
@@ -1045,10 +1047,7 @@ const Quotas: pageWithLayout<pageProps> = ({
     return staffMembers.filter((member) => {
       if (query && !member.username.toLowerCase().includes(query)) return false;
 
-      if (
-        staffQuotaFilter !== 'all' &&
-        member.completionStatus !== staffQuotaFilter
-      ) {
+      if (staffQuotaFilter !== 'all' && member.completionStatus !== staffQuotaFilter) {
         return false;
       }
 
@@ -1819,7 +1818,6 @@ const Quotas: pageWithLayout<pageProps> = ({
             </div>
           )}
 
-
           {activeTab === 'staff-overview' && (
             <div className="flex flex-col gap-4 sm:gap-5">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -1896,11 +1894,21 @@ const Quotas: pageWithLayout<pageProps> = ({
                     <table className="w-full min-w-[720px] text-left text-sm">
                       <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
                         <tr>
-                          <th scope="col" className="px-4 py-3 font-medium">Staff member</th>
-                          <th scope="col" className="px-4 py-3 font-medium">Quota progress</th>
-                          <th scope="col" className="px-4 py-3 font-medium">Completion</th>
-                          <th scope="col" className="px-4 py-3 font-medium">LOA</th>
-                          <th scope="col" className="px-4 py-3 font-medium">Quota details</th>
+                          <th scope="col" className="px-4 py-3 font-medium">
+                            Staff member
+                          </th>
+                          <th scope="col" className="px-4 py-3 font-medium">
+                            Quota progress
+                          </th>
+                          <th scope="col" className="px-4 py-3 font-medium">
+                            Completion
+                          </th>
+                          <th scope="col" className="px-4 py-3 font-medium">
+                            LOA
+                          </th>
+                          <th scope="col" className="px-4 py-3 font-medium">
+                            Quota details
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
