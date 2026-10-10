@@ -1840,7 +1840,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                   <QuotaPagePanel key={stat.label} className="p-4">
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">{stat.label}</p>
                     <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-white">
-                      {staffLoading ? '—' : stat.value}
+                      {staffLoading || staffError ? '—' : stat.value}
                     </p>
                   </QuotaPagePanel>
                 ))}
