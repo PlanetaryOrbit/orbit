@@ -609,31 +609,66 @@ export async function checkGroupRoles(groupID: number) {
       console.error(`[update-group] Failed to migrate owner roles:`, err);
       successful = false;
     }
-
-    const rolesUrl = new URL(`https://apis.roblox.com/cloud/v2/groups/${encGID}/roles`);
-    rolesUrl.searchParams.set('maxPageSize', '20');
-
-    const rss = await retryNobloxRequest(() =>
-      fetch(rolesUrl.toString(), {
-        headers: { 'x-api-key': apiKey.key },
-      }).then(async (r) => {
-        if (!r.ok) {
-          const err: any = new Error(`Roles API returned ${r.status}`);
-          err.statusCode = r.status;
-          throw err;
-        }
-        const body = (await r.json()) as {
-          groupRoles: Array<{ id: string; rank: number; displayName: string }>;
-          nextPageToken?: string;
-        };
-        // map to same shape noblox returned so downstream code stays the same
-        return body.groupRoles.map((r) => ({
-          id: Number(r.id),
-          rank: r.rank,
-          name: r.displayName,
-        }));
-      }),
+    const rolesUrl = new URL(
+      `https://apis.roblox.com/cloud/v2/groups/${encGID}/roles`,
     );
+    rolesUrl.searchParams.set('maxPageSize', '100');
+
+    const rss: { id: number; rank: number; name: string }[] = [];
+    let pageToken: string | undefined;
+
+    do {
+      if (pageToken) {
+        rolesUrl.searchParams.set('pageToken', pageToken);
+      } else {
+        rolesUrl.searchParams.delete('pageToken');
+      }
+
+      const body = await retryNobloxRequest(async () => {
+        const response = await fetch(rolesUrl.toString(), {
+          headers: { 'x-api-key': apiKey.key },
+        });
+
+        if (!response.ok) {
+          const error: any = new Error(
+            `Roles API returned ${response.status}`,
+          );
+          error.statusCode = response.status;
+          throw error;
+        }
+
+        return response.json() as Promise<{
+          groupRoles: Array<{
+            id: string;
+            rank: number;
+            displayName: string;
+          }>;
+          nextPageToken?: string;
+        }>;
+      });
+
+      if (!Array.isArray(body.groupRoles)) {
+        throw new Error(
+          `Invalid roles response for group ${groupID}; aborting sync`,
+        );
+      }
+
+      rss.push(
+        ...body.groupRoles.map((role) => ({
+          id: Number(role.id),
+          rank: role.rank,
+          name: role.displayName,
+        })),
+      );
+
+      pageToken = body.nextPageToken || undefined;
+    } while (pageToken);
+
+    if (rss.length === 0) {
+      throw new Error(
+        `No roles returned for group ${groupID}; aborting sync`,
+      );
+    }
 
     if (!rss) {
       console.log(`[update-group] No roles found for group ${groupID}, aborting.`);

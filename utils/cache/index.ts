@@ -7,6 +7,7 @@ const memory = new MemoryCache();
 const provider: CacheProvider = redis ?? memory;
 
 export const providerName = redis ? 'redis' : 'memory';
+const inflightLoads = new Map<string, Promise<unknown>>();
 
 interface SWREntry<T> {
   value: T;
@@ -147,27 +148,38 @@ async function revalidateAndWait<T>(
     }
   }
 
-  let value: T;
+  const inflight = inflightLoads.get(key) as Promise<T> | undefined;
 
-  try {
-    value = await loader();
-  } catch (error) {
-    console.error('[Cache] Initial load failed for key %s:', key, error);
-    throw error;
+  if (inflight) {
+    return inflight;
   }
 
-  const now = Date.now();
+  const promise = (async (): Promise<T> => {
+    try {
+      const value = await loader();
+      const now = Date.now();
 
-  const entry: SWREntry<T> = {
-    value,
-    createdAt: now,
-    staleAt: now + options.freshFor * 1000,
-    expiresAt: now + options.staleFor * 1000,
-  };
+      const entry: SWREntry<T> = {
+        value,
+        createdAt: now,
+        staleAt: now + options.freshFor * 1000,
+        expiresAt: now + options.staleFor * 1000,
+      };
 
-  await set(key, entry, options.staleFor);
+      await set(key, entry, options.staleFor);
 
-  return value;
+      return value;
+    } catch (error) {
+      console.error('[Cache] Initial load failed for key %s:', key, error);
+      throw error;
+    } finally {
+      inflightLoads.delete(key);
+    }
+  })();
+
+  inflightLoads.set(key, promise);
+
+  return promise;
 }
 
 const cache = {
