@@ -2,7 +2,6 @@ import { runBirthdayCron } from '@/utils/crons/birthday';
 import { runMilestoneCron } from '@/utils/crons/milestones';
 import { runActivityReset } from '@/utils/crons/resetActivity';
 import { runSessionUpdateCron } from '@/utils/crons/sessions';
-import { runRoleSyncCron } from '@/utils/crons/update-roles';
 import cron from 'node-cron';
 
 import { runSessionCron } from './crons/authSessions';
@@ -21,14 +20,6 @@ export async function initCronJobs() {
         await runSessionUpdateCron();
       } catch (err) {
         console.error('[CRON][SESSIONS]', err);
-      }
-    });
-
-    cron.schedule('*/15 * * * *', async () => {
-      try {
-        await runRoleSyncCron();
-      } catch (err) {
-        console.error('[CRON][ROLES]', err);
       }
     });
 
