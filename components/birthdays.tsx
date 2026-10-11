@@ -1,10 +1,9 @@
+import { HomeSection } from '@/components/home/shell';
 import { IconGift, IconConfetti } from '@tabler/icons-react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState, useRef } from 'react';
 import Confetti from 'react-confetti';
-
-import { HomeSection } from '@/components/home/shell';
 
 type BirthdayUser = {
   userid: string;
@@ -90,7 +89,10 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
 
   if (layout === 'strip') {
     return (
-      <div ref={cardRef} className="relative">
+      <div
+        ref={cardRef}
+        className='relative'
+      >
         {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
           <Confetti
             width={cardSize.width}
@@ -100,13 +102,13 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
             style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 10 }}
           />
         )}
-        <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain px-4 pb-1 pt-1 scrollbar-hide sm:px-3">
+        <div className='flex gap-2.5 overflow-x-auto overscroll-x-contain px-4 pb-1 pt-1 scrollbar-hide sm:px-3'>
           {usersWithDays.map((user) => {
             const isToday = user.daysAway === 0;
             return (
               <div
                 key={user.userid}
-                className="relative flex w-44 shrink-0 flex-col gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/80 dark:shadow-zinc-950/20"
+                className='relative flex w-44 shrink-0 flex-col gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:bg-zinc-900/80 dark:shadow-zinc-950/20'
                 onMouseEnter={() => {
                   if (isToday) {
                     if (cardRef.current) {
@@ -122,22 +124,34 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
                   if (isToday) setShowConfetti(false);
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <img src={user.picture} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <div className='flex items-center justify-between'>
+                  <img
+                    src={user.picture}
+                    alt=''
+                    className='h-10 w-10 rounded-full object-cover'
+                  />
                   {isToday ? (
-                    <IconGift className="h-4 w-4 text-zinc-400 dark:text-zinc-500" stroke={1.5} />
+                    <IconGift
+                      className='h-4 w-4 text-zinc-400 dark:text-zinc-500'
+                      stroke={1.5}
+                    />
                   ) : (
-                    <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500">
+                    <span className='text-xs font-medium text-zinc-400 dark:text-zinc-500'>
                       {whenLabel(user.daysAway, user.birthdayMonth, user.birthdayDay)}
                     </span>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white leading-tight">
+                <div className='min-w-0'>
+                  <p className='truncate text-sm font-semibold text-zinc-900 dark:text-white leading-tight'>
                     {user.username}
                   </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500">
-                    {isToday && <IconConfetti className="h-3 w-3 shrink-0" stroke={1.5} />}
+                  <p className='mt-0.5 flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500'>
+                    {isToday && (
+                      <IconConfetti
+                        className='h-3 w-3 shrink-0'
+                        stroke={1.5}
+                      />
+                    )}
                     {isToday ? 'Today' : `${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
                   </p>
                 </div>
@@ -150,7 +164,10 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
   }
 
   return (
-    <HomeSection title="Birthdays" className="relative overflow-hidden">
+    <HomeSection
+      title='Birthdays'
+      className='relative overflow-hidden'
+    >
       <div ref={cardRef}>
         {showConfetti && cardSize.width > 0 && cardSize.height > 0 && (
           <Confetti
@@ -161,11 +178,11 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
             style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
           />
         )}
-        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <ul className='divide-y divide-zinc-100 dark:divide-zinc-800'>
           {usersWithDays.map((user) => (
             <li
               key={user.userid}
-              className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+              className='flex items-center gap-3 py-2.5 first:pt-0 last:pb-0'
               onMouseEnter={() => {
                 if (user.daysAway === 0) {
                   if (cardRef.current) {
@@ -183,14 +200,14 @@ export default function Birthdays({ layout = 'section' }: BirthdaysProps) {
             >
               <img
                 src={user.picture}
-                alt=""
-                className="h-9 w-9 rounded-md object-cover bg-zinc-100 dark:bg-zinc-800"
+                alt=''
+                className='h-9 w-9 rounded-md object-cover bg-zinc-100 dark:bg-zinc-800'
               />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+              <div className='min-w-0 flex-1'>
+                <p className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
                   {user.username}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                   {whenLabel(user.daysAway, user.birthdayMonth, user.birthdayDay)}
                   {user.daysAway > 1 && ` · ${monthNames[user.birthdayMonth]} ${user.birthdayDay}`}
                 </p>

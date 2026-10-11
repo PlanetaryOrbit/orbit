@@ -31,12 +31,12 @@ export function AccessControlPanel({
     'h-3.5 w-3.5 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600';
 
   const content = (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        <p className='mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400'>
           Roles
         </p>
-        <div className="space-y-0.5">
+        <div className='space-y-0.5'>
           {roles.map((role) => (
             <label
               key={role.id}
@@ -49,17 +49,17 @@ export function AccessControlPanel({
               )}
             >
               <input
-                type="checkbox"
+                type='checkbox'
                 checked={selectedRoles.includes(role.id)}
                 onChange={() => onToggleRole(role.id)}
                 disabled={disabled}
                 className={checkboxClass}
               />
               <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                className='h-1.5 w-1.5 shrink-0 rounded-full'
                 style={{ backgroundColor: role.color || '#71717a' }}
               />
-              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-200">
+              <span className='text-xs font-medium text-zinc-700 dark:text-zinc-200'>
                 {role.name}
               </span>
             </label>
@@ -68,11 +68,11 @@ export function AccessControlPanel({
       </div>
 
       <div>
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        <p className='mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400'>
           Departments
         </p>
         {departments.length > 0 ? (
-          <div className="space-y-0.5">
+          <div className='space-y-0.5'>
             {departments.map((department) => (
               <label
                 key={department.id}
@@ -85,29 +85,29 @@ export function AccessControlPanel({
                 )}
               >
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   checked={selectedDepartments.includes(department.id)}
                   onChange={() => onToggleDepartment(department.id)}
                   disabled={disabled}
                   className={checkboxClass}
                 />
                 <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  className='h-1.5 w-1.5 shrink-0 rounded-full'
                   style={{ backgroundColor: department.color || '#71717a' }}
                 />
-                <span className="text-xs font-medium text-zinc-700 dark:text-zinc-200">
+                <span className='text-xs font-medium text-zinc-700 dark:text-zinc-200'>
                   {department.name}
                 </span>
               </label>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-400">None yet</p>
+          <p className='text-xs text-zinc-400'>None yet</p>
         )}
       </div>
 
       {selectedRoles.length === 0 && selectedDepartments.length === 0 && (
-        <p className="text-[11px] leading-relaxed text-zinc-400">Empty = visible to everyone</p>
+        <p className='text-[11px] leading-relaxed text-zinc-400'>Empty = visible to everyone</p>
       )}
     </div>
   );
@@ -117,9 +117,12 @@ export function AccessControlPanel({
       <div
         className={clsx('rounded-2xl bg-white p-4 dark:bg-zinc-900/80', docsPanelShadow, className)}
       >
-        <div className="mb-3 flex items-center gap-2">
-          <IconLock className="h-3.5 w-3.5 text-zinc-400" stroke={1.75} />
-          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Permissions</p>
+        <div className='mb-3 flex items-center gap-2'>
+          <IconLock
+            className='h-3.5 w-3.5 text-zinc-400'
+            stroke={1.75}
+          />
+          <p className='text-xs font-semibold text-zinc-700 dark:text-zinc-200'>Permissions</p>
         </div>
         {content}
       </div>
@@ -128,11 +131,14 @@ export function AccessControlPanel({
 
   return (
     <DocsPanel className={clsx('p-4 sm:p-5 lg:sticky lg:top-6', className)}>
-      <div className="mb-4 flex items-center gap-2">
-        <IconLock className="h-4 w-4 text-primary" stroke={1.75} />
+      <div className='mb-4 flex items-center gap-2'>
+        <IconLock
+          className='h-4 w-4 text-primary'
+          stroke={1.75}
+        />
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Access control</h2>
-          <p className="text-xs text-zinc-400">Who can view this document</p>
+          <h2 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>Access control</h2>
+          <p className='text-xs text-zinc-400'>Who can view this document</p>
         </div>
       </div>
       {content}

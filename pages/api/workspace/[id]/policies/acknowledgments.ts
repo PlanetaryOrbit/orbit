@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 // import { withAuth } from '@/lib/withSession';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

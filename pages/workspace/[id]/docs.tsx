@@ -1,17 +1,3 @@
-import {
-  IconFileText,
-  IconPlus,
-  IconClock,
-  IconLink,
-  IconPencil,
-  IconFolder,
-} from '@tabler/icons-react';
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import { isExternalContent } from '@/components/docs/content';
 import {
   DEFAULT_FOLDER_ICON,
@@ -31,6 +17,19 @@ import type { pageWithLayout } from '@/layoutTypes';
 import { workspacestate } from '@/state';
 import prisma, { document } from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import {
+  IconFileText,
+  IconPlus,
+  IconClock,
+  IconLink,
+  IconPencil,
+  IconFolder,
+} from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 type FolderWithCounts = DocFolderOption & {
   _count: { documents: number; children: number };
@@ -321,29 +320,32 @@ const DocsLibrary: pageWithLayout<pageProps> = ({
     <DocsPageShell>
       <DocsPageHeader
         title={breadcrumbs.length ? breadcrumbs[breadcrumbs.length - 1].name : 'Documents'}
-        subtitle="Create and manage your workspace documentation"
+        subtitle='Create and manage your workspace documentation'
         workspaceLabel={workspaceLabel}
         action={
           canCreate ? (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className='flex flex-wrap items-center gap-2'>
               <button
-                type="button"
+                type='button'
                 onClick={openCreateFolder}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                className='inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'
               >
-                <IconFolder className="h-4 w-4" stroke={1.75} />
+                <IconFolder
+                  className='h-4 w-4'
+                  stroke={1.75}
+                />
                 New folder
               </button>
               <button
-                type="button"
+                type='button'
                 onClick={() =>
                   router.push(
                     `${docsBase}/new${currentFolderId ? `?folder=${currentFolderId}` : ''}`,
                   )
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
               >
-                <IconPlus className="h-4 w-4" />
+                <IconPlus className='h-4 w-4' />
                 New document
               </button>
             </div>
@@ -351,11 +353,16 @@ const DocsLibrary: pageWithLayout<pageProps> = ({
         }
       />
 
-      {breadcrumbs.length > 0 ? <DocsBreadcrumbs items={breadcrumbItems} className="mb-4" /> : null}
+      {breadcrumbs.length > 0 ? (
+        <DocsBreadcrumbs
+          items={breadcrumbItems}
+          className='mb-4'
+        />
+      ) : null}
 
-      <div className="flex flex-col gap-4 sm:gap-5">
+      <div className='flex flex-col gap-4 sm:gap-5'>
         {!canCreate && (
-          <DocsPanel className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <DocsPanel className='px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400'>
             You don&apos;t have permission to create documents.
           </DocsPanel>
         )}
@@ -373,25 +380,28 @@ const DocsLibrary: pageWithLayout<pageProps> = ({
             }
             action={
               canCreate ? (
-                <div className="flex flex-wrap items-center justify-center gap-2">
+                <div className='flex flex-wrap items-center justify-center gap-2'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={openCreateFolder}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200"
+                    className='inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200'
                   >
-                    <IconFolder className="h-4 w-4" stroke={1.75} />
+                    <IconFolder
+                      className='h-4 w-4'
+                      stroke={1.75}
+                    />
                     Create folder
                   </button>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() =>
                       router.push(
                         `${docsBase}/new${currentFolderId ? `?folder=${currentFolderId}` : ''}`,
                       )
                     }
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                    className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                   >
-                    <IconPlus className="h-4 w-4" />
+                    <IconPlus className='h-4 w-4' />
                     Create document
                   </button>
                 </div>
@@ -399,7 +409,7 @@ const DocsLibrary: pageWithLayout<pageProps> = ({
             }
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             {folders.map((folder) => (
               <DocsFolderCard
                 key={folder.id}
@@ -417,41 +427,54 @@ const DocsLibrary: pageWithLayout<pageProps> = ({
             {documents.map((doc) => {
               const external = isExternalContent(doc.content);
               return (
-                <DocsPanel key={doc.id} className="group p-4" onClick={() => openDoc(doc)}>
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <DocsPanel
+                  key={doc.id}
+                  className='group p-4'
+                  onClick={() => openDoc(doc)}
+                >
+                  <div className='flex items-start gap-3'>
+                    <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
                       {external ? (
-                        <IconLink className="h-5 w-5 text-primary" stroke={1.75} />
+                        <IconLink
+                          className='h-5 w-5 text-primary'
+                          stroke={1.75}
+                        />
                       ) : (
-                        <IconFileText className="h-5 w-5 text-primary" stroke={1.75} />
+                        <IconFileText
+                          className='h-5 w-5 text-primary'
+                          stroke={1.75}
+                        />
                       )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="truncate text-sm font-semibold text-zinc-900 group-hover:text-primary dark:text-zinc-100">
+                    <div className='min-w-0 flex-1'>
+                      <div className='flex items-start justify-between gap-2'>
+                        <h3 className='truncate text-sm font-semibold text-zinc-900 group-hover:text-primary dark:text-zinc-100'>
                           {doc.name}
                         </h3>
                         {(canEdit || canDelete) && (
                           <button
-                            type="button"
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               router.push(`${docsBase}/${doc.id}/edit`);
                             }}
-                            className="shrink-0 rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                            aria-label="Edit document"
+                            className='shrink-0 rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
+                            aria-label='Edit document'
                           >
-                            <IconPencil className="h-4 w-4" stroke={1.75} />
+                            <IconPencil
+                              className='h-4 w-4'
+                              stroke={1.75}
+                            />
                           </button>
                         )}
                       </div>
-                      <p className="mt-0.5 text-xs text-zinc-400">
+                      <p className='mt-0.5 text-xs text-zinc-400'>
                         {external ? 'External link' : 'Markdown document'}
                       </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
+                      <div className='mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400'>
                         <span>{doc.owner?.username ?? 'Unknown'}</span>
-                        <span className="inline-flex items-center gap-1">
-                          <IconClock className="h-3.5 w-3.5" />
+                        <span className='inline-flex items-center gap-1'>
+                          <IconClock className='h-3.5 w-3.5' />
                           {new Date(doc.updatedAt ?? doc.createdAt).toLocaleDateString()}
                         </span>
                       </div>

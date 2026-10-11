@@ -1,8 +1,7 @@
+import { HTML_OPTIONS } from '@/lib/xss';
 import clsx from 'clsx';
 import { useMemo } from 'react';
 import sanitizehtml from 'sanitize-html';
-
-import { HTML_OPTIONS } from '@/lib/xss';
 
 import { parseDocumentContent, renderMarkdownToSafeHtml, docMediaProseClass } from './content';
 
@@ -41,7 +40,7 @@ export function DocViewer({
         />
       ) : (
         <div
-          className="doc-viewer-content"
+          className='doc-viewer-content'
           dangerouslySetInnerHTML={{
             __html: sanitizehtml(renderMarkdownToSafeHtml(output.content), HTML_OPTIONS),
           }}

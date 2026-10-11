@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const sessionCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 

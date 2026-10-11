@@ -1,11 +1,10 @@
 import fs from 'fs';
 
-import formidable from 'formidable';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { getConfig, setConfig, refresh } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import formidable from 'formidable';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
   api: {

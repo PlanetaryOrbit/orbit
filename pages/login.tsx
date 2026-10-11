@@ -1,16 +1,3 @@
-import { Dialog } from '@headlessui/react';
-import { IconX } from '@tabler/icons-react';
-import axios from 'axios';
-import clsx from 'clsx';
-import { NextPage } from 'next';
-import Head from 'next/head';
-import Link from 'next/link';
-import Router from 'next/router';
-import React, { useEffect, useState, useRef } from 'react';
-import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import Input from '@/components/input';
 import PasswordStrengthBar from '@/components/passwordStrengthBar';
 import {
@@ -23,6 +10,18 @@ import { useOAuthConfig } from '@/hooks/useOAuthConfig';
 import { RobloxOAuthAvailable } from '@/hooks/useRobloxOAuth';
 import { loginState } from '@/state';
 import { calculatePasswordStrength } from '@/utils/passwordStrength';
+import { Dialog } from '@headlessui/react';
+import { IconX } from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { NextPage } from 'next';
+import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
+import React, { useEffect, useState, useRef } from 'react';
+import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 const oauthButtonClass =
   'w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700';
@@ -51,24 +50,24 @@ function AuthSubmitButton({
     >
       {loading ? (
         <svg
-          className="h-5 w-5 animate-spin"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
+          className='h-5 w-5 animate-spin'
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
           aria-hidden
         >
           <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
+            className='opacity-25'
+            cx='12'
+            cy='12'
+            r='10'
+            stroke='currentColor'
+            strokeWidth='4'
           />
           <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            className='opacity-75'
+            fill='currentColor'
+            d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
           />
         </svg>
       ) : (
@@ -379,34 +378,46 @@ const Login: NextPage = () => {
     <div className={`flex flex-col gap-2.5 ${className ?? ''}`}>
       {isRobloxOAuth && (
         <button
-          type="button"
+          type='button'
           onClick={() => (window.location.href = '/api/auth/roblox/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img src="/roblox.svg" alt="Roblox" className="h-5 w-5 dark:invert-0 invert" />
+          <img
+            src='/roblox.svg'
+            alt='Roblox'
+            className='h-5 w-5 dark:invert-0 invert'
+          />
           Continue with Roblox
         </button>
       )}
       {isDiscordOAuth && (
         <button
-          type="button"
+          type='button'
           onClick={() => (window.location.href = '/api/auth/discord/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img src="/discord.svg" alt="Discord" className="h-5 w-5 dark:invert-0 invert" />
+          <img
+            src='/discord.svg'
+            alt='Discord'
+            className='h-5 w-5 dark:invert-0 invert'
+          />
           Continue with Discord
         </button>
       )}
       {isGoogleOAuth && (
         <button
-          type="button"
+          type='button'
           onClick={() => (window.location.href = '/api/auth/google/start')}
           disabled={loading}
           className={oauthButtonClass}
         >
-          <img src="/google.svg" alt="Google" className="h-5 w-5 dark:invert-0 invert" />
+          <img
+            src='/google.svg'
+            alt='Google'
+            className='h-5 w-5 dark:invert-0 invert'
+          />
           Continue with Google
         </button>
       )}
@@ -414,12 +425,12 @@ const Login: NextPage = () => {
   );
 
   const divider = (
-    <div className="relative my-6">
-      <div className="absolute inset-0 flex items-center">
-        <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+    <div className='relative my-6'>
+      <div className='absolute inset-0 flex items-center'>
+        <span className='w-full border-t border-zinc-200 dark:border-zinc-700' />
       </div>
-      <div className="relative flex justify-center text-xs">
-        <span className="bg-white px-2 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-500">or</span>
+      <div className='relative flex justify-center text-xs'>
+        <span className='bg-white px-2 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-500'>or</span>
       </div>
     </div>
   );
@@ -430,10 +441,10 @@ const Login: NextPage = () => {
         <title>Sign in · Orbit</title>
       </Head>
 
-      <div className="relative min-h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+      <div className='relative min-h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950'>
         {loginBg ? (
           <div
-            className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+            className='fixed inset-0 bg-cover bg-center bg-no-repeat'
             style={{ backgroundImage: `url(${loginBg})` }}
             aria-hidden
           />
@@ -441,30 +452,30 @@ const Login: NextPage = () => {
 
         {loginBg && loginBackgroundTintEnabled && loginBackgroundTintOpacity > 0 ? (
           <div
-            className="pointer-events-none fixed inset-0 bg-zinc-950"
+            className='pointer-events-none fixed inset-0 bg-zinc-950'
             style={{ opacity: loginBackgroundTintOpacity / 100 }}
             aria-hidden
           />
         ) : null}
         <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)]"
+          className='pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(var(--group-theme,236,72,153),0.12),transparent)]'
           aria-hidden
         />
 
-        <div className="relative z-10 flex min-h-screen flex-col lg:flex-row">
-          <div className="flex flex-col justify-center px-6 pb-4 pt-16 sm:px-10 lg:w-[42%] lg:px-16 lg:py-16 xl:w-[38%]">
-            <div className="max-w-md">
-              <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
-                Welcome to <span className="text-primary">Orbit</span>
+        <div className='relative z-10 flex min-h-screen flex-col lg:flex-row'>
+          <div className='flex flex-col justify-center px-6 pb-4 pt-16 sm:px-10 lg:w-[42%] lg:px-16 lg:py-16 xl:w-[38%]'>
+            <div className='max-w-md'>
+              <h1 className='text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl'>
+                Welcome to <span className='text-primary'>Orbit</span>
               </h1>
-              <p className="mt-3 max-w-sm text-base leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <p className='mt-3 max-w-sm text-base leading-relaxed text-zinc-500 dark:text-zinc-400'>
                 Sign in or create an account to access your workspaces.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16">
-            <div className="w-full max-w-lg">
+          <div className='flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-16'>
+            <div className='w-full max-w-lg'>
               <div
                 className={clsx(
                   'rounded-3xl border border-white/60 bg-white/90 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-8',
@@ -473,25 +484,25 @@ const Login: NextPage = () => {
               >
                 {mode === 'login' && (
                   <>
-                    <div className="mb-1">
-                      <h2 className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    <div className='mb-1'>
+                      <h2 className='text-xl font-semibold tracking-tight text-zinc-950 dark:text-white'>
                         Sign in
                       </h2>
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                    <p className='mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
                       {effectiveOAuthOnly && !showTraditionalLogin
                         ? 'Use one of the options below to sign in.'
                         : 'Use your username and password to continue.'}
                     </p>
 
                     {effectiveOAuthOnly && !showTraditionalLogin && (
-                      <div className="mt-6">
+                      <div className='mt-6'>
                         <OAuthButtons />
-                        <div className="mt-6 text-center">
+                        <div className='mt-6 text-center'>
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => setShowTraditionalLogin(true)}
-                            className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                            className='text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300'
                           >
                             Having trouble? Sign in with password instead
                           </button>
@@ -503,56 +514,56 @@ const Login: NextPage = () => {
                       <FormProvider {...loginMethods}>
                         <form
                           onSubmit={submitLogin(onSubmitLogin)}
-                          className="mt-6 space-y-1"
+                          className='mt-6 space-y-1'
                           noValidate
                         >
                           <Input
-                            label="Username"
-                            placeholder="Username"
-                            id="username"
+                            label='Username'
+                            placeholder='Username'
+                            id='username'
                             classoverride={sessionFormInputOverride}
                             {...regLogin('username', {
                               required: 'This field is required',
                             })}
                           />
                           <Input
-                            label="Password"
-                            placeholder="Password"
+                            label='Password'
+                            placeholder='Password'
                             type={showPassword ? 'text' : 'password'}
-                            id="password"
+                            id='password'
                             classoverride={sessionFormInputOverride}
                             {...regLogin('password', {
                               required: 'This field is required',
                             })}
                           />
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className='flex items-center gap-2 pt-1'>
                             <input
-                              id="show-password"
-                              type="checkbox"
+                              id='show-password'
+                              type='checkbox'
                               checked={showPassword}
                               onChange={() => setShowPassword((v) => !v)}
-                              className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                              className='rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600'
                             />
                             <label
-                              htmlFor="show-password"
-                              className="select-none text-sm leading-6 text-zinc-500 dark:text-zinc-400"
+                              htmlFor='show-password'
+                              className='select-none text-sm leading-6 text-zinc-500 dark:text-zinc-400'
                             >
                               Show password
                             </label>
                           </div>
-                          <div className="mt-6 flex flex-col gap-5 border-t border-zinc-200/70 pt-5 dark:border-zinc-800/70 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex flex-col gap-1.5">
+                          <div className='mt-6 flex flex-col gap-5 border-t border-zinc-200/70 pt-5 dark:border-zinc-800/70 sm:flex-row sm:items-center sm:justify-between'>
+                            <div className='flex flex-col gap-1.5'>
                               <Link
-                                href="/forgot-password"
-                                className="w-fit text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                                href='/forgot-password'
+                                className='w-fit text-sm font-medium text-primary transition-colors hover:text-primary/80'
                               >
                                 Forgot password?
                               </Link>
 
                               <button
-                                type="button"
+                                type='button'
                                 onClick={() => setMode('signup')}
-                                className="w-fit text-left text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                                className='w-fit text-left text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
                               >
                                 New to Orbit? Create an account
                               </button>
@@ -561,7 +572,7 @@ const Login: NextPage = () => {
                             <AuthSubmitButton
                               loading={loading}
                               disabled={loading}
-                              className="w-full justify-center sm:w-auto"
+                              className='w-full justify-center sm:w-auto'
                             >
                               Sign in
                             </AuthSubmitButton>
@@ -576,11 +587,11 @@ const Login: NextPage = () => {
                             )}
 
                           {effectiveOAuthOnly && showTraditionalLogin && (
-                            <div className="mt-4 text-center">
+                            <div className='mt-4 text-center'>
                               <button
-                                type="button"
+                                type='button'
                                 onClick={() => setShowTraditionalLogin(false)}
-                                className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                                className='text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300'
                               >
                                 Back to sign-in options
                               </button>
@@ -596,10 +607,10 @@ const Login: NextPage = () => {
                   <>
                     {signupStep === 0 && (
                       <>
-                        <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
+                        <h2 className='text-lg font-semibold tracking-tight text-zinc-900 dark:text-white'>
                           Create an account
                         </h2>
-                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                        <p className='mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
                           Choose a username to get started.
                         </p>
                         {!effectiveOAuthOnly && (
@@ -626,25 +637,25 @@ const Login: NextPage = () => {
                                   setLoading(false);
                                 }
                               }}
-                              className="mt-6 space-y-1"
+                              className='mt-6 space-y-1'
                               noValidate
                             >
                               <Input
-                                label="Username"
-                                placeholder="Username"
-                                id="signup-username"
+                                label='Username'
+                                placeholder='Username'
+                                id='signup-username'
                                 classoverride={sessionFormInputOverride}
                                 {...signupUsernameProps}
                               />
                               {usernameCheckLoading && (
-                                <p className="mt-1 text-sm text-primary">Checking username...</p>
+                                <p className='mt-1 text-sm text-primary'>Checking username...</p>
                               )}
                               {!usernameCheckLoading && usernameAvailable === true && (
-                                <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+                                <p className='mt-1 text-sm text-emerald-600 dark:text-emerald-400'>
                                   Username is available
                                 </p>
                               )}
-                              <div className="flex justify-end pt-4">
+                              <div className='flex justify-end pt-4'>
                                 <AuthSubmitButton
                                   loading={loading}
                                   disabled={
@@ -671,43 +682,43 @@ const Login: NextPage = () => {
 
                     {signupStep === 1 && (
                       <>
-                        <div className="mb-6 flex items-start gap-4">
+                        <div className='mb-6 flex items-start gap-4'>
                           <div
-                            className="flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                            className='flex h-[5.5rem] w-[5.5rem] shrink-0 items-center justify-center rounded-2xl p-2 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                             style={{
                               backgroundColor: getAvatarBgColor(signupDisplayName || ''),
                             }}
                           >
                             {signupThumbnail ? (
-                              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent">
+                              <div className='flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent'>
                                 <img
                                   src={signupThumbnail}
-                                  alt=""
-                                  className="block h-full max-h-full w-full max-w-full rounded-xl object-contain object-bottom"
+                                  alt=''
+                                  className='block h-full max-h-full w-full max-w-full rounded-xl object-contain object-bottom'
                                 />
                               </div>
                             ) : (
-                              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-zinc-200/80 text-2xl font-medium text-zinc-500 dark:bg-zinc-700/80 dark:text-zinc-400">
+                              <div className='flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-zinc-200/80 text-2xl font-medium text-zinc-500 dark:bg-zinc-700/80 dark:text-zinc-400'>
                                 ?
                               </div>
                             )}
                           </div>
-                          <div className="min-w-0 flex-1 pt-0.5">
-                            <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
+                          <div className='min-w-0 flex-1 pt-0.5'>
+                            <h2 className='text-lg font-semibold tracking-tight text-zinc-900 dark:text-white'>
                               Is{' '}
-                              <span className="text-primary">
+                              <span className='text-primary'>
                                 {signupDisplayName || getSignupValues('username') || 'this user'}
                               </span>{' '}
                               correct?
                             </h2>
-                            <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                            <p className='mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400'>
                               Confirm this is your Roblox account, then choose a password.
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-3">
+                        <div className='flex gap-3'>
                           <button
-                            type="button"
+                            type='button'
                             className={clsx(sessionSecondaryButtonClass, 'flex-1 justify-center')}
                             onClick={() => setSignupStep(0)}
                             disabled={loading}
@@ -715,8 +726,8 @@ const Login: NextPage = () => {
                             Back
                           </button>
                           <AuthSubmitButton
-                            type="button"
-                            className="flex-1 justify-center"
+                            type='button'
+                            className='flex-1 justify-center'
                             onClick={() => setSignupStep(2)}
                             disabled={loading}
                           >
@@ -728,25 +739,25 @@ const Login: NextPage = () => {
 
                     {signupStep === 2 && (
                       <>
-                        <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
+                        <h2 className='text-lg font-semibold tracking-tight text-zinc-900 dark:text-white'>
                           Set a password
                         </h2>
 
-                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                        <p className='mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
                           Choose a secure password for your account.
                         </p>
 
                         <FormProvider {...signupMethods}>
                           <form
                             onSubmit={submitSignup(onSubmitSignup)}
-                            className="mt-6 space-y-1"
+                            className='mt-6 space-y-1'
                             noValidate
                           >
                             <Input
-                              label="Password"
-                              placeholder="Password"
-                              type="password"
-                              id="signup-password"
+                              label='Password'
+                              placeholder='Password'
+                              type='password'
+                              id='signup-password'
                               classoverride={sessionFormInputOverride}
                               {...regSignup('password', {
                                 required: 'Password is required',
@@ -769,10 +780,10 @@ const Login: NextPage = () => {
                             <PasswordStrengthBar password={signupPassword} />
 
                             <Input
-                              label="Verify password"
-                              placeholder="Verify password"
-                              type="password"
-                              id="signup-verify-password"
+                              label='Verify password'
+                              placeholder='Verify password'
+                              type='password'
+                              id='signup-verify-password'
                               classoverride={sessionFormInputOverride}
                               {...regSignup('verifypassword', {
                                 required: 'Please verify your password',
@@ -781,9 +792,9 @@ const Login: NextPage = () => {
                               })}
                             />
 
-                            <div className="flex gap-3 pt-4">
+                            <div className='flex gap-3 pt-4'>
                               <button
-                                type="button"
+                                type='button'
                                 className={clsx(
                                   sessionSecondaryButtonClass,
                                   'flex-1 justify-center',
@@ -795,7 +806,7 @@ const Login: NextPage = () => {
                               </button>
 
                               <AuthSubmitButton
-                                className="flex-1 justify-center"
+                                className='flex-1 justify-center'
                                 loading={loading}
                                 disabled={loading || passwordStrength.score < 3}
                               >
@@ -810,7 +821,7 @@ const Login: NextPage = () => {
                               </>
                             )}
 
-                            <p className="mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
+                            <p className='mt-4 text-center text-xs text-zinc-400 dark:text-zinc-500'>
                               Don&apos;t share your password. Don&apos;t use the same password as
                               your Roblox account.
                             </p>
@@ -821,14 +832,14 @@ const Login: NextPage = () => {
 
                     {signupStep === 3 && (
                       <>
-                        <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
+                        <h2 className='text-lg font-semibold tracking-tight text-zinc-900 dark:text-white'>
                           Verify your account
                         </h2>
-                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                        <p className='mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
                           Paste this code into your Roblox profile bio, then click Verify.
                         </p>
                         <p
-                          className="mb-4 mt-5 select-all rounded-2xl border border-zinc-200/80 bg-zinc-100/80 px-4 py-4 text-center font-mono text-sm text-zinc-900 shadow-inner dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-white"
+                          className='mb-4 mt-5 select-all rounded-2xl border border-zinc-200/80 bg-zinc-100/80 px-4 py-4 text-center font-mono text-sm text-zinc-900 shadow-inner dark:border-zinc-700/60 dark:bg-zinc-800/80 dark:text-white'
                           onClick={() => {
                             navigator.clipboard.writeText(verificationCode);
                             toast.success('Verification code copied to clipboard');
@@ -836,20 +847,20 @@ const Login: NextPage = () => {
                         >
                           {verificationCode}
                         </p>
-                        <ul className="mb-6 list-inside list-disc space-y-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                        <ul className='mb-6 list-inside list-disc space-y-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
                           <li>Go to your Roblox profile</li>
                           <li>Click &quot;Edit Profile&quot;</li>
                           <li>Paste the code into your Bio / About section</li>
                           <li>Save and click Verify below</li>
                         </ul>
                         {verificationError && (
-                          <p className="mb-4 text-center text-sm text-red-500">
+                          <p className='mb-4 text-center text-sm text-red-500'>
                             {verificationError}
                           </p>
                         )}
-                        <div className="flex gap-3">
+                        <div className='flex gap-3'>
                           <button
-                            type="button"
+                            type='button'
                             className={clsx(sessionSecondaryButtonClass, 'flex-1 justify-center')}
                             onClick={() => setSignupStep(2)}
                             disabled={loading}
@@ -857,8 +868,8 @@ const Login: NextPage = () => {
                             Back
                           </button>
                           <AuthSubmitButton
-                            type="button"
-                            className="flex-1 justify-center"
+                            type='button'
+                            className='flex-1 justify-center'
                             loading={loading}
                             disabled={loading}
                             onClick={onVerifyAgain}

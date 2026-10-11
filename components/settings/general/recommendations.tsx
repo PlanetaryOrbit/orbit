@@ -1,12 +1,11 @@
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import { IconArrowUp, IconCheck } from '@tabler/icons-react';
 import axios from 'axios';
 import React, { useEffect, useMemo, useState } from 'react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import SwitchComponenet from '@/components/switch';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 type GroupRank = {
   id: number;
@@ -125,16 +124,19 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
   };
 
   return (
-    <div className="px-5 py-5">
-      <div className="flex items-start justify-between gap-5">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="rounded-lg bg-primary/10 p-2">
-            <IconArrowUp size={18} className="text-primary" />
+    <div className='px-5 py-5'>
+      <div className='flex items-start justify-between gap-5'>
+        <div className='flex min-w-0 items-start gap-3'>
+          <div className='rounded-lg bg-primary/10 p-2'>
+            <IconArrowUp
+              size={18}
+              className='text-primary'
+            />
           </div>
 
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-zinc-900 dark:text-white">Recommendations</p>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className='min-w-0'>
+            <p className='text-sm font-medium text-zinc-900 dark:text-white'>Recommendations</p>
+            <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
               Allow selected Roblox ranks to recommend members for promotion.
             </p>
           </div>
@@ -144,38 +146,38 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
           checked={config.enabled}
           onChange={updateEnabled}
           disabled={loading || saving}
-          label=""
-          classoverride="mt-0 shrink-0"
+          label=''
+          classoverride='mt-0 shrink-0'
         />
       </div>
 
       {config.enabled && (
-        <div className="mt-5 border-t border-zinc-100 pt-5 dark:border-zinc-800">
-          <div className="mb-3">
-            <p className="text-sm font-medium text-zinc-900 dark:text-white">Eligible ranks</p>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className='mt-5 border-t border-zinc-100 pt-5 dark:border-zinc-800'>
+          <div className='mb-3'>
+            <p className='text-sm font-medium text-zinc-900 dark:text-white'>Eligible ranks</p>
+            <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
               Members with these Roblox ranks can submit promotion recommendations.
             </p>
           </div>
 
           {loading ? (
-            <div className="rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+            <div className='rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400'>
               Loading Roblox ranks...
             </div>
           ) : selectableRanks.length === 0 ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+            <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300'>
               No Roblox ranks are available.
             </div>
           ) : (
             <>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className='grid gap-2 sm:grid-cols-2'>
                 {selectableRanks.map((rank) => {
                   const selected = config.ranks.includes(rank.rank);
 
                   return (
                     <button
                       key={rank.id}
-                      type="button"
+                      type='button'
                       disabled={saving}
                       onClick={() => toggleRank(rank.rank)}
                       className={[
@@ -193,30 +195,35 @@ const Recommendations: FC<Props> = ({ triggerToast }) => {
                             : 'border-zinc-300 dark:border-zinc-700',
                         ].join(' ')}
                       >
-                        {selected && <IconCheck size={13} stroke={2.5} />}
+                        {selected && (
+                          <IconCheck
+                            size={13}
+                            stroke={2.5}
+                          />
+                        )}
                       </span>
 
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{rank.name}</span>
-                        <span className="block text-xs text-zinc-400">Rank {rank.rank}</span>
+                      <span className='min-w-0 flex-1'>
+                        <span className='block truncate text-sm font-medium'>{rank.name}</span>
+                        <span className='block text-xs text-zinc-400'>Rank {rank.rank}</span>
                       </span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <div className='mt-4 flex items-center justify-between gap-4'>
+                <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                   {config.ranks.length === 0
                     ? 'No ranks selected.'
                     : `${config.ranks.length} rank${config.ranks.length === 1 ? '' : 's'} selected.`}
                 </p>
 
                 <button
-                  type="button"
+                  type='button'
                   disabled={saving}
                   onClick={saveRanks}
-                  className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                  className='rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50'
                 >
                   {saving ? 'Saving...' : 'Save ranks'}
                 </button>

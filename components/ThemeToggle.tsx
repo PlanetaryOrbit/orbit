@@ -12,13 +12,13 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full bg-zinc-200 dark:bg-zinc-700 transition hover:scale-105"
-      title="Toggle theme"
+      className='p-2 rounded-full bg-zinc-200 dark:bg-zinc-700 transition hover:scale-105'
+      title='Toggle theme'
     >
       {(resolvedTheme ?? theme) === 'dark' ? (
-        <SunIcon className="w-5 h-5 text-yellow-400" />
+        <SunIcon className='w-5 h-5 text-yellow-400' />
       ) : (
-        <MoonIcon className="w-5 h-5 text-zinc-800" />
+        <MoonIcon className='w-5 h-5 text-zinc-800' />
       )}
     </button>
   );

@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {

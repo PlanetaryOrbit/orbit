@@ -11,9 +11,9 @@ const Slider: FC<Props> = ({ children, activeSlide }: Props) => {
   const count = Children.count(children);
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className='relative w-full overflow-hidden'>
       <motion.div
-        className="flex items-stretch shrink-0"
+        className='flex items-stretch shrink-0'
         style={{
           width: `${count * 100}%`,
           minWidth: `${count * 100}%`,
@@ -30,7 +30,7 @@ const Slider: FC<Props> = ({ children, activeSlide }: Props) => {
           return (
             <div
               key={index}
-              className="shrink-0 p-8 rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 box-border"
+              className='shrink-0 p-8 rounded-2xl bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border border-zinc-200/60 dark:border-zinc-700/50 shadow-xl shadow-zinc-900/5 dark:shadow-black/20 box-border'
               id={index.toString()}
               ref={(el) => {
                 elementsRef.current[index] = el;

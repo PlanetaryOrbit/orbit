@@ -1,11 +1,10 @@
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { createSession, getSessionByToken } from '@/utils/session';
 import cookie from 'cookie';
 // import { withAuth } from '@/lib/withSession';
 import { google } from 'googleapis';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-import { AuthenticatedRequest } from '@/lib/withAuth';
-import prisma from '@/utils/database';
-import { createSession, getSessionByToken } from '@/utils/session';
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

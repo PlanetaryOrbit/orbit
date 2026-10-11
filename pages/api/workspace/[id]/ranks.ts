@@ -1,8 +1,7 @@
-import type { NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { fetchworkspace } from '@/utils/configEngine';
+import type { NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 type Data = {
   success: boolean;

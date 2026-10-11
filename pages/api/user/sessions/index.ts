@@ -1,7 +1,6 @@
-import { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { listActiveSessions, deleteAllUserSessions, deleteOtherSessions } from '@/utils/session';
+import { NextApiResponse } from 'next';
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {

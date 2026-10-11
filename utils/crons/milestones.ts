@@ -1,11 +1,10 @@
-import axios from 'axios';
-
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import {
   formatMilestoneMessage,
   getMilestoneMessageTemplate,
 } from '@/utils/discord/milestoneMessage';
+import axios from 'axios';
 
 function getNextMilestone(count: number): number {
   const thresholds = [

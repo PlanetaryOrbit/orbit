@@ -1,10 +1,9 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 type Data = {
   success: boolean;
   error?: string;

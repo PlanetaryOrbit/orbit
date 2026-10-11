@@ -1,10 +1,9 @@
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { isValidFolderIcon } from '@/utils/folderIcons';
 import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

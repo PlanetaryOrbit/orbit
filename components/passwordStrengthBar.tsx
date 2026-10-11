@@ -28,8 +28,8 @@ export default function PasswordStrengthBar({ password }: PasswordStrengthBarPro
   if (!password) return null;
 
   return (
-    <div className="mt-2 space-y-1.5">
-      <div className="flex gap-1.5">
+    <div className='mt-2 space-y-1.5'>
+      <div className='flex gap-1.5'>
         {[1, 2, 3, 4].map((bar) => (
           <div
             key={bar}
@@ -40,12 +40,12 @@ export default function PasswordStrengthBar({ password }: PasswordStrengthBarPro
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <span className={`text-xs font-medium transition-colors duration-300 ${textColors[score]}`}>
           {label}
         </span>
 
-        {score < 3 && <span className="text-xs text-zinc-400">Use a stronger password</span>}
+        {score < 3 && <span className='text-xs text-zinc-400'>Use a stronger password</span>}
       </div>
     </div>
   );

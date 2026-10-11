@@ -1,8 +1,7 @@
-import axios from 'axios';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import PackageInfo from '@/package.json';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

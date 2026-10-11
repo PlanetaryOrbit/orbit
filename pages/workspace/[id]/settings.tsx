@@ -1,5 +1,17 @@
 'use client';
 
+import * as Api from '@/components/settings/api';
+import * as All from '@/components/settings/general';
+import * as Instance from '@/components/settings/instance';
+import * as Integrations from '@/components/settings/integration';
+import Permissions from '@/components/settings/permissions';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { getSessionByToken } from '@/utils/session';
+import { getUsername, getDisplayName, getThumbnail } from '@/utils/userinfoEngine';
 import {
   IconHome,
   IconLock,
@@ -18,19 +30,6 @@ import { useRouter } from 'next/router';
 import * as noblox from 'noblox.js';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-
-import * as Api from '@/components/settings/api';
-import * as All from '@/components/settings/general';
-import * as Instance from '@/components/settings/instance';
-import * as Integrations from '@/components/settings/integration';
-import Permissions from '@/components/settings/permissions';
-import Workspace from '@/layouts/workspace';
-import type { pageWithLayout } from '@/layoutTypes';
-import { loginState } from '@/state';
-import prisma from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
-import { getSessionByToken } from '@/utils/session';
-import { getUsername, getDisplayName, getThumbnail } from '@/utils/userinfoEngine';
 
 const encodeTab = (tab: string) => {
   return btoa(tab);
@@ -367,9 +366,12 @@ const Settings: pageWithLayout<Props> = ({
         apiComponents.unshift(apiKeyComponent);
       }
       return (
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {apiComponents.map(({ component: Component }, index) => (
-            <div key={index} className={`${panelClass} p-5 sm:p-6`}>
+            <div
+              key={index}
+              className={`${panelClass} p-5 sm:p-6`}
+            >
               <Component triggerToast={toast} />
             </div>
           ))}
@@ -380,10 +382,15 @@ const Settings: pageWithLayout<Props> = ({
     if (currentSection === 'features') {
       return (
         <div className={`${panelClass} overflow-hidden`}>
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <div className='divide-y divide-zinc-100 dark:divide-zinc-800'>
             {SECTIONS.features.components.map(({ component: Component, key }) => {
               const componentProps: any = { triggerToast: toast };
-              return <Component key={key} {...componentProps} />;
+              return (
+                <Component
+                  key={key}
+                  {...componentProps}
+                />
+              );
             })}
           </div>
         </div>
@@ -395,7 +402,7 @@ const Settings: pageWithLayout<Props> = ({
 
     if (isServices) {
       return (
-        <div className="grid min-w-0 auto-rows-min gap-4 sm:grid-cols-2">
+        <div className='grid min-w-0 auto-rows-min gap-4 sm:grid-cols-2'>
           {section.components.map(({ component: Component, title, key }) => {
             const componentProps: any = {
               triggerToast: toast,
@@ -403,7 +410,10 @@ const Settings: pageWithLayout<Props> = ({
               title,
             };
             return (
-              <div key={key} className="min-w-0">
+              <div
+                key={key}
+                className='min-w-0'
+              >
                 <Component {...componentProps} />
               </div>
             );
@@ -413,7 +423,7 @@ const Settings: pageWithLayout<Props> = ({
     }
 
     return (
-      <div className="space-y-4">
+      <div className='space-y-4'>
         {section.components.map(({ component: Component, title, key }, index) => {
           const componentProps: any = { triggerToast: toast };
 
@@ -428,12 +438,20 @@ const Settings: pageWithLayout<Props> = ({
           }
 
           if ((Component as any).isAboveOthers) {
-            return <Component key={index} {...componentProps} />;
+            return (
+              <Component
+                key={index}
+                {...componentProps}
+              />
+            );
           }
 
           return (
-            <div key={index} className={`${panelClass} p-5 sm:p-6`}>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">{title}</p>
+            <div
+              key={index}
+              className={`${panelClass} p-5 sm:p-6`}
+            >
+              <p className='text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>{title}</p>
               <Component {...componentProps} />
             </div>
           );
@@ -443,18 +461,18 @@ const Settings: pageWithLayout<Props> = ({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-7">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Settings</h1>
-          <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">
+    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950'>
+      <div className='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='mb-7'>
+          <h1 className='text-xl font-semibold text-zinc-900 dark:text-white'>Settings</h1>
+          <p className='text-sm text-zinc-400 dark:text-zinc-500 mt-0.5'>
             Manage your workspace preferences and configurations
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="w-full lg:w-48 flex-shrink-0">
-            <nav className="space-y-0.5">
+        <div className='flex flex-col lg:flex-row gap-8'>
+          <div className='w-full lg:w-48 flex-shrink-0'>
+            <nav className='space-y-0.5'>
               {availableSections.map(([key, section]) => {
                 const Icon = section.icon;
                 const isActive = currentSection === key;
@@ -480,7 +498,10 @@ const Settings: pageWithLayout<Props> = ({
                         : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/40 hover:text-zinc-700 dark:hover:text-zinc-200',
                     )}
                   >
-                    <Icon size={15} strokeWidth={isActive ? 2.2 : 1.75} />
+                    <Icon
+                      size={15}
+                      strokeWidth={isActive ? 2.2 : 1.75}
+                    />
                     <span>{section.name}</span>
                   </button>
                 );
@@ -488,12 +509,12 @@ const Settings: pageWithLayout<Props> = ({
             </nav>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="mb-5">
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <div className='flex-1 min-w-0'>
+            <div className='mb-5'>
+              <h2 className='text-base font-semibold text-zinc-900 dark:text-zinc-100'>
                 {SECTIONS[currentSection as keyof typeof SECTIONS]?.name || 'Settings'}
               </h2>
-              <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-0.5">
+              <p className='text-sm text-zinc-400 dark:text-zinc-500 mt-0.5'>
                 {SECTIONS[currentSection as keyof typeof SECTIONS]?.description ||
                   'Manage your settings'}
               </p>

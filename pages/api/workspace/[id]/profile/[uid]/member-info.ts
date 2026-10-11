@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 async function editHandler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);

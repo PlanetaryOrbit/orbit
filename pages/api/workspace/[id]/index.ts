@@ -1,6 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import {
   ALLIANCE_STRIKES_DEFAULT_MAX,
@@ -9,6 +6,8 @@ import {
 import { getConfig } from '@/utils/configEngine';
 import prisma, { role } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type RoleOut = Omit<role, 'groupRoles'> & { groupRoles: string[] };
 

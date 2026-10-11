@@ -1,9 +1,8 @@
-import axios from 'axios';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
+import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 interface RobloxTokenResponse {
   access_token: string;

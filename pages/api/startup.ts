@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { closeActiveSessions } from '@/utils/closesessions';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

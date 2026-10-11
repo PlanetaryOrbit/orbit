@@ -22,8 +22,8 @@ export function DocEditorPage({
   dimmed?: boolean;
 }) {
   return (
-    <div className="pagePadding pb-10">
-      <div className="mx-auto max-w-6xl">
+    <div className='pagePadding pb-10'>
+      <div className='mx-auto max-w-6xl'>
         <div
           className={clsx(
             'mb-4 flex items-center justify-between gap-3',
@@ -32,12 +32,15 @@ export function DocEditorPage({
         >
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+            className='inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200'
           >
-            <IconArrowLeft className="h-4 w-4" stroke={2} />
+            <IconArrowLeft
+              className='h-4 w-4'
+              stroke={2}
+            />
             {backLabel}
           </Link>
-          {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+          {actions ? <div className='flex items-center gap-2'>{actions}</div> : null}
         </div>
 
         <div
@@ -46,8 +49,8 @@ export function DocEditorPage({
             dimmed && 'pointer-events-none select-none opacity-40',
           )}
         >
-          <div className="min-w-0">{children}</div>
-          <aside className="lg:sticky lg:top-6 lg:self-start">{sidebar}</aside>
+          <div className='min-w-0'>{children}</div>
+          <aside className='lg:sticky lg:top-6 lg:self-start'>{sidebar}</aside>
         </div>
       </div>
     </div>
@@ -78,26 +81,26 @@ export function DocWritingSurface({
         docsPanelShadow,
       )}
     >
-      <div className="px-6 pt-8 pb-2 sm:px-10 sm:pt-10">
+      <div className='px-6 pt-8 pb-2 sm:px-10 sm:pt-10'>
         <input
-          type="text"
+          type='text'
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           disabled={titleDisabled}
           placeholder={titlePlaceholder}
-          className="w-full border-0 bg-transparent text-2xl font-semibold tracking-tight text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-0 disabled:opacity-60 dark:text-white dark:placeholder-zinc-600 sm:text-3xl"
+          className='w-full border-0 bg-transparent text-2xl font-semibold tracking-tight text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-0 disabled:opacity-60 dark:text-white dark:placeholder-zinc-600 sm:text-3xl'
         />
-        {titleError ? <p className="mt-1 text-xs text-red-500">{titleError}</p> : null}
+        {titleError ? <p className='mt-1 text-xs text-red-500'>{titleError}</p> : null}
       </div>
 
-      <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10" />
+      <div className='mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10' />
 
-      <div className="flex flex-1 flex-col px-2 py-2 sm:px-4 sm:py-4">{children}</div>
+      <div className='flex flex-1 flex-col px-2 py-2 sm:px-4 sm:py-4'>{children}</div>
 
       {footer ? (
         <>
-          <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10" />
-          <div className="px-6 py-4 sm:px-10">{footer}</div>
+          <div className='mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10' />
+          <div className='px-6 py-4 sm:px-10'>{footer}</div>
         </>
       ) : null}
     </div>
@@ -105,7 +108,12 @@ export function DocWritingSurface({
 }
 
 export function DocEditorSidebar(props: React.ComponentProps<typeof AccessControlPanel>) {
-  return <AccessControlPanel {...props} variant="sidebar" />;
+  return (
+    <AccessControlPanel
+      {...props}
+      variant='sidebar'
+    />
+  );
 }
 
 const AVATAR_BG_COLORS = [
@@ -176,11 +184,11 @@ export function DocViewMeta({
         <img
           src={`/api/user/${authorId}/avatar`}
           alt={authorName}
-          className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+          className='h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900'
           style={{ background: 'transparent' }}
         />
       ) : (
-        <span className="text-sm font-semibold text-zinc-700">
+        <span className='text-sm font-semibold text-zinc-700'>
           {authorName.charAt(0).toUpperCase()}
         </span>
       )}
@@ -188,20 +196,20 @@ export function DocViewMeta({
   );
 
   return (
-    <div className="flex items-center gap-3">
+    <div className='flex items-center gap-3'>
       {profileHref ? <Link href={profileHref}>{avatar}</Link> : avatar}
-      <div className="min-w-0 text-sm">
+      <div className='min-w-0 text-sm'>
         {profileHref ? (
           <Link
             href={profileHref}
-            className="font-medium text-zinc-700 transition-colors hover:text-primary dark:text-zinc-200"
+            className='font-medium text-zinc-700 transition-colors hover:text-primary dark:text-zinc-200'
           >
             {authorName}
           </Link>
         ) : (
-          <p className="font-medium text-zinc-700 dark:text-zinc-200">{authorName}</p>
+          <p className='font-medium text-zinc-700 dark:text-zinc-200'>{authorName}</p>
         )}
-        <p className="text-xs text-zinc-400">
+        <p className='text-xs text-zinc-400'>
           Created {created}
           {updated ? ` · Edited ${updated}` : null}
         </p>
@@ -228,21 +236,21 @@ export function DocViewSurface({
         docsPanelShadow,
       )}
     >
-      <div className="px-6 pt-8 pb-4 sm:px-10 sm:pt-10">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
+      <div className='px-6 pt-8 pb-4 sm:px-10 sm:pt-10'>
+        <h1 className='text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-3xl'>
           {title}
         </h1>
-        {meta ? <div className="mt-4">{meta}</div> : null}
+        {meta ? <div className='mt-4'>{meta}</div> : null}
       </div>
 
-      <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10" />
+      <div className='mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10' />
 
-      <div className="flex flex-1 flex-col px-6 py-6 sm:px-10 sm:py-8">{children}</div>
+      <div className='flex flex-1 flex-col px-6 py-6 sm:px-10 sm:py-8'>{children}</div>
 
       {footer ? (
         <>
-          <div className="mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10" />
-          <div className="px-6 py-4 sm:px-10">{footer}</div>
+          <div className='mx-6 border-t border-zinc-100 dark:border-zinc-800 sm:mx-10' />
+          <div className='px-6 py-4 sm:px-10'>{footer}</div>
         </>
       ) : null}
     </div>
@@ -262,22 +270,22 @@ export function DocPermissionsSidebar({
 
   return (
     <div className={clsx('rounded-2xl bg-white p-4 dark:bg-zinc-900/80', docsPanelShadow)}>
-      <p className="mb-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200">Permissions</p>
+      <p className='mb-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200'>Permissions</p>
 
       {openToAll ? (
-        <p className="text-xs text-zinc-400">Visible to everyone in the workspace</p>
+        <p className='text-xs text-zinc-400'>Visible to everyone in the workspace</p>
       ) : (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {roles.length > 0 && (
             <div>
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+              <p className='mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400'>
                 Roles
               </p>
-              <div className="flex flex-wrap gap-1">
+              <div className='flex flex-wrap gap-1'>
                 {roles.map((r) => (
                   <span
                     key={r.id}
-                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95"
+                    className='inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95'
                     style={{ backgroundColor: r.color || '#71717a' }}
                   >
                     {r.name}
@@ -288,14 +296,14 @@ export function DocPermissionsSidebar({
           )}
           {departments.length > 0 && (
             <div>
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+              <p className='mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400'>
                 Departments
               </p>
-              <div className="flex flex-wrap gap-1">
+              <div className='flex flex-wrap gap-1'>
                 {departments.map((d) => (
                   <span
                     key={d.id}
-                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95"
+                    className='inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium text-white/95'
                     style={{ backgroundColor: d.color || '#71717a' }}
                   >
                     {d.name}

@@ -1,4 +1,13 @@
 import {
+  ProfileEmptyState,
+  profileInputClass,
+  profileSecondaryButtonClass,
+  profilePrimaryButtonClass,
+} from '@/components/profile/shell';
+import { workspacestate, loginState } from '@/state';
+import { FC } from '@/types/settingsComponent';
+import { formatNoticeDay, parseDateInputEnd, parseDateInputStart } from '@/utils/noticeDates';
+import {
   IconCheck,
   IconX,
   IconClock,
@@ -16,16 +25,6 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import {
-  ProfileEmptyState,
-  profileInputClass,
-  profileSecondaryButtonClass,
-  profilePrimaryButtonClass,
-} from '@/components/profile/shell';
-import { workspacestate, loginState } from '@/state';
-import { FC } from '@/types/settingsComponent';
-import { formatNoticeDay, parseDateInputEnd, parseDateInputStart } from '@/utils/noticeDates';
 
 interface Props {
   notices: any[];
@@ -65,10 +64,10 @@ const Notices: FC<Props> = ({
 
   const getStatusIcon = (notice: any) => {
     if (notice.approved)
-      return <IconCheck className="w-5 h-5 text-green-500 dark:text-green-400" />;
-    if (notice.reviewed) return <IconX className="w-5 h-5 text-red-500 dark:text-red-400" />;
-    if (notice.revoked) return <IconX className="w-5 h-5 text-red-500 dark:text-red-400" />;
-    return <IconClock className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />;
+      return <IconCheck className='w-5 h-5 text-green-500 dark:text-green-400' />;
+    if (notice.reviewed) return <IconX className='w-5 h-5 text-red-500 dark:text-red-400' />;
+    if (notice.revoked) return <IconX className='w-5 h-5 text-red-500 dark:text-red-400' />;
+    return <IconClock className='w-5 h-5 text-yellow-500 dark:text-yellow-400' />;
   };
 
   const getStatusText = (notice: any) => {
@@ -164,19 +163,22 @@ const Notices: FC<Props> = ({
   const pendingCount = localNotices.filter((n) => !n.reviewed).length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Time off</h3>
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Time off</h3>
           {localNotices.length > 0 && (
-            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
               {localNotices.length}
             </span>
           )}
         </div>
         {canRecordNotices && !showCreateForm && (
-          <button onClick={() => setShowCreateForm(true)} className={profileSecondaryButtonClass}>
-            <IconPlus className="w-3.5 h-3.5" />
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className={profileSecondaryButtonClass}
+          >
+            <IconPlus className='w-3.5 h-3.5' />
             Add record
           </button>
         )}
@@ -191,7 +193,7 @@ const Notices: FC<Props> = ({
             }}
             className={profileSecondaryButtonClass}
           >
-            <IconX className="w-3.5 h-3.5" />
+            <IconX className='w-3.5 h-3.5' />
             Cancel
           </button>
         )}
@@ -200,28 +202,28 @@ const Notices: FC<Props> = ({
       {(canApproveNotices || canManageNotices) && pendingCount > 0 && (
         <button
           onClick={() => router.push(`/workspace/${router.query.id}/notices`)}
-          className="flex w-full items-center justify-between gap-3 rounded-xl bg-amber-500/10 px-4 py-3 text-left transition hover:bg-amber-500/15"
+          className='flex w-full items-center justify-between gap-3 rounded-xl bg-amber-500/10 px-4 py-3 text-left transition hover:bg-amber-500/15'
         >
-          <div className="flex items-center gap-2.5">
-            <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-            <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+          <div className='flex items-center gap-2.5'>
+            <IconAlertTriangle className='h-4 w-4 shrink-0 text-amber-500' />
+            <span className='text-sm font-medium text-amber-600 dark:text-amber-400'>
               {pendingCount} pending notice{pendingCount !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+          <div className='flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400'>
             Review
-            <IconArrowRight className="h-3.5 w-3.5" />
+            <IconArrowRight className='h-3.5 w-3.5' />
           </div>
         </button>
       )}
 
       {canRecordNotices && showCreateForm && (
-        <div className="space-y-4 rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
+        <div className='space-y-4 rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50'>
           <div>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <p className='mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
               Type
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {typeButtons.map(({ type, label, icon: Icon }) => (
                 <button
                   key={type}
@@ -235,31 +237,31 @@ const Notices: FC<Props> = ({
                       : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-600'
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className='h-3.5 w-3.5' />
                   {label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className='grid grid-cols-2 gap-3'>
             <div>
-              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              <label className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                 Start date
               </label>
               <input
-                type="date"
+                type='date'
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 className={profileInputClass}
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              <label className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                 End date
               </label>
               <input
-                type="date"
+                type='date'
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 min={startTime || moment().format('YYYY-MM-DD')}
@@ -270,7 +272,7 @@ const Notices: FC<Props> = ({
 
           {selectedType !== '' && (
             <div>
-              <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+              <label className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                 Reason
               </label>
               {selectedType !== 'other' ? (
@@ -282,14 +284,14 @@ const Notices: FC<Props> = ({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   rows={3}
-                  placeholder="Brief explanation…"
+                  placeholder='Brief explanation…'
                   className={`${profileInputClass} resize-none`}
                 />
               )}
             </div>
           )}
 
-          <div className="flex gap-2 pt-1">
+          <div className='flex gap-2 pt-1'>
             <button
               onClick={createNotice}
               disabled={isCreating || !reason.trim() || !startTime || !endTime}
@@ -316,11 +318,11 @@ const Notices: FC<Props> = ({
       {localNotices.length === 0 ? (
         <ProfileEmptyState
           icon={IconCalendarTime}
-          title="No notices yet"
-          description="Inactivity notices will appear here"
+          title='No notices yet'
+          description='Inactivity notices will appear here'
         />
       ) : (
-        <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+        <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
           {localNotices.map((notice: any) => {
             const now = new Date();
             const isActive =
@@ -333,24 +335,27 @@ const Notices: FC<Props> = ({
             const statusText = getStatusText(notice);
 
             return (
-              <div key={notice.id} className="flex items-start justify-between gap-4 py-3.5">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="mt-0.5 shrink-0">{getStatusIcon(notice)}</div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+              <div
+                key={notice.id}
+                className='flex items-start justify-between gap-4 py-3.5'
+              >
+                <div className='flex items-start gap-3 min-w-0'>
+                  <div className='mt-0.5 shrink-0'>{getStatusIcon(notice)}</div>
+                  <div className='min-w-0'>
+                    <div className='flex flex-wrap items-center gap-2 mb-0.5'>
                       <span
                         className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}
                       >
                         {statusText}
                       </span>
                       {isActive && (
-                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        <span className='text-xs font-medium text-emerald-600 dark:text-emerald-400'>
                           Active now
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-zinc-900 dark:text-white">{notice.reason}</p>
-                    <p className="mt-0.5 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                    <p className='text-sm text-zinc-900 dark:text-white'>{notice.reason}</p>
+                    <p className='mt-0.5 text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                       {formatNoticeDay(notice.startTime, 'D MMM YYYY')} –{' '}
                       {formatNoticeDay(notice.endTime, 'D MMM YYYY')}
                     </p>
@@ -379,7 +384,7 @@ const Notices: FC<Props> = ({
                         toast.error('Failed to revoke notice');
                       }
                     }}
-                    className="shrink-0 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
+                    className='shrink-0 rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400'
                   >
                     Revoke
                   </button>

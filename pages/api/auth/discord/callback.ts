@@ -1,11 +1,10 @@
-import axios from 'axios';
-import * as cookie from 'cookie';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import Package from '@/package.json';
 import prisma from '@/utils/database';
 import { createSession, getSessionByToken } from '@/utils/session';
+import axios from 'axios';
+import * as cookie from 'cookie';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type DiscordTokenResponse = {
   access_token: string;

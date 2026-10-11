@@ -1,9 +1,8 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

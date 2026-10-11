@@ -1,3 +1,10 @@
+import Input from '@/components/input';
+import PasswordStrengthBar from '@/components/passwordStrengthBar';
+import Slider from '@/components/slider';
+import packageinfo from '@/package.json';
+import { loginState } from '@/state';
+import { getContrastColor } from '@/utils/color';
+import { calculatePasswordStrength } from '@/utils/passwordStrength';
 import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from '@tabler/icons-react';
 import axios from 'axios';
 import type { NextPage } from 'next';
@@ -7,14 +14,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
 
-import Input from '@/components/input';
-import PasswordStrengthBar from '@/components/passwordStrengthBar';
-import Slider from '@/components/slider';
-import packageinfo from '@/package.json';
-import { loginState } from '@/state';
-import { getContrastColor } from '@/utils/color';
-import { calculatePasswordStrength } from '@/utils/passwordStrength';
-
 type FormData = {
   username: string;
   password: string;
@@ -22,11 +21,14 @@ type FormData = {
 };
 
 const StepIndicator = ({ step, color }: { step: number; color: string }) => (
-  <div className="mb-6 flex items-center justify-between">
-    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+  <div className='mb-6 flex items-center justify-between'>
+    <p className='text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400'>
       Step {step} of 3
     </p>
-    <div className="flex items-center gap-1.5" aria-hidden="true">
+    <div
+      className='flex items-center gap-1.5'
+      aria-hidden='true'
+    >
       {[1, 2, 3].map((value) => (
         <span
           key={value}
@@ -193,29 +195,35 @@ const Login: NextPage = () => {
 
   return (
     <div className={`min-h-screen bg-no-repeat bg-cover bg-center flex flex-col bg-orbit`}>
-      <div className="hidden sm:block absolute top-4 left-4 pointer-events-none">
-        <p className="text-white sm:text-3xl md:text-5xl font-extrabold leading-tight">
+      <div className='hidden sm:block absolute top-4 left-4 pointer-events-none'>
+        <p className='text-white sm:text-3xl md:text-5xl font-extrabold leading-tight'>
           👋 Welcome <br /> to <span style={{ color: selectedColor }}>Orbit</span>
         </p>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
-        <div className="w-full max-w-md">
+      <div className='flex-1 flex items-center justify-center px-4 py-10 sm:py-16'>
+        <div className='w-full max-w-md'>
           <Slider activeSlide={selectedSlide}>
             <div>
-              <StepIndicator step={1} color={selectedColor} />
-              <p className="text-2xl font-bold text-zinc-900 dark:text-white">
+              <StepIndicator
+                step={1}
+                color={selectedColor}
+              />
+              <p className='text-2xl font-bold text-zinc-900 dark:text-white'>
                 Let&apos;s get started
               </p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
                 To configure your Orbit instance, we&apos;ll need some information
               </p>
               <FormProvider {...methods}>
-                <form className="mt-4" onSubmit={handleSubmit(nextSlide)}>
+                <form
+                  className='mt-4'
+                  onSubmit={handleSubmit(nextSlide)}
+                >
                   <Input
-                    placeholder="35724790"
-                    label="Group ID"
-                    id="groupid"
+                    placeholder='35724790'
+                    label='Group ID'
+                    id='groupid'
                     {...register('groupid', {
                       required: {
                         value: true,
@@ -230,13 +238,13 @@ const Login: NextPage = () => {
                 </form>
               </FormProvider>
 
-              <div className="mt-5">
-                <label className="text-zinc-500 text-sm dark:text-zinc-200">Color</label>
-                <div className="grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 mb-6">
+              <div className='mt-5'>
+                <label className='text-zinc-500 text-sm dark:text-zinc-200'>Color</label>
+                <div className='grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 mb-6'>
                   {colors.map((color, i) => (
                     <button
                       key={i}
-                      type="button"
+                      type='button'
                       onClick={() => setSelectedColor(color)}
                       className={`aspect-square rounded-lg transform transition-all ease-in-out ${
                         selectedColor === color
@@ -250,23 +258,23 @@ const Login: NextPage = () => {
               </div>
               {/* input a hex color */}
 
-              <div className="flex gap-3">
+              <div className='flex gap-3'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() =>
                     window.open('https://docs.planetaryapp.cloud/', '_blank', 'noopener,noreferrer')
                   }
-                  className="border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition"
+                  className='border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition'
                   style={{ borderColor: selectedColor }}
                 >
                   Documentation
                 </button>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     handleSubmit(nextSlide)();
                   }}
-                  className="ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90"
+                  className='ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90'
                   style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
                 >
                   Continue
@@ -275,20 +283,23 @@ const Login: NextPage = () => {
             </div>
 
             <div>
-              <StepIndicator step={2} color={selectedColor} />
-              <p className="text-2xl font-bold text-zinc-900 dark:text-white">Open Cloud</p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <StepIndicator
+                step={2}
+                color={selectedColor}
+              />
+              <p className='text-2xl font-bold text-zinc-900 dark:text-white'>Open Cloud</p>
+              <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
                 Optionally connect Roblox Open Cloud for deeper integration with your group. You can
                 always set this up later in Settings.
               </p>
 
-              <div className="mt-5 space-y-4">
-                <div className="space-y-3">
+              <div className='mt-5 space-y-4'>
+                <div className='space-y-3'>
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
                       API key
                     </label>
-                    <div className="relative">
+                    <div className='relative'>
                       <input
                         type={showApiKey ? 'text' : 'password'}
                         value={ockey}
@@ -296,81 +307,99 @@ const Login: NextPage = () => {
                           setOckey(e.target.value);
                           setOcKeyStatus(null);
                         }}
-                        placeholder="Open Cloud API key"
-                        autoComplete="off"
+                        placeholder='Open Cloud API key'
+                        autoComplete='off'
                         spellCheck={false}
-                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-11 text-sm text-zinc-900 transition-colors focus:border-orbit focus:ring-2 focus:ring-orbit/25 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white"
+                        className='w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-11 text-sm text-zinc-900 transition-colors focus:border-orbit focus:ring-2 focus:ring-orbit/25 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white'
                       />
                       <button
-                        type="button"
+                        type='button'
                         onClick={() => setShowApiKey((v) => !v)}
-                        className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200"
+                        className='absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200'
                         aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
                       >
                         {showApiKey ? (
-                          <IconEye className="h-4 w-4" stroke={1.5} />
+                          <IconEye
+                            className='h-4 w-4'
+                            stroke={1.5}
+                          />
                         ) : (
-                          <IconEyeOff className="h-4 w-4" stroke={1.5} />
+                          <IconEyeOff
+                            className='h-4 w-4'
+                            stroke={1.5}
+                          />
                         )}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className='flex flex-wrap items-center gap-2'>
                     <button
-                      type="button"
+                      type='button'
                       onClick={handleOcTest}
                       disabled={ocTesting || ocLoading || !ockey.trim()}
-                      className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                      className='rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
                     >
                       {ocTesting ? 'Testing…' : 'Test key'}
                     </button>
                     {ocKeyStatus === 'verified' && (
-                      <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
-                        <IconCheck className="h-4 w-4" stroke={2} /> Verified
+                      <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
+                        <IconCheck
+                          className='h-4 w-4'
+                          stroke={2}
+                        />{' '}
+                        Verified
                       </span>
                     )}
                     {ocKeyStatus === 'Saved' && (
-                      <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
-                        <IconCheck className="h-4 w-4" stroke={2} /> Saved
+                      <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
+                        <IconCheck
+                          className='h-4 w-4'
+                          stroke={2}
+                        />{' '}
+                        Saved
                       </span>
                     )}
                     {ocKeyStatus === 'failed' && (
-                      <span className="inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
-                        <IconX className="h-4 w-4" stroke={2} /> Invalid
+                      <span className='inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400'>
+                        <IconX
+                          className='h-4 w-4'
+                          stroke={2}
+                        />{' '}
+                        Invalid
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Requires <b className="text-zinc-700 dark:text-zinc-200">group:read</b> and{' '}
-                    <b className="text-zinc-700 dark:text-zinc-200">group:write</b> permissions.
+                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+                    Requires <b className='text-zinc-700 dark:text-zinc-200'>group:read</b> and{' '}
+                    <b className='text-zinc-700 dark:text-zinc-200'>group:write</b> permissions.
                     Must be a USER API key.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
+              <div className='mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 dark:border-amber-500/30 dark:bg-amber-500/10'>
                 <IconInfoCircle
-                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400"
+                  className='mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400'
                   stroke={2}
                 />
-                <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+                <p className='text-xs leading-relaxed text-amber-700 dark:text-amber-300'>
                   <b>Recommended:</b> An API key unlocks deeper Roblox group features in Orbit. You
                   can skip this and configure it later in Settings.
                 </p>
               </div>
 
-              <div className="mt-6 flex gap-3">
+              <div className='mt-6 flex gap-3'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setSelectedSlide(0)}
-                  className="bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition"
+                  className='bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition'
                 >
                   Back
                 </button>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setSelectedSlide(2)}
                   disabled={ocTesting || (ockey.length > 0 && ocKeyStatus !== 'verified')}
                   className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
@@ -387,33 +416,39 @@ const Login: NextPage = () => {
 
             {!isRegistered && (
               <div>
-                <StepIndicator step={3} color={selectedColor} />
-                <p className="text-2xl font-bold text-zinc-900 dark:text-white">
+                <StepIndicator
+                  step={3}
+                  color={selectedColor}
+                />
+                <p className='text-2xl font-bold text-zinc-900 dark:text-white'>
                   Make your Orbit account
                 </p>
 
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
                   You need to create an Orbit account to continue
                 </p>
 
                 <FormProvider {...signupform}>
-                  <form className="mt-4" onSubmit={signupform.handleSubmit(createAccount)}>
+                  <form
+                    className='mt-4'
+                    onSubmit={signupform.handleSubmit(createAccount)}
+                  >
                     <Input
                       {...signupform.register('username', {
                         required: 'Username is required',
                       })}
-                      label="Roblox Username"
+                      label='Roblox Username'
                     />
 
                     {signupform.formState.errors.username && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className='text-red-500 text-sm mt-1'>
                         {signupform.formState.errors.username.message}
                       </p>
                     )}
 
-                    <div className="mt-3">
+                    <div className='mt-3'>
                       <Input
-                        type="password"
+                        type='password'
                         {...signupform.register('password', {
                           required: 'Password is required',
                           validate: (value) => {
@@ -422,47 +457,47 @@ const Login: NextPage = () => {
                             return score >= 3 || 'Password must be at least Strong';
                           },
                         })}
-                        label="Password"
+                        label='Password'
                       />
 
                       <PasswordStrengthBar password={signupPassword} />
                     </div>
 
                     {signupform.formState.errors.password && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className='text-red-500 text-sm mt-1'>
                         {signupform.formState.errors.password.message}
                       </p>
                     )}
 
                     <Input
-                      type="password"
+                      type='password'
                       {...signupform.register('verifypassword', {
                         required: 'Please verify your password',
                         validate: (value) =>
                           value === signupform.getValues('password') || 'Passwords do not match',
                       })}
-                      label="Verify password"
+                      label='Verify password'
                     />
 
                     {signupform.formState.errors.verifypassword && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className='text-red-500 text-sm mt-1'>
                         {signupform.formState.errors.verifypassword.message}
                       </p>
                     )}
                   </form>
                 </FormProvider>
 
-                <div className="mt-6 flex gap-3">
+                <div className='mt-6 flex gap-3'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => setSelectedSlide(1)}
-                    className="bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition"
+                    className='bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition'
                   >
                     Back
                   </button>
 
                   <button
-                    type="button"
+                    type='button'
                     onClick={signupform.handleSubmit(createAccount)}
                     disabled={isLoading || signupPasswordStrength.score < 3}
                     className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
@@ -484,27 +519,27 @@ const Login: NextPage = () => {
         </div>
       </div>
 
-      <footer className="relative z-10 flex flex-col items-center gap-2 px-4 pb-8">
-        <div className="flex items-center gap-5 text-xs font-semibold text-white/85">
+      <footer className='relative z-10 flex flex-col items-center gap-2 px-4 pb-8'>
+        <div className='flex items-center gap-5 text-xs font-semibold text-white/85'>
           <a
-            href="https://docs.planetaryapp.cloud/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition hover:text-white hover:underline"
+            href='https://docs.planetaryapp.cloud/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='transition hover:text-white hover:underline'
           >
             Documentation
           </a>
           <a
-            href="https://github.com/planetaryorbit/orbit"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition hover:text-white hover:underline"
+            href='https://github.com/planetaryorbit/orbit'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='transition hover:text-white hover:underline'
           >
             GitHub
           </a>
         </div>
 
-        <p className="text-[11px] text-white/60">Orbit v{packageinfo.version}</p>
+        <p className='text-[11px] text-white/60'>Orbit v{packageinfo.version}</p>
       </footer>
     </div>
   );

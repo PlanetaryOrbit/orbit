@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { generateCsrfToken } from '@/utils/csrf';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

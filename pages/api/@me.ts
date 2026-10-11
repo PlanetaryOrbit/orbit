@@ -1,9 +1,8 @@
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+import type { NextApiResponse } from 'next';
 
 type User = {
   userId: bigint;

@@ -1,12 +1,11 @@
+import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
+import type { wallPost, user } from '@/utils/database';
 import axios from 'axios';
 import moment from 'moment';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-
-import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
-import type { wallPost, user } from '@/utils/database';
 
 const Wall: React.FC = () => {
   const [posts, setPosts] = useState<(wallPost & { author: user })[]>([]);
@@ -37,29 +36,29 @@ const Wall: React.FC = () => {
     <HomeList>
       {posts.slice(0, 2).map((post) => (
         <HomeListItem key={post.id}>
-          <div className="flex items-start gap-3">
+          <div className='flex items-start gap-3'>
             <img
-              alt=""
+              alt=''
               src={String(post.author.picture)}
-              className="h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700"
+              className='h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700'
             />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+            <div className='min-w-0 flex-1'>
+              <div className='flex items-baseline gap-2'>
+                <p className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
                   {post.author.username}
                 </p>
-                <span className="shrink-0 text-[11px] text-zinc-400 dark:text-zinc-500">
+                <span className='shrink-0 text-[11px] text-zinc-400 dark:text-zinc-500'>
                   {moment(post.createdAt).format('MMM D')}
                 </span>
               </div>
-              <div className="prose prose-sm prose-zinc dark:prose-invert mt-1 max-w-none line-clamp-3 [&_p]:my-0">
+              <div className='prose prose-sm prose-zinc dark:prose-invert mt-1 max-w-none line-clamp-3 [&_p]:my-0'>
                 <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.content}</ReactMarkdown>
               </div>
               {post.image && (
                 <img
                   src={post.image}
-                  alt=""
-                  className="mt-2 max-h-36 w-full rounded-md object-cover"
+                  alt=''
+                  className='mt-2 max-h-36 w-full rounded-md object-cover'
                 />
               )}
             </div>

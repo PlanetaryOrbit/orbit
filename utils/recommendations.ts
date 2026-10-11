@@ -1,7 +1,6 @@
-import * as noblox from 'noblox.js';
-
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import * as noblox from 'noblox.js';
 
 export const recommendationConfigKey = 'recommendations';
 export const recommendationStatus = ['pending', 'approved', 'rejected', 'cancelled'] as const;

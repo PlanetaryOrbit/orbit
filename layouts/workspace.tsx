@@ -1,3 +1,7 @@
+import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
+import Sidebar from '@/components/sidebar';
+import type { LayoutProps } from '@/layoutTypes';
+import { workspacestate } from '@/state';
 import axios from 'axios';
 import clsx from 'clsx';
 /* eslint-disable react-hooks/rules-of-hooks */
@@ -6,11 +10,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
-
-import WorkspaceBirthdayPrompt from '@/components/bdayprompt';
-import Sidebar from '@/components/sidebar';
-import type { LayoutProps } from '@/layoutTypes';
-import { workspacestate } from '@/state';
 
 const workspace: LayoutProps = ({ children }) => {
   const [workspace, setWorkspace] = useRecoilState(workspacestate);
@@ -36,13 +35,19 @@ const workspace: LayoutProps = ({ children }) => {
   }, [router.query.id, setWorkspace]);
 
   return (
-    <div className="h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className='h-screen bg-zinc-50 dark:bg-zinc-950'>
       <Head>
         <title>{workspace.groupName ? `Orbit - ${workspace.groupName}` : 'Loading...'}</title>
-        <link rel="icon" href={`${workspace.groupThumbnail}`} />
+        <link
+          rel='icon'
+          href={`${workspace.groupThumbnail}`}
+        />
       </Head>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <div className='flex h-screen overflow-hidden'>
+        <Sidebar
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
 
         <main
           className={clsx(
@@ -50,7 +55,7 @@ const workspace: LayoutProps = ({ children }) => {
             'pb-20 lg:pb-0',
           )}
         >
-          <div className="relative z-10">{children}</div>
+          <div className='relative z-10'>{children}</div>
           {router.query.id && <WorkspaceBirthdayPrompt workspaceId={router.query.id as string} />}
         </main>
       </div>

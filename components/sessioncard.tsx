@@ -1,3 +1,7 @@
+import { sessionsPanelShadow } from '@/components/sessions/shell';
+import type { SessionColors } from '@/hooks/useSessionColors';
+import { loginState, workspacestate } from '@/state';
+import { canAssignUsers, canClaimSelf, canHostSession } from '@/utils/sessionPermissions';
 import {
   IconX,
   IconCalendarEvent,
@@ -19,11 +23,6 @@ import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import { useRecoilValue } from 'recoil';
 import rehypeSanitize from 'rehype-sanitize';
-
-import { sessionsPanelShadow } from '@/components/sessions/shell';
-import type { SessionColors } from '@/hooks/useSessionColors';
-import { loginState, workspacestate } from '@/state';
-import { canAssignUsers, canClaimSelf, canHostSession } from '@/utils/sessionPermissions';
 
 // Mobile detection utility
 const isMobile = () => {
@@ -82,9 +81,14 @@ function SessionSection({
 }) {
   return (
     <section>
-      <div className="mb-2.5 flex items-center gap-2">
-        {Icon ? <Icon className="h-4 w-4 text-zinc-400" stroke={1.75} /> : null}
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
+      <div className='mb-2.5 flex items-center gap-2'>
+        {Icon ? (
+          <Icon
+            className='h-4 w-4 text-zinc-400'
+            stroke={1.75}
+          />
+        ) : null}
+        <h3 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>{title}</h3>
       </div>
       {children}
     </section>
@@ -402,7 +406,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
   if (colorsReady === false) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm lg:pl-[280px]"
+        className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm lg:pl-[280px]'
         onClick={(e) => {
           if (e.target === e.currentTarget && !isMobile()) {
             onClose();
@@ -415,7 +419,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
             sessionsPanelShadow,
           )}
         >
-          <div className="text-sm text-zinc-500 dark:text-zinc-400">Loading…</div>
+          <div className='text-sm text-zinc-500 dark:text-zinc-400'>Loading…</div>
         </div>
       </div>
     );
@@ -449,7 +453,7 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm lg:pl-[280px]"
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm lg:pl-[280px]'
       onClick={(e) => {
         if (e.target === e.currentTarget && !isMobile()) {
           onClose();
@@ -462,18 +466,24 @@ const SessionModal: React.FC<SessionModalProps> = ({
           sessionsPanelShadow,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-6 sm:py-5">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <IconCalendarEvent className="h-5 w-5 text-primary" stroke={1.75} />
+        <div className='flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4 dark:border-zinc-800 sm:px-6 sm:py-5'>
+          <div className='min-w-0 flex-1'>
+            <div className='flex items-start gap-3'>
+              <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
+                <IconCalendarEvent
+                  className='h-5 w-5 text-primary'
+                  stroke={1.75}
+                />
               </div>
-              <div className="min-w-0">
-                <h2 className="truncate text-lg font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-xl">
+              <div className='min-w-0'>
+                <h2 className='truncate text-lg font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-xl'>
                   {session.name || session.sessionType.name}
                 </h2>
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400">
-                  <IconClock className="h-3.5 w-3.5 shrink-0" stroke={1.75} />
+                <div className='mt-1 flex items-center gap-1.5 text-xs text-zinc-400'>
+                  <IconClock
+                    className='h-3.5 w-3.5 shrink-0'
+                    stroke={1.75}
+                  />
                   {sessionDate.toLocaleDateString()} at{' '}
                   {sessionDate.toLocaleTimeString(undefined, {
                     hour: '2-digit',
@@ -481,8 +491,8 @@ const SessionModal: React.FC<SessionModalProps> = ({
                     hour12: true,
                   })}
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  {isActive && <SessionBadge variant="live">Live</SessionBadge>}
+                <div className='mt-2 flex flex-wrap items-center gap-1.5'>
+                  {isActive && <SessionBadge variant='live'>Live</SessionBadge>}
                   {isRecurring && (
                     <span
                       className={clsx(
@@ -506,38 +516,41 @@ const SessionModal: React.FC<SessionModalProps> = ({
                     </span>
                   )}
                   {session.cancelled && (
-                    <SessionBadge variant="danger">
-                      <IconBan className="mr-1 h-3 w-3" />
+                    <SessionBadge variant='danger'>
+                      <IconBan className='mr-1 h-3 w-3' />
                       Cancelled
                     </SessionBadge>
                   )}
                   {isConcluded && !session.cancelled && (
-                    <SessionBadge variant="muted">Concluded</SessionBadge>
+                    <SessionBadge variant='muted'>Concluded</SessionBadge>
                   )}
                   {!isConcluded &&
                     !session.cancelled &&
                     currentStatus &&
                     currentStatus !== 'Open' && (
-                      <SessionBadge variant="status">{currentStatus}</SessionBadge>
+                      <SessionBadge variant='status'>{currentStatus}</SessionBadge>
                     )}
                 </div>
               </div>
             </div>
           </div>
           <button
-            type="button"
+            type='button'
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            className='rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
           >
-            <IconX className="h-5 w-5" stroke={1.75} />
+            <IconX
+              className='h-5 w-5'
+              stroke={1.75}
+            />
           </button>
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+        <div className='flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6'>
           {session.sessionType.description && (
-            <SessionSection title="Description">
+            <SessionSection title='Description'>
               <SessionInset>
-                <div className="prose prose-sm max-w-none text-zinc-600 dark:prose-invert dark:text-zinc-300">
+                <div className='prose prose-sm max-w-none text-zinc-600 dark:prose-invert dark:text-zinc-300'>
                   <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                     {session.sessionType.description}
                   </ReactMarkdown>
@@ -546,15 +559,15 @@ const SessionModal: React.FC<SessionModalProps> = ({
             </SessionSection>
           )}
 
-          <SessionSection title="Role Claims">
-            <div className="space-y-2.5">
+          <SessionSection title='Role Claims'>
+            <div className='space-y-2.5'>
               <SessionInset>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                <h4 className='mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                   Host
                 </h4>
-                <div className="flex items-center gap-2">
-                  <span className="w-14 shrink-0 text-xs text-zinc-400">Slot 1</span>
-                  <div className="min-w-0 flex-1">
+                <div className='flex items-center gap-2'>
+                  <span className='w-14 shrink-0 text-xs text-zinc-400'>Slot 1</span>
+                  <div className='min-w-0 flex-1'>
                     <HostButton
                       currentValue={session.owner?.username || ''}
                       onValueChange={handleHostClaim}
@@ -588,10 +601,10 @@ const SessionModal: React.FC<SessionModalProps> = ({
 
                   return (
                     <SessionInset key={slotIndex}>
-                      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                      <h4 className='mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400'>
                         {slotData.name}
                       </h4>
-                      <div className="space-y-2">
+                      <div className='space-y-2'>
                         {Array.from(Array(slotData.slots)).map((_, i) => {
                           const key = `${slotData.id}-${i}`;
                           const assignedUser = session.users?.find(
@@ -608,11 +621,14 @@ const SessionModal: React.FC<SessionModalProps> = ({
                               )?.picture
                             : null;
                           return (
-                            <div key={i} className="flex items-center gap-2">
-                              <span className="w-14 shrink-0 text-xs text-zinc-400">
+                            <div
+                              key={i}
+                              className='flex items-center gap-2'
+                            >
+                              <span className='w-14 shrink-0 text-xs text-zinc-400'>
                                 Slot {i + 1}
                               </span>
-                              <div className="min-w-0 flex-1">
+                              <div className='min-w-0 flex-1'>
                                 <RoleButton
                                   currentValue={username || ''}
                                   onValueChange={(value) => handleSlotClaim(slotData.id, i, value)}
@@ -660,23 +676,29 @@ const SessionModal: React.FC<SessionModalProps> = ({
             onDataChange={refreshSessionData}
           />
 
-          <ActivityLogsSection sessionId={session.id} refreshKey={refreshKey} />
+          <ActivityLogsSection
+            sessionId={session.id}
+            refreshKey={refreshKey}
+          />
 
           {session.cancelled && session.cancellationReason && (
-            <SessionInset className="border border-red-200/60 bg-red-50/80 dark:border-red-900/40 dark:bg-red-950/20">
-              <div className="mb-1 flex items-center gap-2">
-                <IconBan className="h-4 w-4 text-red-500" stroke={1.75} />
-                <span className="text-sm font-medium text-red-600 dark:text-red-400">
+            <SessionInset className='border border-red-200/60 bg-red-50/80 dark:border-red-900/40 dark:bg-red-950/20'>
+              <div className='mb-1 flex items-center gap-2'>
+                <IconBan
+                  className='h-4 w-4 text-red-500'
+                  stroke={1.75}
+                />
+                <span className='text-sm font-medium text-red-600 dark:text-red-400'>
                   Cancellation reason
                 </span>
               </div>
-              <p className="text-sm text-red-600/90 dark:text-red-300">
+              <p className='text-sm text-red-600/90 dark:text-red-300'>
                 {session.cancellationReason}
               </p>
               <button
                 onClick={handleUncancelSession}
                 disabled={isUncancelling}
-                className="mt-3 rounded-lg bg-red-600/20 text-red-200/90 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-red-600/60 disabled:cursor-not-allowed disabled:opacity-50"
+                className='mt-3 rounded-lg bg-red-600/20 text-red-200/90 px-4 py-1.5 text-sm font-medium transition-colors hover:bg-red-600/60 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 Uncancel Session
               </button>
@@ -687,44 +709,50 @@ const SessionModal: React.FC<SessionModalProps> = ({
             <SessionInset>
               {!isCancelExpanded ? (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setIsCancelExpanded(true)}
-                  className="flex items-center gap-2 text-sm font-medium text-red-500 transition-colors hover:text-red-600 dark:hover:text-red-400"
+                  className='flex items-center gap-2 text-sm font-medium text-red-500 transition-colors hover:text-red-600 dark:hover:text-red-400'
                 >
-                  <IconBan className="h-4 w-4" stroke={1.75} />
+                  <IconBan
+                    className='h-4 w-4'
+                    stroke={1.75}
+                  />
                   Cancel this session
                 </button>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <IconAlertTriangle className="h-4 w-4 shrink-0 text-red-500" stroke={1.75} />
-                    <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                <div className='space-y-3'>
+                  <div className='flex items-center gap-2'>
+                    <IconAlertTriangle
+                      className='h-4 w-4 shrink-0 text-red-500'
+                      stroke={1.75}
+                    />
+                    <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                       Cancel session
                     </span>
                   </div>
                   <textarea
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    placeholder="Reason for cancellation..."
+                    placeholder='Reason for cancellation...'
                     rows={3}
-                    className="w-full resize-none rounded-xl border-0 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:bg-zinc-900 dark:text-white"
+                    className='w-full resize-none rounded-xl border-0 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:bg-zinc-900 dark:text-white'
                   />
-                  <div className="flex items-center gap-2">
+                  <div className='flex items-center gap-2'>
                     <button
-                      type="button"
+                      type='button'
                       onClick={handleCancelSession}
                       disabled={!cancelReason.trim() || isCancelling}
-                      className="rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className='rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50'
                     >
                       {isCancelling ? 'Cancelling…' : 'Confirm cancel'}
                     </button>
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => {
                         setIsCancelExpanded(false);
                         setCancelReason('');
                       }}
-                      className="rounded-lg px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                      className='rounded-lg px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300'
                     >
                       Keep session
                     </button>
@@ -987,7 +1015,7 @@ const AutocompleteInput: React.FC<{
 
   if (!actualCanEdit) {
     return (
-      <div className="flex items-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800/80">
+      <div className='flex items-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 dark:bg-zinc-800/80'>
         {currentValue && assignedUserId && (
           <div
             className={clsx(
@@ -998,12 +1026,12 @@ const AutocompleteInput: React.FC<{
             <img
               src={sessionAvatarSrc(assignedUserId, assignedUserPicture, workspace?.groupId)}
               alt={currentValue}
-              className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+              className='h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900'
               style={{ background: 'transparent' }}
             />
           </div>
         )}
-        <span className="text-sm text-zinc-700 dark:text-zinc-200">
+        <span className='text-sm text-zinc-700 dark:text-zinc-200'>
           {currentValue || 'No assignment'}
         </span>
       </div>
@@ -1012,25 +1040,25 @@ const AutocompleteInput: React.FC<{
 
   if (isEditing) {
     return (
-      <div className="relative">
-        <div className="flex items-center gap-2">
-          <div className="relative min-w-0 flex-1">
+      <div className='relative'>
+        <div className='flex items-center gap-2'>
+          <div className='relative min-w-0 flex-1'>
             <input
               ref={inputRef}
-              type="text"
+              type='text'
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               placeholder={placeholder}
-              className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+              className='w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500'
               disabled={isSubmitting}
               autoFocus
             />
 
             {showSuggestions && filteredUsers.length > 0 && (
-              <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+              <div className='absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900'>
                 {filteredUsers.map((user, index) => (
                   <div
                     key={user.userid}
@@ -1056,39 +1084,39 @@ const AutocompleteInput: React.FC<{
                           workspace?.groupId,
                         )}
                         alt={user.username}
-                        className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+                        className='h-8 w-8 rounded-full border-2 border-white object-cover dark:border-zinc-900'
                         style={{ background: 'transparent' }}
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                    <div className='min-w-0 flex-1'>
+                      <div className='text-sm font-medium text-zinc-900 dark:text-white'>
                         {user.username}
                         {user.isSelf && (
-                          <span className="ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                          <span className='ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary'>
                             You
                           </span>
                         )}
                       </div>
                     </div>
-                    {user.isSelf && <span className="text-xs text-zinc-400">Claim</span>}
+                    {user.isSelf && <span className='text-xs text-zinc-400'>Claim</span>}
                   </div>
                 ))}
               </div>
             )}
           </div>
           <button
-            type="button"
+            type='button'
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className='rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
           >
             Save
           </button>
           <button
-            type="button"
+            type='button'
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className='rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300'
           >
             Cancel
           </button>
@@ -1099,7 +1127,7 @@ const AutocompleteInput: React.FC<{
 
   return (
     <div
-      role="button"
+      role='button'
       tabIndex={0}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && !isSubmitting && actualCanEdit)
@@ -1108,10 +1136,10 @@ const AutocompleteInput: React.FC<{
       onClick={() => {
         if (!isSubmitting && actualCanEdit) setIsEditing(true);
       }}
-      className="w-full rounded-xl bg-zinc-100 px-3 py-2 text-left transition-colors outline-none hover:bg-zinc-200/70 disabled:opacity-50 dark:bg-zinc-800/80 dark:hover:bg-zinc-800"
+      className='w-full rounded-xl bg-zinc-100 px-3 py-2 text-left transition-colors outline-none hover:bg-zinc-200/70 disabled:opacity-50 dark:bg-zinc-800/80 dark:hover:bg-zinc-800'
     >
-      <div className="flex w-full items-center gap-2">
-        <div className="flex min-w-0 flex-1 items-center">
+      <div className='flex w-full items-center gap-2'>
+        <div className='flex min-w-0 flex-1 items-center'>
           {currentValue && assignedUserId && (
             <div
               className={clsx(
@@ -1122,20 +1150,20 @@ const AutocompleteInput: React.FC<{
               <img
                 src={sessionAvatarSrc(assignedUserId, assignedUserPicture, workspace?.groupId)}
                 alt={currentValue}
-                className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+                className='h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900'
                 style={{ background: 'transparent' }}
               />
             </div>
           )}
-          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-200">
+          <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-200'>
             {currentValue || 'Unclaimed'}
           </span>
         </div>
 
         {currentValue && canRemove && (
           <span
-            role="button"
-            title="Remove assignment"
+            role='button'
+            title='Remove assignment'
             onClick={(e) => {
               e.stopPropagation();
               if (!isSubmitting && actualCanEdit) {
@@ -1170,9 +1198,12 @@ const AutocompleteInput: React.FC<{
                 }
               }
             }}
-            className="ml-2 cursor-pointer rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-200/70 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+            className='ml-2 cursor-pointer rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-200/70 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-200'
           >
-            <IconX className="h-4 w-4" stroke={1.75} />
+            <IconX
+              className='h-4 w-4'
+              stroke={1.75}
+            />
           </span>
         )}
       </div>
@@ -1239,7 +1270,7 @@ const HostButton: React.FC<{
       currentUserId={currentUserId}
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
-      placeholder="Enter username to assign host"
+      placeholder='Enter username to assign host'
       assignedUserPicture={assignedUserPicture}
       assignedUserId={assignedUserId}
       isHostRole={isHostRole}
@@ -1315,7 +1346,7 @@ const RoleButton: React.FC<{
       currentUserId={currentUserId}
       currentUserPicture={currentUserPicture}
       currentUserUsername={currentUserUsername}
-      placeholder="Enter username to assign role"
+      placeholder='Enter username to assign role'
       assignedUserPicture={assignedUserPicture}
       assignedUserId={assignedUserId}
       isHostRole={isHostRole}
@@ -1380,26 +1411,32 @@ const NotesSection: React.FC<{
   }, [sessionId, refreshKey]);
 
   return (
-    <SessionSection title="Notes" icon={IconNotes}>
+    <SessionSection
+      title='Notes'
+      icon={IconNotes}
+    >
       {canManage && (
-        <div className="mb-3">
-          <div className="flex flex-col gap-2">
+        <div className='mb-3'>
+          <div className='flex flex-col gap-2'>
             <textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Add a note about this session..."
-              className="flex-1 resize-none rounded-xl border-0 bg-zinc-100 px-3 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+              placeholder='Add a note about this session...'
+              className='flex-1 resize-none rounded-xl border-0 bg-zinc-100 px-3 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500'
               rows={2}
               disabled={isSubmitting}
             />
-            <div className="flex items-center">
+            <div className='flex items-center'>
               <button
-                type="button"
+                type='button'
                 onClick={addNote}
                 disabled={isSubmitting || !newNote.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className='inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'
               >
-                <IconSend className="h-4 w-4" stroke={1.75} />
+                <IconSend
+                  className='h-4 w-4'
+                  stroke={1.75}
+                />
                 Add note
               </button>
             </div>
@@ -1407,24 +1444,27 @@ const NotesSection: React.FC<{
         </div>
       )}
 
-      <div className="max-h-60 space-y-2 overflow-y-auto">
+      <div className='max-h-60 space-y-2 overflow-y-auto'>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-zinc-400">Loading notes…</div>
+          <div className='py-4 text-center text-sm text-zinc-400'>Loading notes…</div>
         ) : notes.length === 0 ? (
-          <SessionInset className="py-8 text-center">
+          <SessionInset className='py-8 text-center'>
             <IconNotes
-              className="mx-auto mb-2 h-7 w-7 text-zinc-300 dark:text-zinc-600"
+              className='mx-auto mb-2 h-7 w-7 text-zinc-300 dark:text-zinc-600'
               stroke={1.5}
             />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">No notes yet</p>
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className='text-sm text-zinc-500 dark:text-zinc-400'>No notes yet</p>
+            <p className='mt-0.5 text-xs text-zinc-400'>
               {canManage ? 'Add the first note above' : 'Notes will appear here when added'}
             </p>
           </SessionInset>
         ) : (
           notes.map((note) => (
-            <SessionInset key={note.id} className="p-3">
-              <div className="mb-2 flex items-center gap-2">
+            <SessionInset
+              key={note.id}
+              className='p-3'
+            >
+              <div className='mb-2 flex items-center gap-2'>
                 <div
                   className={clsx(
                     'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full',
@@ -1438,18 +1478,18 @@ const NotesSection: React.FC<{
                       Number(router.query.id),
                     )}
                     alt={note.author?.username || 'User'}
-                    className="h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+                    className='h-6 w-6 rounded-full border-2 border-white object-cover dark:border-zinc-900'
                     style={{ background: 'transparent' }}
                   />
                 </div>
-                <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                   {note.author?.username || 'Unknown User'}
                 </span>
-                <span className="text-xs text-zinc-400">
+                <span className='text-xs text-zinc-400'>
                   {new Date(note.createdAt).toLocaleString()}
                 </span>
               </div>
-              <div className="prose prose-sm max-w-none text-zinc-600 dark:prose-invert dark:text-zinc-300">
+              <div className='prose prose-sm max-w-none text-zinc-600 dark:prose-invert dark:text-zinc-300'>
                 <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{note.content}</ReactMarkdown>
               </div>
             </SessionInset>
@@ -1492,14 +1532,14 @@ const ActivityLogsSection: React.FC<{
     switch (action) {
       case 'role_assigned':
       case 'host_assigned':
-        return <IconUserPlus className="w-4 h-4 text-green-500" />;
+        return <IconUserPlus className='w-4 h-4 text-green-500' />;
       case 'role_unassigned':
       case 'host_unassigned':
-        return <IconUserMinus className="w-4 h-4 text-red-500" />;
+        return <IconUserMinus className='w-4 h-4 text-red-500' />;
       case 'session_claimed':
-        return <IconUserCheck className="w-4 h-4 text-blue-500" />;
+        return <IconUserCheck className='w-4 h-4 text-blue-500' />;
       default:
-        return <IconHistory className="w-4 h-4 text-zinc-500" />;
+        return <IconHistory className='w-4 h-4 text-zinc-500' />;
     }
   };
 
@@ -1528,28 +1568,34 @@ const ActivityLogsSection: React.FC<{
   };
 
   return (
-    <SessionSection title="Activity log" icon={IconHistory}>
-      <div className="max-h-60 space-y-2 overflow-y-auto">
+    <SessionSection
+      title='Activity log'
+      icon={IconHistory}
+    >
+      <div className='max-h-60 space-y-2 overflow-y-auto'>
         {isLoading ? (
-          <div className="py-4 text-center text-sm text-zinc-400">Loading activity…</div>
+          <div className='py-4 text-center text-sm text-zinc-400'>Loading activity…</div>
         ) : logs.length === 0 ? (
-          <SessionInset className="py-8 text-center">
+          <SessionInset className='py-8 text-center'>
             <IconHistory
-              className="mx-auto mb-2 h-7 w-7 text-zinc-300 dark:text-zinc-600"
+              className='mx-auto mb-2 h-7 w-7 text-zinc-300 dark:text-zinc-600'
               stroke={1.5}
             />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">No activity yet</p>
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className='text-sm text-zinc-500 dark:text-zinc-400'>No activity yet</p>
+            <p className='mt-0.5 text-xs text-zinc-400'>
               Actions will be logged here automatically
             </p>
           </SessionInset>
         ) : (
           logs.map((log) => (
-            <SessionInset key={log.id} className="flex items-start gap-3 p-3">
+            <SessionInset
+              key={log.id}
+              className='flex items-start gap-3 p-3'
+            >
               {getLogIcon(log.action)}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">{getLogMessage(log)}</p>
-                <p className="mt-1 text-xs text-zinc-400">
+              <div className='min-w-0 flex-1'>
+                <p className='text-sm text-zinc-700 dark:text-zinc-300'>{getLogMessage(log)}</p>
+                <p className='mt-1 text-xs text-zinc-400'>
                   {new Date(log.createdAt).toLocaleString()}
                 </p>
               </div>

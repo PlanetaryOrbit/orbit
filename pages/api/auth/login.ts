@@ -1,13 +1,12 @@
+import cache from '@/utils/cache';
+import prisma from '@/utils/database';
+import { createSession } from '@/utils/session';
+import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 import bcryptjs from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { NextApiHandler } from 'next';
 import * as noblox from 'noblox.js';
-
-import cache from '@/utils/cache';
-import prisma from '@/utils/database';
-import { createSession } from '@/utils/session';
-import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 
 async function lookupRobloxUserId(username: string): Promise<number | null> {
   const response = await fetch('https://users.roblox.com/v1/usernames/users', {

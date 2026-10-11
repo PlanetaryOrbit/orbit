@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const { url } = req.query;

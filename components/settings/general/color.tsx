@@ -1,5 +1,8 @@
 'use client';
 
+import { workspacestate } from '@/state';
+import type { FC } from '@/types/settingsComponent';
+import { getRGBFromTailwindColor, getHexFromTheme } from '@/utils/themeColor';
 import {
   IconCheck,
   IconClock,
@@ -16,10 +19,6 @@ import clsx from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import { workspacestate } from '@/state';
-import type { FC } from '@/types/settingsComponent';
-import { getRGBFromTailwindColor, getHexFromTheme } from '@/utils/themeColor';
 
 type SessionColors = {
   recurring: string;
@@ -327,34 +326,38 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className='space-y-7'>
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <IconSun size={14} className="text-primary" strokeWidth={2} />
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Workspace Theme</p>
+        <div className='flex items-center gap-2 mb-1'>
+          <IconSun
+            size={14}
+            className='text-primary'
+            strokeWidth={2}
+          />
+          <p className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>Workspace Theme</p>
         </div>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+        <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-4'>
           Choose a color theme for your workspace (light mode)
         </p>
 
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4">
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pick</span>
+        <div className='flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4'>
+          <label className='flex items-center gap-2.5 cursor-pointer'>
+            <span className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>Pick</span>
             <input
-              type="color"
+              type='color'
               value={String(selectedColor).startsWith('#') ? selectedColor : customHex}
               onChange={(e) => handleCustomColorChange(e.target.value)}
-              className="h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5"
+              className='h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5'
             />
             {String(selectedColor).startsWith('#') && (
-              <span className="text-xs font-medium text-primary">Active</span>
+              <span className='text-xs font-medium text-primary'>Active</span>
             )}
           </label>
-          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-          <label className="flex items-center gap-2">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Hex</span>
+          <div className='h-4 w-px bg-zinc-200 dark:bg-zinc-700' />
+          <label className='flex items-center gap-2'>
+            <span className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>Hex</span>
             <input
-              type="text"
+              type='text'
               value={String(selectedColor).startsWith('#') ? selectedColor : customHex}
               onChange={(e) => setCustomHex(e.target.value)}
               onBlur={() => {
@@ -374,14 +377,14 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                   saveColorToServer(fullHex);
                 }
               }}
-              placeholder="#ec4899"
-              className="w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0"
+              placeholder='#ec4899'
+              className='w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0'
             />
           </label>
         </div>
 
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2.5">Or pick a preset</p>
-        <div className="grid grid-cols-10 gap-2">
+        <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-2.5'>Or pick a preset</p>
+        <div className='grid grid-cols-10 gap-2'>
           {colors.map((color, i) => (
             <button
               key={i}
@@ -392,8 +395,11 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
               )}
             >
               {selectedColor === color && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
-                  <IconCheck size={14} className="text-white" />
+                <div className='absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl'>
+                  <IconCheck
+                    size={14}
+                    className='text-white'
+                  />
                 </div>
               )}
             </button>
@@ -401,33 +407,37 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         </div>
       </div>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
-        <div className="flex items-center gap-2 mb-1">
-          <IconMoon size={14} className="text-primary" strokeWidth={2} />
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Dark Mode Theme</p>
+      <div className='border-t border-zinc-100 dark:border-zinc-800 pt-6'>
+        <div className='flex items-center gap-2 mb-1'>
+          <IconMoon
+            size={14}
+            className='text-primary'
+            strokeWidth={2}
+          />
+          <p className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>Dark Mode Theme</p>
         </div>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+        <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-4'>
           Optionally set a different accent for dark mode. If not set, the light mode color is used.
         </p>
 
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4">
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pick</span>
+        <div className='flex flex-wrap items-center gap-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 px-4 py-3.5 mb-4'>
+          <label className='flex items-center gap-2.5 cursor-pointer'>
+            <span className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>Pick</span>
             <input
-              type="color"
+              type='color'
               value={String(selectedDarkColor).startsWith('#') ? selectedDarkColor : customDarkHex}
               onChange={(e) => handleCustomDarkColorChange(e.target.value)}
-              className="h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5"
+              className='h-8 w-11 rounded-lg cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-0.5'
             />
             {String(selectedDarkColor).startsWith('#') && (
-              <span className="text-xs font-medium text-primary">Active</span>
+              <span className='text-xs font-medium text-primary'>Active</span>
             )}
           </label>
-          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-          <label className="flex items-center gap-2">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Hex</span>
+          <div className='h-4 w-px bg-zinc-200 dark:bg-zinc-700' />
+          <label className='flex items-center gap-2'>
+            <span className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>Hex</span>
             <input
-              type="text"
+              type='text'
               value={String(selectedDarkColor).startsWith('#') ? selectedDarkColor : customDarkHex}
               onChange={(e) => setCustomDarkHex(e.target.value)}
               onBlur={() => {
@@ -447,8 +457,8 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                   saveDarkColorToServer(fullHex);
                 }
               }}
-              placeholder="#ec4899"
-              className="w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0"
+              placeholder='#ec4899'
+              className='w-24 px-3 py-1.5 rounded-xl text-sm bg-white dark:bg-zinc-700/60 ring-1 ring-zinc-200 dark:ring-zinc-700 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 border-0'
             />
           </label>
           {selectedDarkColor && (
@@ -459,15 +469,15 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                 setWorkspace((prev) => ({ ...prev, groupDarkTheme: '' }) as any);
                 saveDarkColorToServer('');
               }}
-              className="ml-auto text-xs text-zinc-400 hover:text-red-500 transition-colors"
+              className='ml-auto text-xs text-zinc-400 hover:text-red-500 transition-colors'
             >
               Clear
             </button>
           )}
         </div>
 
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-2.5">Or pick a preset</p>
-        <div className="grid grid-cols-10 gap-2">
+        <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-2.5'>Or pick a preset</p>
+        <div className='grid grid-cols-10 gap-2'>
           {colors.map((color, i) => (
             <button
               key={i}
@@ -478,8 +488,11 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
               )}
             >
               {selectedDarkColor === color && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl">
-                  <IconCheck size={14} className="text-white" />
+                <div className='absolute inset-0 flex items-center justify-center bg-black/25 rounded-xl'>
+                  <IconCheck
+                    size={14}
+                    className='text-white'
+                  />
                 </div>
               )}
             </button>
@@ -487,39 +500,49 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
         </div>
       </div>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-800 pt-6">
-        <div className="flex items-center gap-2 mb-1">
-          <IconPalette size={14} className="text-primary" strokeWidth={2} />
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Session Colors</p>
+      <div className='border-t border-zinc-100 dark:border-zinc-800 pt-6'>
+        <div className='flex items-center gap-2 mb-1'>
+          <IconPalette
+            size={14}
+            className='text-primary'
+            strokeWidth={2}
+          />
+          <p className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>Session Colors</p>
         </div>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">
+        <p className='text-xs text-zinc-400 dark:text-zinc-500 mb-5'>
           Pick accent colors for each session category. They appear on badges, cards, and the
           calendar.
         </p>
 
         {isLoadingSessionColors ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent" />
+          <div className='flex items-center justify-center py-8'>
+            <div className='animate-spin rounded-full h-7 w-7 border-2 border-primary border-t-transparent' />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
             {sessionColorTypes.map((colorType) => {
               const Icon = colorType.Icon;
               const current = sessionColors[colorType.key];
               return (
-                <div key={colorType.key} className="rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4">
-                  <div className="flex items-center gap-3 mb-4">
+                <div
+                  key={colorType.key}
+                  className='rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-4'
+                >
+                  <div className='flex items-center gap-3 mb-4'>
                     <div
                       className={clsx(
                         'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white',
                         current,
                       )}
                     >
-                      <Icon size={18} stroke={1.75} />
+                      <Icon
+                        size={18}
+                        stroke={1.75}
+                      />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div className='min-w-0 flex-1'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <p className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>
                           {colorType.label}
                         </p>
                         <span
@@ -531,22 +554,22 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                           {colorType.shortTag}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+                      <p className='text-xs text-zinc-400 dark:text-zinc-500 mt-0.5'>
                         {colorType.description}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2.5">
+                  <p className='text-xs font-medium text-zinc-400 dark:text-zinc-500 mb-2.5'>
                     Color
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className='flex flex-wrap gap-2'>
                     {sessionColorOptions.map((color) => {
                       const selected = current === color;
                       return (
                         <button
                           key={color}
-                          type="button"
+                          type='button'
                           title={getColorDisplayName(color)}
                           onClick={() => updateSessionColor(colorType.key, color)}
                           className={clsx(
@@ -558,17 +581,20 @@ const Color: FC<props> = ({ triggerToast, isSidebarExpanded }) => {
                           )}
                         >
                           {selected && (
-                            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20">
-                              <IconCheck size={13} className="text-white" />
+                            <span className='absolute inset-0 flex items-center justify-center rounded-full bg-black/20'>
+                              <IconCheck
+                                size={13}
+                                className='text-white'
+                              />
                             </span>
                           )}
                         </button>
                       );
                     })}
                   </div>
-                  <p className="mt-2.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  <p className='mt-2.5 text-xs text-zinc-400 dark:text-zinc-500'>
                     Current:{' '}
-                    <span className="font-medium text-zinc-600 dark:text-zinc-300">
+                    <span className='font-medium text-zinc-600 dark:text-zinc-300'>
                       {getColorDisplayName(current)}
                     </span>
                   </p>

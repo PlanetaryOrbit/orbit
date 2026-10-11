@@ -1,12 +1,11 @@
+import Button from '@/components/button';
+import { workspacestate } from '@/state';
 import { IconCheck, IconCloud, IconEye, IconEyeOff, IconX } from '@tabler/icons-react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import Button from '@/components/button';
-import { workspacestate } from '@/state';
 
 import { ServiceCard, ServiceToggle } from '../instance/ServiceCard';
 
@@ -152,12 +151,19 @@ function OpenCloud({ title = 'Open Cloud' }: { title?: string }) {
     <ServiceCard
       icon={IconCloud}
       title={title}
-      description="Use Roblox Open Cloud for deeper integration with your group."
+      description='Use Roblox Open Cloud for deeper integration with your group.'
       footer={
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={loading || testing} workspace>
-            <span className="inline-flex items-center gap-2">
-              <IconCheck className="h-4 w-4" stroke={1.5} />
+        <div className='flex justify-end'>
+          <Button
+            onClick={handleSave}
+            disabled={loading || testing}
+            workspace
+          >
+            <span className='inline-flex items-center gap-2'>
+              <IconCheck
+                className='h-4 w-4'
+                stroke={1.5}
+              />
               {loading ? 'Saving…' : testing ? 'Testing…' : 'Save'}
             </span>
           </Button>
@@ -167,47 +173,53 @@ function OpenCloud({ title = 'Open Cloud' }: { title?: string }) {
       <ServiceToggle
         enabled={enabled}
         onToggle={() => setEnabled(!enabled)}
-        label="Enable Open Cloud for this workspace"
+        label='Enable Open Cloud for this workspace'
       />
       {enabled && (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
               API key
             </label>
             {showInput ? (
-              <div className="relative">
+              <div className='relative'>
                 <input
                   type={inputType}
                   value={ockey}
                   onChange={handleKeyChange}
-                  placeholder="Open Cloud API key"
-                  autoComplete="off"
+                  placeholder='Open Cloud API key'
+                  autoComplete='off'
                   spellCheck={false}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-11 text-sm text-zinc-900 transition-colors focus:border-[color:rgb(var(--group-theme))] focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white"
+                  className='w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-11 text-sm text-zinc-900 transition-colors focus:border-[color:rgb(var(--group-theme))] focus:ring-2 focus:ring-[color:rgb(var(--group-theme)/0.25)] dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white'
                 />
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowApiKey((v) => !v)}
-                  className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200"
+                  className='absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200'
                   title={showApiKey ? 'Hide key' : 'Show key'}
                   aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
                 >
                   {showApiKey ? (
-                    <IconEyeOff className="h-4 w-4" stroke={1.5} />
+                    <IconEyeOff
+                      className='h-4 w-4'
+                      stroke={1.5}
+                    />
                   ) : (
-                    <IconEye className="h-4 w-4" stroke={1.5} />
+                    <IconEye
+                      className='h-4 w-4'
+                      stroke={1.5}
+                    />
                   )}
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+                <p className='text-sm text-zinc-600 dark:text-zinc-300'>
                   A key is saved. It is not shown again. Use{' '}
-                  <b className="text-zinc-800 dark:text-zinc-200">Replace key</b> to rotate it.
+                  <b className='text-zinc-800 dark:text-zinc-200'>Replace key</b> to rotate it.
                 </p>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setReplaceMode(true);
                     setockey('');
@@ -215,44 +227,53 @@ function OpenCloud({ title = 'Open Cloud' }: { title?: string }) {
                     testedKey.current = null;
                     setShowApiKey(false);
                   }}
-                  className="shrink-0 self-start rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                  className='shrink-0 self-start rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700'
                 >
                   Replace key
                 </button>
               </div>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className='flex flex-wrap items-center gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={handleTest}
               disabled={testing || loading || !canTest}
-              className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+              className='rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
             >
               {testing ? 'Testing…' : 'Test key'}
             </button>
             {keyStatus === 'verified' && (
-              <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
-                <IconCheck className="h-4 w-4" stroke={2} />
+              <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
+                <IconCheck
+                  className='h-4 w-4'
+                  stroke={2}
+                />
                 Verified
               </span>
             )}
             {keyStatus === 'Saved' && (
-              <span className="inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
-                <IconCheck className="h-4 w-4" stroke={2} />
+              <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
+                <IconCheck
+                  className='h-4 w-4'
+                  stroke={2}
+                />
                 Saved
               </span>
             )}
             {keyStatus === 'failed' && (
-              <span className="inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
-                <IconX className="h-4 w-4" stroke={2} />
+              <span className='inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400'>
+                <IconX
+                  className='h-4 w-4'
+                  stroke={2}
+                />
                 Invalid
               </span>
             )}
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Requires <b className="text-zinc-700 dark:text-zinc-200">group:read</b> and{' '}
-            <b className="text-zinc-700 dark:text-zinc-200">group:write</b>.
+          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+            Requires <b className='text-zinc-700 dark:text-zinc-200'>group:read</b> and{' '}
+            <b className='text-zinc-700 dark:text-zinc-200'>group:write</b>.
           </p>
         </div>
       )}

@@ -1,12 +1,11 @@
-import { IconFileText, IconLink } from '@tabler/icons-react';
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import React, { useState } from 'react';
-
 import { isExternalContent } from '@/components/docs/content';
 import { ExternalLinkModal, useExternalLinkModal } from '@/components/docs/modals';
 import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
 import type { document, user } from '@/utils/database';
+import { IconFileText, IconLink } from '@tabler/icons-react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 
 const Docs: React.FC = () => {
   const [docs, setDocs] = useState<(document & { owner: user })[]>([]);
@@ -50,25 +49,28 @@ const Docs: React.FC = () => {
           return (
             <HomeListItem key={doc.id}>
               <button
-                type="button"
+                type='button'
                 onClick={() => openDoc(doc)}
-                className="flex w-full items-start gap-3 text-left"
+                className='flex w-full items-start gap-3 text-left'
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800'>
                   {external ? (
-                    <IconLink className="h-4 w-4 text-zinc-500 dark:text-zinc-400" stroke={1.75} />
+                    <IconLink
+                      className='h-4 w-4 text-zinc-500 dark:text-zinc-400'
+                      stroke={1.75}
+                    />
                   ) : (
                     <IconFileText
-                      className="h-4 w-4 text-zinc-500 dark:text-zinc-400"
+                      className='h-4 w-4 text-zinc-500 dark:text-zinc-400'
                       stroke={1.75}
                     />
                   )}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
                     {doc.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
                     {doc.owner?.username ? `By ${doc.owner.username}` : 'Unknown author'}
                   </p>
                 </div>

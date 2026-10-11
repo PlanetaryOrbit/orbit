@@ -1,8 +1,7 @@
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma, { document } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

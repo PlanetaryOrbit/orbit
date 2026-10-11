@@ -1,11 +1,10 @@
 'use client';
 
+import { loginState, workspacestate } from '@/state';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useRecoilState } from 'recoil';
-
-import { loginState, workspacestate } from '@/state';
 
 export default function AuthProvider({
   loading,

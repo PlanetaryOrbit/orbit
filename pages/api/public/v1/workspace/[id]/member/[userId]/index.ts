@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withKey } from '@/lib/withAuth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { getUserRank } from '@/utils/roblox';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withKey(handler);
 

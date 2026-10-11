@@ -1,3 +1,9 @@
+import workspace from '@/layouts/workspace';
+import { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import randomText from '@/utils/randomText';
 import { Dialog, Transition } from '@headlessui/react';
 import {
   IconTarget,
@@ -32,13 +38,6 @@ import {
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import workspace from '@/layouts/workspace';
-import { pageWithLayout } from '@/layoutTypes';
-import { loginState, workspacestate } from '@/state';
-import prisma from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
-import randomText from '@/utils/randomText';
 
 const BG_COLORS = [
   'bg-rose-300',
@@ -106,8 +105,8 @@ function QuotaMemberAvatar({
       <span className={boxClass}>
         <img
           src={src}
-          alt=""
-          className="block h-full w-full object-cover"
+          alt=''
+          className='block h-full w-full object-cover'
           style={{ background: 'transparent' }}
         />
       </span>
@@ -126,7 +125,7 @@ const homePanelShadow =
 
 function QuotaFormLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+    <label className='mb-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
       {children}
     </label>
   );
@@ -200,9 +199,9 @@ function QuotaModalCard({
         className,
       )}
     >
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
-        {hint ? <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{hint}</p> : null}
+      <div className='mb-4'>
+        <h3 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>{title}</h3>
+        {hint ? <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>{hint}</p> : null}
       </div>
       {children}
     </section>
@@ -238,21 +237,24 @@ function QuotaEmptyState({
 }) {
   const ActionIcon = action?.icon ?? IconPlus;
   return (
-    <QuotaPagePanel className="mx-auto max-w-md px-8 py-12 text-center">
-      <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-        <Icon className="h-5 w-5 text-primary" stroke={1.75} />
+    <QuotaPagePanel className='mx-auto max-w-md px-8 py-12 text-center'>
+      <div className='mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10'>
+        <Icon
+          className='h-5 w-5 text-primary'
+          stroke={1.75}
+        />
       </div>
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-white">{title}</h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-zinc-400 dark:text-zinc-500">
+      <h3 className='text-base font-semibold text-zinc-900 dark:text-white'>{title}</h3>
+      <p className='mt-1.5 text-sm leading-relaxed text-zinc-400 dark:text-zinc-500'>
         {description}
       </p>
       {action ? (
         <button
-          type="button"
+          type='button'
           onClick={action.onClick}
-          className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+          className='mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
         >
-          <ActionIcon className="h-4 w-4" />
+          <ActionIcon className='h-4 w-4' />
           {action.label}
         </button>
       ) : null}
@@ -268,24 +270,24 @@ function QuotaAssignmentBadges({
   workspaceId?: string | string[];
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className='flex flex-wrap gap-1.5'>
       {quota.quotaRoles?.map((qr: any) => (
         <span
           key={qr.role.id}
-          className="inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95"
+          className='inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95'
           style={{ backgroundColor: qr.role.color || '#71717a' }}
         >
-          <IconUsers className="h-3 w-3 opacity-90" />
+          <IconUsers className='h-3 w-3 opacity-90' />
           {qr.role.name}
         </span>
       ))}
       {quota.quotaDepartments?.map((qd: any) => (
         <span
           key={qd.department.id}
-          className="inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95"
+          className='inline-flex items-center gap-1 rounded-lg py-1 pl-1.5 pr-2 text-xs font-medium text-white/95'
           style={{ backgroundColor: qd.department.color || '#71717a' }}
         >
-          <IconBriefcase className="h-3 w-3 opacity-90" />
+          <IconBriefcase className='h-3 w-3 opacity-90' />
           {qd.department.name}
         </span>
       ))}
@@ -294,15 +296,15 @@ function QuotaAssignmentBadges({
         return (
           <span
             key={uid}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white py-0.5 pl-0.5 pr-2 text-xs font-medium text-zinc-800 shadow-sm dark:bg-zinc-700/80 dark:text-zinc-100"
+            className='inline-flex items-center gap-1.5 rounded-full bg-white py-0.5 pl-0.5 pr-2 text-xs font-medium text-zinc-800 shadow-sm dark:bg-zinc-700/80 dark:text-zinc-100'
           >
             <QuotaMemberAvatar
               userid={uid}
               username={qu.user?.username}
               picture={qu.user?.picture}
               workspaceId={workspaceId}
-              className="h-5 w-5"
-              textClassName="text-[9px]"
+              className='h-5 w-5'
+              textClassName='text-[9px]'
             />
             {qu.user?.username ?? 'User'}
           </span>
@@ -1393,25 +1395,25 @@ const Quotas: pageWithLayout<pageProps> = ({
 
   return (
     <>
-      <div className="pagePadding">
-        <div className="mx-auto max-w-6xl">
-          <header className="mb-5 sm:mb-6">
-            <div className="flex flex-col gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{dateLabel}</p>
-                <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl">
+      <div className='pagePadding'>
+        <div className='mx-auto max-w-6xl'>
+          <header className='mb-5 sm:mb-6'>
+            <div className='flex flex-col gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between'>
+              <div className='min-w-0'>
+                <p className='text-xs text-zinc-500 dark:text-zinc-400'>{dateLabel}</p>
+                <h1 className='mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl'>
                   Quotas
                 </h1>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{pageSubtitle}</p>
-                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{workspaceLabel}</p>
+                <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>{pageSubtitle}</p>
+                <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>{workspaceLabel}</p>
               </div>
               {activeTab === 'manage-quotas' && canManageQuotas && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={openCreateModal}
-                  className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 sm:self-auto"
+                  className='inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 sm:self-auto'
                 >
-                  <IconPlus className="h-4 w-4" />
+                  <IconPlus className='h-4 w-4' />
                   Create quota
                 </button>
               )}
@@ -1419,9 +1421,9 @@ const Quotas: pageWithLayout<pageProps> = ({
           </header>
 
           {(canManageQuotas || (canDeleteQuotas as boolean)) && (
-            <nav className="mb-5 flex w-fit gap-0.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80 sm:mb-6">
+            <nav className='mb-5 flex w-fit gap-0.5 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80 sm:mb-6'>
               <button
-                type="button"
+                type='button'
                 onClick={() => setActiveTab('my-quotas')}
                 className={clsx(
                   'flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
@@ -1430,11 +1432,14 @@ const Quotas: pageWithLayout<pageProps> = ({
                     : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
                 )}
               >
-                <IconTarget className="h-4 w-4 shrink-0" stroke={1.75} />
+                <IconTarget
+                  className='h-4 w-4 shrink-0'
+                  stroke={1.75}
+                />
                 <span>My Quotas</span>
               </button>
               <button
-                type="button"
+                type='button'
                 onClick={() => setActiveTab('manage-quotas')}
                 className={clsx(
                   'flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
@@ -1443,12 +1448,15 @@ const Quotas: pageWithLayout<pageProps> = ({
                     : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
                 )}
               >
-                <IconClipboardList className="h-4 w-4 shrink-0" stroke={1.75} />
+                <IconClipboardList
+                  className='h-4 w-4 shrink-0'
+                  stroke={1.75}
+                />
                 <span>Manage Quotas</span>
               </button>
 
               <button
-                type="button"
+                type='button'
                 onClick={() => setActiveTab('staff-overview')}
                 className={clsx(
                   'flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
@@ -1457,22 +1465,25 @@ const Quotas: pageWithLayout<pageProps> = ({
                     : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
                 )}
               >
-                <IconUsers className="h-4 w-4 shrink-0" stroke={1.75} />
+                <IconUsers
+                  className='h-4 w-4 shrink-0'
+                  stroke={1.75}
+                />
                 <span>Staff Overview</span>
               </button>
             </nav>
           )}
 
           {(!(canManageQuotas || (canDeleteQuotas as boolean)) || activeTab === 'my-quotas') && (
-            <div className="flex flex-col gap-4 sm:gap-5">
+            <div className='flex flex-col gap-4 sm:gap-5'>
               {myQuotas.length === 0 ? (
                 <QuotaEmptyState
                   icon={IconTarget}
-                  title="No quotas assigned"
+                  title='No quotas assigned'
                   description="You don't have any activity quotas yet. When a quota is assigned to you, your roles, or your departments, it'll show up here."
                 />
               ) : (
-                <div className="flex flex-col gap-4 sm:gap-5">
+                <div className='flex flex-col gap-4 sm:gap-5'>
                   {myQuotas.map((quota: any) => {
                     const customStatus = quota.customCompletion?.status;
                     const isCustomApproved = quota.type === 'custom' && customStatus === 'approved';
@@ -1487,9 +1498,12 @@ const Quotas: pageWithLayout<pageProps> = ({
                           : 0
                         : Math.min(quota.percentage, 100);
                     return (
-                      <QuotaPagePanel key={quota.id} className="overflow-hidden">
-                        <div className="p-4 sm:p-5">
-                          <div className="flex items-start gap-3.5">
+                      <QuotaPagePanel
+                        key={quota.id}
+                        className='overflow-hidden'
+                      >
+                        <div className='p-4 sm:p-5'>
+                          <div className='flex items-start gap-3.5'>
                             <div
                               className={clsx(
                                 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
@@ -1506,27 +1520,27 @@ const Quotas: pageWithLayout<pageProps> = ({
                                 stroke={1.75}
                               />
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-[15px]">
+                            <div className='min-w-0 flex-1'>
+                              <h3 className='text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-[15px]'>
                                 {quota.name}
                               </h3>
                               {quota.type !== 'custom' && formatGoal(quota) && (
-                                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                                <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                                   Goal · {formatGoal(quota)}
                                 </p>
                               )}
                               {quota.type === 'custom' && (
-                                <p className="mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500">
+                                <p className='mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500'>
                                   Tracked manually
                                 </p>
                               )}
                               {quota.description && (
-                                <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                <p className='mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400'>
                                   {quota.description}
                                 </p>
                               )}
                               {quota.sessionType && quota.sessionType !== 'all' && (
-                                <p className="mt-1.5 text-xs font-medium text-primary">
+                                <p className='mt-1.5 text-xs font-medium text-primary'>
                                   {quota.sessionType.charAt(0).toUpperCase() +
                                     quota.sessionType.slice(1)}{' '}
                                   only
@@ -1536,25 +1550,25 @@ const Quotas: pageWithLayout<pageProps> = ({
                           </div>
 
                           {quota.type !== 'custom' && (
-                            <div className="mt-4">
-                              <div className="mb-2 flex items-baseline justify-between gap-2">
-                                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                            <div className='mt-4'>
+                              <div className='mb-2 flex items-baseline justify-between gap-2'>
+                                <span className='text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
                                   Progress
                                 </span>
-                                <span className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                                <span className='text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100'>
                                   {quota.currentValue}{' '}
-                                  <span className="font-normal text-zinc-400 dark:text-zinc-500">
+                                  <span className='font-normal text-zinc-400 dark:text-zinc-500'>
                                     / {quota.value}
                                   </span>
                                 </span>
                               </div>
-                              <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                              <div className='h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800'>
                                 <div
-                                  className="h-full rounded-full bg-primary transition-all"
+                                  className='h-full rounded-full bg-primary transition-all'
                                   style={{ width: `${barWidth}%` }}
                                 />
                               </div>
-                              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                              <p className='mt-1.5 text-xs text-zinc-400 dark:text-zinc-500'>
                                 {isComplete ? (
                                   quota.percentage > 100 ? (
                                     <>Goal exceeded · {quota.percentage.toFixed(0)}%</>
@@ -1569,41 +1583,41 @@ const Quotas: pageWithLayout<pageProps> = ({
                           )}
 
                           {quota.type === 'custom' && (
-                            <div className="mt-4 space-y-3">
+                            <div className='mt-4 space-y-3'>
                               {isCustomPending && (
-                                <QuotaInset className="flex items-start gap-2.5">
+                                <QuotaInset className='flex items-start gap-2.5'>
                                   <IconClock
-                                    className="mt-px h-4 w-4 shrink-0 text-zinc-400"
+                                    className='mt-px h-4 w-4 shrink-0 text-zinc-400'
                                     stroke={1.75}
                                   />
-                                  <p className="text-sm leading-snug text-zinc-600 dark:text-zinc-400">
+                                  <p className='text-sm leading-snug text-zinc-600 dark:text-zinc-400'>
                                     Submitted — pending review by someone who can manage quotas.
                                   </p>
                                 </QuotaInset>
                               )}
                               {isCustomApproved && (
-                                <p className="text-sm font-medium text-primary">
+                                <p className='text-sm font-medium text-primary'>
                                   Your completion was approved.
                                 </p>
                               )}
                               {isCustomDenied && (
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                                   Your last completion request was not approved. You can submit
                                   again when you are ready.
                                 </p>
                               )}
                               {!isCustomPending && !isCustomApproved && !isCustomDenied && (
-                                <p className="text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+                                <p className='text-xs leading-relaxed text-zinc-400 dark:text-zinc-500'>
                                   Tracked manually by your team. Mark complete when you have
                                   finished; a manager will approve it.
                                 </p>
                               )}
                               {!isCustomPending && !isCustomApproved && (
                                 <button
-                                  type="button"
+                                  type='button'
                                   disabled={submittingCustomQuotaId === quota.id}
                                   onClick={() => submitCustomComplete(quota)}
-                                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60"
+                                  className='inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60'
                                 >
                                   {submittingCustomQuotaId === quota.id
                                     ? 'Submitting…'
@@ -1614,29 +1628,32 @@ const Quotas: pageWithLayout<pageProps> = ({
                           )}
 
                           {quota.type === 'custom' && isCustomApproved && (
-                            <div className="mt-4">
-                              <div className="mb-2 flex items-baseline justify-between gap-2">
-                                <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                            <div className='mt-4'>
+                              <div className='mb-2 flex items-baseline justify-between gap-2'>
+                                <span className='text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
                                   Status
                                 </span>
-                                <span className="text-sm font-semibold tabular-nums text-primary">
+                                <span className='text-sm font-semibold tabular-nums text-primary'>
                                   Complete
                                 </span>
                               </div>
-                              <div className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                              <div className='h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800'>
                                 <div
-                                  className="h-full rounded-full bg-primary transition-all"
+                                  className='h-full rounded-full bg-primary transition-all'
                                   style={{ width: `${barWidth}%` }}
                                 />
                               </div>
                             </div>
                           )}
 
-                          <QuotaInset className="mt-4">
-                            <p className="mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                          <QuotaInset className='mt-4'>
+                            <p className='mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
                               Assigned to
                             </p>
-                            <QuotaAssignmentBadges quota={quota} workspaceId={id} />
+                            <QuotaAssignmentBadges
+                              quota={quota}
+                              workspaceId={id}
+                            />
                           </QuotaInset>
                         </div>
                       </QuotaPagePanel>
@@ -1648,13 +1665,13 @@ const Quotas: pageWithLayout<pageProps> = ({
           )}
 
           {activeTab === 'manage-quotas' && (canManageQuotas || (canDeleteQuotas as boolean)) && (
-            <div className="flex flex-col gap-4 sm:gap-5">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className='flex flex-col gap-4 sm:gap-5'>
+              <div className='flex items-center justify-between gap-3'>
+                <h2 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>
                   All quotas
                 </h2>
                 {allQuotas.length > 0 && (
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
+                  <span className='text-xs text-zinc-400 dark:text-zinc-500 tabular-nums'>
                     {allQuotas.length} total
                   </span>
                 )}
@@ -1663,7 +1680,7 @@ const Quotas: pageWithLayout<pageProps> = ({
               {allQuotas.length === 0 ? (
                 <QuotaEmptyState
                   icon={IconClipboardList}
-                  title="No quotas yet"
+                  title='No quotas yet'
                   description={
                     canManageQuotas
                       ? 'Create your first quota and assign it to roles, departments, or specific users.'
@@ -1676,67 +1693,73 @@ const Quotas: pageWithLayout<pageProps> = ({
                   }
                 />
               ) : (
-                <div className="flex flex-col gap-4 sm:gap-5">
+                <div className='flex flex-col gap-4 sm:gap-5'>
                   {allQuotas.map((quota: any) => (
-                    <QuotaPagePanel key={quota.id} className="overflow-hidden">
-                      <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                    <QuotaPagePanel
+                      key={quota.id}
+                      className='overflow-hidden'
+                    >
+                      <div className='flex items-start justify-between gap-3 p-4 sm:p-5'>
+                        <div className='min-w-0 flex-1'>
+                          <h3 className='text-base font-semibold text-zinc-900 dark:text-zinc-100'>
                             {quota.name}
                           </h3>
                           {quota.type !== 'custom' ? (
-                            <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                            <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                               {quota.value} {types[quota.type]}
                             </p>
                           ) : (
-                            <p className="mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500">
+                            <p className='mt-0.5 text-xs italic text-zinc-400 dark:text-zinc-500'>
                               Manually tracked
                             </p>
                           )}
                           {quota.description && (
-                            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            <p className='mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400'>
                               {quota.description}
                             </p>
                           )}
                           {quota.sessionType && quota.sessionType !== 'all' && (
-                            <p className="mt-1.5 text-xs font-medium text-primary">
+                            <p className='mt-1.5 text-xs font-medium text-primary'>
                               {quota.sessionType.charAt(0).toUpperCase() +
                                 quota.sessionType.slice(1)}{' '}
                               only
                             </p>
                           )}
-                          <div className="mt-3">
-                            <QuotaAssignmentBadges quota={quota} workspaceId={id} />
+                          <div className='mt-3'>
+                            <QuotaAssignmentBadges
+                              quota={quota}
+                              workspaceId={id}
+                            />
                           </div>
                           {quota.type === 'custom' &&
                             (quota.pendingCustomSubmissions?.length ?? 0) > 0 && (
-                              <div className="mt-4">
-                                <p className="mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                              <div className='mt-4'>
+                                <p className='mb-2 text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
                                   Awaiting review
                                 </p>
-                                <ul className="divide-y divide-zinc-100 overflow-hidden rounded-xl bg-zinc-50 dark:divide-zinc-800 dark:bg-zinc-800/40">
+                                <ul className='divide-y divide-zinc-100 overflow-hidden rounded-xl bg-zinc-50 dark:divide-zinc-800 dark:bg-zinc-800/40'>
                                   {quota.pendingCustomSubmissions.map((sub: any) => {
                                     const rk = `${quota.id}-${sub.userId}`;
                                     const busy = reviewingCustomKey === rk;
                                     return (
                                       <li
                                         key={sub.id}
-                                        className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                                        className='flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4'
                                       >
-                                        <div className="flex min-w-0 items-center gap-3">
+                                        <div className='flex min-w-0 items-center gap-3'>
                                           <QuotaMemberAvatar
                                             userid={String(sub.userId)}
                                             username={sub.user?.username}
                                             picture={sub.user?.picture}
                                             workspaceId={id}
-                                            className="h-8 w-8"
-                                            textClassName="text-xs"
+                                            className='h-8 w-8'
+                                            textClassName='text-xs'
                                           />
-                                          <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                          <div className='min-w-0'>
+                                            <p className='truncate text-sm font-medium text-zinc-900 dark:text-zinc-100'>
                                               {sub.user?.username ?? `User ${sub.userId}`}
                                             </p>
-                                            <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                                            <p className='text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                                               {new Date(sub.submittedAt).toLocaleString(undefined, {
                                                 dateStyle: 'medium',
                                                 timeStyle: 'short',
@@ -1745,9 +1768,9 @@ const Quotas: pageWithLayout<pageProps> = ({
                                           </div>
                                         </div>
                                         {canManageQuotas ? (
-                                          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                                          <div className='flex shrink-0 flex-wrap items-center gap-2 sm:justify-end'>
                                             <button
-                                              type="button"
+                                              type='button'
                                               disabled={busy}
                                               onClick={() =>
                                                 reviewCustomCompletion(
@@ -1756,25 +1779,31 @@ const Quotas: pageWithLayout<pageProps> = ({
                                                   'approve',
                                                 )
                                               }
-                                              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                                              className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50'
                                             >
-                                              <IconCheck className="h-4 w-4" stroke={2} />
+                                              <IconCheck
+                                                className='h-4 w-4'
+                                                stroke={2}
+                                              />
                                               Approve
                                             </button>
                                             <button
-                                              type="button"
+                                              type='button'
                                               disabled={busy}
                                               onClick={() =>
                                                 reviewCustomCompletion(quota.id, sub.userId, 'deny')
                                               }
-                                              className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200/80 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                              className='inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200/80 disabled:opacity-50 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'
                                             >
-                                              <IconX className="h-4 w-4" stroke={2} />
+                                              <IconX
+                                                className='h-4 w-4'
+                                                stroke={2}
+                                              />
                                               Deny
                                             </button>
                                           </div>
                                         ) : (
-                                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                                          <p className='text-xs text-zinc-400 dark:text-zinc-500'>
                                             Needs quota edit permission to resolve.
                                           </p>
                                         )}
@@ -1785,28 +1814,34 @@ const Quotas: pageWithLayout<pageProps> = ({
                               </div>
                             )}
                         </div>
-                        <div className="flex shrink-0 items-center gap-0.5">
+                        <div className='flex shrink-0 items-center gap-0.5'>
                           {canManageQuotas && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => openEditModal(quota)}
-                              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                              aria-label="Edit quota"
+                              className='rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
+                              aria-label='Edit quota'
                             >
-                              <IconPencil className="h-4 w-4" stroke={1.75} />
+                              <IconPencil
+                                className='h-4 w-4'
+                                stroke={1.75}
+                              />
                             </button>
                           )}
                           {(canDeleteQuotas as boolean) && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => {
                                 setQuotaToDelete(quota);
                                 setIsDeleteModalOpen(true);
                               }}
-                              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
-                              aria-label="Delete quota"
+                              className='rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10'
+                              aria-label='Delete quota'
                             >
-                              <IconTrash className="h-4 w-4" stroke={1.75} />
+                              <IconTrash
+                                className='h-4 w-4'
+                                stroke={1.75}
+                              />
                             </button>
                           )}
                         </div>
@@ -1819,8 +1854,8 @@ const Quotas: pageWithLayout<pageProps> = ({
           )}
 
           {activeTab === 'staff-overview' && (
-            <div className="flex flex-col gap-4 sm:gap-5">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className='flex flex-col gap-4 sm:gap-5'>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
                 {[
                   {
                     label: 'Complete',
@@ -1835,110 +1870,134 @@ const Quotas: pageWithLayout<pageProps> = ({
                     value: staffMembers.filter((m) => m.onLoa).length,
                   },
                 ].map((stat) => (
-                  <QuotaPagePanel key={stat.label} className="p-4">
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">{stat.label}</p>
-                    <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-white">
+                  <QuotaPagePanel
+                    key={stat.label}
+                    className='p-4'
+                  >
+                    <p className='text-sm text-zinc-500 dark:text-zinc-400'>{stat.label}</p>
+                    <p className='mt-1 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-white'>
                       {staffLoading || staffError ? '—' : stat.value}
                     </p>
                   </QuotaPagePanel>
                 ))}
               </div>
 
-              <QuotaPagePanel className="overflow-hidden">
-                <div className="flex flex-col gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800 sm:flex-row">
+              <QuotaPagePanel className='overflow-hidden'>
+                <div className='flex flex-col gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800 sm:flex-row'>
                   <input
-                    type="search"
+                    type='search'
                     value={staffSearch}
                     onChange={(event) => setStaffSearch(event.target.value)}
-                    placeholder="Search staff..."
-                    aria-label="Search staff by username"
-                    className="min-w-0 flex-1 rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                    placeholder='Search staff...'
+                    aria-label='Search staff by username'
+                    className='min-w-0 flex-1 rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white'
                   />
 
                   <select
                     value={staffQuotaFilter}
                     onChange={(event) => setStaffQuotaFilter(event.target.value)}
-                    aria-label="Filter by quota completion"
-                    className="rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                    aria-label='Filter by quota completion'
+                    className='rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white'
                   >
-                    <option value="all">All quota statuses</option>
-                    <option value="complete">Completed</option>
-                    <option value="incomplete">Incomplete</option>
-                    <option value="no_quotas">No quotas assigned</option>
+                    <option value='all'>All quota statuses</option>
+                    <option value='complete'>Completed</option>
+                    <option value='incomplete'>Incomplete</option>
+                    <option value='no_quotas'>No quotas assigned</option>
                   </select>
 
                   <select
                     value={staffLoaFilter}
                     onChange={(event) => setStaffLoaFilter(event.target.value)}
-                    aria-label="Filter by leave of absence"
-                    className="rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white"
+                    aria-label='Filter by leave of absence'
+                    className='rounded-xl bg-zinc-100 px-3 py-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white'
                   >
-                    <option value="all">All LOA statuses</option>
-                    <option value="loa">On LOA</option>
-                    <option value="not_loa">Not on LOA</option>
+                    <option value='all'>All LOA statuses</option>
+                    <option value='loa'>On LOA</option>
+                    <option value='not_loa'>Not on LOA</option>
                   </select>
                 </div>
 
                 {staffLoading ? (
-                  <p className="p-8 text-center text-sm text-zinc-500">Loading staff quotas...</p>
+                  <p className='p-8 text-center text-sm text-zinc-500'>Loading staff quotas...</p>
                 ) : staffError ? (
-                  <p role="alert" className="p-8 text-center text-sm text-red-500">
+                  <p
+                    role='alert'
+                    className='p-8 text-center text-sm text-red-500'
+                  >
                     {staffError}
                   </p>
                 ) : filteredStaffMembers.length === 0 ? (
-                  <p className="p-8 text-center text-sm text-zinc-500">
+                  <p className='p-8 text-center text-sm text-zinc-500'>
                     No staff members match these filters.
                   </p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead className="bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400">
+                  <div className='overflow-x-auto'>
+                    <table className='w-full min-w-[720px] text-left text-sm'>
+                      <thead className='bg-zinc-50 text-xs text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400'>
                         <tr>
-                          <th scope="col" className="px-4 py-3 font-medium">
+                          <th
+                            scope='col'
+                            className='px-4 py-3 font-medium'
+                          >
                             Staff member
                           </th>
-                          <th scope="col" className="px-4 py-3 font-medium">
+                          <th
+                            scope='col'
+                            className='px-4 py-3 font-medium'
+                          >
                             Quota progress
                           </th>
-                          <th scope="col" className="px-4 py-3 font-medium">
+                          <th
+                            scope='col'
+                            className='px-4 py-3 font-medium'
+                          >
                             Completion
                           </th>
-                          <th scope="col" className="px-4 py-3 font-medium">
+                          <th
+                            scope='col'
+                            className='px-4 py-3 font-medium'
+                          >
                             LOA
                           </th>
-                          <th scope="col" className="px-4 py-3 font-medium">
+                          <th
+                            scope='col'
+                            className='px-4 py-3 font-medium'
+                          >
                             Quota details
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                      <tbody className='divide-y divide-zinc-100 dark:divide-zinc-800'>
                         {filteredStaffMembers.map((member) => (
-                          <tr key={member.userId} className="align-top">
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2.5">
+                          <tr
+                            key={member.userId}
+                            className='align-top'
+                          >
+                            <td className='px-4 py-3'>
+                              <div className='flex items-center gap-2.5'>
                                 <QuotaMemberAvatar
                                   userid={member.userId}
                                   username={member.username}
                                   picture={member.picture}
                                   workspaceId={id}
-                                  className="h-8 w-8"
+                                  className='h-8 w-8'
                                 />
-                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                <span className='font-medium text-zinc-900 dark:text-zinc-100'>
                                   {member.username}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               {member.quotaCount === 0 ? (
-                                <span className="text-zinc-400">No quotas</span>
+                                <span className='text-zinc-400'>No quotas</span>
                               ) : (
                                 <>
-                                  <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-100">
+                                  <span className='font-medium tabular-nums text-zinc-900 dark:text-zinc-100'>
                                     {member.completedCount}/{member.quotaCount}
                                   </span>
-                                  <div className="mt-2 h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                  <div className='mt-2 h-1.5 w-28 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800'>
                                     <div
-                                      className="h-full rounded-full bg-primary"
+                                      className='h-full rounded-full bg-primary'
                                       style={{
                                         width: `${
                                           (member.completedCount / member.quotaCount) * 100
@@ -1949,7 +2008,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                 </>
                               )}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               <span
                                 className={clsx(
                                   'inline-flex rounded-full px-2 py-1 text-xs font-medium',
@@ -1967,7 +2026,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                     : 'No quotas'}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               <span
                                 className={clsx(
                                   'inline-flex rounded-full px-2 py-1 text-xs font-medium',
@@ -1979,19 +2038,22 @@ const Quotas: pageWithLayout<pageProps> = ({
                                 {member.onLoa ? 'On LOA' : 'No'}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className='px-4 py-3'>
                               {member.quotas.length > 0 ? (
-                                <details className="max-w-xs">
-                                  <summary className="cursor-pointer text-primary hover:underline">
+                                <details className='max-w-xs'>
+                                  <summary className='cursor-pointer text-primary hover:underline'>
                                     View quotas
                                   </summary>
-                                  <ul className="mt-2 space-y-2">
+                                  <ul className='mt-2 space-y-2'>
                                     {member.quotas.map((quota) => (
-                                      <li key={quota.id} className="text-xs">
-                                        <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                                      <li
+                                        key={quota.id}
+                                        className='text-xs'
+                                      >
+                                        <p className='font-medium text-zinc-800 dark:text-zinc-200'>
                                           {quota.name}
                                         </p>
-                                        <p className="mt-0.5 text-zinc-500 dark:text-zinc-400">
+                                        <p className='mt-0.5 text-zinc-500 dark:text-zinc-400'>
                                           {quota.type === 'custom'
                                             ? quota.customStatus === 'approved'
                                               ? 'Approved'
@@ -2007,7 +2069,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                   </ul>
                                 </details>
                               ) : (
-                                <span className="text-zinc-400">—</span>
+                                <span className='text-zinc-400'>—</span>
                               )}
                             </td>
                           </tr>
@@ -2018,7 +2080,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                 )}
 
                 {!staffLoading && !staffError && (
-                  <p className="border-t border-zinc-100 px-4 py-3 text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+                  <p className='border-t border-zinc-100 px-4 py-3 text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500'>
                     Showing {filteredStaffMembers.length} of {staffMembers.length} staff members
                   </p>
                 )}
@@ -2028,10 +2090,14 @@ const Quotas: pageWithLayout<pageProps> = ({
         </div>
       </div>
 
-      <Transition appear show={isOpen} as={Fragment}>
+      <Transition
+        appear
+        show={isOpen}
+        as={Fragment}
+      >
         <Dialog
-          as="div"
-          className="relative z-10"
+          as='div'
+          className='relative z-10'
           onClose={() => {
             setIsOpen(false);
             setEditingQuota(null);
@@ -2043,26 +2109,26 @@ const Quotas: pageWithLayout<pageProps> = ({
         >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+            <div className='fixed inset-0 bg-black/30 backdrop-blur-sm' />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
                 <Dialog.Panel
                   className={clsx(
@@ -2070,46 +2136,46 @@ const Quotas: pageWithLayout<pageProps> = ({
                     homePanelShadow,
                   )}
                 >
-                  <div className="border-b border-zinc-100/80 px-5 py-4 dark:border-zinc-800/80 sm:px-6">
+                  <div className='border-b border-zinc-100/80 px-5 py-4 dark:border-zinc-800/80 sm:px-6'>
                     <Dialog.Title
-                      as="h3"
-                      className="text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg"
+                      as='h3'
+                      className='text-base font-semibold text-zinc-900 dark:text-zinc-100 sm:text-lg'
                     >
                       {editingQuota ? 'Edit quota' : 'Create quota'}
                     </Dialog.Title>
-                    <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500 sm:text-sm">
+                    <p className='mt-1 text-xs text-zinc-400 dark:text-zinc-500 sm:text-sm'>
                       Assign to roles, departments, or specific members.
                     </p>
                   </div>
 
                   <FormProvider {...form}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                      <div className="max-h-[min(72vh,680px)] overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 space-y-4">
+                      <div className='max-h-[min(72vh,680px)] overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 space-y-4'>
                         <QuotaModalCard
-                          title="Assignment"
-                          hint="Choose at least one role, department, or user."
+                          title='Assignment'
+                          hint='Choose at least one role, department, or user.'
                         >
-                          <div className="space-y-3">
-                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
-                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
-                                <IconUsers className="h-3.5 w-3.5" />
+                          <div className='space-y-3'>
+                            <div className='rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60'>
+                              <p className='mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
+                                <IconUsers className='h-3.5 w-3.5' />
                                 Roles
                               </p>
-                              <div className="max-h-28 space-y-0.5 overflow-y-auto">
+                              <div className='max-h-28 space-y-0.5 overflow-y-auto'>
                                 {roles
                                   .filter((role: any) => !role.isOwnerRole)
                                   .map((role: any) => (
                                     <label
                                       key={role.id}
-                                      className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40"
+                                      className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40'
                                     >
                                       <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={selectedRoles.includes(role.id)}
                                         onChange={() => toggleRole(role.id)}
-                                        className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                                        className='rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600'
                                       />
-                                      <span className="text-sm text-zinc-800 dark:text-zinc-200">
+                                      <span className='text-sm text-zinc-800 dark:text-zinc-200'>
                                         {role.name}
                                       </span>
                                     </label>
@@ -2117,86 +2183,89 @@ const Quotas: pageWithLayout<pageProps> = ({
                               </div>
                             </div>
 
-                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
-                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
-                                <IconBriefcase className="h-3.5 w-3.5" />
+                            <div className='rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60'>
+                              <p className='mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
+                                <IconBriefcase className='h-3.5 w-3.5' />
                                 Departments
                               </p>
-                              <div className="max-h-28 space-y-0.5 overflow-y-auto">
+                              <div className='max-h-28 space-y-0.5 overflow-y-auto'>
                                 {departments.length > 0 ? (
                                   departments.map((department: any) => (
                                     <label
                                       key={department.id}
-                                      className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40"
+                                      className='flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/80 dark:hover:bg-zinc-700/40'
                                     >
                                       <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={selectedDepartments.includes(department.id)}
                                         onChange={() => toggleDepartment(department.id)}
-                                        className="rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600"
+                                        className='rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-zinc-600'
                                       />
-                                      <span className="text-sm text-zinc-800 dark:text-zinc-200">
+                                      <span className='text-sm text-zinc-800 dark:text-zinc-200'>
                                         {department.name}
                                       </span>
                                     </label>
                                   ))
                                 ) : (
-                                  <p className="py-1 text-sm italic text-zinc-400 dark:text-zinc-500">
+                                  <p className='py-1 text-sm italic text-zinc-400 dark:text-zinc-500'>
                                     No departments available.
                                   </p>
                                 )}
                               </div>
                             </div>
 
-                            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60">
-                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
-                                <IconUser className="h-3.5 w-3.5" />
+                            <div className='rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/60'>
+                              <p className='mb-2 flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500'>
+                                <IconUser className='h-3.5 w-3.5' />
                                 Users
                               </p>
                               {members.length > 0 ? (
-                                <div className="space-y-2.5">
+                                <div className='space-y-2.5'>
                                   {selectedUserEntries.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className='flex flex-wrap gap-2'>
                                       {selectedUserEntries.map((member) => (
                                         <span
                                           key={member.userid}
-                                          className="inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-2 text-sm shadow-sm dark:bg-zinc-700/80"
+                                          className='inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-2 text-sm shadow-sm dark:bg-zinc-700/80'
                                         >
                                           <QuotaMemberAvatar
                                             userid={member.userid}
                                             username={member.username}
                                             picture={member.picture}
                                             workspaceId={id}
-                                            className="h-6 w-6"
-                                            textClassName="text-[9px]"
+                                            className='h-6 w-6'
+                                            textClassName='text-[9px]'
                                           />
-                                          <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                                          <span className='font-medium text-zinc-800 dark:text-zinc-100'>
                                             {member.username}
                                           </span>
                                           <button
-                                            type="button"
+                                            type='button'
                                             onClick={() => removeUser(member.userid)}
-                                            className="rounded-full p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-600"
+                                            className='rounded-full p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-600'
                                             aria-label={`Remove ${member.username}`}
                                           >
-                                            <IconX className="h-3 w-3" />
+                                            <IconX className='h-3 w-3' />
                                           </button>
                                         </span>
                                       ))}
                                     </div>
                                   )}
-                                  <div ref={userSearchInputRef} className="relative">
-                                    <IconSearch className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                  <div
+                                    ref={userSearchInputRef}
+                                    className='relative'
+                                  >
+                                    <IconSearch className='pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-zinc-400' />
                                     <QuotaFormInput
-                                      type="text"
+                                      type='text'
                                       value={userSearchQuery}
                                       onChange={(e) => {
                                         setUserSearchQuery(e.target.value);
                                         setUserSearchOpen(true);
                                       }}
                                       onFocus={() => setUserSearchOpen(true)}
-                                      placeholder="Search by username..."
-                                      className="!pl-9"
+                                      placeholder='Search by username...'
+                                      className='!pl-9'
                                     />
                                     {userSearchOpen && userSearchQuery.trim() && (
                                       <div
@@ -2205,31 +2274,31 @@ const Quotas: pageWithLayout<pageProps> = ({
                                           homePanelShadow,
                                         )}
                                       >
-                                        <div className="max-h-40 overflow-y-auto py-1">
+                                        <div className='max-h-40 overflow-y-auto py-1'>
                                           {userSearchLoading ? (
-                                            <p className="px-3 py-2.5 text-center text-xs text-zinc-400">
+                                            <p className='px-3 py-2.5 text-center text-xs text-zinc-400'>
                                               Searching…
                                             </p>
                                           ) : userSearchResults.length === 0 ? (
-                                            <p className="px-3 py-2.5 text-center text-xs text-zinc-400">
+                                            <p className='px-3 py-2.5 text-center text-xs text-zinc-400'>
                                               No members found
                                             </p>
                                           ) : (
                                             userSearchResults.map((member) => (
                                               <button
                                                 key={member.userid}
-                                                type="button"
+                                                type='button'
                                                 onClick={() => addUser(member)}
-                                                className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
+                                                className='flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
                                               >
                                                 <QuotaMemberAvatar
                                                   userid={member.userid}
                                                   username={member.username}
                                                   picture={member.picture}
                                                   workspaceId={id}
-                                                  className="h-8 w-8"
+                                                  className='h-8 w-8'
                                                 />
-                                                <span className="text-sm font-medium leading-none text-zinc-900 dark:text-white">
+                                                <span className='text-sm font-medium leading-none text-zinc-900 dark:text-white'>
                                                   {member.username}
                                                 </span>
                                               </button>
@@ -2241,7 +2310,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                                   </div>
                                 </div>
                               ) : (
-                                <p className="text-sm italic text-zinc-400 dark:text-zinc-500">
+                                <p className='text-sm italic text-zinc-400 dark:text-zinc-500'>
                                   No members available.
                                 </p>
                               )}
@@ -2249,23 +2318,23 @@ const Quotas: pageWithLayout<pageProps> = ({
                           </div>
                         </QuotaModalCard>
 
-                        <QuotaModalCard title="Quota details">
-                          <div className="space-y-3">
+                        <QuotaModalCard title='Quota details'>
+                          <div className='space-y-3'>
                             <div>
                               <QuotaFormLabel>Quota type</QuotaFormLabel>
-                              <div className="relative">
+                              <div className='relative'>
                                 <QuotaFormSelect {...register('type')}>
-                                  <option value="mins">Minutes in Game</option>
-                                  <option value="sessions_hosted">Sessions Hosted</option>
-                                  <option value="sessions_attended">Sessions Attended</option>
-                                  <option value="sessions_logged">Sessions Logged</option>
-                                  <option value="alliance_visits">Alliance Visits</option>
-                                  <option value="custom">Custom</option>
+                                  <option value='mins'>Minutes in Game</option>
+                                  <option value='sessions_hosted'>Sessions Hosted</option>
+                                  <option value='sessions_attended'>Sessions Attended</option>
+                                  <option value='sessions_logged'>Sessions Logged</option>
+                                  <option value='alliance_visits'>Alliance Visits</option>
+                                  <option value='custom'>Custom</option>
                                 </QuotaFormSelect>
-                                <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                <IconChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
                               </div>
                               {watchedType && typeDescriptions[watchedType] && (
-                                <p className="mt-1.5 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
+                                <p className='mt-1.5 text-xs leading-relaxed text-zinc-400 dark:text-zinc-500'>
                                   {typeDescriptions[watchedType]}
                                 </p>
                               )}
@@ -2277,18 +2346,21 @@ const Quotas: pageWithLayout<pageProps> = ({
                               ) && (
                                 <div>
                                   <QuotaFormLabel>Session type</QuotaFormLabel>
-                                  <div className="relative">
+                                  <div className='relative'>
                                     <QuotaFormSelect
                                       value={sessionTypeFilter}
                                       onChange={(e) => setSessionTypeFilter(e.target.value)}
                                     >
                                       {sessionTypeOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
+                                        <option
+                                          key={opt.value}
+                                          value={opt.value}
+                                        >
                                           {opt.label}
                                         </option>
                                       ))}
                                     </QuotaFormSelect>
-                                    <IconChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                                    <IconChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400' />
                                   </div>
                                 </div>
                               )}
@@ -2296,13 +2368,13 @@ const Quotas: pageWithLayout<pageProps> = ({
                             {watchedType !== 'custom' && (
                               <div>
                                 <QuotaFormLabel>Requirement</QuotaFormLabel>
-                                <div className="flex overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                                <div className='flex overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800'>
                                   <QuotaFormInput
-                                    type="number"
-                                    className="!rounded-none !bg-transparent focus:!ring-0"
+                                    type='number'
+                                    className='!rounded-none !bg-transparent focus:!ring-0'
                                     {...register('requirement', { required: true })}
                                   />
-                                  <span className="flex shrink-0 items-center border-l border-zinc-200/80 px-3 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                                  <span className='flex shrink-0 items-center border-l border-zinc-200/80 px-3 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400'>
                                     {watchedType === 'mins'
                                       ? 'Minutes'
                                       : watchedType === 'alliance_visits'
@@ -2316,7 +2388,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                             <div>
                               <QuotaFormLabel>Name</QuotaFormLabel>
                               <QuotaFormInput
-                                placeholder="Enter a name for this quota..."
+                                placeholder='Enter a name for this quota...'
                                 {...register('name', { required: true })}
                               />
                             </div>
@@ -2325,7 +2397,7 @@ const Quotas: pageWithLayout<pageProps> = ({
                               <QuotaFormLabel>Description (optional)</QuotaFormLabel>
                               <QuotaFormTextarea
                                 rows={3}
-                                placeholder="Add a description for this quota..."
+                                placeholder='Add a description for this quota...'
                                 {...register('description')}
                               />
                             </div>
@@ -2333,22 +2405,25 @@ const Quotas: pageWithLayout<pageProps> = ({
                         </QuotaModalCard>
                       </div>
 
-                      <input type="submit" className="hidden" />
+                      <input
+                        type='submit'
+                        className='hidden'
+                      />
 
-                      <div className="flex items-center gap-2 border-t border-zinc-100/80 bg-white px-5 py-3.5 dark:border-zinc-800/80 dark:bg-zinc-900/70 sm:px-6">
+                      <div className='flex items-center gap-2 border-t border-zinc-100/80 bg-white px-5 py-3.5 dark:border-zinc-800/80 dark:bg-zinc-900/70 sm:px-6'>
                         <button
-                          type="button"
-                          className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                          type='button'
+                          className='rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
                           onClick={() => setIsOpen(false)}
                         >
                           Cancel
                         </button>
                         <button
-                          type="button"
-                          className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                          type='button'
+                          className='ml-auto inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                           onClick={handleSubmit(onSubmit)}
                         >
-                          <IconCheck className="h-3.5 w-3.5" />
+                          <IconCheck className='h-3.5 w-3.5' />
                           {editingQuota ? 'Save' : 'Create quota'}
                         </button>
                       </div>
@@ -2361,56 +2436,64 @@ const Quotas: pageWithLayout<pageProps> = ({
         </Dialog>
       </Transition>
 
-      <Transition appear show={isDeleteModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsDeleteModalOpen(false)}>
+      <Transition
+        appear
+        show={isDeleteModalOpen}
+        as={Fragment}
+      >
+        <Dialog
+          as='div'
+          className='relative z-50'
+          onClose={() => setIsDeleteModalOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black/70" />
+            <div className='fixed inset-0 bg-black/70' />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
-                      <IconTrash className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-6 text-left align-middle shadow-xl transition-all border border-zinc-200 dark:border-zinc-700'>
+                  <div className='flex items-center gap-3 mb-4'>
+                    <div className='shrink-0 w-11 h-11 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center'>
+                      <IconTrash className='w-5 h-5 text-red-600 dark:text-red-400' />
                     </div>
                     <Dialog.Title
-                      as="h3"
-                      className="text-lg font-semibold text-zinc-900 dark:text-white"
+                      as='h3'
+                      className='text-lg font-semibold text-zinc-900 dark:text-white'
                     >
                       Delete quota
                     </Dialog.Title>
                   </div>
 
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  <p className='text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed'>
                     Are you sure you want to delete{' '}
-                    <span className="font-semibold text-zinc-900 dark:text-white">
+                    <span className='font-semibold text-zinc-900 dark:text-white'>
                       {quotaToDelete?.name}
                     </span>
                     ? This can't be undone.
                   </p>
 
-                  <div className="mt-6 flex gap-3">
+                  <div className='mt-6 flex gap-3'>
                     <button
-                      type="button"
-                      className="flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                      type='button'
+                      className='flex-1 justify-center rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors'
                       onClick={() => {
                         setIsDeleteModalOpen(false);
                         setQuotaToDelete(null);
@@ -2419,8 +2502,8 @@ const Quotas: pageWithLayout<pageProps> = ({
                       Cancel
                     </button>
                     <button
-                      type="button"
-                      className="flex-1 justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                      type='button'
+                      className='flex-1 justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 transition-colors'
                       onClick={deleteQuota}
                     >
                       Delete

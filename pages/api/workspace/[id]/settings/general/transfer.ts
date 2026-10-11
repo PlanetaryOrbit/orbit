@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

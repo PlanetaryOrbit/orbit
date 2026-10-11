@@ -1,3 +1,5 @@
+import { HomeSection } from '@/components/home/shell';
+import { loginState } from '@/state';
 import {
   IconPencil,
   IconX,
@@ -14,9 +16,6 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useRecoilState } from 'recoil';
-
-import { HomeSection } from '@/components/home/shell';
-import { loginState } from '@/state';
 
 interface NewMember {
   userid: string;
@@ -271,7 +270,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
 
   const memberStrip = (
     <div ref={stripRef}>
-      <div className="flex items-start gap-5 overflow-x-auto overscroll-x-contain py-1 pr-1 scrollbar-hide sm:gap-6">
+      <div className='flex items-start gap-5 overflow-x-auto overscroll-x-contain py-1 pr-1 scrollbar-hide sm:gap-6'>
         {members.map((m) => {
           const isMe = m.userid === String(login?.userId);
           const song = parseSong(m.introSong);
@@ -280,8 +279,11 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
           const hasNote = Boolean(note);
 
           return (
-            <div key={m.userid} className="flex w-[4.75rem] shrink-0 flex-col items-center sm:w-20">
-              <div className="relative">
+            <div
+              key={m.userid}
+              className='flex w-[4.75rem] shrink-0 flex-col items-center sm:w-20'
+            >
+              <div className='relative'>
                 <Link href={`/workspace/${workspaceId}/profile/${m.userid}`}>
                   <div
                     className={clsx(
@@ -292,26 +294,30 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
                     <img
                       src={`/api/user/${m.userid}/avatar`}
                       alt={m.username}
-                      className="h-16 w-16 rounded-full border-2 border-white object-cover dark:border-zinc-800"
+                      className='h-16 w-16 rounded-full border-2 border-white object-cover dark:border-zinc-800'
                       style={{ background: 'transparent' }}
-                      loading="lazy"
+                      loading='lazy'
                     />
                   </div>
                 </Link>
                 {isMe && (
                   <button
-                    type="button"
+                    type='button'
                     onClick={openEdit}
-                    className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 shadow-sm transition-colors hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-100"
-                    title="Edit your intro"
+                    className='absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 shadow-sm transition-colors hover:bg-zinc-700 dark:bg-white dark:hover:bg-zinc-100'
+                    title='Edit your intro'
                   >
-                    <IconPencil size={10} stroke={2.5} className="text-white dark:text-zinc-900" />
+                    <IconPencil
+                      size={10}
+                      stroke={2.5}
+                      className='text-white dark:text-zinc-900'
+                    />
                   </button>
                 )}
               </div>
 
               <p
-                className="mt-2 max-w-full truncate text-center text-xs font-medium text-zinc-800 dark:text-zinc-200"
+                className='mt-2 max-w-full truncate text-center text-xs font-medium text-zinc-800 dark:text-zinc-200'
                 title={m.username}
               >
                 {m.username}
@@ -319,7 +325,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
 
               {song && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => togglePlay(m)}
                   className={clsx(
                     'group/song relative mt-2 h-9 w-9 overflow-hidden rounded-full ring-1 ring-zinc-200/80 transition-shadow dark:ring-zinc-600',
@@ -327,13 +333,20 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
                   )}
                   aria-label={isPlaying ? 'Pause preview' : `Play ${song.title} by ${song.artist}`}
                 >
-                  <img src={song.artwork} alt="" className="h-full w-full object-cover" />
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover/song:bg-black/40">
+                  <img
+                    src={song.artwork}
+                    alt=''
+                    className='h-full w-full object-cover'
+                  />
+                  <span className='absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover/song:bg-black/40'>
                     {isPlaying ? (
-                      <IconPlayerPause className="h-3.5 w-3.5 text-white" stroke={2} />
+                      <IconPlayerPause
+                        className='h-3.5 w-3.5 text-white'
+                        stroke={2}
+                      />
                     ) : (
                       <IconPlayerPlay
-                        className="h-3.5 w-3.5 translate-x-px text-white"
+                        className='h-3.5 w-3.5 translate-x-px text-white'
                         stroke={2}
                       />
                     )}
@@ -343,7 +356,7 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
 
               {hasNote && (
                 <p
-                  className="mt-1.5 max-w-[5.25rem] text-center text-[10px] leading-snug text-zinc-400 line-clamp-2 dark:text-zinc-500"
+                  className='mt-1.5 max-w-[5.25rem] text-center text-[10px] leading-snug text-zinc-400 line-clamp-2 dark:text-zinc-500'
                   title={note}
                 >
                   {note}
@@ -358,115 +371,115 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
 
   const editModal = editOpen
     ? createPortal(
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center bg-zinc-950/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 flex flex-col overflow-hidden">
-            <div className="flex items-start justify-between px-6 pt-6 pb-5">
+        <div className='fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center bg-zinc-950/50 backdrop-blur-sm'>
+          <div className='w-full max-w-sm rounded-3xl bg-white shadow-2xl dark:bg-zinc-900 flex flex-col overflow-hidden'>
+            <div className='flex items-start justify-between px-6 pt-6 pb-5'>
               <div>
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Your intro</h2>
-                <p className="mt-0.5 text-sm text-zinc-400 dark:text-zinc-500">
+                <h2 className='text-lg font-bold text-zinc-900 dark:text-white'>Your intro</h2>
+                <p className='mt-0.5 text-sm text-zinc-400 dark:text-zinc-500'>
                   Shown on your new-to-team card
                 </p>
               </div>
               <button
                 onClick={closeEdit}
-                className="mt-0.5 p-1.5 rounded-xl text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className='mt-0.5 p-1.5 rounded-xl text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors'
               >
-                <IconX className="w-4 h-4" />
+                <IconX className='w-4 h-4' />
               </button>
             </div>
 
-            <div className="px-6 pb-6 space-y-5 overflow-y-auto">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+            <div className='px-6 pb-6 space-y-5 overflow-y-auto'>
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <label className='text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide'>
                     Song
                   </label>
-                  <span className="text-[10px] text-zinc-300 dark:text-zinc-600">
+                  <span className='text-[10px] text-zinc-300 dark:text-zinc-600'>
                     30-sec iTunes preview
                   </span>
                 </div>
 
                 {editSong ? (
-                  <div className="flex items-center gap-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 p-3.5">
-                    <div className="relative shrink-0">
+                  <div className='flex items-center gap-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 p-3.5'>
+                    <div className='relative shrink-0'>
                       <img
                         src={editSong.artwork}
-                        alt=""
-                        className="w-12 h-12 rounded-xl object-cover"
+                        alt=''
+                        className='w-12 h-12 rounded-xl object-cover'
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight'>
                         {editSong.title}
                       </p>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate mt-0.5">
+                      <p className='text-xs text-zinc-400 dark:text-zinc-500 truncate mt-0.5'>
                         {editSong.artist}
                       </p>
                     </div>
                     <button
                       onClick={() => setEditSong(null)}
-                      className="shrink-0 p-1.5 rounded-xl text-zinc-300 dark:text-zinc-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                      className='shrink-0 p-1.5 rounded-xl text-zinc-300 dark:text-zinc-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors'
                     >
-                      <IconX className="w-3.5 h-3.5" />
+                      <IconX className='w-3.5 h-3.5' />
                     </button>
                   </div>
                 ) : (
-                  <div className="relative">
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
+                  <div className='relative'>
+                    <div className='flex items-center gap-2.5 px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 focus-within:ring-2 focus-within:ring-primary/30 transition-all'>
                       {searching ? (
-                        <IconLoader2 className="w-4 h-4 text-zinc-400 shrink-0 animate-spin" />
+                        <IconLoader2 className='w-4 h-4 text-zinc-400 shrink-0 animate-spin' />
                       ) : (
-                        <IconSearch className="w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0" />
+                        <IconSearch className='w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0' />
                       )}
                       <input
-                        type="text"
+                        type='text'
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        placeholder="Search for a song…"
-                        className="flex-1 bg-transparent text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none"
-                        autoComplete="off"
+                        placeholder='Search for a song…'
+                        className='flex-1 bg-transparent text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none'
+                        autoComplete='off'
                       />
                     </div>
                     {searchResults.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-200/60 dark:shadow-zinc-950/60 z-10 overflow-hidden max-h-56 overflow-y-auto border border-zinc-100 dark:border-zinc-800">
+                      <div className='absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-200/60 dark:shadow-zinc-950/60 z-10 overflow-hidden max-h-56 overflow-y-auto border border-zinc-100 dark:border-zinc-800'>
                         {searchResults.map((track) => (
                           <div
                             key={track.id}
-                            className="flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors group cursor-pointer"
+                            className='flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors group cursor-pointer'
                             onClick={() => selectTrack(track)}
                           >
                             <button
-                              type="button"
+                              type='button'
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleSearchPreview(track);
                               }}
-                              className="w-9 h-9 rounded-xl overflow-hidden shrink-0 relative"
+                              className='w-9 h-9 rounded-xl overflow-hidden shrink-0 relative'
                             >
                               <img
                                 src={track.artwork}
-                                alt=""
-                                className="w-full h-full object-cover"
+                                alt=''
+                                className='w-full h-full object-cover'
                               />
                               <div
                                 className={`absolute inset-0 flex items-center justify-center transition-opacity ${previewingId === track.id ? 'bg-zinc-900/60 opacity-100' : 'bg-zinc-900/40 opacity-0 group-hover:opacity-100'}`}
                               >
                                 {previewingId === track.id ? (
-                                  <IconPlayerPause className="w-3.5 h-3.5 text-white" />
+                                  <IconPlayerPause className='w-3.5 h-3.5 text-white' />
                                 ) : (
-                                  <IconPlayerPlay className="w-3.5 h-3.5 text-white" />
+                                  <IconPlayerPlay className='w-3.5 h-3.5 text-white' />
                                 )}
                               </div>
                             </button>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                            <div className='flex-1 min-w-0'>
+                              <p className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
                                 {track.title}
                               </p>
-                              <p className="text-xs text-zinc-400 dark:text-zinc-500 truncate">
+                              <p className='text-xs text-zinc-400 dark:text-zinc-500 truncate'>
                                 {track.artist}
                               </p>
                             </div>
-                            <span className="shrink-0 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className='shrink-0 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity'>
                               Select
                             </span>
                           </div>
@@ -477,42 +490,46 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
                 )}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <label className='text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide'>
                     Note
                   </label>
-                  <span className="text-[10px] text-zinc-300 dark:text-zinc-600">
+                  <span className='text-[10px] text-zinc-300 dark:text-zinc-600'>
                     {editNote.length}/15
                   </span>
                 </div>
                 <input
-                  type="text"
+                  type='text'
                   value={editNote}
                   onChange={(e) => setEditNote(e.target.value)}
                   maxLength={15}
-                  placeholder="Say something to the team…"
-                  className="w-full px-3.5 py-3 text-sm rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder='Say something to the team…'
+                  className='w-full px-3.5 py-3 text-sm rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all'
                 />
               </div>
 
-              <div className="flex gap-2 pt-1">
+              <div className='flex gap-2 pt-1'>
                 <button
                   onClick={closeEdit}
-                  className="flex-1 py-3 rounded-2xl text-sm font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  className='flex-1 py-3 rounded-2xl text-sm font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors'
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveIntro}
                   disabled={saving}
-                  className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                  className='flex-1 py-3 rounded-2xl text-sm font-semibold bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors disabled:opacity-40 inline-flex items-center justify-center gap-1.5'
                 >
                   {saving ? (
                     'Saving…'
                   ) : (
                     <>
-                      <IconCheck className="w-3.5 h-3.5" strokeWidth={2.5} /> Save
+                      <IconCheck
+                        className='w-3.5 h-3.5'
+                        strokeWidth={2.5}
+                      />{' '}
+                      Save
                     </>
                   )}
                 </button>
@@ -536,19 +553,19 @@ export default function NewToTeam({ embedded = false }: { embedded?: boolean }) 
   return (
     <>
       <HomeSection
-        title="New to the team"
+        title='New to the team'
         action={
           myMember ? (
             <button
-              type="button"
+              type='button'
               onClick={openEdit}
-              className="text-xs font-medium text-zinc-500 hover:text-primary dark:text-zinc-400"
+              className='text-xs font-medium text-zinc-500 hover:text-primary dark:text-zinc-400'
             >
               Edit intro
             </button>
           ) : undefined
         }
-        className="relative"
+        className='relative'
       >
         {memberStrip}
       </HomeSection>

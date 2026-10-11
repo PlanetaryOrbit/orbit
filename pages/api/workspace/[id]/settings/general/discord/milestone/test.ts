@@ -1,5 +1,3 @@
-import { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { fetchworkspace, getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
@@ -7,6 +5,7 @@ import {
   formatMilestoneMessage,
   getMilestoneMessageTemplate,
 } from '@/utils/discord/milestoneMessage';
+import { NextApiResponse } from 'next';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

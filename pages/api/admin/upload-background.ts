@@ -1,11 +1,10 @@
 import fs from 'fs';
 
-import formidable from 'formidable';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import formidable from 'formidable';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
   api: {

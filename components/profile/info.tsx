@@ -134,45 +134,45 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
   return (
     <>
       {isBirthday && <Confetti />}
-      <div className="rounded-xl overflow-hidden">
-        <div className="bg-[rgb(250,250,250)] dark:bg-zinc-900 p-6 rounded-t-xl shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="bg-[#ff0099]/10 rounded-lg p-3">
-              <IconUser className="w-6 h-6 text-[#ff0099]" />
+      <div className='rounded-xl overflow-hidden'>
+        <div className='bg-[rgb(250,250,250)] dark:bg-zinc-900 p-6 rounded-t-xl shadow-sm'>
+          <div className='flex items-center gap-4'>
+            <div className='bg-[#ff0099]/10 rounded-lg p-3'>
+              <IconUser className='w-6 h-6 text-[#ff0099]' />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className='text-2xl font-semibold text-zinc-900 dark:text-zinc-100'>
                 Information
               </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>
                 Overview and member-specific details
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-[rgb(250,250,250)] dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700/40 p-6 rounded-b-xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
+        <div className='bg-[rgb(250,250,250)] dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700/40 p-6 rounded-b-xl'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='space-y-4'>
               <InfoRow
-                icon={<IconUser className="w-5 h-5 text-[#ff0099]" />}
-                label="Username"
+                icon={<IconUser className='w-5 h-5 text-[#ff0099]' />}
+                label='Username'
                 value={user.username}
               />
               <InfoRow
-                icon={<IconId className="w-5 h-5 text-[#ff0099]" />}
-                label="Display Name"
+                icon={<IconId className='w-5 h-5 text-[#ff0099]' />}
+                label='Display Name'
                 value={user.displayname}
               />
               <InfoRow
-                icon={<IconHash className="w-5 h-5 text-[#ff0099]" />}
-                label="UserId"
+                icon={<IconHash className='w-5 h-5 text-[#ff0099]' />}
+                label='UserId'
                 value={user.userid}
               />
               {user.joinDate && (
                 <InfoRow
-                  icon={<IconClipboard className="w-5 h-5 text-[#ff0099]" />}
-                  label="Joined"
+                  icon={<IconClipboard className='w-5 h-5 text-[#ff0099]' />}
+                  label='Joined'
                   value={new Date(user.joinDate).toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'short',
@@ -182,80 +182,86 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
               )}
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
+            <div className='space-y-4'>
+              <div className='flex items-center gap-3'>
                 {user.registered ? (
-                  <IconCheck className="w-5 h-5 text-[#ff0099]" />
+                  <IconCheck className='w-5 h-5 text-[#ff0099]' />
                 ) : (
-                  <IconX className="w-5 h-5 text-[#ff0099]" />
+                  <IconX className='w-5 h-5 text-[#ff0099]' />
                 )}
                 <div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">Status</div>
-                  <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">
+                  <div className='text-xs text-zinc-500 dark:text-zinc-400'>Status</div>
+                  <div className='text-sm font-medium text-zinc-500 dark:text-zinc-100'>
                     {user.registered ? 'Registered' : 'Unregistered'}
                   </div>
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center gap-3">
-                  <IconCalendar className="w-5 h-5 text-[#ff0099]" />
+                <div className='flex items-center gap-3'>
+                  <IconCalendar className='w-5 h-5 text-[#ff0099]' />
                   <div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">Birthday</div>
-                    <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">
+                    <div className='text-xs text-zinc-500 dark:text-zinc-400'>Birthday</div>
+                    <div className='text-sm font-medium text-zinc-500 dark:text-zinc-100'>
                       {birthday}
                     </div>
                   </div>
                 </div>
 
                 {canEdit && !editing && (
-                  <div className="mt-3">
+                  <div className='mt-3'>
                     <button
                       onClick={() => {
                         setEditing(true);
                         setMonth(user.birthdayMonth ? String(user.birthdayMonth) : '');
                         setDay(user.birthdayDay ? String(user.birthdayDay) : '');
                       }}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm"
-                      aria-label="Edit birthday"
+                      className='inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm'
+                      aria-label='Edit birthday'
                     >
-                      <IconPencil className="w-4 h-4" />
+                      <IconPencil className='w-4 h-4' />
                       <span>Edit Birthday</span>
                     </button>
                   </div>
                 )}
 
                 {editing && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <label className="sr-only">Month</label>
+                  <div className='mt-3 flex flex-wrap items-center gap-2'>
+                    <label className='sr-only'>Month</label>
                     <select
                       value={month}
                       onChange={(e) => {
                         setMonth(e.target.value);
                         setDay('');
                       }}
-                      className="border rounded px-2 py-1 w-36 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600"
-                      aria-label="Select month"
+                      className='border rounded px-2 py-1 w-36 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600'
+                      aria-label='Select month'
                     >
-                      <option value="">Month</option>
+                      <option value=''>Month</option>
                       {monthNames.slice(1).map((name, idx) => (
-                        <option key={idx + 1} value={idx + 1}>
+                        <option
+                          key={idx + 1}
+                          value={idx + 1}
+                        >
                           {name}
                         </option>
                       ))}
                     </select>
 
-                    <label className="sr-only">Day</label>
+                    <label className='sr-only'>Day</label>
                     <select
                       value={day}
                       onChange={(e) => setDay(e.target.value)}
-                      className="border rounded px-2 py-1 w-20 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600"
+                      className='border rounded px-2 py-1 w-20 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600'
                       disabled={!month}
-                      aria-label="Select day"
+                      aria-label='Select day'
                     >
-                      <option value="">Day</option>
+                      <option value=''>Day</option>
                       {days.map((d) => (
-                        <option key={d} value={d}>
+                        <option
+                          key={d}
+                          value={d}
+                        >
                           {d}
                         </option>
                       ))}
@@ -265,7 +271,7 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
                       <button
                         onClick={handleSave}
                         disabled={loading || !day || !month}
-                        className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm"
+                        className='ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ff0099] text-white text-sm'
                       >
                         {loading ? 'Saving...' : 'Save'}
                       </button>
@@ -273,7 +279,7 @@ export function InformationPanel({ user, isUser, isAdmin }: InformationPanelProp
 
                     <button
                       onClick={() => setEditing(false)}
-                      className="ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600"
+                      className='ml-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm text-zinc-900 dark:text-zinc-100 border-gray-300 dark:border-zinc-600'
                     >
                       Cancel
                     </button>
@@ -298,11 +304,11 @@ function InfoRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className='flex items-center gap-3'>
       <div>{icon}</div>
       <div>
-        <div className="text-xs text-zinc-400">{label}</div>
-        <div className="text-sm font-medium text-zinc-500 dark:text-zinc-100">{value}</div>
+        <div className='text-xs text-zinc-400'>{label}</div>
+        <div className='text-sm font-medium text-zinc-500 dark:text-zinc-100'>{value}</div>
       </div>
     </div>
   );

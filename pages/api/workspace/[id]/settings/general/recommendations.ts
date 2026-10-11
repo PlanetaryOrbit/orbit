@@ -1,5 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import { logAudit } from '@/utils/logs';
@@ -9,6 +7,7 @@ import {
   parseRecommendationConfig,
   recommendationConfigKey,
 } from '@/utils/recommendations';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

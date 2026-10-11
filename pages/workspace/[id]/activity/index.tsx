@@ -1,3 +1,9 @@
+import { ActivitySessionDetailsDialog } from '@/components/activity/ActivitySessionDetailsDialog';
+import { PodiumBadge, type PodiumPlace } from '@/components/activity/PodiumBadge';
+import Tooltip from '@/components/tooltip';
+import workspace from '@/layouts/workspace';
+import { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
 import {
   IconUsers,
   IconClock,
@@ -15,13 +21,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import { ActivitySessionDetailsDialog } from '@/components/activity/ActivitySessionDetailsDialog';
-import { PodiumBadge, type PodiumPlace } from '@/components/activity/PodiumBadge';
-import Tooltip from '@/components/tooltip';
-import workspace from '@/layouts/workspace';
-import { pageWithLayout } from '@/layoutTypes';
-import { loginState, workspacestate } from '@/state';
 
 const Activity: pageWithLayout = () => {
   const router = useRouter();
@@ -345,21 +344,21 @@ const Activity: pageWithLayout = () => {
   ];
 
   return (
-    <div className="pagePadding">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <div className="flex items-center gap-4">
+    <div className='pagePadding'>
+      <div className='mx-auto max-w-7xl space-y-8'>
+        <div className='flex items-center gap-4'>
           {myData?.picture && (
             <img
               src={myData.picture}
               alt={myData.username}
-              className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-primary/20"
+              className='h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-primary/20'
             />
           )}
           <div>
-            <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
+            <h1 className='text-xl font-semibold text-zinc-900 dark:text-white'>
               Activity Dashboard
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className='text-sm text-zinc-500 dark:text-zinc-400'>
               {myData
                 ? `Welcome back, ${myData.username}`
                 : 'Monitor your performance and track activity'}
@@ -368,21 +367,21 @@ const Activity: pageWithLayout = () => {
         </div>
 
         {leaderboardEnabled && (
-          <div className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
-            <div className="mb-5 flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">Leaderboard</h2>
-              <span className="text-xs text-zinc-400 dark:text-zinc-500">
+          <div className='rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60'>
+            <div className='mb-5 flex items-center gap-2'>
+              <h2 className='text-sm font-semibold text-zinc-900 dark:text-white'>Leaderboard</h2>
+              <span className='text-xs text-zinc-400 dark:text-zinc-500'>
                 Top performers this period
               </span>
             </div>
 
             {topStaff.length === 0 ? (
-              <p className="py-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
+              <p className='py-4 text-center text-sm text-zinc-400 dark:text-zinc-500'>
                 No staff members to display yet.
               </p>
             ) : (
               <>
-                <div className="flex items-end justify-center gap-2 sm:gap-6">
+                <div className='flex items-end justify-center gap-2 sm:gap-6'>
                   {[topStaff[1], topStaff[0], topStaff[2]]
                     .filter(Boolean)
                     .map((user: any, i: number) => {
@@ -395,11 +394,11 @@ const Activity: pageWithLayout = () => {
                       return (
                         <div
                           key={user.userId}
-                          className="flex flex-1 min-w-0 max-w-[110px] flex-col items-center sm:max-w-[140px]"
+                          className='flex flex-1 min-w-0 max-w-[110px] flex-col items-center sm:max-w-[140px]'
                         >
-                          <div className="relative mb-1">
+                          <div className='relative mb-1'>
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => goToProfile(user.userId)}
                               className={`${avatarSize} rounded-full cursor-pointer overflow-hidden ${getRandomBg(String(user.userId), user.username)}`}
                             >
@@ -409,7 +408,7 @@ const Activity: pageWithLayout = () => {
                                 className={`${avatarSize} rounded-full object-cover border-[3px] ${avatarBorders[pos]}`}
                               />
                             </button>
-                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2">
+                            <div className='absolute -top-1.5 left-1/2 -translate-x-1/2'>
                               <PodiumBadge place={pos as PodiumPlace} />
                             </div>
                           </div>
@@ -424,7 +423,7 @@ const Activity: pageWithLayout = () => {
                           <div
                             className={`mt-2 w-full rounded-t-xl ${blockHeights[pos]} ${blockColors[pos]} flex items-center justify-center`}
                           >
-                            <span className="text-xl font-black text-white opacity-60 sm:text-2xl">
+                            <span className='text-xl font-black text-white opacity-60 sm:text-2xl'>
                               {pos}
                             </span>
                           </div>
@@ -434,29 +433,32 @@ const Activity: pageWithLayout = () => {
                 </div>
 
                 {topStaff.length > 3 && (
-                  <div className="mt-5 divide-y divide-zinc-200 dark:divide-zinc-700/40">
+                  <div className='mt-5 divide-y divide-zinc-200 dark:divide-zinc-700/40'>
                     {topStaff.slice(3).map((user: any, index: number) => {
                       const minutes = Math.floor(user.ms / 1000 / 60);
                       return (
-                        <div key={user.userId} className="flex items-center gap-3 py-2.5">
-                          <span className="w-5 shrink-0 text-right text-xs font-bold text-zinc-400 dark:text-zinc-500">
+                        <div
+                          key={user.userId}
+                          className='flex items-center gap-3 py-2.5'
+                        >
+                          <span className='w-5 shrink-0 text-right text-xs font-bold text-zinc-400 dark:text-zinc-500'>
                             {index + 4}
                           </span>
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => goToProfile(user.userId)}
                             className={`h-7 w-7 shrink-0 overflow-hidden rounded-full ${getRandomBg(String(user.userId), user.username)}`}
                           >
                             <img
                               src={user.picture}
                               alt={user.username}
-                              className="h-7 w-7 rounded-full object-cover"
+                              className='h-7 w-7 rounded-full object-cover'
                             />
                           </button>
-                          <span className="flex-1 truncate text-sm font-medium text-zinc-900 dark:text-white">
+                          <span className='flex-1 truncate text-sm font-medium text-zinc-900 dark:text-white'>
                             {user.username}
                           </span>
-                          <span className="shrink-0 text-xs tabular-nums font-semibold text-zinc-500 dark:text-zinc-400">
+                          <span className='shrink-0 text-xs tabular-nums font-semibold text-zinc-500 dark:text-zinc-400'>
                             {formatMinutes(minutes)}
                           </span>
                         </div>
@@ -473,57 +475,69 @@ const Activity: pageWithLayout = () => {
           className={`grid gap-3 ${idleTimeEnabled ? 'grid-cols-2 xl:grid-cols-4' : 'grid-cols-2 xl:grid-cols-3'}`}
         >
           {statCards.map(({ label, icon: Icon, value, desc }) => (
-            <div key={label} className="rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/60">
-              <div className="mb-4 flex items-center gap-2">
-                <div className="shrink-0 rounded-lg bg-primary/10 p-1.5">
-                  <Icon className="h-4 w-4 text-primary" stroke={1.75} />
+            <div
+              key={label}
+              className='rounded-xl bg-zinc-100 p-4 dark:bg-zinc-800/60'
+            >
+              <div className='mb-4 flex items-center gap-2'>
+                <div className='shrink-0 rounded-lg bg-primary/10 p-1.5'>
+                  <Icon
+                    className='h-4 w-4 text-primary'
+                    stroke={1.75}
+                  />
                 </div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+                <p className='text-[11px] font-medium uppercase tracking-wide text-zinc-400'>
                   {label}
                 </p>
               </div>
-              <div className="text-3xl font-bold tabular-nums text-zinc-900 dark:text-white">
+              <div className='text-3xl font-bold tabular-nums text-zinc-900 dark:text-white'>
                 {value}
               </div>
-              <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{desc}</p>
+              <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>{desc}</p>
             </div>
           ))}
         </div>
 
         {myData && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-5 text-white">
-              <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-1 h-16 w-16 rounded-full bg-white/10" />
-              <div className="relative mb-4 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-100">
+          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+            <div className='relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-5 text-white'>
+              <div className='absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10' />
+              <div className='absolute -bottom-8 -right-1 h-16 w-16 rounded-full bg-white/10' />
+              <div className='relative mb-4 flex items-center justify-between'>
+                <p className='text-[11px] font-semibold uppercase tracking-wide text-blue-100'>
                   Sessions Hosted
                 </p>
-                <div className="rounded-lg bg-white/20 p-1.5">
-                  <IconUsers className="h-4 w-4 text-white" stroke={1.75} />
+                <div className='rounded-lg bg-white/20 p-1.5'>
+                  <IconUsers
+                    className='h-4 w-4 text-white'
+                    stroke={1.75}
+                  />
                 </div>
               </div>
-              <div className="relative text-4xl font-bold tabular-nums">
+              <div className='relative text-4xl font-bold tabular-nums'>
                 {myData.sessionsHosted}
               </div>
-              <p className="relative mt-0.5 text-sm text-blue-100">Sessions you led</p>
+              <p className='relative mt-0.5 text-sm text-blue-100'>Sessions you led</p>
             </div>
 
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 text-white">
-              <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -right-1 h-16 w-16 rounded-full bg-white/10" />
-              <div className="relative mb-4 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-100">
+            <div className='relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 text-white'>
+              <div className='absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-white/10' />
+              <div className='absolute -bottom-8 -right-1 h-16 w-16 rounded-full bg-white/10' />
+              <div className='relative mb-4 flex items-center justify-between'>
+                <p className='text-[11px] font-semibold uppercase tracking-wide text-emerald-100'>
                   Sessions Attended
                 </p>
-                <div className="rounded-lg bg-white/20 p-1.5">
-                  <IconChartBar className="h-4 w-4 text-white" stroke={1.75} />
+                <div className='rounded-lg bg-white/20 p-1.5'>
+                  <IconChartBar
+                    className='h-4 w-4 text-white'
+                    stroke={1.75}
+                  />
                 </div>
               </div>
-              <div className="relative text-4xl font-bold tabular-nums">
+              <div className='relative text-4xl font-bold tabular-nums'>
                 {myData.sessionsAttended}
               </div>
-              <p className="relative mt-0.5 text-sm text-emerald-100">
+              <p className='relative mt-0.5 text-sm text-emerald-100'>
                 Sessions you participated in
               </p>
             </div>
@@ -531,39 +545,42 @@ const Activity: pageWithLayout = () => {
         )}
 
         {myQuotas.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Quotas</h3>
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2'>
+              <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Quotas</h3>
+              <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                 {myQuotas.length}
               </span>
             </div>
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
               {myQuotas.map((quota: any) => (
-                <div key={quota.id} className="py-3.5">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                <div
+                  key={quota.id}
+                  className='py-3.5'
+                >
+                  <div className='mb-2 flex items-center justify-between gap-3'>
+                    <div className='flex min-w-0 flex-wrap items-center gap-2'>
+                      <span className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
                         {quota.name}
                       </span>
                       {quota.percentage >= 100 && (
-                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className='rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400'>
                           Complete
                         </span>
                       )}
                     </div>
-                    <span className="shrink-0 text-sm font-bold tabular-nums text-zinc-900 dark:text-white">
+                    <span className='shrink-0 text-sm font-bold tabular-nums text-zinc-900 dark:text-white'>
                       {quota.currentValue}
-                      <span className="text-xs font-normal text-zinc-400"> / {quota.value}</span>
+                      <span className='text-xs font-normal text-zinc-400'> / {quota.value}</span>
                     </span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div className='h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800'>
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${quota.percentage >= 100 ? 'bg-emerald-500' : 'bg-primary'}`}
                       style={{ width: `${Math.min(quota.percentage, 100)}%` }}
                     />
                   </div>
-                  <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  <p className='mt-1.5 text-xs text-zinc-400 dark:text-zinc-500'>
                     {Math.round(quota.percentage)}% · {quota.currentValue}{' '}
                     {getQuotaTypeLabel(quota.type)}
                   </p>
@@ -574,33 +591,36 @@ const Activity: pageWithLayout = () => {
         )}
 
         {myAssignments.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Assignments</h3>
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2'>
+              <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Assignments</h3>
+              <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                 {myAssignments.length}
               </span>
             </div>
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
               {myAssignments.map((assignment: any) => (
-                <div key={assignment.id} className="py-3.5">
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                <div
+                  key={assignment.id}
+                  className='py-3.5'
+                >
+                  <div className='mb-2 flex items-start justify-between gap-3'>
+                    <div className='min-w-0'>
+                      <p className='text-sm font-medium text-zinc-900 dark:text-white'>
                         {assignment.name}
                       </p>
-                      <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                      <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                         {assignment.description ||
                           `${assignment.value} ${getQuotaTypeLabel(assignment.type)} required`}
                       </p>
                     </div>
-                    <span className="shrink-0 text-sm font-bold tabular-nums text-zinc-900 dark:text-white">
+                    <span className='shrink-0 text-sm font-bold tabular-nums text-zinc-900 dark:text-white'>
                       {Math.round(assignment.progress || 0)}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div className='h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800'>
                     <div
-                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      className='h-full rounded-full bg-primary transition-all duration-500'
                       style={{ width: `${Math.min(assignment.progress || 0, 100)}%` }}
                     />
                   </div>
@@ -611,7 +631,7 @@ const Activity: pageWithLayout = () => {
         )}
 
         {leaderboardEnabled && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
             {[
               {
                 title: 'In-game Staff',
@@ -624,19 +644,22 @@ const Activity: pageWithLayout = () => {
                 emptyText: 'No staff are currently inactive',
               },
             ].map(({ title, users, emptyText }) => (
-              <div key={title} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h3>
+              <div
+                key={title}
+                className='space-y-3'
+              >
+                <div className='flex items-center gap-2'>
+                  <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>{title}</h3>
                   {users.length > 0 && (
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                       {users.length}
                     </span>
                   )}
                 </div>
                 {users.length === 0 ? (
-                  <p className="text-sm italic text-zinc-400 dark:text-zinc-500">{emptyText}</p>
+                  <p className='text-sm italic text-zinc-400 dark:text-zinc-500'>{emptyText}</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
+                  <div className='flex flex-wrap gap-2'>
                     {users.map((user: any) => (
                       <Tooltip
                         key={user.userId}
@@ -645,17 +668,17 @@ const Activity: pageWithLayout = () => {
                             ? `${user.username} | ${moment(user.from).format('DD MMM')} – ${moment(user.to).format('DD MMM')}`
                             : user.username
                         }
-                        orientation="top"
+                        orientation='top'
                       >
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => goToProfile(user.userId)}
                           className={`h-9 w-9 overflow-hidden rounded-full ring-2 ring-primary/10 transition hover:ring-primary/30 ${getRandomBg(user.userId)}`}
                         >
                           <img
                             src={user.picture}
                             alt={user.username}
-                            className="h-9 w-9 rounded-full object-cover"
+                            className='h-9 w-9 rounded-full object-cover'
                           />
                         </button>
                       </Tooltip>
@@ -667,24 +690,27 @@ const Activity: pageWithLayout = () => {
           </div>
         )}
 
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Activity Timeline</h3>
+        <div className='space-y-3'>
+          <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Activity Timeline</h3>
           {timeline.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-12">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/60">
-                <IconClipboardList className="h-5 w-5 text-zinc-400" stroke={1.75} />
+            <div className='flex flex-col items-center justify-center gap-3 py-12'>
+              <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/60'>
+                <IconClipboardList
+                  className='h-5 w-5 text-zinc-400'
+                  stroke={1.75}
+                />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <div className='text-center'>
+                <p className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>
                   No activity yet
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                   Sessions and adjustments will appear here
                 </p>
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
               {timeline.map((item: any) => {
                 if (item.__type === 'session') {
                   const isLive = item.active && !item.endTime;
@@ -704,38 +730,38 @@ const Activity: pageWithLayout = () => {
                       onClick={() => !isLive && fetchSessionDetails(item.id)}
                       className={`flex items-start justify-between gap-3 py-3.5 ${!isLive ? 'cursor-pointer' : ''}`}
                     >
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="mt-0.5 shrink-0">
+                      <div className='flex min-w-0 items-start gap-3'>
+                        <div className='mt-0.5 shrink-0'>
                           {isLive ? (
-                            <span className="relative flex h-5 w-5 items-center justify-center">
-                              <span className="absolute h-5 w-5 animate-ping rounded-full bg-emerald-500 opacity-30" />
-                              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                            <span className='relative flex h-5 w-5 items-center justify-center'>
+                              <span className='absolute h-5 w-5 animate-ping rounded-full bg-emerald-500 opacity-30' />
+                              <span className='h-2.5 w-2.5 rounded-full bg-emerald-500' />
                             </span>
                           ) : (
                             <img
                               src={item.user?.picture || login.thumbnail}
-                              alt="avatar"
-                              className="h-5 w-5 rounded-full object-cover"
+                              alt='avatar'
+                              className='h-5 w-5 rounded-full object-cover'
                             />
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                        <div className='min-w-0'>
+                          <div className='mb-0.5 flex flex-wrap items-center gap-2'>
+                            <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                               Activity Session
                             </span>
                             {isLive && (
-                              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                              <span className='rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400'>
                                 Live
                               </span>
                             )}
                           </div>
                           {isLive ? (
-                            <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                            <p className='text-xs text-emerald-600 dark:text-emerald-400'>
                               Currently active · {sessionDuration}m
                             </p>
                           ) : (
-                            <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                            <p className='text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                               {moment(item.startTime).format('HH:mm')}–
                               {moment(item.endTime).format('HH:mm')} ·{' '}
                               {moment(item.startTime).format('D MMM')} · {sessionDuration}m
@@ -749,7 +775,7 @@ const Activity: pageWithLayout = () => {
                             e.stopPropagation();
                             endSession(item.id, id as string);
                           }}
-                          className="shrink-0 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                          className='shrink-0 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
                         >
                           Not in game?
                         </button>
@@ -760,24 +786,27 @@ const Activity: pageWithLayout = () => {
 
                 if (item.__type === 'notice') {
                   return (
-                    <div key={`notice-${item.id}`} className="flex items-start gap-3 py-3.5">
-                      <div className="mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10">
-                        <IconCalendarTime className="h-3 w-3 text-amber-500" />
+                    <div
+                      key={`notice-${item.id}`}
+                      className='flex items-start gap-3 py-3.5'
+                    >
+                      <div className='mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10'>
+                        <IconCalendarTime className='h-3 w-3 text-amber-500' />
                       </div>
-                      <div className="min-w-0">
-                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                      <div className='min-w-0'>
+                        <div className='mb-0.5 flex flex-wrap items-center gap-2'>
+                          <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                             Inactivity Notice
                           </span>
-                          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          <span className='rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400'>
                             Approved
                           </span>
                         </div>
-                        <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                        <p className='text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                           {moment(item.startTime).format('D MMM')} –{' '}
                           {moment(item.endTime).format('D MMM YYYY')}
                         </p>
-                        <p className="mt-0.5 text-sm text-zinc-700 dark:text-zinc-300">
+                        <p className='mt-0.5 text-sm text-zinc-700 dark:text-zinc-300'>
                           {item.reason}
                         </p>
                       </div>
@@ -790,19 +819,19 @@ const Activity: pageWithLayout = () => {
                   return (
                     <div
                       key={`adjust-${item.id}`}
-                      className="flex items-start justify-between gap-3 py-3.5"
+                      className='flex items-start justify-between gap-3 py-3.5'
                     >
-                      <div className="flex min-w-0 items-start gap-3">
+                      <div className='flex min-w-0 items-start gap-3'>
                         <div
                           className={`mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${positive ? 'bg-emerald-500' : 'bg-red-500'}`}
                         >
                           {positive ? '+' : '−'}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                        <div className='min-w-0'>
+                          <p className='text-sm font-medium text-zinc-900 dark:text-white'>
                             Manual Adjustment
                           </p>
-                          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                          <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                             <span
                               className={
                                 positive
@@ -818,7 +847,7 @@ const Activity: pageWithLayout = () => {
                           </p>
                         </div>
                       </div>
-                      <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                      <time className='shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                         {moment(item.createdAt).format('D MMM, HH:mm')}
                       </time>
                     </div>

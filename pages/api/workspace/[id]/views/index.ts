@@ -1,9 +1,8 @@
-import type { NextApiResponse } from 'next';
-import { v4 as uuidv4 } from 'uuid';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { SAVED_VIEW_NAME_MAX_LENGTH } from '@/utils/savedViewLimits';
+import type { NextApiResponse } from 'next';
+import { v4 as uuidv4 } from 'uuid';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = Number(req.query.id as string);

@@ -1,9 +1,8 @@
-import { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { deleteMedia } from '@/utils/media';
+import { NextApiResponse } from 'next';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {

@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { deriveActivityEndChatFields } from '@/utils/activitySessionChat';
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

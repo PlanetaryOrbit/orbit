@@ -1,8 +1,7 @@
-import { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import { NextApiResponse } from 'next';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = parseInt(req.query.id as string);

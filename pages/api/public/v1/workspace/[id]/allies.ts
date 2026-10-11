@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withKey } from '@/lib/withAuth';
 import { validateApiKey } from '@/utils/api-auth';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withKey(handler);
 

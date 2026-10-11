@@ -1,7 +1,6 @@
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 // import { withAuth } from '@/lib/withSession';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {

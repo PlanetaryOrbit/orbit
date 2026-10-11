@@ -1,28 +1,3 @@
-import { Dialog, Transition } from '@headlessui/react';
-import {
-  IconPlus,
-  IconTrash,
-  IconPencil,
-  IconCalendar,
-  IconClipboardList,
-  IconArrowLeft,
-  IconBrandDiscord,
-  IconUserCheck,
-  IconEdit,
-  IconExternalLink,
-  IconBolt,
-  IconAlertTriangle,
-  IconMinus,
-} from '@tabler/icons-react';
-import axios from 'axios';
-import moment from 'moment';
-import { InferGetServerSidePropsType } from 'next';
-import { useRouter } from 'next/router';
-import { useState, Fragment, useMemo } from 'react';
-import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import {
   AlliancesPageShell,
   AlliancesPageHeader,
@@ -54,6 +29,30 @@ import prisma from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import randomText from '@/utils/randomText';
 import { getUsername, getThumbnail } from '@/utils/userinfoEngine';
+import { Dialog, Transition } from '@headlessui/react';
+import {
+  IconPlus,
+  IconTrash,
+  IconPencil,
+  IconCalendar,
+  IconClipboardList,
+  IconArrowLeft,
+  IconBrandDiscord,
+  IconUserCheck,
+  IconEdit,
+  IconExternalLink,
+  IconBolt,
+  IconAlertTriangle,
+  IconMinus,
+} from '@tabler/icons-react';
+import axios from 'axios';
+import moment from 'moment';
+import { InferGetServerSidePropsType } from 'next';
+import { useRouter } from 'next/router';
+import { useState, Fragment, useMemo } from 'react';
+import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 export const getServerSideProps = withPermissionCheckSsr(async ({ req, res, params }) => {
   const wsId = parseInt(params?.id as string, 10);
@@ -235,74 +234,85 @@ function CreateVisitModal({
 }) {
   const form = useForm<VisitForm>();
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+    <Transition
+      appear
+      show={isOpen}
+      as={Fragment}
+    >
+      <Dialog
+        as='div'
+        className='relative z-10'
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
         >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className='fixed inset-0 bg-black/30 backdrop-blur-sm' />
         </Transition.Child>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className='fixed inset-0 overflow-y-auto'>
+          <div className='flex min-h-full items-center justify-center p-4 text-center'>
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 scale-95'
+              enterTo='opacity-100 scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 scale-100'
+              leaveTo='opacity-0 scale-95'
             >
               <Dialog.Panel
                 className={`w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 text-left align-middle transition-all dark:bg-zinc-900 sm:p-6 ${alliancesPanelShadow}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <IconCalendar className="h-5 w-5 text-primary" stroke={1.75} />
+                <div className='flex items-start gap-3'>
+                  <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
+                    <IconCalendar
+                      className='h-5 w-5 text-primary'
+                      stroke={1.75}
+                    />
                   </div>
                   <div>
                     <Dialog.Title
-                      as="h3"
-                      className="text-base font-semibold text-zinc-900 dark:text-white"
+                      as='h3'
+                      className='text-base font-semibold text-zinc-900 dark:text-white'
                     >
                       Create New Visit
                     </Dialog.Title>
-                    <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                    <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
                       Schedule an alliance visit with your team
                     </p>
                   </div>
                 </div>
-                <div className="mt-5">
+                <div className='mt-5'>
                   <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                      <div className="space-y-4">
+                      <div className='space-y-4'>
                         <Input
-                          label="Visit Title"
+                          label='Visit Title'
                           classoverride={allianceFormInputOverride}
                           {...form.register('name', { required: true })}
                         />
                         <Input
-                          label="Visit Time"
-                          type="datetime-local"
+                          label='Visit Time'
+                          type='datetime-local'
                           classoverride={allianceFormInputOverride}
                           {...form.register('time', { required: true })}
                         />
                         <div>
                           <label className={allianceFormLabelClass}>Participants</label>
-                          <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40">
+                          <div className='max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40'>
                             {users.map((user: any) => (
                               <label
                                 key={user.userid}
-                                className="flex cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                className='flex cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800'
                               >
                                 <input
-                                  type="checkbox"
+                                  type='checkbox'
                                   checked={selectedParticipants.includes(Number(user.userid))}
                                   onChange={(e) =>
                                     setSelectedParticipants(
@@ -313,9 +323,9 @@ function CreateVisitModal({
                                           ),
                                     )
                                   }
-                                  className="rounded border-zinc-300 text-primary focus:ring-primary"
+                                  className='rounded border-zinc-300 text-primary focus:ring-primary'
                                 />
-                                <span className="text-sm text-zinc-900 dark:text-white">
+                                <span className='text-sm text-zinc-900 dark:text-white'>
                                   {user.username}
                                 </span>
                               </label>
@@ -323,20 +333,23 @@ function CreateVisitModal({
                           </div>
                         </div>
                       </div>
-                      <input type="submit" className="hidden" />
+                      <input
+                        type='submit'
+                        className='hidden'
+                      />
                     </form>
                   </FormProvider>
                 </div>
-                <div className="mt-6 flex gap-3">
+                <div className='mt-6 flex gap-3'>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceSecondaryButtonClass} flex-1 justify-center`}
                     onClick={onClose}
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type='button'
                     className={`${alliancePrimaryButtonClass} flex-1 justify-center`}
                     onClick={form.handleSubmit(onSubmit)}
                   >
@@ -370,71 +383,82 @@ function EditVisitModal({
   form: ReturnType<typeof useForm<EditVisitForm>>;
 }) {
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+    <Transition
+      appear
+      show={isOpen}
+      as={Fragment}
+    >
+      <Dialog
+        as='div'
+        className='relative z-10'
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
         >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className='fixed inset-0 bg-black/30 backdrop-blur-sm' />
         </Transition.Child>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className='fixed inset-0 overflow-y-auto'>
+          <div className='flex min-h-full items-center justify-center p-4 text-center'>
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 scale-95'
+              enterTo='opacity-100 scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 scale-100'
+              leaveTo='opacity-0 scale-95'
             >
               <Dialog.Panel
                 className={`w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 text-left align-middle transition-all dark:bg-zinc-900 sm:p-6 ${alliancesPanelShadow}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <IconPencil className="h-5 w-5 text-primary" stroke={1.75} />
+                <div className='flex items-start gap-3'>
+                  <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10'>
+                    <IconPencil
+                      className='h-5 w-5 text-primary'
+                      stroke={1.75}
+                    />
                   </div>
                   <div>
                     <Dialog.Title
-                      as="h3"
-                      className="text-base font-semibold text-zinc-900 dark:text-white"
+                      as='h3'
+                      className='text-base font-semibold text-zinc-900 dark:text-white'
                     >
                       Edit Visit
                     </Dialog.Title>
                   </div>
                 </div>
-                <div className="mt-5">
+                <div className='mt-5'>
                   <FormProvider {...form}>
                     <form>
-                      <div className="space-y-4">
+                      <div className='space-y-4'>
                         <Input
-                          label="Visit Title"
+                          label='Visit Title'
                           classoverride={allianceFormInputOverride}
                           {...form.register('name')}
                         />
                         <Input
-                          label="Visit Time"
-                          type="datetime-local"
+                          label='Visit Time'
+                          type='datetime-local'
                           classoverride={allianceFormInputOverride}
                           {...form.register('time')}
                         />
                         <div>
                           <label className={allianceFormLabelClass}>Participants</label>
-                          <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40">
+                          <div className='max-h-48 space-y-1 overflow-y-auto rounded-xl bg-zinc-50/80 p-2 dark:bg-zinc-800/40'>
                             {users.map((user: any) => (
                               <label
                                 key={user.userid}
-                                className="flex cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                className='flex cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800'
                               >
                                 <input
-                                  type="checkbox"
+                                  type='checkbox'
                                   checked={editSelectedParticipants.includes(Number(user.userid))}
                                   onChange={(e) =>
                                     setEditSelectedParticipants(
@@ -445,9 +469,9 @@ function EditVisitModal({
                                           ),
                                     )
                                   }
-                                  className="rounded border-zinc-300 text-primary focus:ring-primary"
+                                  className='rounded border-zinc-300 text-primary focus:ring-primary'
                                 />
-                                <span className="text-sm text-zinc-900 dark:text-white">
+                                <span className='text-sm text-zinc-900 dark:text-white'>
                                   {user.username}
                                 </span>
                               </label>
@@ -458,16 +482,16 @@ function EditVisitModal({
                     </form>
                   </FormProvider>
                 </div>
-                <div className="mt-6 flex gap-3">
+                <div className='mt-6 flex gap-3'>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceSecondaryButtonClass} flex-1 justify-center`}
                     onClick={onClose}
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type='button'
                     className={`${alliancePrimaryButtonClass} flex-1 justify-center`}
                     onClick={onUpdate}
                   >
@@ -501,55 +525,63 @@ function TerminationModal({
   onConfirm: () => void;
 }) {
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+    <Transition
+      appear
+      show={isOpen}
+      as={Fragment}
+    >
+      <Dialog
+        as='div'
+        className='relative z-10'
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
         >
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className='fixed inset-0 bg-black/40 backdrop-blur-sm' />
         </Transition.Child>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+        <div className='fixed inset-0 overflow-y-auto'>
+          <div className='flex min-h-full items-center justify-center p-4'>
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 scale-95'
+              enterTo='opacity-100 scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 scale-100'
+              leaveTo='opacity-0 scale-95'
             >
               <Dialog.Panel
                 className={`w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 text-left transition-all dark:bg-zinc-900 sm:p-6 ${alliancesPanelShadow}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-500/15">
+                <div className='flex items-start gap-3'>
+                  <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-500/15'>
                     <IconCalendar
-                      className="h-5 w-5 text-red-600 dark:text-red-400"
+                      className='h-5 w-5 text-red-600 dark:text-red-400'
                       stroke={1.75}
                     />
                   </div>
                   <div>
-                    <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                    <Dialog.Title className='text-base font-semibold text-zinc-900 dark:text-white'>
                       Schedule alliance termination
                     </Dialog.Title>
-                    <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className='mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400'>
                       Choose when this alliance ends and record why. Your workspace leads can clear
                       this later if plans change.
                     </p>
                   </div>
                 </div>
-                <div className="mt-5 space-y-4">
+                <div className='mt-5 space-y-4'>
                   <div>
                     <label className={allianceFormLabelClass}>Effective date & time</label>
                     <input
-                      type="datetime-local"
+                      type='datetime-local'
                       value={termEffective}
                       onChange={(e) => setTermEffective(e.target.value)}
                       className={allianceFormInputClass}
@@ -561,21 +593,21 @@ function TerminationModal({
                       value={termReasonDraft}
                       onChange={(e) => setTermReasonDraft(e.target.value)}
                       rows={4}
-                      placeholder="Explain why this alliance is ending…"
+                      placeholder='Explain why this alliance is ending…'
                       className={`${allianceFormInputClass} resize-none`}
                     />
                   </div>
                 </div>
-                <div className="mt-6 flex gap-3">
+                <div className='mt-6 flex gap-3'>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceSecondaryButtonClass} flex-1 justify-center`}
                     onClick={onClose}
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceDangerButtonClass} flex-1 justify-center`}
                     onClick={onConfirm}
                   >
@@ -605,73 +637,81 @@ function StrikeModal({
   onConfirm: () => void;
 }) {
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+    <Transition
+      appear
+      show={isOpen}
+      as={Fragment}
+    >
+      <Dialog
+        as='div'
+        className='relative z-10'
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter='ease-out duration-300'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
         >
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className='fixed inset-0 bg-black/40 backdrop-blur-sm' />
         </Transition.Child>
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+        <div className='fixed inset-0 overflow-y-auto'>
+          <div className='flex min-h-full items-center justify-center p-4'>
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter='ease-out duration-300'
+              enterFrom='opacity-0 scale-95'
+              enterTo='opacity-100 scale-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100 scale-100'
+              leaveTo='opacity-0 scale-95'
             >
               <Dialog.Panel
                 className={`w-full max-w-md overflow-hidden rounded-2xl bg-white p-5 text-left transition-all dark:bg-zinc-900 sm:p-6 ${alliancesPanelShadow}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/15">
+                <div className='flex items-start gap-3'>
+                  <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/15'>
                     <IconAlertTriangle
-                      className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                      className='h-5 w-5 text-amber-600 dark:text-amber-400'
                       stroke={1.75}
                     />
                   </div>
                   <div>
-                    <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                    <Dialog.Title className='text-base font-semibold text-zinc-900 dark:text-white'>
                       Add strike
                     </Dialog.Title>
-                    <p className="mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className='mt-1 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400'>
                       You must give a reason. An automatic note will be appended to this
                       alliance&apos;s notes when you confirm.
                     </p>
                   </div>
                 </div>
-                <div className="mt-5">
+                <div className='mt-5'>
                   <label className={allianceFormLabelClass}>Reason</label>
                   <textarea
                     value={strikeReasonDraft}
                     onChange={(e) => setStrikeReasonDraft(e.target.value)}
                     rows={4}
-                    placeholder="Explain why this strike is being issued…"
+                    placeholder='Explain why this strike is being issued…'
                     className={`${allianceFormInputClass} resize-none`}
                   />
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                     At least 3 characters required.
                   </p>
                 </div>
-                <div className="mt-6 flex gap-3">
+                <div className='mt-6 flex gap-3'>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceSecondaryButtonClass} flex-1 justify-center`}
                     onClick={onClose}
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
+                    type='button'
                     className={`${allianceWarningButtonClass} flex-1 justify-center`}
                     onClick={onConfirm}
                   >
@@ -1001,14 +1041,17 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
       />
 
       <AlliancesPageShell>
-        <div className="mb-4 flex items-center gap-2">
+        <div className='mb-4 flex items-center gap-2'>
           <button
-            type="button"
+            type='button'
             onClick={() => router.push(`/workspace/${id}/alliances`)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-            aria-label="Back to alliances"
+            className='inline-flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
+            aria-label='Back to alliances'
           >
-            <IconArrowLeft className="h-5 w-5" stroke={1.75} />
+            <IconArrowLeft
+              className='h-5 w-5'
+              stroke={1.75}
+            />
           </button>
         </div>
 
@@ -1019,35 +1062,39 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
           action={
             <a
               href={`https://www.roblox.com/groups/${ally.groupId}`}
-              target="_blank"
-              rel="noreferrer"
+              target='_blank'
+              rel='noreferrer'
               className={allianceSecondaryButtonClass}
             >
-              <IconExternalLink className="h-4 w-4" />
+              <IconExternalLink className='h-4 w-4' />
               View on Roblox
             </a>
           }
         />
 
-        <div className="mb-5 flex items-center gap-4">
+        <div className='mb-5 flex items-center gap-4'>
           <img
             src={ally.icon}
-            alt=""
-            className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-1 ring-zinc-100 dark:ring-zinc-800"
+            alt=''
+            className='h-14 w-14 shrink-0 rounded-2xl object-cover ring-1 ring-zinc-100 dark:ring-zinc-800'
           />
           {ally.reps?.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+            <div className='flex flex-wrap items-center gap-2'>
+              <span className='text-[11px] font-medium uppercase tracking-wide text-zinc-400'>
                 Reps
               </span>
               {ally.reps.map((rep: any) => (
-                <Tooltip key={rep.userid} orientation="top" tooltipText={rep.username}>
+                <Tooltip
+                  key={rep.userid}
+                  orientation='top'
+                  tooltipText={rep.username}
+                >
                   <div
                     className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-2 ring-white dark:ring-zinc-900 ${getRandomBg(rep.userid)} ${(props as any).missingReps?.some((m: any) => Number(m.userid) === Number(rep.userid)) ? 'opacity-70 ring-amber-400' : ''}`}
                   >
                     <img
                       src={rep.thumbnail}
-                      className="h-full w-full object-cover"
+                      className='h-full w-full object-cover'
                       alt={rep.username}
                       style={{ background: 'transparent' }}
                     />
@@ -1058,38 +1105,38 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
           )}
         </div>
 
-        <div className="space-y-4">
-          <AlliancesPanel className="p-5 sm:p-6">
+        <div className='space-y-4'>
+          <AlliancesPanel className='p-5 sm:p-6'>
             <AlliancesSectionBar
               icon={IconBolt}
-              title="Standing & termination"
-              subtitle="Track strikes and schedule an end date with a recorded reason"
+              title='Standing & termination'
+              subtitle='Track strikes and schedule an end date with a recorded reason'
             />
 
             {terminationMoment && (
               <AlliancesFormInset
                 className={`mb-5 ${terminationMoment.isBefore(moment()) ? 'border border-red-200/80 bg-red-50/80 dark:border-red-500/35 dark:bg-red-950/25' : 'border border-amber-200/80 bg-amber-50/80 dark:border-amber-500/30 dark:bg-amber-950/20'}`}
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-2.5">
+                <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='flex items-start gap-2.5'>
                     <IconAlertTriangle
                       className={`mt-0.5 h-5 w-5 shrink-0 ${terminationMoment.isBefore(moment()) ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}
                       stroke={1.75}
                     />
                     <div>
-                      <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                      <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
                         {terminationMoment.isBefore(moment())
                           ? 'Termination date reached'
                           : 'Termination scheduled'}
                       </p>
-                      <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                      <p className='text-xs text-zinc-600 dark:text-zinc-300'>
                         Effective{' '}
-                        <span className="font-medium">
+                        <span className='font-medium'>
                           {terminationMoment.format('MMM D, YYYY · h:mm A')}
                         </span>
                       </p>
                       {ally.terminationReason && (
-                        <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <p className='mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400'>
                           &ldquo;{ally.terminationReason}&rdquo;
                         </p>
                       )}
@@ -1097,7 +1144,7 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                   </div>
                   {canManageDiscipline && (
                     <button
-                      type="button"
+                      type='button'
                       onClick={clearTermination}
                       className={`${allianceSecondaryButtonClass} shrink-0 text-xs`}
                     >
@@ -1109,7 +1156,7 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             )}
 
             <div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className='flex flex-wrap items-center gap-2'>
                 {Array.from({ length: allianceMaxStrikes }, (_, i) => {
                   const filled = i < strikesCount;
                   const isCritical = strikesCount >= allianceMaxStrikes;
@@ -1127,7 +1174,10 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                           : 'bg-zinc-100 text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600'
                       }`}
                     >
-                      <IconBolt className="h-4 w-4" stroke={2} />
+                      <IconBolt
+                        className='h-4 w-4'
+                        stroke={2}
+                      />
                     </div>
                   );
                 })}
@@ -1151,24 +1201,28 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                         : `${strikesCount} strike${strikesCount !== 1 ? 's' : ''}`}
                 </span>
               </div>
-              <p className="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className='mt-2.5 text-xs text-zinc-500 dark:text-zinc-400'>
                 {strikesCount} of {allianceMaxStrikes} strikes used
                 {strikesCount > allianceMaxStrikes ? ' — above workspace cap' : ''}
               </p>
             </div>
 
             {canManageDiscipline && (
-              <div className="mt-5 flex flex-wrap gap-2 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+              <div className='mt-5 flex flex-wrap gap-2 border-t border-zinc-100 pt-5 dark:border-zinc-800'>
                 <button
-                  type="button"
+                  type='button'
                   disabled={strikesCount <= 0}
                   onClick={() => patchStrikes(strikesCount - 1)}
                   className={`${allianceSecondaryButtonClass} disabled:opacity-40`}
                 >
-                  <IconMinus className="h-4 w-4" stroke={2} /> Remove strike
+                  <IconMinus
+                    className='h-4 w-4'
+                    stroke={2}
+                  />{' '}
+                  Remove strike
                 </button>
                 <button
-                  type="button"
+                  type='button'
                   disabled={strikesCount >= allianceMaxStrikes}
                   onClick={() => {
                     setStrikeReasonDraft('');
@@ -1176,54 +1230,65 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                   }}
                   className={`${alliancePrimaryButtonClass} disabled:opacity-40`}
                 >
-                  <IconBolt className="h-4 w-4" stroke={2} /> Add strike
+                  <IconBolt
+                    className='h-4 w-4'
+                    stroke={2}
+                  />{' '}
+                  Add strike
                 </button>
                 {!terminationMoment && (
                   <button
-                    type="button"
+                    type='button'
                     onClick={openTerminationModal}
                     className={allianceDangerOutlineButtonClass}
                   >
-                    <IconCalendar className="h-4 w-4" stroke={2} /> Schedule termination
+                    <IconCalendar
+                      className='h-4 w-4'
+                      stroke={2}
+                    />{' '}
+                    Schedule termination
                   </button>
                 )}
               </div>
             )}
           </AlliancesPanel>
 
-          <AlliancesPanel className="p-5 sm:p-6">
+          <AlliancesPanel className='p-5 sm:p-6'>
             <AlliancesSectionBar
               icon={IconUserCheck}
-              title="Alliance information"
-              subtitle="Discord server and representative information"
+              title='Alliance information'
+              subtitle='Discord server and representative information'
               action={
                 canEditAllianceDetails ? (
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => setIsEditingInfo((v) => !v)}
                     className={`${allianceSecondaryButtonClass} !px-3 !py-2`}
                     aria-label={isEditingInfo ? 'Cancel editing' : 'Edit alliance information'}
                   >
-                    <IconEdit className="h-4 w-4" stroke={1.75} />
+                    <IconEdit
+                      className='h-4 w-4'
+                      stroke={1.75}
+                    />
                     {isEditingInfo ? 'Cancel' : 'Edit'}
                   </button>
                 ) : undefined
               }
             />
 
-            <div className="space-y-5">
+            <div className='space-y-5'>
               <div>
                 <label className={allianceFormLabelClass}>Discord server</label>
                 {isEditingInfo ? (
                   <input
-                    type="text"
+                    type='text'
                     value={discordServer}
                     onChange={(e) => setDiscordServer(e.target.value)}
-                    placeholder="https://discord.gg/..."
+                    placeholder='https://discord.gg/...'
                     className={allianceFormInputClass}
                   />
                 ) : (
-                  <AlliancesFormInset className="mt-1">
+                  <AlliancesFormInset className='mt-1'>
                     {discordServer ? (
                       <a
                         href={
@@ -1231,15 +1296,15 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                             ? discordServer
                             : `https://${discordServer}`
                         }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80"
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80'
                       >
-                        <IconBrandDiscord className="h-4 w-4 text-indigo-500" />
+                        <IconBrandDiscord className='h-4 w-4 text-indigo-500' />
                         {discordServer}
                       </a>
                     ) : (
-                      <span className="text-sm italic text-zinc-500 dark:text-zinc-400">
+                      <span className='text-sm italic text-zinc-500 dark:text-zinc-400'>
                         No Discord server set
                       </span>
                     )}
@@ -1250,32 +1315,32 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
               <div>
                 <label className={allianceFormLabelClass}>Our representatives</label>
                 {isEditingInfo ? (
-                  <AlliancesFormInset className="mt-1">
-                    <p className="mb-2 text-xs text-zinc-500">{reps.length} selected (minimum 1)</p>
-                    <div className="max-h-48 space-y-1 overflow-y-auto">
+                  <AlliancesFormInset className='mt-1'>
+                    <p className='mb-2 text-xs text-zinc-500'>{reps.length} selected (minimum 1)</p>
+                    <div className='max-h-48 space-y-1 overflow-y-auto'>
                       {users.map((user: any) => (
                         <label
                           key={user.userid}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className='flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-zinc-100 dark:hover:bg-zinc-800'
                         >
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             value={user.userid}
                             checked={reps.includes(user.userid)}
                             onChange={handleCheckboxChange}
-                            className="rounded border-zinc-300 text-primary focus:ring-primary"
+                            className='rounded border-zinc-300 text-primary focus:ring-primary'
                           />
                           <div
                             className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full ${getRandomBg(user.userid)}`}
                           >
                             <img
                               src={user.thumbnail}
-                              className="h-full w-full object-cover"
+                              className='h-full w-full object-cover'
                               alt={user.username}
                               style={{ background: 'transparent' }}
                             />
                           </div>
-                          <span className="text-sm text-zinc-900 dark:text-white">
+                          <span className='text-sm text-zinc-900 dark:text-white'>
                             {user.username}
                           </span>
                         </label>
@@ -1285,29 +1350,29 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                         .map((m: any) => (
                           <label
                             key={`missing-${m.userid}`}
-                            className="flex cursor-pointer items-center gap-3 rounded-lg border border-amber-200/80 bg-amber-50/50 p-2 dark:border-amber-800 dark:bg-amber-900/20"
+                            className='flex cursor-pointer items-center gap-3 rounded-lg border border-amber-200/80 bg-amber-50/50 p-2 dark:border-amber-800 dark:bg-amber-900/20'
                           >
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               value={m.userid}
                               checked={reps.includes(Number(m.userid))}
                               onChange={handleCheckboxChange}
-                              className="rounded border-zinc-300 text-primary focus:ring-primary"
+                              className='rounded border-zinc-300 text-primary focus:ring-primary'
                             />
                             <div
                               className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full opacity-70 ${getRandomBg(String(m.userid))}`}
                             >
                               <img
                                 src={m.thumbnail || '/default-avatar.jpg'}
-                                className="h-full w-full object-cover"
+                                className='h-full w-full object-cover'
                                 alt={m.username}
                                 style={{ background: 'transparent' }}
                                 onError={(e) => (e.currentTarget.src = '/default-avatar.jpg')}
                               />
                             </div>
-                            <span className="text-sm text-zinc-900 dark:text-white">
+                            <span className='text-sm text-zinc-900 dark:text-white'>
                               {m.username}
-                              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                              <span className='ml-2 text-xs text-amber-600 dark:text-amber-400'>
                                 (not in workspace)
                               </span>
                             </span>
@@ -1316,20 +1381,23 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                     </div>
                   </AlliancesFormInset>
                 ) : (
-                  <AlliancesFormInset className="mt-1 space-y-1">
+                  <AlliancesFormInset className='mt-1 space-y-1'>
                     {ally.reps?.length > 0 ? (
                       ally.reps.map((rep: any, i: number) => (
-                        <div key={`rep-${i}`} className="text-sm text-zinc-700 dark:text-zinc-300">
+                        <div
+                          key={`rep-${i}`}
+                          className='text-sm text-zinc-700 dark:text-zinc-300'
+                        >
                           {rep.username}
                           {(props as any).missingReps?.some(
                             (m: any) => Number(m.userid) === Number(rep.userid),
                           ) && (
-                            <span className="ml-2 text-xs text-amber-500">(not in workspace)</span>
+                            <span className='ml-2 text-xs text-amber-500'>(not in workspace)</span>
                           )}
                         </div>
                       ))
                     ) : (
-                      <span className="text-sm italic text-zinc-500 dark:text-zinc-400">
+                      <span className='text-sm italic text-zinc-500 dark:text-zinc-400'>
                         No representatives assigned
                       </span>
                     )}
@@ -1338,60 +1406,66 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
               </div>
 
               <div>
-                <div className="mb-1 flex items-center justify-between">
+                <div className='mb-1 flex items-center justify-between'>
                   <label className={allianceFormLabelClass}>Their representatives</label>
                   {isEditingInfo && (
                     <button
-                      type="button"
+                      type='button'
                       onClick={addTheirRep}
-                      className="text-primary hover:text-primary/80"
+                      className='text-primary hover:text-primary/80'
                     >
-                      <IconPlus className="h-4 w-4" />
+                      <IconPlus className='h-4 w-4' />
                     </button>
                   )}
                 </div>
                 {isEditingInfo ? (
-                  <div className="space-y-2">
+                  <div className='space-y-2'>
                     {theirReps.map((rep, i) => (
-                      <div key={i} className="flex items-center gap-2">
+                      <div
+                        key={i}
+                        className='flex items-center gap-2'
+                      >
                         <input
-                          type="text"
+                          type='text'
                           value={rep}
                           onChange={(e) => updateTheirRep(i, e.target.value)}
-                          placeholder="Roblox username"
+                          placeholder='Roblox username'
                           className={allianceFormInputClass}
                         />
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => removeTheirRep(i)}
-                          className="rounded-xl p-2 text-red-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                          className='rounded-xl p-2 text-red-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10'
                         >
-                          <IconTrash className="h-4 w-4" />
+                          <IconTrash className='h-4 w-4' />
                         </button>
                       </div>
                     ))}
                     {theirReps.length === 0 && (
                       <button
-                        type="button"
+                        type='button'
                         onClick={addTheirRep}
-                        className="w-full rounded-xl border border-dashed border-zinc-200 py-2.5 text-sm text-zinc-500 transition hover:border-primary hover:text-primary dark:border-zinc-700"
+                        className='w-full rounded-xl border border-dashed border-zinc-200 py-2.5 text-sm text-zinc-500 transition hover:border-primary hover:text-primary dark:border-zinc-700'
                       >
                         Add their representative
                       </button>
                     )}
                   </div>
                 ) : (
-                  <AlliancesFormInset className="mt-1 space-y-1">
+                  <AlliancesFormInset className='mt-1 space-y-1'>
                     {theirReps.filter((r) => r.trim()).length > 0 ? (
                       theirReps
                         .filter((r) => r.trim())
                         .map((rep, i) => (
-                          <div key={i} className="text-sm text-zinc-700 dark:text-zinc-300">
+                          <div
+                            key={i}
+                            className='text-sm text-zinc-700 dark:text-zinc-300'
+                          >
                             {rep}
                           </div>
                         ))
                     ) : (
-                      <span className="text-sm italic text-zinc-500 dark:text-zinc-400">
+                      <span className='text-sm italic text-zinc-500 dark:text-zinc-400'>
                         No representatives listed
                       </span>
                     )}
@@ -1401,9 +1475,9 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             </div>
 
             {isEditingInfo && (
-              <div className="mt-5 flex justify-end gap-2 border-t border-zinc-100 pt-5 dark:border-zinc-800">
+              <div className='mt-5 flex justify-end gap-2 border-t border-zinc-100 pt-5 dark:border-zinc-800'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setIsEditingInfo(false);
                     setDiscordServer(ally.discordServer || '');
@@ -1415,7 +1489,7 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                   Cancel
                 </button>
                 <button
-                  type="button"
+                  type='button'
                   onClick={saveAllianceInfo}
                   className={alliancePrimaryButtonClass}
                 >
@@ -1425,15 +1499,19 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             )}
           </AlliancesPanel>
 
-          <AlliancesPanel className="p-5 sm:p-6">
+          <AlliancesPanel className='p-5 sm:p-6'>
             <AlliancesSectionBar
               icon={IconClipboardList}
-              title="Notes"
-              subtitle="Keep track of additional information"
+              title='Notes'
+              subtitle='Keep track of additional information'
               action={
                 canAddNotes ? (
-                  <button type="button" onClick={createNote} className={alliancePrimaryButtonClass}>
-                    <IconPlus className="h-4 w-4" /> Add note
+                  <button
+                    type='button'
+                    onClick={createNote}
+                    className={alliancePrimaryButtonClass}
+                  >
+                    <IconPlus className='h-4 w-4' /> Add note
                   </button>
                 ) : undefined
               }
@@ -1442,50 +1520,50 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             {notes.length === 0 ? (
               <AlliancesEmptyState
                 icon={IconClipboardList}
-                title="No notes"
+                title='No notes'
                 description="You haven't added any notes yet."
                 action={
                   canAddNotes ? (
                     <button
-                      type="button"
+                      type='button'
                       onClick={createNote}
                       className={alliancePrimaryButtonClass}
                     >
-                      <IconPlus className="h-4 w-4" /> Add note
+                      <IconPlus className='h-4 w-4' /> Add note
                     </button>
                   ) : undefined
                 }
               />
             ) : (
-              <div className="space-y-3">
+              <div className='space-y-3'>
                 {notes.map((note, index) => (
                   <AlliancesFormInset key={index}>
-                    <div className="flex items-start justify-between gap-3">
+                    <div className='flex items-start justify-between gap-3'>
                       {!editNotes.includes(index) && (
-                        <p className="flex-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
-                          {note || <span className="italic text-zinc-400">This note is empty</span>}
+                        <p className='flex-1 whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-200'>
+                          {note || <span className='italic text-zinc-400'>This note is empty</span>}
                         </p>
                       )}
                       {(canEditNotes ||
                         (canAddNotes && newNotes.includes(index)) ||
                         canDeleteNotes) && (
-                        <div className="flex shrink-0 items-center gap-1">
+                        <div className='flex shrink-0 items-center gap-1'>
                           {(canEditNotes || (canAddNotes && newNotes.includes(index))) && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => noteEdit(index)}
-                              className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800"
+                              className='rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800'
                             >
-                              <IconPencil className="h-4 w-4" />
+                              <IconPencil className='h-4 w-4' />
                             </button>
                           )}
                           {canDeleteNotes && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => deleteNote(index)}
-                              className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                              className='rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10'
                             >
-                              <IconTrash className="h-4 w-4" />
+                              <IconTrash className='h-4 w-4' />
                             </button>
                           )}
                         </div>
@@ -1497,14 +1575,14 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                         value={note}
                         onChange={(e) => handleNoteChange(e, index)}
                         rows={3}
-                        placeholder="Enter your note here..."
+                        placeholder='Enter your note here...'
                       />
                     )}
                   </AlliancesFormInset>
                 ))}
                 {(canAddNotes || canEditNotes) && (
                   <button
-                    type="button"
+                    type='button'
                     onClick={saveNotes}
                     className={`${alliancePrimaryButtonClass} w-full justify-center`}
                   >
@@ -1515,19 +1593,19 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             )}
           </AlliancesPanel>
 
-          <AlliancesPanel className="p-5 sm:p-6">
+          <AlliancesPanel className='p-5 sm:p-6'>
             <AlliancesSectionBar
               icon={IconCalendar}
-              title="Visits"
-              subtitle="Schedule and manage alliance visits"
+              title='Visits'
+              subtitle='Schedule and manage alliance visits'
               action={
                 canAddVisits ? (
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => setCreateVisitOpen(true)}
                     className={alliancePrimaryButtonClass}
                   >
-                    <IconPlus className="h-4 w-4" /> New visit
+                    <IconPlus className='h-4 w-4' /> New visit
                   </button>
                 ) : undefined
               }
@@ -1536,64 +1614,67 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
             {visits.length === 0 ? (
               <AlliancesEmptyState
                 icon={IconCalendar}
-                title="No visits"
+                title='No visits'
                 description="You haven't scheduled any visits yet."
                 action={
                   canAddVisits ? (
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => setCreateVisitOpen(true)}
                       className={alliancePrimaryButtonClass}
                     >
-                      <IconPlus className="h-4 w-4" /> New visit
+                      <IconPlus className='h-4 w-4' /> New visit
                     </button>
                   ) : undefined
                 }
               />
             ) : (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                 {visits.map((visit: any) => (
-                  <AlliancesFormInset key={visit.id} className="!p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                  <AlliancesFormInset
+                    key={visit.id}
+                    className='!p-4'
+                  >
+                    <div className='flex items-start justify-between gap-3'>
+                      <div className='min-w-0'>
+                        <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>
                           {visit.name}
                         </h3>
-                        <div className="mt-2 flex items-center gap-2">
+                        <div className='mt-2 flex items-center gap-2'>
                           <div
                             className={`flex h-6 w-6 items-center justify-center overflow-hidden rounded-full ring-2 ring-white dark:ring-zinc-900 ${getRandomBg(visit.hostId)}`}
                           >
                             <img
                               src={visit.hostThumbnail}
-                              className="h-full w-full object-cover"
+                              className='h-full w-full object-cover'
                               alt={visit.hostUsername}
                               style={{ background: 'transparent' }}
                             />
                           </div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                             Hosted by {visit.hostUsername}
                           </p>
                         </div>
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                           {new Date(visit.time).toLocaleDateString()} at{' '}
                           {String(new Date(visit.time).getHours()).padStart(2, '0')}:
                           {String(new Date(visit.time).getMinutes()).padStart(2, '0')}
                         </p>
                         {visit.participants?.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
+                          <div className='mt-2 flex flex-wrap gap-1'>
                             {visit.participants.slice(0, 5).map((pid: number) => {
                               const p = users.find((u: any) => Number(u.userid) === pid);
                               return p ? (
                                 <span
                                   key={pid}
-                                  className="rounded-lg bg-zinc-200/80 px-2 py-0.5 text-xs text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300"
+                                  className='rounded-lg bg-zinc-200/80 px-2 py-0.5 text-xs text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300'
                                 >
                                   {p.username}
                                 </span>
                               ) : null;
                             })}
                             {visit.participants.length > 5 && (
-                              <span className="text-xs text-zinc-500">
+                              <span className='text-xs text-zinc-500'>
                                 +{visit.participants.length - 5} more
                               </span>
                             )}
@@ -1601,25 +1682,25 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
                         )}
                       </div>
                       {(canEditVisits || canDeleteVisits) && (
-                        <div className="flex shrink-0 items-center gap-1">
+                        <div className='flex shrink-0 items-center gap-1'>
                           {canEditVisits && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() =>
                                 openEditVisit(visit.id, visit.name, visit.time, visit.participants)
                               }
-                              className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800"
+                              className='rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800'
                             >
-                              <IconPencil className="h-4 w-4" />
+                              <IconPencil className='h-4 w-4' />
                             </button>
                           )}
                           {canDeleteVisits && (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => deleteVisit(visit.id)}
-                              className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                              className='rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10'
                             >
-                              <IconTrash className="h-4 w-4" />
+                              <IconTrash className='h-4 w-4' />
                             </button>
                           )}
                         </div>
@@ -1638,7 +1719,12 @@ function ManageAllyInner(props: AllyPageProps & { ally: any }) {
 
 const ManageAlly: pageWithLayout<AllyPageProps> = (props) => {
   if (!props.infoAlly) return null;
-  return <ManageAllyInner {...props} ally={props.infoAlly as any} />;
+  return (
+    <ManageAllyInner
+      {...props}
+      ally={props.infoAlly as any}
+    />
+  );
 };
 
 ManageAlly.layout = workspace;

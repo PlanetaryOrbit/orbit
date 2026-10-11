@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST')

@@ -1,3 +1,9 @@
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { AuthenticatedRequest } from '@/lib/withAuth';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import { Dialog, Transition } from '@headlessui/react';
 import type { wallPost } from '@prisma/client';
 import {
@@ -21,13 +27,6 @@ import ReactMarkdown from 'react-markdown';
 import { useRecoilState } from 'recoil';
 import rehypeSanitize from 'rehype-sanitize';
 import sanitizeHtml from 'sanitize-html';
-
-import Workspace from '@/layouts/workspace';
-import type { pageWithLayout } from '@/layoutTypes';
-import { AuthenticatedRequest } from '@/lib/withAuth';
-import { loginState, workspacestate } from '@/state';
-import prisma from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 const sanitizePosts = (posts: wallPost[]) =>
   posts.map((post) => ({
@@ -282,18 +281,18 @@ const Wall: pageWithLayout<pageProps> = (props) => {
     'p-2.5 text-zinc-500 dark:text-zinc-400 rounded-xl hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors';
 
   return (
-    <div className="pagePadding">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className='pagePadding'>
+      <div className='mx-auto max-w-3xl space-y-6'>
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Group Wall</h1>
-          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+          <h1 className='text-xl font-semibold text-zinc-900 dark:text-white'>Group Wall</h1>
+          <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
             Share updates and announcements with your team
           </p>
         </div>
 
         {canPostOnWall() ? (
-          <div className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
-            <div className="flex items-start gap-3">
+          <div className='rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60'>
+            <div className='flex items-start gap-3'>
               <div
                 className={clsx(
                   'h-9 w-9 shrink-0 overflow-hidden rounded-full',
@@ -302,13 +301,13 @@ const Wall: pageWithLayout<pageProps> = (props) => {
               >
                 <img
                   src={login.thumbnail}
-                  alt="Your avatar"
-                  className="h-full w-full object-cover"
+                  alt='Your avatar'
+                  className='h-full w-full object-cover'
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className='min-w-0 flex-1'>
                 <textarea
-                  className="w-full resize-none border-0 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-white dark:placeholder-zinc-500"
+                  className='w-full resize-none border-0 bg-transparent text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-white dark:placeholder-zinc-500'
                   placeholder="What's on your mind?"
                   value={wallMessage}
                   onChange={(e) => setWallMessage(e.target.value)}
@@ -316,48 +315,57 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                   maxLength={10000}
                 />
                 {selectedImagePreview && (
-                  <div className="relative mt-2">
+                  <div className='relative mt-2'>
                     <img
                       src={selectedImagePreview}
-                      alt="Selected"
-                      className="max-h-56 w-full rounded-xl bg-zinc-200 object-contain dark:bg-zinc-700"
+                      alt='Selected'
+                      className='max-h-56 w-full rounded-xl bg-zinc-200 object-contain dark:bg-zinc-700'
                     />
                     <button
                       onClick={removeImage}
-                      className="absolute right-2 top-2 rounded-lg bg-black/60 p-1.5 text-white transition hover:bg-black/80"
+                      className='absolute right-2 top-2 rounded-lg bg-black/60 p-1.5 text-white transition hover:bg-black/80'
                     >
-                      <IconX size={14} stroke={2} />
+                      <IconX
+                        size={14}
+                        stroke={2}
+                      />
                     </button>
                   </div>
                 )}
-                <div className="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700/60">
-                  <div className="flex items-center gap-0.5">
+                <div className='mt-3 flex items-center justify-between border-t border-zinc-200 pt-3 dark:border-zinc-700/60'>
+                  <div className='flex items-center gap-0.5'>
                     <input
-                      type="file"
+                      type='file'
                       ref={fileInputRef}
-                      className="hidden"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className='hidden'
+                      accept='image/jpeg,image/png,image/gif,image/webp'
                       onChange={handleImageSelect}
                     />
                     {canAddPhotos() && (
                       <button
                         className={iconButtonClass}
                         onClick={() => fileInputRef.current?.click()}
-                        type="button"
+                        type='button'
                       >
-                        <IconPhoto size={18} stroke={1.5} />
+                        <IconPhoto
+                          size={18}
+                          stroke={1.5}
+                        />
                       </button>
                     )}
-                    <div className="relative z-10">
+                    <div className='relative z-10'>
                       <button
-                        type="button"
+                        type='button'
                         className={iconButtonClass}
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                       >
-                        <IconMoodSmile size={18} stroke={1.5} />
+                        <IconMoodSmile
+                          size={18}
+                          stroke={1.5}
+                        />
                       </button>
                       {showEmojiPicker && (
-                        <div className="absolute left-0 top-full z-20 mt-2 overflow-hidden rounded-xl shadow-lg">
+                        <div className='absolute left-0 top-full z-20 mt-2 overflow-hidden rounded-xl shadow-lg'>
                           <EmojiPicker
                             onEmojiClick={onEmojiClick}
                             theme={
@@ -368,41 +376,44 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                             width={320}
                             height={380}
                             lazyLoadEmojis
-                            searchPlaceholder="Search emojis…"
+                            searchPlaceholder='Search emojis…'
                           />
                         </div>
                       )}
                     </div>
                   </div>
                   <button
-                    type="button"
+                    type='button'
                     onClick={sendPost}
                     disabled={loading || (!wallMessage.trim() && !selectedImage)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className='inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'
                   >
                     {loading ? (
                       <svg
-                        className="h-4 w-4 animate-spin"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                        className='h-4 w-4 animate-spin'
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 24 24'
                       >
                         <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
+                          className='opacity-25'
+                          cx='12'
+                          cy='12'
+                          r='10'
+                          stroke='currentColor'
+                          strokeWidth='4'
                         />
                         <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          className='opacity-75'
+                          fill='currentColor'
+                          d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                         />
                       </svg>
                     ) : (
-                      <IconSend size={16} stroke={1.75} />
+                      <IconSend
+                        size={16}
+                        stroke={1.75}
+                      />
                     )}
                     {loading ? 'Posting…' : 'Post'}
                   </button>
@@ -411,33 +422,39 @@ const Wall: pageWithLayout<pageProps> = (props) => {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl bg-zinc-100 px-5 py-4 dark:bg-zinc-800/60">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <div className='rounded-2xl bg-zinc-100 px-5 py-4 dark:bg-zinc-800/60'>
+            <p className='text-sm text-zinc-500 dark:text-zinc-400'>
               You don't have permission to post on the wall.
             </p>
           </div>
         )}
 
         {posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-16">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/60">
-              <IconInbox className="h-5 w-5 text-zinc-400 dark:text-zinc-500" stroke={1.75} />
+          <div className='flex flex-col items-center justify-center gap-3 py-16'>
+            <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/60'>
+              <IconInbox
+                className='h-5 w-5 text-zinc-400 dark:text-zinc-500'
+                stroke={1.75}
+              />
             </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No posts yet</p>
-              <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+            <div className='text-center'>
+              <p className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>No posts yet</p>
+              <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                 Be the first to share something with your team.
               </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className='space-y-3'>
             {posts.map((post: any) => {
               const isAuthor = String(post.authorId) === String(login.userId);
               const canDelete = isAuthor || userPermissions.includes('delete_wall_posts');
               return (
-                <div key={post.id} className="rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60">
-                  <div className="flex items-start gap-3">
+                <div
+                  key={post.id}
+                  className='rounded-2xl bg-zinc-100 p-5 dark:bg-zinc-800/60'
+                >
+                  <div className='flex items-start gap-3'>
                     <div
                       className={clsx(
                         'h-9 w-9 shrink-0 overflow-hidden rounded-full',
@@ -447,48 +464,51 @@ const Wall: pageWithLayout<pageProps> = (props) => {
                       <img
                         alt={post.author.username}
                         src={post.author.picture}
-                        className="h-full w-full object-cover"
+                        className='h-full w-full object-cover'
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
+                    <div className='min-w-0 flex-1'>
+                      <div className='flex items-start justify-between gap-2'>
                         <div>
-                          <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                          <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
                             {post.author.username}
                           </p>
-                          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                          <p className='text-xs text-zinc-400 dark:text-zinc-500'>
                             {moment(post.createdAt).format('D MMM YYYY [at] h:mm A')}
                           </p>
                         </div>
                         {canDelete && (
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => {
                               setPostToDelete(post.id);
                               setShowDeleteModal(true);
                             }}
-                            className="shrink-0 rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-500/10 hover:text-red-500"
-                            aria-label="Delete post"
+                            className='shrink-0 rounded-lg p-1.5 text-zinc-400 transition hover:bg-red-500/10 hover:text-red-500'
+                            aria-label='Delete post'
                           >
-                            <IconTrash size={16} stroke={1.5} />
+                            <IconTrash
+                              size={16}
+                              stroke={1.5}
+                            />
                           </button>
                         )}
                       </div>
-                      <div className="prose prose-sm mt-2.5 max-w-none text-zinc-800 dark:prose-invert dark:text-zinc-200">
+                      <div className='prose prose-sm mt-2.5 max-w-none text-zinc-800 dark:prose-invert dark:text-zinc-200'>
                         <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                           {post.content}
                         </ReactMarkdown>
                       </div>
                       {post.media && (
-                        <div className="mt-3">
+                        <div className='mt-3'>
                           <img
                             src={`/api/media/${post.media.id}`}
-                            alt=""
+                            alt=''
                             width={post.media.width ?? undefined}
                             height={post.media.height ?? undefined}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full max-h-96 rounded-xl object-contain bg-zinc-200 dark:bg-zinc-700"
+                            loading='lazy'
+                            decoding='async'
+                            className='w-full max-h-96 rounded-xl object-contain bg-zinc-200 dark:bg-zinc-700'
                             onError={(e) => {
                               e.currentTarget.src = '/placeholder-image-error.png';
                               toast.error('Failed to load image');
@@ -505,55 +525,66 @@ const Wall: pageWithLayout<pageProps> = (props) => {
         )}
 
         {postToDelete !== null && (
-          <Transition appear show={showDeleteModal} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={() => setShowDeleteModal(false)}>
+          <Transition
+            appear
+            show={showDeleteModal}
+            as={Fragment}
+          >
+            <Dialog
+              as='div'
+              className='relative z-50'
+              onClose={() => setShowDeleteModal(false)}
+            >
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-200"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-150"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
+                enter='ease-out duration-200'
+                enterFrom='opacity-0'
+                enterTo='opacity-100'
+                leave='ease-in duration-150'
+                leaveFrom='opacity-100'
+                leaveTo='opacity-0'
               >
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+                <div className='fixed inset-0 bg-black/50 backdrop-blur-sm' />
               </Transition.Child>
-              <div className="fixed inset-0 overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4">
+              <div className='fixed inset-0 overflow-y-auto'>
+                <div className='flex min-h-full items-center justify-center p-4'>
                   <Transition.Child
                     as={Fragment}
-                    enter="ease-out duration-200"
-                    enterFrom="opacity-0 scale-95"
-                    enterTo="opacity-100 scale-100"
-                    leave="ease-in duration-150"
-                    leaveFrom="opacity-100 scale-100"
-                    leaveTo="opacity-0 scale-95"
+                    enter='ease-out duration-200'
+                    enterFrom='opacity-0 scale-95'
+                    enterTo='opacity-100 scale-100'
+                    leave='ease-in duration-150'
+                    leaveFrom='opacity-100 scale-100'
+                    leaveTo='opacity-0 scale-95'
                   >
-                    <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all dark:bg-zinc-900">
-                      <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
-                        <IconTrash className="h-5 w-5 text-red-500" stroke={1.75} />
+                    <Dialog.Panel className='w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all dark:bg-zinc-900'>
+                      <div className='mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10'>
+                        <IconTrash
+                          className='h-5 w-5 text-red-500'
+                          stroke={1.75}
+                        />
                       </div>
                       <Dialog.Title
-                        as="h3"
-                        className="mb-1 text-base font-semibold text-zinc-900 dark:text-white"
+                        as='h3'
+                        className='mb-1 text-base font-semibold text-zinc-900 dark:text-white'
                       >
                         Delete post
                       </Dialog.Title>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                         This action cannot be undone.
                       </p>
-                      <div className="mt-5 flex gap-3">
+                      <div className='mt-5 flex gap-3'>
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => setShowDeleteModal(false)}
-                          className="flex-1 rounded-xl bg-zinc-100 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className='flex-1 rounded-xl bg-zinc-100 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
                         >
                           Cancel
                         </button>
                         <button
-                          type="button"
+                          type='button'
                           onClick={confirmDelete}
-                          className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
+                          className='flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-medium text-white transition hover:bg-red-600'
                         >
                           Delete
                         </button>

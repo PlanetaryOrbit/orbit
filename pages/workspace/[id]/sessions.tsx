@@ -1,22 +1,3 @@
-import {
-  IconChevronRight,
-  IconChevronLeft,
-  IconCalendarEvent,
-  IconPlus,
-  IconEdit,
-  IconUsers,
-  IconClock,
-  IconUserCircle,
-  IconX,
-  IconBan,
-} from '@tabler/icons-react';
-import axios from 'axios';
-import clsx from 'clsx';
-import { useRouter } from 'next/router';
-import { useState, useMemo, useEffect } from 'react';
-import toast from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import SessionTemplate from '@/components/sessioncard';
 import PatternEditDialog from '@/components/sessionpatterns';
 import {
@@ -40,6 +21,24 @@ import {
   canManageSession,
   canCancelSession,
 } from '@/utils/sessionPermissions';
+import {
+  IconChevronRight,
+  IconChevronLeft,
+  IconCalendarEvent,
+  IconPlus,
+  IconEdit,
+  IconUsers,
+  IconClock,
+  IconUserCircle,
+  IconX,
+  IconBan,
+} from '@tabler/icons-react';
+import axios from 'axios';
+import clsx from 'clsx';
+import { useRouter } from 'next/router';
+import { useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 const BG_COLORS = [
   'bg-rose-300',
@@ -95,7 +94,7 @@ function SessionMemberAvatar({
       <img
         src={`/api/user/${userid}/avatar`}
         alt={username || 'Member'}
-        className="h-full w-full rounded-full border-2 border-white object-cover dark:border-zinc-900"
+        className='h-full w-full rounded-full border-2 border-white object-cover dark:border-zinc-900'
         style={{ background: 'transparent' }}
       />
     </div>
@@ -383,10 +382,10 @@ const WeeklyCalendar: React.FC<{
   }, [currentWeek]);
 
   return (
-    <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-zinc-200 dark:border-zinc-700 gap-3">
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center">
+    <div className='bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-zinc-200 dark:border-zinc-700 gap-3'>
+        <div className='flex items-center justify-center gap-2'>
+          <span className='text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-[120px] text-center'>
             {(() => {
               const monday = getMonday(currentWeek);
               const sunday = new Date(monday);
@@ -399,7 +398,7 @@ const WeeklyCalendar: React.FC<{
           </span>
         </div>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className='flex items-center justify-center gap-2'>
           <button
             onClick={() => {
               const today = new Date();
@@ -407,17 +406,17 @@ const WeeklyCalendar: React.FC<{
               setSelectedDate(today);
               onSelectedDateChange?.(today);
             }}
-            className="px-3 py-1 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors"
+            className='px-3 py-1 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors'
           >
             Today
           </button>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className='p-4'>
         {selectedDateSessions.length > 0 ? (
-          <div className="relative">
-            <div className="h-64 overflow-y-auto space-y-3 pr-2">
+          <div className='relative'>
+            <div className='h-64 overflow-y-auto space-y-3 pr-2'>
               {selectedDateSessions
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((session: any) => {
@@ -446,14 +445,14 @@ const WeeklyCalendar: React.FC<{
                       } backdrop-blur-sm`}
                       onClick={() => onSessionClick?.(session)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between w-full">
-                            <h4 className="flex-1 min-w-0 font-medium text-zinc-900 dark:text-white truncate mb-0">
+                      <div className='flex items-start justify-between'>
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-center justify-between w-full'>
+                            <h4 className='flex-1 min-w-0 font-medium text-zinc-900 dark:text-white truncate mb-0'>
                               {session.name || session.sessionType.name}
                             </h4>
 
-                            <div className="flex items-center gap-1 ml-2 z-10 flex-shrink-0 relative left-2 group-hover:left-0 transition-all">
+                            <div className='flex items-center gap-1 ml-2 z-10 flex-shrink-0 relative left-2 group-hover:left-0 transition-all'>
                               {session.owner && (
                                 <div
                                   className={`w-8 h-8 rounded-full flex items-center justify-center ${getRandomBg(
@@ -462,7 +461,7 @@ const WeeklyCalendar: React.FC<{
                                 >
                                   <img
                                     src={session.owner.picture}
-                                    className="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-zinc-800"
+                                    className='w-7 h-7 rounded-full object-cover border-2 border-white dark:border-zinc-800'
                                     onError={(e) => {
                                       e.currentTarget.src = '/default-avatar.jpg';
                                     }}
@@ -478,7 +477,7 @@ const WeeklyCalendar: React.FC<{
                                 >
                                   <img
                                     src={coHost.user.picture}
-                                    className="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-zinc-800"
+                                    className='w-7 h-7 rounded-full object-cover border-2 border-white dark:border-zinc-800'
                                     onError={(e) => {
                                       e.currentTarget.src = '/default-avatar.jpg';
                                     }}
@@ -488,9 +487,9 @@ const WeeklyCalendar: React.FC<{
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className='flex items-center gap-2 mb-2'>
                             {isActive && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse">
+                              <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 animate-pulse'>
                                 • LIVE
                               </span>
                             )}
@@ -506,13 +505,13 @@ const WeeklyCalendar: React.FC<{
                               </span>
                             )}
                             {session.cancelled && (
-                              <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-xs font-medium">
-                                <IconBan className="w-3 h-3" />
+                              <span className='inline-flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-xs font-medium'>
+                                <IconBan className='w-3 h-3' />
                                 Cancelled
                               </span>
                             )}
                             {isConcluded && !session.cancelled && (
-                              <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium">
+                              <span className='bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400 px-2 py-1 rounded text-xs font-medium'>
                                 Concluded
                               </span>
                             )}
@@ -521,29 +520,29 @@ const WeeklyCalendar: React.FC<{
                               statues &&
                               statues.has(session.id) &&
                               statues.get(session.id) !== 'Open' && (
-                                <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
+                                <span className='bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium'>
                                   {statues.get(session.id)}
                                 </span>
                               )}
                           </div>
 
-                          <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
-                            <div className="flex items-center gap-1">
-                              <IconClock className="w-4 h-4" />
+                          <div className='flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400'>
+                            <div className='flex items-center gap-1'>
+                              <IconClock className='w-4 h-4' />
                               {new Date(session.date).toLocaleTimeString(undefined, {
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 hour12: true,
                               })}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <IconUserCircle className="w-4 h-4" />
+                            <div className='flex items-center gap-1'>
+                              <IconUserCircle className='w-4 h-4' />
                               {session.owner?.username || 'Unclaimed'}
                             </div>
                           </div>
                         </div>
 
-                        <div className="relative">
+                        <div className='relative'>
                           {canManageSession(workspace?.yourPermission || [], session.type) &&
                             onEditSession && (
                               <button
@@ -551,10 +550,10 @@ const WeeklyCalendar: React.FC<{
                                   e.stopPropagation();
                                   onEditSession(session.id);
                                 }}
-                                className="absolute -top-2 -right-2 p-1.5 bg-zinc-900/60 text-zinc-200 hover:text-white transition-colors opacity-0 group-hover:opacity-100 rounded-full shadow-sm border border-zinc-800 z-20"
-                                title="Edit session"
+                                className='absolute -top-2 -right-2 p-1.5 bg-zinc-900/60 text-zinc-200 hover:text-white transition-colors opacity-0 group-hover:opacity-100 rounded-full shadow-sm border border-zinc-800 z-20'
+                                title='Edit session'
                               >
-                                <IconEdit className="w-3.5 h-3.5" />
+                                <IconEdit className='w-3.5 h-3.5' />
                               </button>
                             )}
                         </div>
@@ -563,18 +562,18 @@ const WeeklyCalendar: React.FC<{
                   );
                 })}
             </div>
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-zinc-900 to-transparent" />
+            <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-zinc-900 to-transparent' />
           </div>
         ) : (
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto w-12 h-12 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
-                <IconCalendarEvent className="w-6 h-6 text-zinc-400" />
+          <div className='h-64 flex items-center justify-center'>
+            <div className='text-center'>
+              <div className='mx-auto w-12 h-12 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4'>
+                <IconCalendarEvent className='w-6 h-6 text-zinc-400' />
               </div>
-              <h3 className="text-sm font-medium text-zinc-900 dark:text-white mb-1">
+              <h3 className='text-sm font-medium text-zinc-900 dark:text-white mb-1'>
                 No Sessions Scheduled
               </h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                 There are no sessions scheduled for this date
               </p>
             </div>
@@ -838,27 +837,27 @@ const Home: pageWithLayout<pageProps> = (props) => {
   return (
     <SessionsPageShell>
       <SessionsPageHeader
-        title="Sessions"
-        subtitle="Plan, schedule, and manage sessions for your staff members"
+        title='Sessions'
+        subtitle='Plan, schedule, and manage sessions for your staff members'
         workspaceLabel={workspace.customName || workspace.groupName}
         action={
           canCreateAnySession(workspace.yourPermission) ? (
             <button
-              type="button"
+              type='button'
               onClick={() => router.push(`/workspace/${router.query.id}/sessions/new`)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+              className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
             >
-              <IconPlus className="h-4 w-4" />
+              <IconPlus className='h-4 w-4' />
               New session
             </button>
           ) : undefined
         }
       />
 
-      <div className="mb-6">
-        <div className="flex items-center justify-center gap-3">
+      <div className='mb-6'>
+        <div className='flex items-center justify-center gap-3'>
           <button
-            type="button"
+            type='button'
             onClick={() => {
               const previousWeek = new Date(currentWeek);
               previousWeek.setDate(currentWeek.getDate() - 7);
@@ -868,12 +867,15 @@ const Home: pageWithLayout<pageProps> = (props) => {
               'rounded-xl bg-white p-2 text-zinc-500 transition-colors hover:text-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:text-zinc-200',
               sessionsPanelShadow,
             )}
-            title="Previous week"
+            title='Previous week'
           >
-            <IconChevronLeft className="h-4 w-4" stroke={2} />
+            <IconChevronLeft
+              className='h-4 w-4'
+              stroke={2}
+            />
           </button>
 
-          <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+          <div className='flex flex-1 flex-wrap items-center justify-center gap-1.5 sm:gap-2'>
             {weekDates.map((date, index) => {
               const isToday = date.toDateString() === new Date().toDateString();
               const isSelected = date.toDateString() === selectedDate.toDateString();
@@ -881,7 +883,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
               return (
                 <button
                   key={date.toDateString()}
-                  type="button"
+                  type='button'
                   onClick={() => setSelectedDate(date)}
                   className={clsx(
                     'flex min-w-[44px] flex-col items-center justify-center rounded-xl px-2.5 py-2 transition-all focus:outline-none sm:min-w-[52px] sm:px-3',
@@ -920,7 +922,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
           </div>
 
           <button
-            type="button"
+            type='button'
             onClick={() => {
               const nextWeek = new Date(currentWeek);
               nextWeek.setDate(currentWeek.getDate() + 7);
@@ -930,16 +932,19 @@ const Home: pageWithLayout<pageProps> = (props) => {
               'rounded-xl bg-white p-2 text-zinc-500 transition-colors hover:text-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:text-zinc-200',
               sessionsPanelShadow,
             )}
-            title="Next week"
+            title='Next week'
           >
-            <IconChevronRight className="h-4 w-4" stroke={2} />
+            <IconChevronRight
+              className='h-4 w-4'
+              stroke={2}
+            />
           </button>
         </div>
       </div>
 
-      <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className='mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <h2 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>
             {isTodaySelected
               ? 'Today'
               : selectedDate.toLocaleDateString('en-US', {
@@ -949,7 +954,7 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 })}
           </h2>
           <button
-            type="button"
+            type='button'
             onClick={() => setShowHistory(!showHistory)}
             className={clsx(
               'rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
@@ -962,19 +967,19 @@ const Home: pageWithLayout<pageProps> = (props) => {
           </button>
         </div>
         <button
-          type="button"
+          type='button'
           onClick={() => {
             const today = new Date();
             setSelectedDate(today);
             setCurrentWeek(today);
           }}
-          className="self-start text-xs font-medium text-zinc-400 transition-colors hover:text-primary sm:self-auto"
+          className='self-start text-xs font-medium text-zinc-400 transition-colors hover:text-primary sm:self-auto'
         >
           Jump to today
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className='flex flex-col gap-3 sm:gap-4'>
         {selectedDateSessions.length > 0 ? (
           selectedDateSessions.map((session: any) => {
             const now = new Date();
@@ -1000,14 +1005,14 @@ const Home: pageWithLayout<pageProps> = (props) => {
                 )}
                 onClick={() => handleSessionClick(session)}
               >
-                <div className="flex items-start gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <h4 className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                <div className='flex items-start gap-4'>
+                  <div className='min-w-0 flex-1'>
+                    <div className='mb-2 flex flex-wrap items-center gap-2'>
+                      <h4 className='truncate text-sm font-semibold text-zinc-900 dark:text-white'>
                         {session.name || session.sessionType.name}
                       </h4>
                       {isActive && (
-                        <span className="inline-flex shrink-0 items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className='inline-flex shrink-0 items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400'>
                           Live
                         </span>
                       )}
@@ -1023,13 +1028,13 @@ const Home: pageWithLayout<pageProps> = (props) => {
                         </span>
                       )}
                       {session.cancelled && (
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:text-red-400">
-                          <IconBan className="h-3 w-3" />
+                        <span className='inline-flex shrink-0 items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:text-red-400'>
+                          <IconBan className='h-3 w-3' />
                           Cancelled
                         </span>
                       )}
                       {isConcluded && !session.cancelled && (
-                        <span className="shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <span className='shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                           Concluded
                         </span>
                       )}
@@ -1037,27 +1042,33 @@ const Home: pageWithLayout<pageProps> = (props) => {
                         !session.cancelled &&
                         statues?.has(session.id) &&
                         statues.get(session.id) !== 'Open' && (
-                          <span className="shrink-0 rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
+                          <span className='shrink-0 rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400'>
                             {statues.get(session.id)}
                           </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-zinc-400">
-                      <span className="inline-flex items-center gap-1.5">
-                        <IconClock className="h-3.5 w-3.5 shrink-0" stroke={1.75} />
+                    <div className='flex items-center gap-4 text-xs text-zinc-400'>
+                      <span className='inline-flex items-center gap-1.5'>
+                        <IconClock
+                          className='h-3.5 w-3.5 shrink-0'
+                          stroke={1.75}
+                        />
                         {new Date(session.date).toLocaleTimeString(undefined, {
                           hour: '2-digit',
                           minute: '2-digit',
                           hour12: true,
                         })}
                       </span>
-                      <span className="inline-flex min-w-0 items-center gap-1.5">
-                        <IconUserCircle className="h-3.5 w-3.5 shrink-0" stroke={1.75} />
-                        <span className="truncate">{session.owner?.username || 'Unclaimed'}</span>
+                      <span className='inline-flex min-w-0 items-center gap-1.5'>
+                        <IconUserCircle
+                          className='h-3.5 w-3.5 shrink-0'
+                          stroke={1.75}
+                        />
+                        <span className='truncate'>{session.owner?.username || 'Unclaimed'}</span>
                       </span>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className='flex shrink-0 items-center gap-1'>
                     {session.owner && (
                       <SessionMemberAvatar
                         userid={session.owner.userid.toString()}
@@ -1076,16 +1087,19 @@ const Home: pageWithLayout<pageProps> = (props) => {
                     {workspace.yourPermission &&
                       canManageSession(workspace.yourPermission, session.type) && (
                         <button
-                          type="button"
+                          type='button'
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditSession(session.id);
                           }}
-                          className="rounded-lg p-1.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                          title="Edit session"
-                          aria-label="Edit session"
+                          className='rounded-lg p-1.5 text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
+                          title='Edit session'
+                          aria-label='Edit session'
                         >
-                          <IconEdit className="h-4 w-4" stroke={1.75} />
+                          <IconEdit
+                            className='h-4 w-4'
+                            stroke={1.75}
+                          />
                         </button>
                       )}
                   </div>
@@ -1096,16 +1110,16 @@ const Home: pageWithLayout<pageProps> = (props) => {
         ) : (
           <SessionsEmptyState
             icon={IconCalendarEvent}
-            title="No sessions this day"
-            description="There are no sessions scheduled for this date."
+            title='No sessions this day'
+            description='There are no sessions scheduled for this date.'
             action={
               canCreateAnySession(workspace.yourPermission) ? (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => router.push(`/workspace/${router.query.id}/sessions/new`)}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                  className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                 >
-                  <IconPlus className="h-4 w-4" />
+                  <IconPlus className='h-4 w-4' />
                   New session
                 </button>
               ) : undefined

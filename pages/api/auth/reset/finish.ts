@@ -1,8 +1,7 @@
+import prisma from '@/utils/database';
 import bcryptjs from 'bcryptjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
-
-import prisma from '@/utils/database';
 
 async function authHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST')

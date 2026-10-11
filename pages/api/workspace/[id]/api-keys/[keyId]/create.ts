@@ -1,10 +1,9 @@
 import crypto from 'crypto';
 
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

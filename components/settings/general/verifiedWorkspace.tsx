@@ -1,11 +1,10 @@
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import axios from 'axios';
 import { BadgeCheck } from 'lucide-react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import SwitchComponenet from '@/components/switch';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 type props = {
   triggerToast: typeof toast;
@@ -35,14 +34,17 @@ const Guide: FC<props> = (props) => {
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <BadgeCheck size={18} className="text-primary" />
+    <div className='flex items-center justify-between px-5 py-4'>
+      <div className='flex items-center gap-3'>
+        <div className='p-2 bg-primary/10 rounded-lg'>
+          <BadgeCheck
+            size={18}
+            className='text-primary'
+          />
         </div>
         <div>
-          <p className="text-sm font-medium text-zinc-900 dark:text-white">Verified Workspace</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className='text-sm font-medium text-zinc-900 dark:text-white'>Verified Workspace</p>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
             Showcase your verified workspace, if it is affiliated with Planetary Orbit.
           </p>
         </div>
@@ -50,8 +52,8 @@ const Guide: FC<props> = (props) => {
       <SwitchComponenet
         checked={workspace.settings?.guidesEnabled}
         onChange={updateColor}
-        label=""
-        classoverride="mt-0"
+        label=''
+        classoverride='mt-0'
       />
     </div>
   );

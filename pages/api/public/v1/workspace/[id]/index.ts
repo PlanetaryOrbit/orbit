@@ -1,7 +1,6 @@
+import prisma from '@/utils/database';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
-
-import prisma from '@/utils/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET')

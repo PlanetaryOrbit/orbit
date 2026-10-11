@@ -1,6 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine';
 import prisma, { SessionType, document } from '@/utils/database';
@@ -8,6 +5,8 @@ import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { sanitizeJSON } from '@/utils/sanitise';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 type Data = {
   success: boolean;

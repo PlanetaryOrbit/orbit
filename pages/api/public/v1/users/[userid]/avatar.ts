@@ -279,10 +279,9 @@ async function getRemoteAvatarUrl(userId: number, resolution: number = 180): Pro
   return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=${clampedRes}&height=${clampedRes}&format=png`;
 }*/
 
+import cache from '@/utils/cache';
 import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-import cache from '@/utils/cache';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userid } = req.query;

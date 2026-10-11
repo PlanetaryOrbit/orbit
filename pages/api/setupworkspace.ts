@@ -1,7 +1,3 @@
-import bcryptjs from 'bcryptjs';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { User } from '@/types/index.d';
 import { fetchAvatar } from '@/utils/avatar';
 import prisma from '@/utils/database';
@@ -9,6 +5,9 @@ import { setRegistry } from '@/utils/registryManager';
 import { isGroupAllied } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
 import { getUsername, getDisplayName } from '@/utils/userinfoEngine';
+import bcryptjs from 'bcryptjs';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 type Data = {
   success: boolean;

@@ -103,27 +103,27 @@ const TransferOwnership: FC<TransferOwnershipProps> = ({
   const selectedMember = members.find((m) => m.userId === selectedMemberId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+      <div className='bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-md w-full mx-4'>
+        <div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700'>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
             Transfer Ownership
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
           >
             <IconX size={20} />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className='p-6 space-y-4'>
           {isCloudUser && (
-            <div className="mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-              <h2 className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+            <div className='mb-4 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'>
+              <h2 className='text-sm text-blue-800 dark:text-blue-200 font-medium'>
                 Planetary Cloud
               </h2>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+              <p className='text-xs text-blue-700 dark:text-blue-300 mt-1'>
                 This action only transfers workspace ownership, not the Planetary Cloud instance.
               </p>
             </div>
@@ -132,26 +132,26 @@ const TransferOwnership: FC<TransferOwnershipProps> = ({
           {!showConfirm ? (
             <>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className='text-sm text-gray-600 dark:text-gray-400'>
                   Select a workspace member to transfer ownership to.
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className='text-sm text-gray-600 dark:text-gray-400'>
                   They must already be a member of this workspace.
                 </p>
               </div>
 
               {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-gray-500 dark:text-gray-400">Loading members...</div>
+                <div className='flex items-center justify-center py-8'>
+                  <div className='text-gray-500 dark:text-gray-400'>Loading members...</div>
                 </div>
               ) : members.length === 0 ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-gray-500 dark:text-gray-400">
+                <div className='flex items-center justify-center py-8'>
+                  <div className='text-gray-500 dark:text-gray-400'>
                     No registered members found
                   </div>
                 </div>
               ) : (
-                <div className="max-h-64 overflow-y-auto space-y-2">
+                <div className='max-h-64 overflow-y-auto space-y-2'>
                   {members.map((member) => (
                     <button
                       key={member.userId.toString()}
@@ -167,19 +167,22 @@ const TransferOwnership: FC<TransferOwnershipProps> = ({
                         <img
                           src={member.thumbnail}
                           alt={member.username}
-                          className="w-10 h-10 rounded-full"
+                          className='w-10 h-10 rounded-full'
                         />
                       )}
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                      <div className='flex-1'>
+                        <p className='font-medium text-gray-900 dark:text-white'>
                           {member.displayName || member.username}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className='text-sm text-gray-500 dark:text-gray-400'>
                           @{member.username}
                         </p>
                       </div>
                       {selectedMemberId === member.userId && (
-                        <IconCheck size={20} className="text-blue-500" />
+                        <IconCheck
+                          size={20}
+                          className='text-blue-500'
+                        />
                       )}
                     </button>
                   ))}
@@ -188,25 +191,28 @@ const TransferOwnership: FC<TransferOwnershipProps> = ({
             </>
           ) : (
             <>
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className='space-y-4'>
+                <p className='text-sm font-medium text-gray-900 dark:text-white'>
                   Confirm ownership transfer:
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Current Owner</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">You</p>
+                <div className='flex items-center gap-3'>
+                  <div className='flex-1'>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>Current Owner</p>
+                    <p className='text-sm font-medium text-gray-900 dark:text-white'>You</p>
                   </div>
-                  <IconArrowRight size={20} className="text-gray-400" />
-                  <div className="flex-1 text-right">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">New Owner</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <IconArrowRight
+                    size={20}
+                    className='text-gray-400'
+                  />
+                  <div className='flex-1 text-right'>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>New Owner</p>
+                    <p className='text-sm font-medium text-gray-900 dark:text-white'>
                       {selectedMember?.displayName || selectedMember?.username}
                     </p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className='text-sm text-gray-600 dark:text-gray-400'>
                 This action is <strong>permanent</strong>. The new owner will have full control over
                 the workspace, and you will lose owner privileges.
               </p>
@@ -214,7 +220,7 @@ const TransferOwnership: FC<TransferOwnershipProps> = ({
           )}
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-zinc-700">
+        <div className='flex gap-3 p-6 border-t border-gray-200 dark:border-zinc-700'>
           <button
             onClick={showConfirm ? () => setShowConfirm(false) : onClose}
             disabled={isTransferring}

@@ -39,7 +39,7 @@ export function ActivityTabs(props: Props) {
   return (
     <div>
       <Tab.Group>
-        <Tab.List className="flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-700/50 border border-zinc-200 dark:border-zinc-600 rounded-lg mb-6">
+        <Tab.List className='flex p-1 gap-1 bg-zinc-50 dark:bg-zinc-700/50 border border-zinc-200 dark:border-zinc-600 rounded-lg mb-6'>
           <Tab
             className={({ selected }) =>
               `flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors flex-1 justify-center ${
@@ -49,7 +49,7 @@ export function ActivityTabs(props: Props) {
               }`
             }
           >
-            <IconChartBar className="w-4 h-4" />
+            <IconChartBar className='w-4 h-4' />
             Activity
           </Tab>
           <Tab
@@ -61,7 +61,7 @@ export function ActivityTabs(props: Props) {
               }`
             }
           >
-            <IconCalendarEvent className="w-4 h-4" />
+            <IconCalendarEvent className='w-4 h-4' />
             Sessions
           </Tab>
           <Tab
@@ -73,21 +73,21 @@ export function ActivityTabs(props: Props) {
               }`
             }
           >
-            <IconTarget className="w-4 h-4" />
+            <IconTarget className='w-4 h-4' />
             Quotas
           </Tab>
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
-            <div className="text-zinc-600 dark:text-zinc-400">
+            <div className='text-zinc-600 dark:text-zinc-400'>
               Activity Overview - Chart, metrics, and timeline will be here
             </div>
           </Tab.Panel>
           <Tab.Panel>
-            <div className="text-zinc-600 dark:text-zinc-400">Sessions History - Basic metrics</div>
+            <div className='text-zinc-600 dark:text-zinc-400'>Sessions History - Basic metrics</div>
           </Tab.Panel>
           <Tab.Panel>
-            <div className="text-zinc-600 dark:text-zinc-400">
+            <div className='text-zinc-600 dark:text-zinc-400'>
               Quotas Progress - Quota cards and progress tracking
             </div>
           </Tab.Panel>

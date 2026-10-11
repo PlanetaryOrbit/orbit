@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import prisma from '@/utils/database';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { getUsername, getDisplayName } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 type Data = {
   success: boolean;

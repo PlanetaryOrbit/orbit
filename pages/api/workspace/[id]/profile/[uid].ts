@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getThumbnail } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET')

@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

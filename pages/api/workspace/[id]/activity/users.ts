@@ -1,11 +1,10 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const activityUsersCache = new Map<string, { data: any; timestamp: number }>();
 const ACTIVITY_CACHE_DURATION = 30000;

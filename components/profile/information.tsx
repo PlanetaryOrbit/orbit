@@ -1,3 +1,8 @@
+import {
+  profileFieldPanelClass,
+  profileInputClass,
+  profileSecondaryButtonClass,
+} from '@/components/profile/shell';
 import { Listbox, Transition, Combobox } from '@headlessui/react';
 import {
   IconUser,
@@ -20,12 +25,6 @@ import moment from 'moment-timezone';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState, Fragment } from 'react';
 import toast from 'react-hot-toast';
-
-import {
-  profileFieldPanelClass,
-  profileInputClass,
-  profileSecondaryButtonClass,
-} from '@/components/profile/shell';
 
 const BG_COLORS = [
   'bg-rose-300',
@@ -113,15 +112,15 @@ const InfoRow = ({
   locked?: boolean;
 }) => (
   <div className={`flex items-center gap-4 py-3 ${locked ? 'opacity-50' : ''}`}>
-    <span className="w-28 shrink-0 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+    <span className='w-28 shrink-0 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
       {label}
     </span>
-    <div className="min-w-0 flex-1">{children}</div>
+    <div className='min-w-0 flex-1'>{children}</div>
   </div>
 );
 
 const NullValue = ({ label }: { label: string }) => (
-  <span className="text-sm italic text-zinc-400 dark:text-zinc-500">{label}</span>
+  <span className='text-sm italic text-zinc-400 dark:text-zinc-500'>{label}</span>
 );
 
 const monthNames = [
@@ -284,13 +283,13 @@ export function InformationTab({
   const getEditLevelBadge = () => {
     if (editLevel === 2)
       return (
-        <span className="ml-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+        <span className='ml-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400'>
           Full Access
         </span>
       );
     if (editLevel === 1)
       return (
-        <span className="ml-2 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-600 dark:text-sky-400">
+        <span className='ml-2 rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-600 dark:text-sky-400'>
           Limited Access
         </span>
       );
@@ -299,92 +298,101 @@ export function InformationTab({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Details</h3>
+      <div className='mb-4 flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Details</h3>
           {getEditLevelBadge()}
         </div>
         {canEdit && !editing && (
-          <button onClick={() => setEditing(true)} className={profileSecondaryButtonClass}>
-            <IconPencil className="w-3.5 h-3.5" />
+          <button
+            onClick={() => setEditing(true)}
+            className={profileSecondaryButtonClass}
+          >
+            <IconPencil className='w-3.5 h-3.5' />
             Edit {editLevel === 1 ? 'basic info' : 'all info'}
           </button>
         )}
         {editing && (
-          <div className="flex gap-2">
-            <button onClick={handleCancel} className={profileSecondaryButtonClass}>
-              <IconX className="w-3.5 h-3.5" />
+          <div className='flex gap-2'>
+            <button
+              onClick={handleCancel}
+              className={profileSecondaryButtonClass}
+            >
+              <IconX className='w-3.5 h-3.5' />
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary/90 disabled:opacity-60"
+              className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white transition hover:bg-primary/90 disabled:opacity-60'
             >
-              <IconCheck className="w-3.5 h-3.5" />
+              <IconCheck className='w-3.5 h-3.5' />
               {loading ? 'Saving…' : 'Save'}
             </button>
           </div>
         )}
       </div>
 
-      <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-        <InfoRow label="Username">
-          <p className="text-sm font-medium text-zinc-900 dark:text-white">@{user.username}</p>
+      <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
+        <InfoRow label='Username'>
+          <p className='text-sm font-medium text-zinc-900 dark:text-white'>@{user.username}</p>
         </InfoRow>
 
-        <InfoRow label="User ID">
-          <p className="font-mono text-sm text-zinc-900 dark:text-white">{user.userid}</p>
+        <InfoRow label='User ID'>
+          <p className='font-mono text-sm text-zinc-900 dark:text-white'>{user.userid}</p>
         </InfoRow>
 
-        <InfoRow label="Discord">
+        <InfoRow label='Discord'>
           {editing && editLevel >= 1 ? (
             <input
-              type="text"
+              type='text'
               value={discordId}
               onChange={(e) => setDiscordId(e.target.value)}
-              placeholder="Discord user ID"
+              placeholder='Discord user ID'
               className={profileInputClass}
             />
           ) : user.DiscordUser ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 py-1 pl-1 pr-3 dark:border-white/10 dark:bg-white/5">
+            <div className='inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 py-1 pl-1 pr-3 dark:border-white/10 dark:bg-white/5'>
               {user.DiscordUser.avatar ? (
                 <img
                   src={`https://cdn.discordapp.com/avatars/${user.DiscordUser.discordUserId}/${user.DiscordUser.avatar}.png`}
                   alt={user.DiscordUser.username}
-                  className="h-5 w-5 shrink-0 rounded-full object-cover"
+                  className='h-5 w-5 shrink-0 rounded-full object-cover'
                 />
               ) : (
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5865F2]">
-                  <span className="text-[9px] font-bold text-white">
+                <div className='flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5865F2]'>
+                  <span className='text-[9px] font-bold text-white'>
                     {user.DiscordUser.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
-              <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              <span className='text-sm text-zinc-700 dark:text-zinc-300'>
                 {user.DiscordUser.username}
               </span>
             </div>
           ) : workspaceMember?.discordId ? (
-            <p className="font-mono text-sm text-zinc-900 dark:text-white">
+            <p className='font-mono text-sm text-zinc-900 dark:text-white'>
               {workspaceMember.discordId}
             </p>
           ) : (
-            <NullValue label="Not linked" />
+            <NullValue label='Not linked' />
           )}
         </InfoRow>
 
-        <InfoRow label="Birthday">
+        <InfoRow label='Birthday'>
           {editing && editLevel >= 1 ? (
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               <select
                 value={birthdayMonth}
                 onChange={(e) => setBirthdayMonth(e.target.value)}
                 className={`flex-1 ${profileInputClass}`}
               >
-                <option value="">Month</option>
+                <option value=''>Month</option>
                 {monthNames.slice(1).map((month, idx) => (
-                  <option key={idx + 1} value={idx + 1}>
+                  <option
+                    key={idx + 1}
+                    value={idx + 1}
+                  >
                     {month}
                   </option>
                 ))}
@@ -394,27 +402,33 @@ export function InformationTab({
                 onChange={(e) => setBirthdayDay(e.target.value)}
                 className={`flex-1 ${profileInputClass}`}
               >
-                <option value="">Day</option>
+                <option value=''>Day</option>
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <option key={day} value={day}>
+                  <option
+                    key={day}
+                    value={day}
+                  >
                     {day}
                   </option>
                 ))}
               </select>
             </div>
           ) : user.birthdayDay && user.birthdayMonth ? (
-            <p className="text-sm text-zinc-900 dark:text-white">
+            <p className='text-sm text-zinc-900 dark:text-white'>
               {monthNames[user.birthdayMonth]} {user.birthdayDay}
             </p>
           ) : (
-            <NullValue label="Not set" />
+            <NullValue label='Not set' />
           )}
         </InfoRow>
 
-        <InfoRow label="Timezone">
+        <InfoRow label='Timezone'>
           {editing && editLevel >= 1 ? (
-            <Listbox value={selectedTimezone} onChange={setSelectedTimezone}>
-              <div className="relative">
+            <Listbox
+              value={selectedTimezone}
+              onChange={setSelectedTimezone}
+            >
+              <div className='relative'>
                 <Listbox.Button
                   className={`relative w-full cursor-pointer text-left ${profileInputClass} pr-8`}
                 >
@@ -426,13 +440,13 @@ export function InformationTab({
                 </Listbox.Button>
                 <Transition
                   as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
+                  leave='transition ease-in duration-100'
+                  leaveFrom='opacity-100'
+                  leaveTo='opacity-0'
                 >
-                  <Listbox.Options className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                  <Listbox.Options className='absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800'>
                     <Listbox.Option
-                      value=""
+                      value=''
                       className={({ active }) =>
                         `cursor-pointer select-none px-3 py-2 ${active ? 'bg-primary/10 text-primary' : 'text-zinc-400'}`
                       }
@@ -455,17 +469,17 @@ export function InformationTab({
               </div>
             </Listbox>
           ) : workspaceMember?.timezone ? (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-zinc-900 dark:text-white">{workspaceMember.timezone}</p>
+            <div className='flex items-center gap-2'>
+              <p className='text-sm text-zinc-900 dark:text-white'>{workspaceMember.timezone}</p>
               {localTime && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                  {isNight ? <IconMoon className="h-3 w-3" /> : <IconSun className="h-3 w-3" />}
+                <span className='inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
+                  {isNight ? <IconMoon className='h-3 w-3' /> : <IconSun className='h-3 w-3' />}
                   {localTime}
                 </span>
               )}
             </div>
           ) : (
-            <NullValue label="Not set" />
+            <NullValue label='Not set' />
           )}
         </InfoRow>
 
@@ -475,9 +489,12 @@ export function InformationTab({
         >
           {editing && editLevel >= 2 ? (
             availableDepartments.length > 0 ? (
-              <div className="relative" ref={deptDropdownRef}>
+              <div
+                className='relative'
+                ref={deptDropdownRef}
+              >
                 <button
-                  type="button"
+                  type='button'
                   onMouseDown={(e) => {
                     e.preventDefault();
                     setDeptOpen((o) => !o);
@@ -489,12 +506,12 @@ export function InformationTab({
                     : selectedDepartments.length === 1
                       ? selectedDepartments[0].name
                       : `${selectedDepartments.length} selected`}
-                  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                    <IconChevronDown className="h-4 w-4 text-zinc-400" />
+                  <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
+                    <IconChevronDown className='h-4 w-4 text-zinc-400' />
                   </span>
                 </button>
                 {deptOpen && (
-                  <div className="absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                  <div className='absolute z-[200] mt-1 max-h-60 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800'>
                     {availableDepartments.map((dept) => {
                       const isSelected = selectedDepartments.some((d) => d.id === dept.id);
                       return (
@@ -506,16 +523,16 @@ export function InformationTab({
                               isSelected ? prev.filter((d) => d.id !== dept.id) : [...prev, dept],
                             );
                           }}
-                          className="relative flex cursor-pointer select-none items-center gap-2 py-2 pl-3 pr-9 hover:bg-primary/10 hover:text-primary text-zinc-900 dark:text-white"
+                          className='relative flex cursor-pointer select-none items-center gap-2 py-2 pl-3 pr-9 hover:bg-primary/10 hover:text-primary text-zinc-900 dark:text-white'
                         >
                           <div
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            className='h-2.5 w-2.5 shrink-0 rounded-full'
                             style={{ backgroundColor: dept.color || '#6b7280' }}
                           />
                           <span className={isSelected ? 'font-medium' : ''}>{dept.name}</span>
                           {isSelected && (
-                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-primary">
-                              <IconCheck className="h-4 w-4" />
+                            <span className='absolute inset-y-0 right-0 flex items-center pr-3 text-primary'>
+                              <IconCheck className='h-4 w-4' />
                             </span>
                           )}
                         </div>
@@ -525,14 +542,14 @@ export function InformationTab({
                 )}
               </div>
             ) : (
-              <NullValue label="No departments available" />
+              <NullValue label='No departments available' />
             )
           ) : selectedDepartments.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {selectedDepartments.map((dept) => (
                 <span
                   key={dept.id}
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                  className='inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white'
                   style={{ backgroundColor: dept.color || '#6b7280' }}
                 >
                   {dept.name}
@@ -540,28 +557,34 @@ export function InformationTab({
               ))}
             </div>
           ) : (
-            <NullValue label="Not assigned" />
+            <NullValue label='Not assigned' />
           )}
         </InfoRow>
 
-        <InfoRow label="Line manager" locked={editLevel < 2 && editing}>
+        <InfoRow
+          label='Line manager'
+          locked={editLevel < 2 && editing}
+        >
           {editing && editLevel >= 2 ? (
-            <Combobox value={selectedManager} onChange={setSelectedManager}>
-              <div className="relative">
+            <Combobox
+              value={selectedManager}
+              onChange={setSelectedManager}
+            >
+              <div className='relative'>
                 <Combobox.Input
                   className={profileInputClass}
                   displayValue={(manager: any) => manager?.username || ''}
                   onChange={(e) => setManagerQuery(e.target.value)}
-                  placeholder="Search member…"
+                  placeholder='Search member…'
                 />
                 <Transition
                   as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
+                  leave='transition ease-in duration-100'
+                  leaveFrom='opacity-100'
+                  leaveTo='opacity-0'
                   afterLeave={() => setManagerQuery('')}
                 >
-                  <Combobox.Options className="absolute z-[200] mt-1 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
+                  <Combobox.Options className='absolute z-[200] mt-1 w-full overflow-auto rounded-xl border border-zinc-200 bg-white py-1 text-sm shadow-xl dark:border-zinc-700 dark:bg-zinc-800'>
                     <Combobox.Option
                       value={null}
                       className={({ active }) =>
@@ -573,7 +596,7 @@ export function InformationTab({
                       )}
                     </Combobox.Option>
                     {filteredManagers.length === 0 && managerQuery !== '' ? (
-                      <div className="px-3 py-2 text-sm text-zinc-500">No members found.</div>
+                      <div className='px-3 py-2 text-sm text-zinc-500'>No members found.</div>
                     ) : (
                       filteredManagers.map((member) => (
                         <Combobox.Option
@@ -587,7 +610,7 @@ export function InformationTab({
                             <>
                               <img
                                 src={`/api/user/${member.userid}/avatar`}
-                                className="h-5 w-5 rounded-full object-cover"
+                                className='h-5 w-5 rounded-full object-cover'
                                 alt={member.username}
                               />
                               <span
@@ -605,7 +628,7 @@ export function InformationTab({
               </div>
             </Combobox>
           ) : selectedManager || initialLineManager ? (
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <div
                 className={`h-6 w-6 shrink-0 overflow-hidden rounded-full ${getRandomBg(
                   (selectedManager || initialLineManager)?.userid || '',
@@ -613,23 +636,23 @@ export function InformationTab({
               >
                 <img
                   src={`/api/user/${(selectedManager || initialLineManager)?.userid}/avatar`}
-                  className="h-6 w-6 object-cover"
+                  className='h-6 w-6 object-cover'
                   alt={(selectedManager || initialLineManager)?.username}
                 />
               </div>
-              <p className="text-sm text-zinc-900 dark:text-white">
+              <p className='text-sm text-zinc-900 dark:text-white'>
                 {(selectedManager || initialLineManager)?.username}
               </p>
             </div>
           ) : (
-            <NullValue label="Not assigned" />
+            <NullValue label='Not assigned' />
           )}
         </InfoRow>
 
-        <InfoRow label="Join date">
+        <InfoRow label='Join date'>
           {user.joinDate ? (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-zinc-900 dark:text-white">
+            <div className='flex items-center gap-2'>
+              <p className='text-sm text-zinc-900 dark:text-white'>
                 {new Date(user.joinDate).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
@@ -637,13 +660,13 @@ export function InformationTab({
                 })}
               </p>
               {joinTenure && (
-                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <span className='rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400'>
                   {joinTenure}
                 </span>
               )}
             </div>
           ) : (
-            <NullValue label="Unknown" />
+            <NullValue label='Unknown' />
           )}
         </InfoRow>
       </div>

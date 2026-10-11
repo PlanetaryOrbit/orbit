@@ -148,8 +148,8 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
       <div
         className={clsx('rounded-2xl bg-white p-6 dark:bg-zinc-900/70', docsPanelShadow, className)}
       >
-        <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className='flex items-center justify-center py-8'>
+          <div className='w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin' />
         </div>
       </div>
     );
@@ -169,15 +169,15 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
   return (
     <div className={clsx('rounded-2xl bg-white dark:bg-zinc-900/70', docsPanelShadow, className)}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <IconShield className="w-4 h-4 text-primary" />
+      <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-800'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center space-x-3'>
+            <div className='w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center'>
+              <IconShield className='w-4 h-4 text-primary' />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-white">My Policies</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>My Policies</h3>
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                 {totalPolicies === 0
                   ? 'No policies assigned'
                   : pendingPolicies.length === 0
@@ -186,20 +186,20 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="text-right mr-2">
-              <p className="text-2xl font-bold text-zinc-900 dark:text-white">{totalPolicies}</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Total Policies</p>
+          <div className='flex items-center space-x-2'>
+            <div className='text-right mr-2'>
+              <p className='text-2xl font-bold text-zinc-900 dark:text-white'>{totalPolicies}</p>
+              <p className='text-xs text-zinc-500 dark:text-zinc-400'>Total Policies</p>
             </div>
             <button
               onClick={() => {
                 fetchPolicyStatus();
                 fetchComplianceStats();
               }}
-              className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
-              title="Refresh"
+              className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors'
+              title='Refresh'
             >
-              <IconRefresh className="w-4 h-4" />
+              <IconRefresh className='w-4 h-4' />
             </button>
           </div>
         </div>
@@ -207,14 +207,14 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* Empty State */}
       {totalPolicies === 0 && (
-        <div className="px-6 py-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center">
-            <IconFileText className="w-8 h-8 text-zinc-400" />
+        <div className='px-6 py-12 text-center'>
+          <div className='w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center'>
+            <IconFileText className='w-8 h-8 text-zinc-400' />
           </div>
-          <h4 className="text-base font-medium text-zinc-900 dark:text-white mb-2">
+          <h4 className='text-base font-medium text-zinc-900 dark:text-white mb-2'>
             No Policies Assigned
           </h4>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+          <p className='text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto'>
             You don't have any policies to review at this time. Policies will appear here when they
             are assigned to your role.
           </p>
@@ -223,14 +223,14 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* Urgent Policies Alert */}
       {urgentPolicies.length > 0 && (
-        <div className="px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-zinc-200 dark:border-zinc-800">
-          <div className="flex items-start space-x-3">
-            <IconAlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+        <div className='px-6 py-4 bg-red-50 dark:bg-red-900/20 border-b border-zinc-200 dark:border-zinc-800'>
+          <div className='flex items-start space-x-3'>
+            <IconAlertTriangle className='w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0' />
             <div>
-              <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h4 className='text-sm font-medium text-red-800 dark:text-red-200'>
                 Urgent Action Required
               </h4>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              <p className='text-sm text-red-700 dark:text-red-300 mt-1'>
                 {urgentPolicies.length} {urgentPolicies.length === 1 ? 'policy' : 'policies'}{' '}
                 require immediate attention
               </p>
@@ -241,11 +241,11 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* Pending Policies */}
       {pendingPolicies.length > 0 && (
-        <div className="px-6 py-4">
-          <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+        <div className='px-6 py-4'>
+          <h4 className='text-sm font-medium text-zinc-900 dark:text-white mb-3'>
             Pending Acknowledgments
           </h4>
-          <div className="space-y-3">
+          <div className='space-y-3'>
             {pendingPolicies.map((policy) => {
               const deadlineStatus = getDeadlineStatus(policy.acknowledgmentDeadline);
               const isUrgent =
@@ -264,8 +264,8 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
                   )}
                   onClick={() => handleAcknowledgeClick(policy)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start space-x-3 flex-1">
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-start space-x-3 flex-1'>
                       <div
                         className={clsx(
                           'w-8 h-8 rounded-lg flex items-center justify-center',
@@ -279,29 +279,29 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
                           )}
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                      <div className='flex-1 min-w-0'>
+                        <div className='flex items-center space-x-2'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
                             {policy.name}
                           </h5>
                           {policy.isTrainingDocument && (
-                            <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                            <span className='px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded'>
                               Training
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2 mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        <div className='flex items-center space-x-2 mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                           {deadlineStatus && (
                             <span className={deadlineStatus.color}>{deadlineStatus.message}</span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className='flex items-center space-x-2'>
                       {isUrgent && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <div className='w-2 h-2 bg-red-500 rounded-full animate-pulse' />
                       )}
-                      <IconChevronRight className="w-4 h-4 text-zinc-400" />
+                      <IconChevronRight className='w-4 h-4 text-zinc-400' />
                     </div>
                   </div>
                 </motion.div>
@@ -313,32 +313,32 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* Recently Acknowledged */}
       {acknowledgedPolicies.length > 0 && (
-        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800">
-          <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center justify-between">
-            <span className="flex items-center">
-              <IconCheck className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
+        <div className='px-6 py-4 border-t border-zinc-200 dark:border-zinc-800'>
+          <h4 className='text-sm font-medium text-zinc-900 dark:text-white mb-3 flex items-center justify-between'>
+            <span className='flex items-center'>
+              <IconCheck className='w-4 h-4 text-green-600 dark:text-green-400 mr-2' />
               Acknowledged Policies
             </span>
-            <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">
+            <span className='text-xs font-normal text-zinc-500 dark:text-zinc-400'>
               {acknowledgedPolicies.length} total
             </span>
           </h4>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className='space-y-2 max-h-64 overflow-y-auto'>
             {acknowledgedPolicies.map((ack) => (
               <div
                 key={ack.id}
-                className="flex items-center space-x-3 py-2 px-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer group"
+                className='flex items-center space-x-3 py-2 px-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer group'
                 onClick={() => {
                   setViewingAcknowledgedPolicy(ack);
                   setShowViewModal(true);
                 }}
               >
-                <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                  <IconCheck className="w-3 h-3 text-green-600 dark:text-green-400" />
+                <div className='w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0'>
+                  <IconCheck className='w-3 h-3 text-green-600 dark:text-green-400' />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-900 dark:text-white truncate">{ack.name}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <div className='flex-1 min-w-0'>
+                  <p className='text-sm text-zinc-900 dark:text-white truncate'>{ack.name}</p>
+                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                     Signed{' '}
                     {new Date(ack.acknowledgment.acknowledgedAt).toLocaleDateString('en-US', {
                       month: 'short',
@@ -349,7 +349,7 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
                     })}
                   </p>
                 </div>
-                <IconChevronRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
+                <IconChevronRight className='w-4 h-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors' />
               </div>
             ))}
           </div>
@@ -358,12 +358,12 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* No pending policies */}
       {pendingPolicies.length === 0 && acknowledgedPolicies.length > 0 && (
-        <div className="px-6 py-8 text-center">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <IconCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
+        <div className='px-6 py-8 text-center'>
+          <div className='w-12 h-12 mx-auto mb-3 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center'>
+            <IconCheck className='w-6 h-6 text-green-600 dark:text-green-400' />
           </div>
-          <h4 className="text-sm font-medium text-zinc-900 dark:text-white">All Caught Up!</h4>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+          <h4 className='text-sm font-medium text-zinc-900 dark:text-white'>All Caught Up!</h4>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>
             You have acknowledged all required policies
           </p>
         </div>
@@ -386,24 +386,24 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
 
       {/* View Acknowledged Policy Modal */}
       {viewingAcknowledgedPolicy && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+            className='bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col'
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <IconCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
+            <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between'>
+              <div className='flex items-center space-x-3'>
+                <div className='w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center'>
+                  <IconCheck className='w-4 h-4 text-green-600 dark:text-green-400' />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                  <h3 className='text-lg font-semibold text-zinc-900 dark:text-white'>
                     {viewingAcknowledgedPolicy.name}
                   </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                     Acknowledged on{' '}
                     {new Date(
                       viewingAcknowledgedPolicy.acknowledgment.acknowledgedAt,
@@ -422,46 +422,46 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
                   setViewingAcknowledgedPolicy(null);
                   setShowViewModal(false);
                 }}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+                className='p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors'
               >
-                <IconX className="w-5 h-5 text-zinc-500" />
+                <IconX className='w-5 h-5 text-zinc-500' />
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className='flex-1 overflow-y-auto px-6 py-4'>
               {/* External URL */}
               {viewingAcknowledgedPolicy.content &&
               typeof viewingAcknowledgedPolicy.content === 'object' &&
               viewingAcknowledgedPolicy.content.external ? (
-                <div className="text-center py-8">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <IconExternalLink className="w-6 h-6 text-primary" />
+                <div className='text-center py-8'>
+                  <div className='w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center'>
+                    <IconExternalLink className='w-6 h-6 text-primary' />
                   </div>
-                  <h4 className="text-base font-medium text-zinc-900 dark:text-white mb-2">
+                  <h4 className='text-base font-medium text-zinc-900 dark:text-white mb-2'>
                     External Policy Document
                   </h4>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+                  <p className='text-sm text-zinc-500 dark:text-zinc-400 mb-4'>
                     This policy is hosted externally
                   </p>
                   <a
                     href={viewingAcknowledgedPolicy.content.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors'
                   >
-                    <IconExternalLink className="w-4 h-4 mr-2" />
+                    <IconExternalLink className='w-4 h-4 mr-2' />
                     Open Policy Document
                   </a>
                 </div>
               ) : (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
+                <div className='prose prose-sm dark:prose-invert max-w-none'>
                   {typeof viewingAcknowledgedPolicy.content === 'string' ? (
-                    <div className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+                    <div className='whitespace-pre-wrap text-zinc-700 dark:text-zinc-300'>
                       {viewingAcknowledgedPolicy.content}
                     </div>
                   ) : (
-                    <div className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+                    <div className='whitespace-pre-wrap text-zinc-700 dark:text-zinc-300'>
                       {JSON.stringify(viewingAcknowledgedPolicy.content, null, 2)}
                     </div>
                   )}
@@ -469,20 +469,20 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
               )}
 
               {/* Acknowledgment Details */}
-              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-                <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+              <div className='mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800'>
+                <h4 className='text-sm font-medium text-zinc-900 dark:text-white mb-3'>
                   Acknowledgment Details
                 </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500 dark:text-zinc-400">Signed by:</span>
-                    <span className="text-zinc-900 dark:text-white font-medium">
+                <div className='space-y-2 text-sm'>
+                  <div className='flex justify-between'>
+                    <span className='text-zinc-500 dark:text-zinc-400'>Signed by:</span>
+                    <span className='text-zinc-900 dark:text-white font-medium'>
                       {currentUsername || 'You'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500 dark:text-zinc-400">Date & Time:</span>
-                    <span className="text-zinc-900 dark:text-white font-medium">
+                  <div className='flex justify-between'>
+                    <span className='text-zinc-500 dark:text-zinc-400'>Date & Time:</span>
+                    <span className='text-zinc-900 dark:text-white font-medium'>
                       {new Date(
                         viewingAcknowledgedPolicy.acknowledgment.acknowledgedAt,
                       ).toLocaleString('en-US', {
@@ -492,9 +492,9 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
                     </span>
                   </div>
                   {viewingAcknowledgedPolicy.acknowledgment.signature && (
-                    <div className="flex justify-between">
-                      <span className="text-zinc-500 dark:text-zinc-400">Signature:</span>
-                      <span className="text-zinc-900 dark:text-white font-medium italic">
+                    <div className='flex justify-between'>
+                      <span className='text-zinc-500 dark:text-zinc-400'>Signature:</span>
+                      <span className='text-zinc-900 dark:text-white font-medium italic'>
                         {viewingAcknowledgedPolicy.acknowledgment.signature}
                       </span>
                     </div>
@@ -504,13 +504,13 @@ const UserPolicyDashboard: FC<UserPolicyDashboardProps> = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+            <div className='px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end'>
               <button
                 onClick={() => {
                   setViewingAcknowledgedPolicy(null);
                   setShowViewModal(false);
                 }}
-                className="px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                className='px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors'
               >
                 Close
               </button>

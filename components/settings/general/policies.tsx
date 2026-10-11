@@ -1,12 +1,11 @@
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import { IconShield } from '@tabler/icons-react';
 import axios from 'axios';
 import React from 'react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import SwitchComponenet from '@/components/switch';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 type props = {
   triggerToast: typeof toast;
@@ -33,14 +32,17 @@ const Policies: FC<props> = (props) => {
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <IconShield size={18} className="text-primary" />
+    <div className='flex items-center justify-between px-5 py-4'>
+      <div className='flex items-center gap-3'>
+        <div className='p-2 bg-primary/10 rounded-lg'>
+          <IconShield
+            size={18}
+            className='text-primary'
+          />
         </div>
         <div>
-          <p className="text-sm font-medium text-zinc-900 dark:text-white">Policies</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className='text-sm font-medium text-zinc-900 dark:text-white'>Policies</p>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
             Manage and track policy acknowledgments
           </p>
         </div>
@@ -48,8 +50,8 @@ const Policies: FC<props> = (props) => {
       <SwitchComponenet
         checked={workspace.settings?.policiesEnabled}
         onChange={updatePolicies}
-        label=""
-        classoverride="mt-0"
+        label=''
+        classoverride='mt-0'
       />
     </div>
   );

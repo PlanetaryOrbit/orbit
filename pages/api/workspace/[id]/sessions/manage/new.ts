@@ -1,8 +1,7 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma, { SessionType } from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const sessionTypeCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};
 function checkSessionTypeCreationRateLimit(req: NextApiRequest, res: NextApiResponse): boolean {

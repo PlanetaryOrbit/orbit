@@ -1,11 +1,10 @@
 import fs from 'fs/promises';
 
-import formidable from 'formidable';
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withInstanceAuth } from '@/lib/withAuth';
 import cache from '@/utils/cache';
 import { saveMedia, maxFileSize } from '@/utils/media';
+import formidable from 'formidable';
+import type { NextApiResponse } from 'next';
 
 export const config = {
   api: {

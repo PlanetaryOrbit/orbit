@@ -19,7 +19,7 @@ const Checkbox = ({
 
   return (
     <input
-      type="checkbox"
+      type='checkbox'
       ref={ref}
       className={
         className +

@@ -3,10 +3,9 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 
+import prisma from '@/utils/database';
 import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
-
-import prisma from '@/utils/database';
 const mediaRoot = process.env.MEDIA_ROOT || path.join(process.cwd(), 'data', 'media');
 export const maxFileSize = 10485760; // 10MB
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);

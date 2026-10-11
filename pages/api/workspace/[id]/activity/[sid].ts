@@ -1,13 +1,12 @@
-import axios from 'axios';
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getUniverseInfo } from 'noblox.js';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 // import { withAuth } from '@/lib/withSession'
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+import axios from 'axios';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getUniverseInfo } from 'noblox.js';
 
 type Data = {
   success: boolean;

@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { getRobloxThumbnail, getRobloxDisplayName } from '@/utils/roblox';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST')

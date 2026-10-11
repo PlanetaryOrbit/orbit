@@ -1,13 +1,12 @@
 'use client';
 
+import Button from '@/components/button';
 import { IconCheck, IconExternalLink, IconPlugConnected, IconLoader2 } from '@tabler/icons-react';
 import clsx from 'clsx';
 import { useRouter } from 'next/router';
 import { useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
 import { toast } from 'react-hot-toast';
-
-import Button from '@/components/button';
 
 import { ServiceCard } from './ServiceCard';
 
@@ -227,30 +226,40 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
     <ServiceCard
       icon={IconPlugConnected}
       title={title}
-      description="Connect a ranking provider for in-app promotions and demotions."
+      description='Connect a ranking provider for in-app promotions and demotions.'
       footer={
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
           <a
-            href="https://docs.planetaryapp.cloud/workspace/external"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-[color:rgb(var(--group-theme))] dark:text-zinc-400"
+            href='https://docs.planetaryapp.cloud/workspace/external'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-[color:rgb(var(--group-theme))] dark:text-zinc-400'
           >
-            <IconExternalLink className="h-3.5 w-3.5" stroke={1.5} />
+            <IconExternalLink
+              className='h-3.5 w-3.5'
+              stroke={1.5}
+            />
             Documentation
           </a>
-          <Button onClick={handleSave} disabled={isSaving || isLoading} workspace>
-            <span className="inline-flex items-center gap-2">
-              <IconCheck className="h-4 w-4" stroke={1.5} />
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || isLoading}
+            workspace
+          >
+            <span className='inline-flex items-center gap-2'>
+              <IconCheck
+                className='h-4 w-4'
+                stroke={1.5}
+              />
               {isSaving ? 'Saving…' : 'Save'}
             </span>
           </Button>
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className='space-y-4'>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
             Ranking provider
           </label>
           <select
@@ -260,106 +269,112 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
             className={inputClass}
           >
             {rankingProviders.map((provider) => (
-              <option key={provider.value} value={provider.value}>
+              <option
+                key={provider.value}
+                value={provider.value}
+              >
                 {provider.label}
               </option>
             ))}
           </select>
           {!rankingProvider && (
-            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+            <p className='mt-1.5 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500'>
               Promotion, demotion, and termination logs will not change ranks in the Roblox group.
             </p>
           )}
         </div>
 
         {rankingProvider === 'rankgun' && (
-          <div className="space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+          <div className='space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80'>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
                 RankGun workspace ID
               </label>
               <input
-                type="text"
+                type='text'
                 value={rankingWorkspaceId}
                 onChange={(e) => setRankingWorkspaceId(e.target.value)}
-                placeholder="Workspace ID"
+                placeholder='Workspace ID'
                 disabled={isLoading}
                 className={inputClass}
               />
             </div>
 
             {hasRankingToken && !replaceRankGun ? (
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-950/40">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">API key</p>
-                    <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <div className='rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-950/40'>
+                <div className='flex flex-wrap items-start justify-between gap-2'>
+                  <div className='min-w-0 flex-1 space-y-1'>
+                    <p className='text-xs font-medium text-zinc-700 dark:text-zinc-200'>API key</p>
+                    <p className='text-xs leading-relaxed text-zinc-500 dark:text-zinc-400'>
                       A key is saved. It is not shown again. Use{' '}
-                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                      <span className='font-medium text-zinc-700 dark:text-zinc-300'>
                         Replace key
                       </span>{' '}
                       to rotate it.
                     </p>
                   </div>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => {
                       setReplaceRankGun(true);
                       setRankGunToken('');
                     }}
-                    className="shrink-0 rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    className='shrink-0 rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800'
                   >
                     Replace key
                   </button>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className='mt-3 flex flex-wrap items-center gap-2'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => void testRankGun()}
                     disabled={testingRankGun || isLoading || !rankingWorkspaceId.trim()}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                    className='inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600'
                   >
-                    {testingRankGun ? <IconLoader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    {testingRankGun ? <IconLoader2 className='h-3.5 w-3.5 animate-spin' /> : null}
                     Test key
                   </button>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    <IconCheck className="h-3.5 w-3.5" stroke={2} />
+                  <span className='inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400'>
+                    <IconCheck
+                      className='h-3.5 w-3.5'
+                      stroke={2}
+                    />
                     Saved
                   </span>
                 </div>
               </div>
             ) : (
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
                   API key
                 </label>
                 <input
-                  type="password"
+                  type='password'
                   value={rankGunToken}
                   onChange={(e) => setRankGunToken(e.target.value)}
-                  autoComplete="off"
+                  autoComplete='off'
                   placeholder={replaceRankGun ? 'New API key' : 'API key'}
                   disabled={isLoading}
                   className={inputClass}
                 />
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className='mt-2 flex flex-wrap items-center gap-2'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => void testRankGun()}
                     disabled={testingRankGun || isLoading || !rankGunToken.trim()}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                    className='inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600'
                   >
-                    {testingRankGun ? <IconLoader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    {testingRankGun ? <IconLoader2 className='h-3.5 w-3.5 animate-spin' /> : null}
                     Test key
                   </button>
                   {hasRankingToken && replaceRankGun && (
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => {
                         setReplaceRankGun(false);
                         setRankGunToken('');
                       }}
-                      className="text-xs text-zinc-500 underline dark:text-zinc-400"
+                      className='text-xs text-zinc-500 underline dark:text-zinc-400'
                     >
                       Cancel replace
                     </button>
@@ -371,10 +386,10 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
         )}
 
         {rankingProvider === 'opencloudranking' && (
-          <div className="space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
-            <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <div className='space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80'>
+            <p className='text-xs leading-relaxed text-zinc-600 dark:text-zinc-400'>
               Integrated Ranking uses a dedicated{' '}
-              <span className="font-medium text-zinc-800 dark:text-zinc-200">
+              <span className='font-medium text-zinc-800 dark:text-zinc-200'>
                 Open Cloud API key
               </span>{' '}
               stored only for rankings (not the key from Roblox API settings). Requires group read
@@ -382,87 +397,90 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
             </p>
 
             {hasRankingToken && !replaceIntegrated ? (
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-950/40">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">
+              <div className='rounded-xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-950/40'>
+                <div className='flex flex-wrap items-start justify-between gap-2'>
+                  <div className='min-w-0 flex-1 space-y-1'>
+                    <p className='text-xs font-medium text-zinc-700 dark:text-zinc-200'>
                       Integrated ranking key
                     </p>
-                    <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className='text-xs leading-relaxed text-zinc-500 dark:text-zinc-400'>
                       A key is saved. It is not shown again. Use{' '}
-                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                      <span className='font-medium text-zinc-700 dark:text-zinc-300'>
                         Replace key
                       </span>{' '}
                       to rotate it.
                     </p>
                   </div>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => {
                       setReplaceIntegrated(true);
                       setIntegratedToken('');
                     }}
-                    className="shrink-0 rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    className='shrink-0 rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800'
                   >
                     Replace key
                   </button>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+                <div className='mt-3 flex flex-wrap items-center gap-2'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => void testIntegratedExternal()}
                     disabled={testingIntegrated || isLoading}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                    className='inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600'
                   >
                     {testingIntegrated ? (
-                      <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                      <IconLoader2 className='h-3.5 w-3.5 animate-spin' />
                     ) : null}
                     Test key
                   </button>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    <IconCheck className="h-3.5 w-3.5" stroke={2} />
+                  <span className='inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400'>
+                    <IconCheck
+                      className='h-3.5 w-3.5'
+                      stroke={2}
+                    />
                     Saved
                   </span>
                 </div>
               </div>
             ) : (
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
                   Integrated ranking key
                 </label>
                 <input
-                  type="password"
+                  type='password'
                   value={integratedToken}
                   onChange={(e) => setIntegratedToken(e.target.value)}
-                  autoComplete="off"
-                  placeholder="Paste Roblox Open Cloud API key"
+                  autoComplete='off'
+                  placeholder='Paste Roblox Open Cloud API key'
                   disabled={isLoading}
                   className={inputClass}
                 />
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className='mt-2 flex flex-wrap items-center gap-2'>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => void testIntegratedExternal()}
                     disabled={
                       testingIntegrated ||
                       isLoading ||
                       (!integratedToken.trim() && !hasRankingToken)
                     }
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                    className='inline-flex items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-800 transition hover:bg-zinc-300 disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600'
                   >
                     {testingIntegrated ? (
-                      <IconLoader2 className="h-3.5 w-3.5 animate-spin" />
+                      <IconLoader2 className='h-3.5 w-3.5 animate-spin' />
                     ) : null}
                     Test key
                   </button>
                   {hasRankingToken && replaceIntegrated && (
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => {
                         setReplaceIntegrated(false);
                         setIntegratedToken('');
                       }}
-                      className="text-xs text-zinc-500 underline dark:text-zinc-400"
+                      className='text-xs text-zinc-500 underline dark:text-zinc-400'
                     >
                       Cancel replace
                     </button>
@@ -474,21 +492,21 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
         )}
 
         {showRankLimit && (
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
-            <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <div className='border-t border-zinc-100 pt-3 dark:border-zinc-800/80'>
+            <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
               Highest rank Orbit may promote to
             </label>
             <input
-              type="number"
+              type='number'
               min={1}
               max={255}
               value={rankingMaxRank}
               onChange={(e) => setRankingMaxRank(e.target.value)}
-              placeholder="No limit (leave empty)"
+              placeholder='No limit (leave empty)'
               disabled={isLoading}
               className={inputClass}
             />
-            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+            <p className='mt-1.5 text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500'>
               Integrated Ranking will not promote or set a rank above this Roblox group rank number.
               Leave empty for no limit.
             </p>
@@ -499,16 +517,16 @@ const ExternalServicesImpl: FC<ExternalServicesProps> = ({
           rankingProvider !== '' &&
           rankingProvider !== 'rankgun' &&
           rankingProvider !== 'opencloudranking' && (
-            <div className="space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80">
+            <div className='space-y-3 border-t border-zinc-100 pt-3 dark:border-zinc-800/80'>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
                   API key
                 </label>
                 <input
-                  type="password"
+                  type='password'
                   value={rankGunToken}
                   onChange={(e) => setRankGunToken(e.target.value)}
-                  placeholder="API key"
+                  placeholder='API key'
                   disabled={isLoading}
                   className={inputClass}
                 />

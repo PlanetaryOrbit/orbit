@@ -1,3 +1,12 @@
+import { DocsPageShell, DocsPageHeader, DocsPanel, DocsEmptyState } from '@/components/docs/shell';
+import PolicyLinkManager from '@/components/PolicyLinkManager';
+import UserPolicyDashboard from '@/components/UserPolicyDashboard';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import prisma, { document } from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import randomText from '@/utils/randomText';
 import {
   IconFileText,
   IconPlus,
@@ -29,16 +38,6 @@ import { useRouter } from 'next/router';
 import React, { useMemo, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import { DocsPageShell, DocsPageHeader, DocsPanel, DocsEmptyState } from '@/components/docs/shell';
-import PolicyLinkManager from '@/components/PolicyLinkManager';
-import UserPolicyDashboard from '@/components/UserPolicyDashboard';
-import Workspace from '@/layouts/workspace';
-import type { pageWithLayout } from '@/layoutTypes';
-import { loginState, workspacestate } from '@/state';
-import prisma, { document } from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
-import randomText from '@/utils/randomText';
 
 const BG_COLORS = [
   'bg-rose-300',
@@ -641,7 +640,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
   return (
     <DocsPageShell>
       <DocsPageHeader
-        title="Policies"
+        title='Policies'
         subtitle={
           viewMode === 'user'
             ? 'Review and acknowledge required policies'
@@ -649,9 +648,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
         }
         workspaceLabel={workspace.customName || workspace.groupName}
         action={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className='flex flex-wrap items-center gap-2'>
             <button
-              type="button"
+              type='button'
               onClick={() => setViewMode('user')}
               className={clsx(
                 'inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
@@ -660,12 +659,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                   : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700',
               )}
             >
-              <IconUser className="h-4 w-4" stroke={1.75} />
+              <IconUser
+                className='h-4 w-4'
+                stroke={1.75}
+              />
               <span>My Policies</span>
             </button>
             {canViewPolicyManagement && (
               <button
-                type="button"
+                type='button'
                 onClick={() => setViewMode('admin')}
                 className={clsx(
                   'inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
@@ -674,7 +676,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700',
                 )}
               >
-                <IconSettings className="h-4 w-4" stroke={1.75} />
+                <IconSettings
+                  className='h-4 w-4'
+                  stroke={1.75}
+                />
                 <span>Manage Policies</span>
               </button>
             )}
@@ -683,13 +688,16 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
       />
 
       {viewMode === 'user' && (
-        <UserPolicyDashboard workspaceId={id as string} currentUsername={login.username} />
+        <UserPolicyDashboard
+          workspaceId={id as string}
+          currentUsername={login.username}
+        />
       )}
       {viewMode === 'admin' && canViewPolicyManagement && (
         <>
-          <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+          <div className='mb-6 flex flex-wrap items-center gap-2 border-b border-zinc-200 pb-4 dark:border-zinc-800'>
             <button
-              type="button"
+              type='button'
               onClick={() => setSelectedView('overview')}
               className={clsx(
                 'inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors',
@@ -702,7 +710,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             </button>
             {hasViewCompliancePermission && (
               <button
-                type="button"
+                type='button'
                 onClick={() => setSelectedView('compliance')}
                 className={clsx(
                   'inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors',
@@ -716,7 +724,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             )}
             {hasCreatePermission && (
               <button
-                type="button"
+                type='button'
                 onClick={() => setSelectedView('create')}
                 className={clsx(
                   'inline-flex items-center rounded-xl px-3.5 py-1.5 text-sm font-medium transition-colors',
@@ -732,39 +740,39 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
           {selectedView === 'overview' && (
             <div>
               {isLoadingStats ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-zinc-500 dark:text-zinc-400">Loading policy statistics...</p>
+                <div className='flex items-center justify-center py-12'>
+                  <div className='text-center'>
+                    <div className='w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4' />
+                    <p className='text-zinc-500 dark:text-zinc-400'>Loading policy statistics...</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <DocsPanel className="p-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                          <IconFileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
+                    <DocsPanel className='p-4'>
+                      <div className='flex items-center'>
+                        <div className='w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center'>
+                          <IconFileText className='w-5 h-5 text-blue-600 dark:text-blue-400' />
                         </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Policies</p>
-                          <p className="text-2xl font-semibold text-zinc-900 dark:text-white">
+                        <div className='ml-3'>
+                          <p className='text-sm text-zinc-500 dark:text-zinc-400'>Total Policies</p>
+                          <p className='text-2xl font-semibold text-zinc-900 dark:text-white'>
                             {documents.length}
                           </p>
                         </div>
                       </div>
                     </DocsPanel>
 
-                    <DocsPanel className="p-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                          <IconCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <DocsPanel className='p-4'>
+                      <div className='flex items-center'>
+                        <div className='w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center'>
+                          <IconCheck className='w-5 h-5 text-green-600 dark:text-green-400' />
                         </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className='ml-3'>
+                          <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                             Compliant Policies
                           </p>
-                          <p className="text-2xl font-semibold text-zinc-900 dark:text-white">
+                          <p className='text-2xl font-semibold text-zinc-900 dark:text-white'>
                             {
                               documents.filter(
                                 (doc) => calculatePolicyStats(doc).complianceRate === 100,
@@ -775,14 +783,14 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                       </div>
                     </DocsPanel>
 
-                    <DocsPanel className="p-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                          <IconClock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <DocsPanel className='p-4'>
+                      <div className='flex items-center'>
+                        <div className='w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center'>
+                          <IconClock className='w-5 h-5 text-amber-600 dark:text-amber-400' />
                         </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400">Overdue</p>
-                          <p className="text-2xl font-semibold text-zinc-900 dark:text-white">
+                        <div className='ml-3'>
+                          <p className='text-sm text-zinc-500 dark:text-zinc-400'>Overdue</p>
+                          <p className='text-2xl font-semibold text-zinc-900 dark:text-white'>
                             {
                               documents.filter(
                                 (doc) =>
@@ -796,7 +804,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     </DocsPanel>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     {documents.map((document) => {
                       const stats = calculatePolicyStats(document);
                       const isOverdue =
@@ -804,29 +812,32 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         new Date() > new Date(document.acknowledgmentDeadline);
 
                       return (
-                        <DocsPanel key={document.id} className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start space-x-4">
-                              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <IconShield className="w-6 h-6 text-primary" />
+                        <DocsPanel
+                          key={document.id}
+                          className='p-4'
+                        >
+                          <div className='flex items-center justify-between'>
+                            <div className='flex items-start space-x-4'>
+                              <div className='w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center'>
+                                <IconShield className='w-6 h-6 text-primary' />
                               </div>
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                              <div className='flex-1'>
+                                <div className='flex items-center space-x-2'>
+                                  <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>
                                     {document.name}
                                   </h3>
                                   {document.isTrainingDocument && (
-                                    <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+                                    <span className='px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full'>
                                       Training
                                     </span>
                                   )}
                                   {isOverdue && (
-                                    <span className="px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
+                                    <span className='px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full'>
                                       Overdue
                                     </span>
                                   )}
                                 </div>
-                                <div className="mt-1 flex items-center space-x-4 text-sm text-zinc-500 dark:text-zinc-400">
+                                <div className='mt-1 flex items-center space-x-4 text-sm text-zinc-500 dark:text-zinc-400'>
                                   <span>
                                     {(document as any).assignToEveryone
                                       ? 'Everyone'
@@ -847,9 +858,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     </>
                                   )}
                                 </div>
-                                <div className="mt-2">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div className='mt-2'>
+                                  <div className='flex items-center space-x-2'>
+                                    <div className='flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2'>
                                       <div
                                         className={clsx(
                                           'h-2 rounded-full transition-all',
@@ -864,7 +875,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         }}
                                       />
                                     </div>
-                                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                                    <span className='text-sm text-zinc-600 dark:text-zinc-400'>
                                       {stats.acknowledged}/{stats.totalRequired} (
                                       {Math.round(stats.complianceRate)}%)
                                     </span>
@@ -872,43 +883,43 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                               <button
                                 onClick={() => {
                                   setSelectedDocumentForLink(document);
                                   setShowLinkManager(true);
                                 }}
-                                className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
-                                title="Generate Shareable Link"
+                                className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md'
+                                title='Generate Shareable Link'
                               >
-                                <IconShare className="w-4 h-4" />
+                                <IconShare className='w-4 h-4' />
                               </button>
                               {hasEditPermission && (
                                 <button
                                   onClick={() => startEditPolicy(document)}
-                                  className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
-                                  title="Edit Policy"
+                                  className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md'
+                                  title='Edit Policy'
                                 >
                                   <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-4 h-4"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    className='w-4 h-4'
+                                    viewBox='0 0 24 24'
+                                    fill='none'
+                                    stroke='currentColor'
+                                    strokeWidth='1.5'
                                   >
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                                    <path d='M12 20h9' />
+                                    <path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z' />
                                   </svg>
                                 </button>
                               )}
                               {hasDeletePermission && (
                                 <button
                                   onClick={() => handleDeletePolicy(document.id, document.name)}
-                                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
-                                  title="Delete Policy"
+                                  className='p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md'
+                                  title='Delete Policy'
                                 >
-                                  <IconTrash className="w-4 h-4" />
+                                  <IconTrash className='w-4 h-4' />
                                 </button>
                               )}
                             </div>
@@ -920,16 +931,16 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     {documents.length === 0 && (
                       <DocsEmptyState
                         icon={IconShield}
-                        title="No policies yet"
-                        description="Create your first policy to get started"
+                        title='No policies yet'
+                        description='Create your first policy to get started'
                         action={
                           hasCreatePermission ? (
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => setSelectedView('create')}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                              className='inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                             >
-                              <IconPlus className="h-4 w-4" />
+                              <IconPlus className='h-4 w-4' />
                               Create Policy
                             </button>
                           ) : undefined
@@ -946,84 +957,84 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
             <div>
               {complianceData ? (
                 <div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <DocsPanel className="p-4">
-                      <div className="text-2xl font-bold text-zinc-900 dark:text-white">
+                  <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+                    <DocsPanel className='p-4'>
+                      <div className='text-2xl font-bold text-zinc-900 dark:text-white'>
                         {complianceData.overallStats.averageComplianceRate}%
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                         Average Compliance
                       </div>
                     </DocsPanel>
-                    <DocsPanel className="p-4">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <DocsPanel className='p-4'>
+                      <div className='text-2xl font-bold text-green-600 dark:text-green-400'>
                         {complianceData.overallStats.fullyCompliantCount}
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                         Fully Compliant
                       </div>
                     </DocsPanel>
-                    <DocsPanel className="p-4">
-                      <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <DocsPanel className='p-4'>
+                      <div className='text-2xl font-bold text-red-600 dark:text-red-400'>
                         {complianceData.overallStats.overdueCount}
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">Overdue</div>
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>Overdue</div>
                     </DocsPanel>
-                    <DocsPanel className="p-4">
-                      <div className="text-2xl font-bold text-zinc-900 dark:text-white">
+                    <DocsPanel className='p-4'>
+                      <div className='text-2xl font-bold text-zinc-900 dark:text-white'>
                         {complianceData.totalPolicies}
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">Total Policies</div>
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>Total Policies</div>
                     </DocsPanel>
                   </div>
 
-                  <DocsPanel className="overflow-hidden">
-                    <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                  <DocsPanel className='overflow-hidden'>
+                    <div className='p-4 border-b border-zinc-200 dark:border-zinc-800'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>
                           Detailed Compliance Report
                         </h3>
                         <button
                           onClick={fetchComplianceData}
-                          className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
+                          className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md'
                         >
-                          <IconRefresh className="w-4 h-4" />
+                          <IconRefresh className='w-4 h-4' />
                         </button>
                       </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-zinc-50 dark:bg-zinc-900">
+                    <div className='overflow-x-auto'>
+                      <table className='w-full'>
+                        <thead className='bg-zinc-50 dark:bg-zinc-900'>
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            <th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>
                               Policy
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            <th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>
                               Compliance Rate
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            <th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>
                               Status
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            <th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>
                               Users
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                            <th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>
                               Details
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+                        <tbody className='divide-y divide-zinc-200 dark:divide-zinc-700'>
                           {complianceData.policies.map((policy: any) => (
                             <React.Fragment key={policy.id}>
-                              <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center">
+                              <tr className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
+                                <td className='px-4 py-3'>
+                                  <div className='flex items-center'>
                                     <div>
-                                      <div className="text-sm font-medium text-zinc-900 dark:text-white">
+                                      <div className='text-sm font-medium text-zinc-900 dark:text-white'>
                                         {policy.name}
                                       </div>
                                       {policy.acknowledgmentDeadline && (
-                                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                        <div className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>
                                           Due:{' '}
                                           {new Date(
                                             policy.acknowledgmentDeadline,
@@ -1033,9 +1044,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-20">
+                                <td className='px-4 py-3'>
+                                  <div className='flex items-center space-x-2'>
+                                    <div className='flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-20'>
                                       <div
                                         className={clsx(
                                           'h-2 rounded-full',
@@ -1050,39 +1061,39 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         }}
                                       />
                                     </div>
-                                    <span className="text-sm text-zinc-600 dark:text-zinc-400 min-w-[3rem]">
+                                    <span className='text-sm text-zinc-600 dark:text-zinc-400 min-w-[3rem]'>
                                       {policy.complianceRate}%
                                     </span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className='px-4 py-3'>
                                   {policy.isOverdue ? (
-                                    <span className="px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
+                                    <span className='px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full'>
                                       Overdue
                                     </span>
                                   ) : policy.complianceRate === 100 ? (
-                                    <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                                    <span className='px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full'>
                                       Complete
                                     </span>
                                   ) : (
-                                    <span className="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full">
+                                    <span className='px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full'>
                                       Pending
                                     </span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-zinc-900 dark:text-white">
-                                  <div className="flex items-center space-x-4">
-                                    <div className="text-green-600 dark:text-green-400">
+                                <td className='px-4 py-3 text-sm text-zinc-900 dark:text-white'>
+                                  <div className='flex items-center space-x-4'>
+                                    <div className='text-green-600 dark:text-green-400'>
                                       ✓ {policy.totalAcknowledged}
                                     </div>
                                     {policy.pendingUsers.length > 0 && (
-                                      <div className="text-orange-600 dark:text-orange-400">
+                                      <div className='text-orange-600 dark:text-orange-400'>
                                         ⏳ {policy.pendingUsers.length}
                                       </div>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className='px-4 py-3'>
                                   <button
                                     onClick={() => {
                                       setSelectedPolicyForModal(policy);
@@ -1091,9 +1102,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       setFilterStatus('all');
                                       setCurrentPage(1);
                                     }}
-                                    className="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-md transition-colors"
+                                    className='flex items-center space-x-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-md transition-colors'
                                   >
-                                    <IconUsers className="w-3 h-3" />
+                                    <IconUsers className='w-3 h-3' />
                                     <span>View Details</span>
                                   </button>
                                 </td>
@@ -1106,10 +1117,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                   </DocsPanel>
                 </div>
               ) : (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-zinc-500 dark:text-zinc-400">Loading compliance data...</p>
+                <div className='flex items-center justify-center py-12'>
+                  <div className='text-center'>
+                    <div className='w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4' />
+                    <p className='text-zinc-500 dark:text-zinc-400'>Loading compliance data...</p>
                   </div>
                 </div>
               )}
@@ -1118,13 +1129,13 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
           {selectedView === 'create' && (
             <DocsPanel>
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-                <div className="flex items-center justify-between">
+              <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-700'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                    <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>
                       Create New Policy
                     </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                    <p className='text-sm text-zinc-500 dark:text-zinc-400 mt-1'>
                       Step {currentStep} of 5
                     </p>
                   </div>
@@ -1146,17 +1157,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         departments: [],
                       });
                     }}
-                    className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
+                    className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md'
                   >
-                    <IconX className="w-5 h-5" />
+                    <IconX className='w-5 h-5' />
                   </button>
                 </div>
 
-                <div className="mt-6">
-                  <div className="flex items-center justify-between relative">
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-700 -translate-y-1/2" />
+                <div className='mt-6'>
+                  <div className='flex items-center justify-between relative'>
+                    <div className='absolute top-1/2 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-700 -translate-y-1/2' />
                     <div
-                      className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-300 ease-out"
+                      className='absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-300 ease-out'
                       style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
                     />
 
@@ -1171,7 +1182,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                       { step: 4, label: 'Assignment', icon: IconUsers },
                       { step: 5, label: 'Review', icon: IconCheck },
                     ].map(({ step, label, icon: StepIcon }) => (
-                      <div key={step} className="flex flex-col items-center relative z-10">
+                      <div
+                        key={step}
+                        className='flex flex-col items-center relative z-10'
+                      >
                         <div
                           className={clsx(
                             'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2',
@@ -1183,12 +1197,12 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           )}
                         >
                           {currentStep > step ? (
-                            <IconCheck className="w-5 h-5" />
+                            <IconCheck className='w-5 h-5' />
                           ) : (
-                            <StepIcon className="w-5 h-5" />
+                            <StepIcon className='w-5 h-5' />
                           )}
                         </div>
-                        <div className="mt-2 text-center">
+                        <div className='mt-2 text-center'>
                           <span
                             className={clsx(
                               'text-xs font-medium',
@@ -1216,20 +1230,20 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className='p-6'>
                 {currentStep === 1 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Policy Type & Basic Information
                       </h4>
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                      <div className='mb-6'>
+                        <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3'>
                           Policy Type *
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => setPolicyMode('internal')}
                             className={clsx(
                               'p-4 rounded-lg border-2 text-left transition-colors',
@@ -1238,7 +1252,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
                             )}
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className='flex items-center space-x-3'>
                               <IconFileText
                                 className={clsx(
                                   'w-5 h-5',
@@ -1246,17 +1260,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 )}
                               />
                               <div>
-                                <div className="font-medium text-zinc-900 dark:text-white">
+                                <div className='font-medium text-zinc-900 dark:text-white'>
                                   Internal Policy
                                 </div>
-                                <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                                <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                                   Create policy content directly
                                 </div>
                               </div>
                             </div>
                           </button>
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => setPolicyMode('external')}
                             className={clsx(
                               'p-4 rounded-lg border-2 text-left transition-colors',
@@ -1265,7 +1279,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
                             )}
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className='flex items-center space-x-3'>
                               <IconExternalLink
                                 className={clsx(
                                   'w-5 h-5',
@@ -1273,10 +1287,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 )}
                               />
                               <div>
-                                <div className="font-medium text-zinc-900 dark:text-white">
+                                <div className='font-medium text-zinc-900 dark:text-white'>
                                   External Link
                                 </div>
-                                <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                                <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                                   Link to an external document
                                 </div>
                               </div>
@@ -1286,11 +1300,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                           Policy Name *
                         </label>
                         <input
-                          type="text"
+                          type='text'
                           value={newPolicy.name}
                           onChange={(e) =>
                             setNewPolicy({
@@ -1298,8 +1312,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               name: e.target.value,
                             })
                           }
-                          placeholder="Enter policy name"
-                          className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                          placeholder='Enter policy name'
+                          className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                         />
                       </div>
                     </div>
@@ -1307,15 +1321,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 2 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         {policyMode === 'internal' ? 'Policy Content' : 'External Document'}
                       </h4>
 
                       {policyMode === 'internal' ? (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             Policy Content *
                           </label>
                           <textarea
@@ -1326,21 +1340,21 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 content: e.target.value,
                               })
                             }
-                            placeholder="Enter policy content"
+                            placeholder='Enter policy content'
                             rows={12}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                            className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                           />
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                             Write the policy content that users need to acknowledge.
                           </p>
                         </div>
                       ) : (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             External URL *
                           </label>
                           <input
-                            type="url"
+                            type='url'
                             value={newPolicy.externalUrl}
                             onChange={(e) =>
                               setNewPolicy({
@@ -1348,10 +1362,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 externalUrl: e.target.value,
                               })
                             }
-                            placeholder="https://example.com/policy-document"
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                            placeholder='https://example.com/policy-document'
+                            className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                           />
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                             URL must use HTTPS. Users will be required to visit this link before
                             acknowledging.
                           </p>
@@ -1362,15 +1376,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 3 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Acknowledgment Settings
                       </h4>
-                      <div className="mb-6">
-                        <label className="flex items-center">
+                      <div className='mb-6'>
+                        <label className='flex items-center'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={newPolicy.requiresAcknowledgment}
                             onChange={(e) =>
                               setNewPolicy({
@@ -1378,25 +1392,25 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 requiresAcknowledgment: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                            className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50'
                           />
-                          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                          <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                             Require user acknowledgment
                           </span>
                         </label>
                       </div>
                       {newPolicy.requiresAcknowledgment && (
                         <>
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3'>
                               Acknowledgment Method *
                             </label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="acknowledgmentMethod"
-                                  value="signature"
+                                  type='radio'
+                                  name='acknowledgmentMethod'
+                                  value='signature'
                                   checked={newPolicy.acknowledgmentMethod === 'signature'}
                                   onChange={(e) =>
                                     setNewPolicy({
@@ -1404,22 +1418,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       acknowledgmentMethod: e.target.value as any,
                                     })
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50'
                                 />
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                <div className='ml-3'>
+                                  <span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>
                                     Digital Signature
                                   </span>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                                     Draw signature on canvas
                                   </p>
                                 </div>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="acknowledgmentMethod"
-                                  value="type_username"
+                                  type='radio'
+                                  name='acknowledgmentMethod'
+                                  value='type_username'
                                   checked={newPolicy.acknowledgmentMethod === 'type_username'}
                                   onChange={(e) =>
                                     setNewPolicy({
@@ -1427,22 +1441,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       acknowledgmentMethod: e.target.value as any,
                                     })
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50'
                                 />
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                <div className='ml-3'>
+                                  <span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>
                                     Type Username
                                   </span>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                                     Type their username
                                   </p>
                                 </div>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="acknowledgmentMethod"
-                                  value="checkbox"
+                                  type='radio'
+                                  name='acknowledgmentMethod'
+                                  value='checkbox'
                                   checked={newPolicy.acknowledgmentMethod === 'checkbox'}
                                   onChange={(e) =>
                                     setNewPolicy({
@@ -1450,22 +1464,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       acknowledgmentMethod: e.target.value as any,
                                     })
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50'
                                 />
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                <div className='ml-3'>
+                                  <span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>
                                     Simple Checkbox
                                   </span>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                                     Click to acknowledge
                                   </p>
                                 </div>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="acknowledgmentMethod"
-                                  value="type_word"
+                                  type='radio'
+                                  name='acknowledgmentMethod'
+                                  value='type_word'
                                   checked={newPolicy.acknowledgmentMethod === 'type_word'}
                                   onChange={(e) =>
                                     setNewPolicy({
@@ -1473,26 +1487,26 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       acknowledgmentMethod: e.target.value as any,
                                     })
                                   }
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50'
                                 />
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                <div className='ml-3'>
+                                  <span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>
                                     Type Word to Confirm
                                   </span>
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                                     Users must type a specific word
                                   </p>
                                 </div>
                               </label>
                             </div>
                             {newPolicy.acknowledgmentMethod === 'type_word' && (
-                              <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                              <div className='mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg'>
+                                <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                                   Confirmation Word/Phrase *
                                 </label>
                                 <input
-                                  type="text"
-                                  placeholder="e.g., UNDERSTOOD, AGREE, or a custom phrase"
+                                  type='text'
+                                  placeholder='e.g., UNDERSTOOD, AGREE, or a custom phrase'
                                   value={newPolicy.acknowledgmentWord}
                                   onChange={(e) =>
                                     setNewPolicy({
@@ -1500,21 +1514,21 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                       acknowledgmentWord: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                                  className='w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                                   required
                                 />
-                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                <p className='mt-1 text-xs text-amber-700 dark:text-amber-300'>
                                   Users must type this exact word/phrase to acknowledge the policy.
                                 </p>
                               </div>
                             )}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                               Acknowledgment Deadline (Optional)
                             </label>
                             <input
-                              type="date"
+                              type='date'
                               value={newPolicy.acknowledgmentDeadline}
                               onChange={(e) =>
                                 setNewPolicy({
@@ -1522,9 +1536,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   acknowledgmentDeadline: e.target.value,
                                 })
                               }
-                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white"
+                              className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
                             />
-                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                            <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                               Optional deadline for users to acknowledge the policy
                             </p>
                           </div>
@@ -1535,19 +1549,19 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 4 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Assignment & Settings
                       </h4>
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      <div className='mb-6'>
+                        <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                           Assignment Settings
                         </label>
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                          <label className="flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800">
+                        <div className='space-y-2 max-h-48 overflow-y-auto'>
+                          <label className='flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800'>
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               checked={newPolicy.assignToEveryone}
                               onChange={(e) => {
                                 setNewPolicy({
@@ -1557,15 +1571,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   departments: e.target.checked ? [] : newPolicy.departments,
                                 });
                               }}
-                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                              className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50'
                             />
-                            <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
+                            <span className='ml-2 text-sm font-medium text-zinc-900 dark:text-white'>
                               📢 Everyone
                             </span>
                           </label>
 
                           {newPolicy.assignToEveryone && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                            <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2'>
                               This policy will be assigned to all current roles and departments in
                               the workspace.
                             </p>
@@ -1575,17 +1589,20 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                       {!newPolicy.assignToEveryone && (
                         <>
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                               Assign to Roles
                             </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                            <div className='space-y-2 max-h-48 overflow-y-auto'>
                               {roles
                                 .filter((role: any) => !role.isOwnerRole)
                                 .map((role) => (
-                                  <label key={role.id} className="flex items-center">
+                                  <label
+                                    key={role.id}
+                                    className='flex items-center'
+                                  >
                                     <input
-                                      type="checkbox"
+                                      type='checkbox'
                                       checked={newPolicy.roles.includes(role.id)}
                                       onChange={(e) => {
                                         if (e.target.checked) {
@@ -1600,9 +1617,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           });
                                         }
                                       }}
-                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                      className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50'
                                     />
-                                    <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                    <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                       {role.name}
                                     </span>
                                   </label>
@@ -1610,16 +1627,19 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             </div>
                           </div>
 
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                               Assign to Departments
                             </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                            <div className='space-y-2 max-h-48 overflow-y-auto'>
                               {departments.length > 0 ? (
                                 departments.map((department: any) => (
-                                  <label key={department.id} className="flex items-center gap-2">
+                                  <label
+                                    key={department.id}
+                                    className='flex items-center gap-2'
+                                  >
                                     <input
-                                      type="checkbox"
+                                      type='checkbox'
                                       checked={newPolicy.departments.includes(department.id)}
                                       onChange={(e) => {
                                         setNewPolicy((prev: any) => {
@@ -1638,15 +1658,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                           }
                                         });
                                       }}
-                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                                      className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50'
                                     />
-                                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                                    <span className='text-sm text-zinc-700 dark:text-zinc-300'>
                                       {department.name}
                                     </span>
                                   </label>
                                 ))
                               ) : (
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                                <p className='text-sm text-zinc-500 dark:text-zinc-400 italic'>
                                   No departments available.
                                 </p>
                               )}
@@ -1655,9 +1675,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         </>
                       )}
                       <div>
-                        <label className="flex items-center">
+                        <label className='flex items-center'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={newPolicy.isTrainingDocument}
                             onChange={(e) =>
                               setNewPolicy({
@@ -1665,13 +1685,13 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 isTrainingDocument: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50"
+                            className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50'
                           />
-                          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                          <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                             Post Document
                           </span>
                         </label>
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                           Also create this Policy as a viewable document
                         </p>
                       </div>
@@ -1680,18 +1700,18 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 5 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Review & Create
                       </h4>
 
-                      <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 space-y-4">
+                      <div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 space-y-4'>
                         <div>
-                          <h5 className="font-medium text-zinc-900 dark:text-white">
+                          <h5 className='font-medium text-zinc-900 dark:text-white'>
                             Policy Overview
                           </h5>
-                          <div className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                          <div className='mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400'>
                             <p>
                               <strong>Type:</strong>{' '}
                               {policyMode === 'internal' ? 'Internal Policy' : 'External Link'}
@@ -1709,10 +1729,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                         {newPolicy.requiresAcknowledgment && (
                           <div>
-                            <h5 className="font-medium text-zinc-900 dark:text-white">
+                            <h5 className='font-medium text-zinc-900 dark:text-white'>
                               Acknowledgment Settings
                             </h5>
-                            <div className="mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                            <div className='mt-2 space-y-1 text-sm text-zinc-600 dark:text-zinc-400'>
                               <p>
                                 <strong>Method:</strong>{' '}
                                 {newPolicy.acknowledgmentMethod === 'signature'
@@ -1740,8 +1760,8 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         )}
 
                         <div>
-                          <h5 className="font-medium text-zinc-900 dark:text-white">Assignment</h5>
-                          <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          <h5 className='font-medium text-zinc-900 dark:text-white'>Assignment</h5>
+                          <div className='mt-2 text-sm text-zinc-600 dark:text-zinc-400'>
                             {newPolicy.assignToEveryone ? (
                               <p>
                                 📢 <strong>Everyone</strong> (Entire Workspace)
@@ -1768,7 +1788,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 )}
                                 {newPolicy.roles.length === 0 &&
                                   newPolicy.departments.length === 0 && (
-                                    <p className="text-red-500">No roles or departments assigned</p>
+                                    <p className='text-red-500'>No roles or departments assigned</p>
                                   )}
                               </>
                             )}
@@ -1780,43 +1800,43 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
               </div>
 
-              <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-                <div className="flex space-x-2">
+              <div className='px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between'>
+                <div className='flex space-x-2'>
                   {currentStep > 1 && (
                     <button
                       onClick={prevStep}
-                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                      className='inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors'
                     >
-                      <IconChevronLeft className="w-4 h-4 mr-1" />
+                      <IconChevronLeft className='w-4 h-4 mr-1' />
                       Previous
                     </button>
                   )}
                 </div>
 
-                <div className="flex space-x-2">
+                <div className='flex space-x-2'>
                   {currentStep < 5 ? (
                     <button
                       onClick={nextStep}
                       disabled={!canProceedToNextStep()}
-                      className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className='inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                       Next
-                      <IconChevronRight className="w-4 h-4 ml-1" />
+                      <IconChevronRight className='w-4 h-4 ml-1' />
                     </button>
                   ) : (
                     <button
                       onClick={createPolicy}
                       disabled={isCreatingPolicy || !canProceedToNextStep()}
-                      className="inline-flex items-center px-6 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className='inline-flex items-center px-6 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                       {isCreatingPolicy ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
                           Creating...
                         </>
                       ) : (
                         <>
-                          <IconPlus className="w-4 h-4 mr-2" />
+                          <IconPlus className='w-4 h-4 mr-2' />
                           Create Policy
                         </>
                       )}
@@ -1829,13 +1849,13 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
           {selectedView === 'edit' && (
             <DocsPanel>
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-                <div className="flex items-center justify-between">
+              <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-700'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                    <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>
                       Edit Policy
                     </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                    <p className='text-sm text-zinc-500 dark:text-zinc-400 mt-1'>
                       Step {currentStep} of 5
                     </p>
                   </div>
@@ -1858,17 +1878,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         departments: [],
                       });
                     }}
-                    className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
+                    className='p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md'
                   >
-                    <IconX className="w-5 h-5" />
+                    <IconX className='w-5 h-5' />
                   </button>
                 </div>
 
-                <div className="mt-6">
-                  <div className="flex items-center justify-between relative">
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-700 -translate-y-1/2" />
+                <div className='mt-6'>
+                  <div className='flex items-center justify-between relative'>
+                    <div className='absolute top-1/2 left-0 right-0 h-0.5 bg-zinc-200 dark:bg-zinc-700 -translate-y-1/2' />
                     <div
-                      className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-300 ease-out"
+                      className='absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-300 ease-out'
                       style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
                     />
                     {[
@@ -1882,7 +1902,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                       { step: 4, label: 'Assignment', icon: IconUsers },
                       { step: 5, label: 'Review', icon: IconCheck },
                     ].map(({ step, label, icon: StepIcon }) => (
-                      <div key={step} className="flex flex-col items-center relative z-10">
+                      <div
+                        key={step}
+                        className='flex flex-col items-center relative z-10'
+                      >
                         <div
                           className={clsx(
                             'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 border-2',
@@ -1894,12 +1917,12 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           )}
                         >
                           {currentStep > step ? (
-                            <IconCheck className="w-5 h-5" />
+                            <IconCheck className='w-5 h-5' />
                           ) : (
-                            <StepIcon className="w-5 h-5" />
+                            <StepIcon className='w-5 h-5' />
                           )}
                         </div>
-                        <div className="mt-2 text-center">
+                        <div className='mt-2 text-center'>
                           <span
                             className={clsx(
                               'text-xs font-medium',
@@ -1917,20 +1940,20 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 </div>
               </div>
 
-              <div className="px-6 py-6">
+              <div className='px-6 py-6'>
                 {currentStep === 1 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Policy Information
                       </h4>
-                      <div className="space-y-4">
+                      <div className='space-y-4'>
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             Policy Name *
                           </label>
                           <input
-                            type="text"
+                            type='text'
                             value={editPolicy.name}
                             onChange={(e) =>
                               setEditPolicy({
@@ -1938,46 +1961,46 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 name: e.target.value,
                               })
                             }
-                            placeholder="Enter policy name"
+                            placeholder='Enter policy name'
                             disabled={!hasEditPermission}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             Policy Type *
                           </label>
-                          <div className="flex space-x-4">
-                            <label className="flex items-center">
+                          <div className='flex space-x-4'>
+                            <label className='flex items-center'>
                               <input
-                                type="radio"
-                                name="policyType"
-                                value="internal"
+                                type='radio'
+                                name='policyType'
+                                value='internal'
                                 checked={policyMode === 'internal'}
                                 onChange={(e) =>
                                   setPolicyMode(e.target.value as 'internal' | 'external')
                                 }
                                 disabled={!hasEditPermission}
-                                className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                               />
-                              <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                              <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                 Internal Document
                               </span>
                             </label>
-                            <label className="flex items-center">
+                            <label className='flex items-center'>
                               <input
-                                type="radio"
-                                name="policyType"
-                                value="external"
+                                type='radio'
+                                name='policyType'
+                                value='external'
                                 checked={policyMode === 'external'}
                                 onChange={(e) =>
                                   setPolicyMode(e.target.value as 'internal' | 'external')
                                 }
                                 disabled={!hasEditPermission}
-                                className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                               />
-                              <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                              <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                 External Link
                               </span>
                             </label>
@@ -1989,15 +2012,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 2 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         {policyMode === 'internal' ? 'Policy Content' : 'External Document'}
                       </h4>
 
                       {policyMode === 'internal' ? (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             Policy Content *
                           </label>
                           <textarea
@@ -2008,22 +2031,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 content: e.target.value,
                               })
                             }
-                            placeholder="Enter policy content"
+                            placeholder='Enter policy content'
                             rows={12}
                             disabled={!hasEditPermission}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
                           />
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                             Write the policy content that users need to acknowledge.
                           </p>
                         </div>
                       ) : (
                         <div>
-                          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                             External URL *
                           </label>
                           <input
-                            type="url"
+                            type='url'
                             value={editPolicy.externalUrl}
                             onChange={(e) =>
                               setEditPolicy({
@@ -2031,11 +2054,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 externalUrl: e.target.value,
                               })
                             }
-                            placeholder="https://example.com/policy-document"
+                            placeholder='https://example.com/policy-document'
                             disabled={!hasEditPermission}
-                            className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
                           />
-                          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                             URL must use HTTPS. Users will be required to visit this link before
                             acknowledging.
                           </p>
@@ -2046,16 +2069,16 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 3 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Acknowledgment Settings
                       </h4>
 
-                      <div className="mb-6">
-                        <label className="flex items-center">
+                      <div className='mb-6'>
+                        <label className='flex items-center'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={editPolicy.requiresAcknowledgment}
                             onChange={(e) =>
                               setEditPolicy({
@@ -2064,9 +2087,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               })
                             }
                             disabled={!hasEditPermission}
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                           />
-                          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                          <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                             Require user acknowledgment
                           </span>
                         </label>
@@ -2074,16 +2097,16 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                       {editPolicy.requiresAcknowledgment && (
                         <>
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3'>
                               Acknowledgment Method *
                             </label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="editAcknowledgmentMethod"
-                                  value="signature"
+                                  type='radio'
+                                  name='editAcknowledgmentMethod'
+                                  value='signature'
                                   checked={editPolicy.acknowledgmentMethod === 'signature'}
                                   onChange={(e) =>
                                     setEditPolicy({
@@ -2092,17 +2115,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     })
                                   }
                                   disabled={!hasEditPermission}
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                 />
-                                <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                   Digital Signature
                                 </span>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="editAcknowledgmentMethod"
-                                  value="checkbox"
+                                  type='radio'
+                                  name='editAcknowledgmentMethod'
+                                  value='checkbox'
                                   checked={editPolicy.acknowledgmentMethod === 'checkbox'}
                                   onChange={(e) =>
                                     setEditPolicy({
@@ -2111,17 +2134,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     })
                                   }
                                   disabled={!hasEditPermission}
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                 />
-                                <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                   Checkbox
                                 </span>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="editAcknowledgmentMethod"
-                                  value="type_username"
+                                  type='radio'
+                                  name='editAcknowledgmentMethod'
+                                  value='type_username'
                                   checked={editPolicy.acknowledgmentMethod === 'type_username'}
                                   onChange={(e) =>
                                     setEditPolicy({
@@ -2130,17 +2153,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     })
                                   }
                                   disabled={!hasEditPermission}
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                 />
-                                <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                   Type Username
                                 </span>
                               </label>
-                              <label className="flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                              <label className='flex items-center p-3 border border-gray-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer'>
                                 <input
-                                  type="radio"
-                                  name="editAcknowledgmentMethod"
-                                  value="type_word"
+                                  type='radio'
+                                  name='editAcknowledgmentMethod'
+                                  value='type_word'
                                   checked={editPolicy.acknowledgmentMethod === 'type_word'}
                                   onChange={(e) =>
                                     setEditPolicy({
@@ -2149,9 +2172,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     })
                                   }
                                   disabled={!hasEditPermission}
-                                  className="w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className='w-4 h-4 text-primary border-gray-300 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                 />
-                                <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                   Type Word
                                 </span>
                               </label>
@@ -2159,12 +2182,12 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           </div>
 
                           {editPolicy.acknowledgmentMethod === 'type_word' && (
-                            <div className="mb-6">
-                              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                            <div className='mb-6'>
+                              <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                                 Required Word *
                               </label>
                               <input
-                                type="text"
+                                type='text'
                                 value={editPolicy.acknowledgmentWord}
                                 onChange={(e) =>
                                   setEditPolicy({
@@ -2172,19 +2195,19 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                     acknowledgmentWord: e.target.value,
                                   })
                                 }
-                                placeholder="Enter word users must type"
+                                placeholder='Enter word users must type'
                                 disabled={!hasEditPermission}
-                                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
                               />
                             </div>
                           )}
 
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                               Acknowledgment Deadline (Optional)
                             </label>
                             <input
-                              type="date"
+                              type='date'
                               value={editPolicy.acknowledgmentDeadline}
                               onChange={(e) =>
                                 setEditPolicy({
@@ -2193,19 +2216,19 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 })
                               }
                               disabled={!hasEditPermission}
-                              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                              className='w-full px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
                             />
-                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                            <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                               Set a deadline by when users must acknowledge this policy.
                             </p>
                           </div>
                         </>
                       )}
 
-                      <div className="mb-6">
-                        <label className="flex items-center">
+                      <div className='mb-6'>
+                        <label className='flex items-center'>
                           <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={editPolicy.isTrainingDocument}
                             onChange={(e) =>
                               setEditPolicy({
@@ -2214,9 +2237,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                               })
                             }
                             disabled={!hasEditPermission}
-                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                           />
-                          <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                          <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                             Mark as training document
                           </span>
                         </label>
@@ -2226,17 +2249,17 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 4 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Policy Assignment
                       </h4>
 
-                      <div className="mb-6">
+                      <div className='mb-6'>
                         <div>
-                          <label className="flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800">
+                          <label className='flex items-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800'>
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               checked={editPolicy.assignToEveryone}
                               onChange={(e) =>
                                 setEditPolicy({
@@ -2247,15 +2270,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 })
                               }
                               disabled={!hasEditPermission}
-                              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                             />
-                            <span className="ml-2 text-sm font-medium text-zinc-900 dark:text-white">
+                            <span className='ml-2 text-sm font-medium text-zinc-900 dark:text-white'>
                               📢 Everyone
                             </span>
                           </label>
 
                           {editPolicy.assignToEveryone && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                            <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2'>
                               This policy will be assigned to all current roles and departments in
                               the workspace.
                             </p>
@@ -2265,17 +2288,20 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                       {!editPolicy.assignToEveryone && (
                         <>
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                               Assign to Roles
                             </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                            <div className='space-y-2 max-h-48 overflow-y-auto'>
                               {roles
                                 .filter((role: any) => !role.isOwnerRole)
                                 .map((role) => (
-                                  <label key={role.id} className="flex items-center">
+                                  <label
+                                    key={role.id}
+                                    className='flex items-center'
+                                  >
                                     <input
-                                      type="checkbox"
+                                      type='checkbox'
                                       checked={editPolicy.roles.includes(role.id)}
                                       onChange={(e) => {
                                         if (e.target.checked) {
@@ -2291,9 +2317,9 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         }
                                       }}
                                       disabled={!hasEditPermission}
-                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                     />
-                                    <span className="ml-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                    <span className='ml-2 text-sm text-zinc-700 dark:text-zinc-300'>
                                       {role.name}
                                     </span>
                                   </label>
@@ -2301,16 +2327,19 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                             </div>
                           </div>
 
-                          <div className="mb-6">
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+                          <div className='mb-6'>
+                            <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3'>
                               Select Departments
                             </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                            <div className='space-y-2 max-h-48 overflow-y-auto'>
                               {departments.length > 0 ? (
                                 departments.map((department: any) => (
-                                  <label key={department.id} className="flex items-center gap-2">
+                                  <label
+                                    key={department.id}
+                                    className='flex items-center gap-2'
+                                  >
                                     <input
-                                      type="checkbox"
+                                      type='checkbox'
                                       checked={editPolicy.departments.includes(department.id)}
                                       onChange={(e) => {
                                         setEditPolicy((prev: any) => {
@@ -2330,15 +2359,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                         });
                                       }}
                                       disabled={!hasEditPermission}
-                                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      className='w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed'
                                     />
-                                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                                    <span className='text-sm text-zinc-700 dark:text-zinc-300'>
                                       {department.name}
                                     </span>
                                   </label>
                                 ))
                               ) : (
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic">
+                                <p className='text-sm text-zinc-500 dark:text-zinc-400 italic'>
                                   No departments available.
                                 </p>
                               )}
@@ -2351,38 +2380,38 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                 )}
 
                 {currentStep === 5 && (
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h4 className="text-lg font-medium text-zinc-900 dark:text-white mb-4">
+                      <h4 className='text-lg font-medium text-zinc-900 dark:text-white mb-4'>
                         Review Policy Changes
                       </h4>
 
-                      <div className="space-y-4">
-                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
+                      <div className='space-y-4'>
+                        <div className='bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white mb-2'>
                             Policy Name
                           </h5>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                             {editPolicy.name}
                           </p>
                         </div>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
+                        <div className='bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white mb-2'>
                             Content Type
                           </h5>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                             {policyMode === 'internal'
                               ? 'Internal Document'
                               : `External Link: ${editPolicy.externalUrl}`}
                           </p>
                         </div>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
+                        <div className='bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white mb-2'>
                             Acknowledgment
                           </h5>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                             {editPolicy.requiresAcknowledgment ? (
                               <>
                                 Required ({editPolicy.acknowledgmentMethod})
@@ -2397,22 +2426,22 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                           </p>
                         </div>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
+                        <div className='bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white mb-2'>
                             Assignment
                           </h5>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                             {editPolicy.assignToEveryone
                               ? 'Everyone in workspace'
                               : `${editPolicy.roles.length} selected roles, ${editPolicy.departments.length} selected departments`}
                           </p>
                         </div>
 
-                        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4">
-                          <h5 className="text-sm font-medium text-zinc-900 dark:text-white mb-2">
+                        <div className='bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4'>
+                          <h5 className='text-sm font-medium text-zinc-900 dark:text-white mb-2'>
                             Document Type
                           </h5>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          <p className='text-sm text-zinc-600 dark:text-zinc-400'>
                             {editPolicy.isTrainingDocument
                               ? 'Training Document'
                               : 'Policy Document'}
@@ -2423,7 +2452,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-6 border-t border-zinc-200 dark:border-zinc-700">
+                <div className='flex items-center justify-between pt-6 border-t border-zinc-200 dark:border-zinc-700'>
                   <button
                     onClick={prevStep}
                     disabled={currentStep === 1}
@@ -2434,11 +2463,11 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700',
                     )}
                   >
-                    <IconChevronLeft className="w-4 h-4 mr-1" />
+                    <IconChevronLeft className='w-4 h-4 mr-1' />
                     Previous
                   </button>
 
-                  <div className="flex items-center space-x-2">
+                  <div className='flex items-center space-x-2'>
                     {currentStep < 5 ? (
                       <button
                         onClick={nextStep}
@@ -2451,7 +2480,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         )}
                       >
                         Continue
-                        <IconChevronRight className="w-4 h-4 ml-1" />
+                        <IconChevronRight className='w-4 h-4 ml-1' />
                       </button>
                     ) : (
                       hasEditPermission && (
@@ -2467,12 +2496,12 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                         >
                           {isCreatingPolicy ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                              <div className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2' />
                               Updating...
                             </>
                           ) : (
                             <>
-                              <IconCheck className="w-4 h-4 mr-2" />
+                              <IconCheck className='w-4 h-4 mr-2' />
                               Update Policy
                             </>
                           )}
@@ -2488,15 +2517,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
       )}
 
       {showComplianceModal && selectedPolicyForModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-              <div className="flex items-center justify-between">
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'>
+          <div className='bg-white dark:bg-zinc-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
+            <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-700'>
+              <div className='flex items-center justify-between'>
                 <div>
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                  <h3 className='text-lg font-semibold text-zinc-900 dark:text-white'>
                     {selectedPolicyForModal.name} - Compliance Details
                   </h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className='text-sm text-zinc-500 dark:text-zinc-400 mt-1'>
                     {selectedPolicyForModal.pendingUsers.length +
                       selectedPolicyForModal.totalAcknowledged}{' '}
                     total users
@@ -2510,49 +2539,49 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     setFilterStatus('all');
                     setCurrentPage(1);
                   }}
-                  className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
+                  className='p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md transition-colors'
                 >
-                  <IconX className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
+                  <IconX className='w-5 h-5 text-zinc-500 dark:text-zinc-400' />
                 </button>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
+            <div className='px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30'>
+              <div className='flex flex-col sm:flex-row gap-4'>
+                <div className='flex-1'>
+                  <div className='relative'>
                     <input
-                      type="text"
-                      placeholder="Search users by name or email..."
+                      type='text'
+                      placeholder='Search users by name or email...'
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="w-full pl-10 pr-4 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className='w-full pl-10 pr-4 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     />
-                    <IconUser className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                    <IconUser className='absolute left-3 top-2.5 w-4 h-4 text-zinc-400' />
                   </div>
                 </div>
 
-                <div className="sm:w-48">
+                <div className='sm:w-48'>
                   <select
                     value={filterStatus}
                     onChange={(e) => {
                       setFilterStatus(e.target.value as 'all' | 'pending' | 'acknowledged');
                       setCurrentPage(1);
                     }}
-                    className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className='w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                   >
-                    <option value="all">All Users</option>
-                    <option value="pending">Pending Only</option>
-                    <option value="acknowledged">Acknowledged Only</option>
+                    <option value='all'>All Users</option>
+                    <option value='pending'>Pending Only</option>
+                    <option value='acknowledged'>Acknowledged Only</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className='flex-1 overflow-y-auto'>
               {(() => {
                 const pendingUsers = selectedPolicyForModal.pendingUsers.map((user: any) => ({
                   ...user,
@@ -2589,10 +2618,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                 if (filteredUsers.length === 0) {
                   return (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-center">
-                        <IconUser className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
-                        <p className="text-zinc-500 dark:text-zinc-400">
+                    <div className='flex items-center justify-center py-12'>
+                      <div className='text-center'>
+                        <IconUser className='w-12 h-12 text-zinc-400 mx-auto mb-4' />
+                        <p className='text-zinc-500 dark:text-zinc-400'>
                           {searchTerm || filterStatus !== 'all'
                             ? 'No users match your search criteria'
                             : 'No users found'}
@@ -2604,33 +2633,33 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
 
                 return (
                   <>
-                    <div className="p-6">
-                      <div className="space-y-3">
+                    <div className='p-6'>
+                      <div className='space-y-3'>
                         {currentUsers.map((user, index) => (
                           <div
                             key={`${user.userid}-${user.status}`}
-                            className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+                            className='flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors'
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className='flex items-center space-x-3'>
                               {user.picture ? (
                                 <img
                                   src={`/api/user/${user.userid}/avatar`}
                                   alt={user.username || `User ${user.userid}`}
-                                  className="w-8 h-8 rounded-full"
+                                  className='w-8 h-8 rounded-full'
                                 />
                               ) : (
-                                <div className="w-8 h-8 bg-zinc-300 dark:bg-zinc-600 rounded-full flex items-center justify-center">
-                                  <IconUser className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                                <div className='w-8 h-8 bg-zinc-300 dark:bg-zinc-600 rounded-full flex items-center justify-center'>
+                                  <IconUser className='w-4 h-4 text-zinc-600 dark:text-zinc-400' />
                                 </div>
                               )}
                               <div>
                                 <a href={`/workspace/${workspace.groupId}/profile/${user.userid}`}>
-                                  <div className="text-sm font-medium text-zinc-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-600 transition-colors">
+                                  <div className='text-sm font-medium text-zinc-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-600 transition-colors'>
                                     {user.username || `User ${user.userid}`}
                                   </div>
                                 </a>
                                 {user.status === 'acknowledged' && user.acknowledgedAt && (
-                                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                                  <div className='text-xs text-zinc-500 dark:text-zinc-400'>
                                     Acknowledged on{' '}
                                     {new Date(user.acknowledgedAt).toLocaleDateString()} at{' '}
                                     {new Date(user.acknowledgedAt).toLocaleTimeString()}
@@ -2638,15 +2667,15 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center">
+                            <div className='flex items-center'>
                               {user.status === 'pending' ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
-                                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mr-1.5"></span>
+                                <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'>
+                                  <span className='w-1.5 h-1.5 bg-orange-500 rounded-full mr-1.5'></span>
                                   Pending
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                  <IconCheck className="w-3 h-3 mr-1" />
+                                <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'>
+                                  <IconCheck className='w-3 h-3 mr-1' />
                                   Acknowledged
                                 </span>
                               )}
@@ -2657,13 +2686,13 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                     </div>
 
                     {totalPages > 1 && (
-                      <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className='px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/30'>
+                        <div className='flex items-center justify-between'>
+                          <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                             Showing {startIndex + 1} to {Math.min(endIndex, totalUsers)} of{' '}
                             {totalUsers} users
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className='flex items-center space-x-2'>
                             <button
                               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                               disabled={currentPage === 1}
@@ -2674,10 +2703,10 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   : 'bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700',
                               )}
                             >
-                              <IconChevronLeft className="w-4 h-4" />
+                              <IconChevronLeft className='w-4 h-4' />
                             </button>
 
-                            <span className="text-sm text-zinc-700 dark:text-zinc-300 px-2">
+                            <span className='text-sm text-zinc-700 dark:text-zinc-300 px-2'>
                               {currentPage} of {totalPages}
                             </span>
 
@@ -2691,7 +2720,7 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
                                   : 'bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700',
                               )}
                             >
-                              <IconChevronRight className="w-4 h-4" />
+                              <IconChevronRight className='w-4 h-4' />
                             </button>
                           </div>
                         </div>
@@ -2718,28 +2747,28 @@ const PoliciesPage: pageWithLayout<pageProps> = ({
       )}
 
       {showDeleteModal && policyToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center'>
+            <h2 className='text-lg font-semibold text-zinc-900 dark:text-white mb-4'>
               Confirm Deletion
             </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6">
+            <p className='text-sm text-zinc-600 dark:text-zinc-300 mb-6'>
               Are you sure you want to delete <strong>{policyToDelete.name}</strong>? This action
               cannot be undone.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className='flex justify-center gap-4'>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setPolicyToDelete(null);
                 }}
-                className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white"
+                className='px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white'
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeletePolicy}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600'
               >
                 Delete
               </button>

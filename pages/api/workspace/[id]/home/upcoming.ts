@@ -1,7 +1,6 @@
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import type { NextApiResponse } from 'next';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (!req.auth.userId) {

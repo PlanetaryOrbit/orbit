@@ -1,21 +1,3 @@
-import { Tab } from '@headlessui/react';
-import { ActivitySession, Quota } from '@prisma/client';
-import {
-  IconHistory,
-  IconBook,
-  IconClipboard,
-  IconCalendar,
-  IconSun,
-  IconMoon,
-  IconBeach,
-} from '@tabler/icons-react';
-import axios from 'axios';
-import moment from 'moment';
-import { useRouter } from 'next/router';
-import noblox from 'noblox.js';
-import { useEffect, useState } from 'react';
-import { useRecoilState } from 'recoil';
-
 import Activity from '@/components/profile/activity';
 import Book from '@/components/profile/book';
 import { InformationTab } from '@/components/profile/information';
@@ -33,6 +15,23 @@ import { loginState } from '@/state';
 import prisma from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import { getDisplayName, getUsername, getThumbnail } from '@/utils/userinfoEngine';
+import { Tab } from '@headlessui/react';
+import { ActivitySession, Quota } from '@prisma/client';
+import {
+  IconHistory,
+  IconBook,
+  IconClipboard,
+  IconCalendar,
+  IconSun,
+  IconMoon,
+  IconBeach,
+} from '@tabler/icons-react';
+import axios from 'axios';
+import moment from 'moment';
+import { useRouter } from 'next/router';
+import noblox from 'noblox.js';
+import { useEffect, useState } from 'react';
+import { useRecoilState } from 'recoil';
 
 export const getServerSideProps = withPermissionCheckSsr(async ({ query, req }) => {
   const currentUserId = (req as any).auth?.userId as bigint;
@@ -1030,19 +1029,19 @@ const Profile: pageWithLayout<pageProps> = ({
 
   return (
     <ProfilePageShell>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-5">
-        <aside className="lg:sticky lg:top-5 lg:w-56 xl:w-60 shrink-0">
-          <ProfilePanel className="overflow-hidden">
+      <div className='flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-5'>
+        <aside className='lg:sticky lg:top-5 lg:w-56 xl:w-60 shrink-0'>
+          <ProfilePanel className='overflow-hidden'>
             <div
-              className="h-12 w-full"
+              className='h-12 w-full'
               style={{
                 background:
                   'linear-gradient(135deg, rgb(var(--group-theme)/0.2) 0%, transparent 80%)',
               }}
             />
 
-            <div className="px-4 pb-5">
-              <div className="-mt-8 mb-3">
+            <div className='px-4 pb-5'>
+              <div className='-mt-8 mb-3'>
                 <div
                   className={`h-16 w-16 overflow-hidden rounded-2xl ring-[3px] ring-white shadow dark:ring-zinc-900 ${getRandomBg(
                     String(user.userid),
@@ -1051,44 +1050,44 @@ const Profile: pageWithLayout<pageProps> = ({
                 >
                   <img
                     src={`/api/user/${user.userid}/avatar`}
-                    className="h-full w-full object-cover"
+                    className='h-full w-full object-cover'
                     alt={info.displayName}
                   />
                 </div>
               </div>
 
-              <div className="mb-3 space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <h1 className="text-base font-semibold leading-tight text-zinc-900 dark:text-white truncate">
+              <div className='mb-3 space-y-0.5'>
+                <div className='flex items-center gap-1.5'>
+                  <h1 className='text-base font-semibold leading-tight text-zinc-900 dark:text-white truncate'>
                     {info.displayName}
                   </h1>
                   {activeNotice && (
                     <IconBeach
-                      className="h-4 w-4 shrink-0 text-amber-500"
+                      className='h-4 w-4 shrink-0 text-amber-500'
                       title={`On notice: ${activeNotice.reason || 'N/A'}`}
                     />
                   )}
                 </div>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+                <p className='text-sm text-zinc-500 dark:text-zinc-400 truncate'>
                   @{info.username}
                 </p>
                 {memberRoleName && (
-                  <div className="pt-1">
-                    <span className="inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                      <span className="truncate">{memberRoleName}</span>
+                  <div className='pt-1'>
+                    <span className='inline-flex max-w-full items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400'>
+                      <span className='truncate'>{memberRoleName}</span>
                     </span>
                   </div>
                 )}
               </div>
 
               {workspaceMember?.timezone && (
-                <div className="mb-3 inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                <div className='mb-3 inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200'>
                   {isDay ? (
-                    <IconSun className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                    <IconSun className='h-3.5 w-3.5 shrink-0 text-amber-500' />
                   ) : (
-                    <IconMoon className="h-3.5 w-3.5 shrink-0 text-sky-400" />
+                    <IconMoon className='h-3.5 w-3.5 shrink-0 text-sky-400' />
                   )}
-                  <span className="tabular-nums">
+                  <span className='tabular-nums'>
                     {currentTime.toLocaleTimeString('en-US', {
                       timeZone: workspaceMember.timezone,
                       hour: '2-digit',
@@ -1102,14 +1101,14 @@ const Profile: pageWithLayout<pageProps> = ({
               {(user.joinDate ||
                 (workspaceMember?.departments?.length ?? 0) > 0 ||
                 lineManager) && (
-                <div className="mb-4 space-y-3 border-t border-zinc-100 pt-3.5 dark:border-zinc-800">
+                <div className='mb-4 space-y-3 border-t border-zinc-100 pt-3.5 dark:border-zinc-800'>
                   {user.joinDate && (
                     <div>
-                      <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      <p className='mb-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                         Joined
                       </p>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm text-zinc-900 dark:text-white">
+                      <div className='flex items-center gap-1.5'>
+                        <span className='text-sm text-zinc-900 dark:text-white'>
                           {new Date(user.joinDate).toLocaleDateString(undefined, {
                             month: 'short',
                             day: 'numeric',
@@ -1117,7 +1116,7 @@ const Profile: pageWithLayout<pageProps> = ({
                           })}
                         </span>
                         {joinTenure && (
-                          <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className='rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                             {joinTenure}
                           </span>
                         )}
@@ -1126,14 +1125,14 @@ const Profile: pageWithLayout<pageProps> = ({
                   )}
                   {(workspaceMember?.departments?.length ?? 0) > 0 && (
                     <div>
-                      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      <p className='mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                         {workspaceMember!.departments!.length === 1 ? 'Department' : 'Departments'}
                       </p>
-                      <div className="flex flex-wrap gap-1">
+                      <div className='flex flex-wrap gap-1'>
                         {workspaceMember!.departments!.map((dept) => (
                           <span
                             key={dept.id}
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
+                            className='inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white'
                             style={{ backgroundColor: dept.color || '#71717a' }}
                           >
                             {dept.name}
@@ -1144,10 +1143,10 @@ const Profile: pageWithLayout<pageProps> = ({
                   )}
                   {lineManager && (
                     <div>
-                      <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      <p className='mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
                         Line manager
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className='flex items-center gap-2'>
                         <div
                           className={`h-5 w-5 shrink-0 overflow-hidden rounded-full ${getRandomBg(
                             String(lineManager.userid),
@@ -1155,11 +1154,11 @@ const Profile: pageWithLayout<pageProps> = ({
                         >
                           <img
                             src={`/api/user/${lineManager.userid}/avatar`}
-                            className="h-full w-full object-cover"
+                            className='h-full w-full object-cover'
                             alt={lineManager.username}
                           />
                         </div>
-                        <span className="text-sm text-zinc-900 dark:text-white">
+                        <span className='text-sm text-zinc-900 dark:text-white'>
                           {lineManager.username}
                         </span>
                       </div>
@@ -1170,44 +1169,64 @@ const Profile: pageWithLayout<pageProps> = ({
 
               <a
                 href={`https://www.roblox.com/users/${user.userid}/profile`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                target='_blank'
+                rel='noreferrer'
+                className='flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'
               >
-                <img src="/roblox.svg" alt="" className="h-4 w-4" aria-hidden />
+                <img
+                  src='/roblox.svg'
+                  alt=''
+                  className='h-4 w-4'
+                  aria-hidden
+                />
                 Open on Roblox
               </a>
-              <Recommendation targetId={String(user.userid)} targetName={info.displayName} />
+              <Recommendation
+                targetId={String(user.userid)}
+                targetName={info.displayName}
+              />
             </div>
           </ProfilePanel>
         </aside>
 
-        <div className="min-w-0 flex-1">
-          <ProfilePanel className="overflow-hidden">
+        <div className='min-w-0 flex-1'>
+          <ProfilePanel className='overflow-hidden'>
             <Tab.Group>
               <Tab.List className={`${profileTabListClass} mx-4 mt-4 sm:mx-5`}>
                 <Tab className={({ selected }) => profileTabClass(selected)}>
-                  <IconClipboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
+                  <IconClipboard
+                    className='h-3.5 w-3.5 sm:h-4 sm:w-4'
+                    stroke={1.75}
+                  />
                   Details
                 </Tab>
                 <Tab className={({ selected }) => profileTabClass(selected)}>
-                  <IconHistory className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
+                  <IconHistory
+                    className='h-3.5 w-3.5 sm:h-4 sm:w-4'
+                    stroke={1.75}
+                  />
                   Activity
                 </Tab>
                 {logbookEnabled && (
                   <Tab className={({ selected }) => profileTabClass(selected)}>
-                    <IconBook className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
+                    <IconBook
+                      className='h-3.5 w-3.5 sm:h-4 sm:w-4'
+                      stroke={1.75}
+                    />
                     Logbook
                   </Tab>
                 )}
                 {noticesEnabled && (
                   <Tab className={({ selected }) => profileTabClass(selected)}>
-                    <IconCalendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" stroke={1.75} />
+                    <IconCalendar
+                      className='h-3.5 w-3.5 sm:h-4 sm:w-4'
+                      stroke={1.75}
+                    />
                     Time off
                   </Tab>
                 )}
               </Tab.List>
-              <Tab.Panels className="p-4 sm:p-5">
+              <Tab.Panels className='p-4 sm:p-5'>
                 <Tab.Panel>
                   <InformationTab
                     user={{

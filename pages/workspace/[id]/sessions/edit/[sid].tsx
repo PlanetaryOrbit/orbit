@@ -1,3 +1,10 @@
+import Button from '@/components/button';
+import Input from '@/components/input';
+import Workspace from '@/layouts/workspace';
+import type { pageWithLayout } from '@/layoutTypes';
+import { loginState, workspacestate } from '@/state';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import {
   IconArrowLeft,
   IconDeviceFloppy,
@@ -17,14 +24,6 @@ import { useEffect, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import Button from '@/components/button';
-import Input from '@/components/input';
-import Workspace from '@/layouts/workspace';
-import type { pageWithLayout } from '@/layoutTypes';
-import { loginState, workspacestate } from '@/state';
-import prisma from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 
 const BG_COLORS = [
   'bg-rose-300',
@@ -357,25 +356,25 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div className="flex items-center gap-3">
+    <div className='max-w-4xl mx-auto px-4 py-6'>
+      <div className='flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4'>
+        <div className='flex items-center gap-3'>
           <button
             onClick={() => router.back()}
-            className="p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-            aria-label="Go back"
+            className='p-2 text-zinc-500 dark:text-zinc-300 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors'
+            aria-label='Go back'
           >
-            <IconArrowLeft className="w-5 h-5" />
+            <IconArrowLeft className='w-5 h-5' />
           </button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">Edit Session</h1>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+            <h1 className='text-2xl md:text-3xl font-bold dark:text-white'>Edit Session</h1>
+            <p className='text-zinc-500 dark:text-zinc-400 mt-1'>
               Modify session details and participant assignments
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <Button
             onPress={() => {
               // If scope is already set from pattern dialog, delete directly without asking
@@ -386,7 +385,7 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
               }
             }}
             disabled={isSubmitting}
-            classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
+            classoverride='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1'
           >
             <IconTrash size={16} /> Delete
           </Button>
@@ -394,7 +393,7 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
           <Button
             onPress={form.handleSubmit(handleSaveClick)}
             disabled={isSubmitting}
-            classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+            classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1'
           >
             <IconDeviceFloppy size={16} /> {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -402,21 +401,27 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
       </div>
 
       {formError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800">
-          <IconAlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={18} />
+        <div className='mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 dark:bg-red-900/20 dark:border-red-800'>
+          <IconAlertCircle
+            className='text-red-500 mt-0.5 flex-shrink-0'
+            size={18}
+          />
           <div>
-            <h3 className="font-medium text-red-800 dark:text-red-400">Error</h3>
-            <p className="text-red-600 dark:text-red-300 text-sm">{formError}</p>
+            <h3 className='font-medium text-red-800 dark:text-red-400'>Error</h3>
+            <p className='text-red-600 dark:text-red-300 text-sm'>{formError}</p>
           </div>
         </div>
       )}
 
       {scope && session.scheduleId && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3 dark:bg-blue-900/20 dark:border-blue-800">
-          <IconInfoCircle className="text-blue-500 mt-0.5 flex-shrink-0" size={18} />
+        <div className='mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3 dark:bg-blue-900/20 dark:border-blue-800'>
+          <IconInfoCircle
+            className='text-blue-500 mt-0.5 flex-shrink-0'
+            size={18}
+          />
           <div>
-            <h3 className="font-medium text-blue-800 dark:text-blue-400">Pattern Edit Mode</h3>
-            <p className="text-blue-600 dark:text-blue-300 text-sm">
+            <h3 className='font-medium text-blue-800 dark:text-blue-400'>Pattern Edit Mode</h3>
+            <p className='text-blue-600 dark:text-blue-300 text-sm'>
               {scope === 'single' && 'Changes will only affect this session.'}
               {scope === 'future' &&
                 'Changes will affect this and all future sessions on the same day of the week.'}
@@ -426,8 +431,8 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
         </div>
       )}
 
-      <div className="mb-6 overflow-x-auto">
-        <div className="flex space-x-1 min-w-max border-b border-gray-200 dark:border-zinc-700">
+      <div className='mb-6 overflow-x-auto'>
+        <div className='flex space-x-1 min-w-max border-b border-gray-200 dark:border-zinc-700'>
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -446,20 +451,23 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
       </div>
 
       <FormProvider {...form}>
-        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
+        <div className='bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden'>
           {activeTab === 'basic' && (
-            <div className="p-6" id="basic">
-              <div className="space-y-6 max-w-2xl">
+            <div
+              className='p-6'
+              id='basic'
+            >
+              <div className='space-y-6 max-w-2xl'>
                 <div>
                   <Input
                     {...form.register('name', {
                       required: { value: true, message: 'Session name is required' },
                     })}
-                    label="Session Name"
-                    placeholder="Weekly Training Session"
+                    label='Session Name'
+                    placeholder='Weekly Training Session'
                   />
                   {form.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className='mt-1 text-sm text-red-500'>
                       {form.formState.errors.name.message as string}
                     </p>
                   )}
@@ -467,30 +475,30 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                 <div>
                   <Input
                     {...form.register('description')}
-                    label="Description"
+                    label='Description'
                     textarea
-                    placeholder="Describe what this session is about..."
+                    placeholder='Describe what this session is about...'
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                     Session Type
                   </label>
-                  <div className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-white dark:bg-zinc-700 text-zinc-700 dark:text-white">
+                  <div className='w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md shadow-sm bg-white dark:bg-zinc-700 text-zinc-700 dark:text-white'>
                     {sessionTypeLabel}
                   </div>
                 </div>
                 <div>
                   <Input
                     {...form.register('gameId')}
-                    label="Game ID"
-                    placeholder="Optional game ID"
+                    label='Game ID'
+                    placeholder='Optional game ID'
                   />
                 </div>
-                <div className="mt-8 flex justify-end">
+                <div className='mt-8 flex justify-end'>
                   <Button
                     onPress={() => setActiveTab('scheduling')}
-                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                    classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
                   >
                     Continue to Scheduling
                   </Button>
@@ -500,49 +508,52 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
           )}
 
           {activeTab === 'scheduling' && (
-            <div className="p-6" id="scheduling">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              className='p-6'
+              id='scheduling'
+            >
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                     Session Date
                   </label>
                   <input
-                    type="date"
+                    type='date'
                     {...form.register('date', {
                       required: { value: true, message: 'Session date is required' },
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                    className='w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white'
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>
                     Enter date in your local timezone.
                   </p>
                   {form.formState.errors.date && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className='mt-1 text-sm text-red-500'>
                       {form.formState.errors.date.message as string}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                     Session Time
                   </label>
                   <input
-                    type="time"
+                    type='time'
                     {...form.register('time', {
                       required: { value: true, message: 'Session time is required' },
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                    className='w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white'
                   />
                   {form.formState.errors.time && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className='mt-1 text-sm text-red-500'>
                       {form.formState.errors.time.message as string}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
                     Session Length
                   </label>
                   <select
@@ -550,7 +561,7 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                       required: { value: true, message: 'Duration is required' },
                       valueAsNumber: true,
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white"
+                    className='w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary dark:bg-zinc-700 dark:text-white'
                   >
                     <option value={5}>5 minutes</option>
                     <option value={10}>10 minutes</option>
@@ -563,25 +574,25 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                     <option value={90}>1.5 hours</option>
                     <option value={120}>2 hours</option>
                   </select>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Length of session</p>
+                  <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>Length of session</p>
                   {form.formState.errors.duration && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className='mt-1 text-sm text-red-500'>
                       {form.formState.errors.duration.message as string}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between w-full">
+              <div className='mt-8 flex justify-between w-full'>
                 <Button
                   onPress={() => setActiveTab('basic')}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                  classoverride='bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
                 >
                   Back
                 </Button>
                 <Button
                   onPress={() => setActiveTab('statuses')}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                  classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
                 >
                   Continue to Statuses
                 </Button>
@@ -590,57 +601,63 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
           )}
 
           {activeTab === 'statuses' && (
-            <div className="p-6" id="statuses">
-              <div className="flex items-start mb-6">
-                <div className="bg-primary/10 p-2 rounded-lg mr-4">
-                  <IconClipboardList className="text-primary" size={24} />
+            <div
+              className='p-6'
+              id='statuses'
+            >
+              <div className='flex items-start mb-6'>
+                <div className='bg-primary/10 p-2 rounded-lg mr-4'>
+                  <IconClipboardList
+                    className='text-primary'
+                    size={24}
+                  />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold dark:text-white">Session Statuses</h2>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                  <h2 className='text-xl font-semibold dark:text-white'>Session Statuses</h2>
+                  <p className='text-zinc-500 dark:text-zinc-400 mt-1'>
                     Define status updates that occur during a session
                   </p>
                 </div>
               </div>
 
-              <div className="max-w-2xl">
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <div className='max-w-2xl'>
+                <div className='flex justify-between items-center mb-4'>
+                  <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                     Statuses automatically update after the specified time has passed
                   </p>
                   <Button
                     onPress={newStatus}
                     compact
-                    classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1"
+                    classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 flex items-center gap-1'
                   >
                     <IconPlus size={16} /> Add Status
                   </Button>
                 </div>
 
                 {statues.length === 0 ? (
-                  <div className="text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600">
+                  <div className='text-center py-10 bg-zinc-50 dark:bg-zinc-700/30 rounded-lg border border-dashed border-gray-300 dark:border-zinc-600'>
                     <IconClipboardList
-                      className="mx-auto text-zinc-400 dark:text-zinc-500"
+                      className='mx-auto text-zinc-400 dark:text-zinc-500'
                       size={32}
                     />
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">No statuses added yet</p>
-                    <p className="text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
+                    <p className='text-zinc-500 dark:text-zinc-400 mt-2'>No statuses added yet</p>
+                    <p className='text-sm text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto'>
                       Add statuses to track session progress (e.g., "Starting Soon", "In Progress",
                       "Completed")
                     </p>
                     <Button
                       onPress={newStatus}
-                      classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto"
+                      classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90 mt-4 flex items-center gap-1 mx-auto'
                     >
                       <IconPlus size={16} /> Add Your First Status
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     {statues.map((status, index) => (
                       <div
                         key={status.id}
-                        className="border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
+                        className='border border-gray-200 dark:border-zinc-700 rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm'
                       >
                         <Status
                           updateStatus={(value, mins, color) =>
@@ -656,16 +673,16 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                 )}
               </div>
 
-              <div className="mt-8 flex justify-between w-full">
+              <div className='mt-8 flex justify-between w-full'>
                 <Button
                   onPress={() => setActiveTab('scheduling')}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                  classoverride='bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
                 >
                   Back
                 </Button>
                 <Button
                   onPress={() => setActiveTab('slots')}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                  classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
                 >
                   Continue to Slots
                 </Button>
@@ -674,19 +691,22 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
           )}
 
           {activeTab === 'slots' && (
-            <div className="p-6" id="slots">
-              <h2 className="text-xl font-semibold dark:text-white mb-4">
+            <div
+              className='p-6'
+              id='slots'
+            >
+              <h2 className='text-xl font-semibold dark:text-white mb-4'>
                 Session Slots (Read-Only)
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
+              <p className='text-sm text-zinc-500 dark:text-zinc-400 mb-4'>
                 Define roles and how many people can claim each role
               </p>
 
-              <div className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4">
-                <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">Host</h4>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">Slot 1:</span>
-                  <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+              <div className='bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4 mb-4'>
+                <h4 className='text-sm font-medium text-zinc-900 dark:text-white mb-3'>Host</h4>
+                <div className='flex items-center gap-2'>
+                  <span className='text-sm text-zinc-600 dark:text-zinc-400 w-16'>Slot 1:</span>
+                  <div className='flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2'>
                     {session.owner?.username ? (
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(session.owner.userid?.toString(), session.owner.username)}`}
@@ -694,21 +714,21 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                         <img
                           src={session.owner.picture || '/default-avatar.jpg'}
                           alt={session.owner.username}
-                          className="w-6 h-6 rounded-full object-cover border border-white"
+                          className='w-6 h-6 rounded-full object-cover border border-white'
                           onError={(e) => {
                             e.currentTarget.src = '/default-avatar.jpg';
                           }}
                         />
                       </div>
                     ) : null}
-                    <span className="text-zinc-700 dark:text-white">
+                    <span className='text-zinc-700 dark:text-white'>
                       {session.owner?.username || 'Unclaimed'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4 max-w-2xl">
+              <div className='space-y-4 max-w-2xl'>
                 {session.sessionType.slots &&
                 Array.isArray(session.sessionType.slots) &&
                 session.sessionType.slots.length > 0 ? (
@@ -718,12 +738,12 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                     return (
                       <div
                         key={slotIndex}
-                        className="bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4"
+                        className='bg-zinc-50 dark:bg-zinc-700/30 rounded-lg p-4'
                       >
-                        <h4 className="text-sm font-medium text-zinc-900 dark:text-white mb-3">
+                        <h4 className='text-sm font-medium text-zinc-900 dark:text-white mb-3'>
                           {slotData.name}
                         </h4>
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                           {Array.from(Array(slotData.slots)).map((_, i) => {
                             const assignedUser = session.users?.find(
                               (u: any) => u.roleID === slotData.id && u.slot === i,
@@ -739,11 +759,14 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                                 )?.picture
                               : null;
                             return (
-                              <div key={i} className="flex items-center gap-2">
-                                <span className="text-sm text-zinc-600 dark:text-zinc-400 w-16">
+                              <div
+                                key={i}
+                                className='flex items-center gap-2'
+                              >
+                                <span className='text-sm text-zinc-600 dark:text-zinc-400 w-16'>
                                   Slot {i + 1}:
                                 </span>
-                                <div className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2">
+                                <div className='flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-md flex items-center gap-2'>
                                   {username ? (
                                     <div
                                       className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${getRandomBg(assignedUser.userid.toString(), username)}`}
@@ -751,14 +774,14 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                                       <img
                                         src={userPicture || '/default-avatar.jpg'}
                                         alt={username}
-                                        className="w-6 h-6 rounded-full object-cover border border-white"
+                                        className='w-6 h-6 rounded-full object-cover border border-white'
                                         onError={(e) => {
                                           e.currentTarget.src = '/default-avatar.jpg';
                                         }}
                                       />
                                     </div>
                                   ) : null}
-                                  <span className="text-zinc-700 dark:text-white">
+                                  <span className='text-zinc-700 dark:text-white'>
                                     {username || 'Unclaimed'}
                                   </span>
                                 </div>
@@ -770,21 +793,21 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
                     );
                   })
                 ) : (
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                     No slots defined for this session type
                   </div>
                 )}
               </div>
-              <div className="mt-8 flex justify-between w-full">
+              <div className='mt-8 flex justify-between w-full'>
                 <Button
                   onPress={() => setActiveTab('statuses')}
-                  classoverride="bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+                  classoverride='bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
                 >
                   Back
                 </Button>
                 <Button
                   onPress={form.handleSubmit(handleSaveClick)}
-                  classoverride="bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90"
+                  classoverride='bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
                 >
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
@@ -795,72 +818,72 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
       </FormProvider>
 
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4 text-center">
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-md'>
+            <h2 className='text-lg font-semibold text-zinc-900 dark:text-white mb-4 text-center'>
               Confirm Deletion
             </h2>
 
             {session.scheduleId ? (
-              <div className="space-y-4">
-                <p className="text-sm text-zinc-600 dark:text-zinc-300 text-center">
+              <div className='space-y-4'>
+                <p className='text-sm text-zinc-600 dark:text-zinc-300 text-center'>
                   This is part of a recurring session series. What would you like to delete?
                 </p>
 
-                <div className="space-y-3">
-                  <label className="flex items-start gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/30 cursor-pointer">
+                <div className='space-y-3'>
+                  <label className='flex items-start gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/30 cursor-pointer'>
                     <input
-                      type="radio"
-                      name="deleteOption"
+                      type='radio'
+                      name='deleteOption'
                       checked={!deleteAll}
                       onChange={() => setDeleteAll(false)}
-                      className="mt-0.5 text-primary focus:ring-primary"
+                      className='mt-0.5 text-primary focus:ring-primary'
                     />
                     <div>
-                      <div className="font-medium text-zinc-900 dark:text-white">
+                      <div className='font-medium text-zinc-900 dark:text-white'>
                         Delete only this session
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                         Remove just this single occurrence on{' '}
                         {new Date(session.date).toLocaleDateString()}
                       </div>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/30 cursor-pointer">
+                  <label className='flex items-start gap-3 p-3 border border-gray-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700/30 cursor-pointer'>
                     <input
-                      type="radio"
-                      name="deleteOption"
+                      type='radio'
+                      name='deleteOption'
                       checked={deleteAll}
                       onChange={() => setDeleteAll(true)}
-                      className="mt-0.5 text-primary focus:ring-primary"
+                      className='mt-0.5 text-primary focus:ring-primary'
                     />
                     <div>
-                      <div className="font-medium text-zinc-900 dark:text-white">
+                      <div className='font-medium text-zinc-900 dark:text-white'>
                         Delete entire series
                       </div>
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                         Remove all sessions in this recurring series
                       </div>
                     </div>
                   </label>
                 </div>
 
-                <div className="flex justify-center gap-4 pt-4">
+                <div className='flex justify-center gap-4 pt-4'>
                   <button
                     onClick={() => {
                       setShowDeleteModal(false);
                       setDeleteAll(false);
                     }}
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50"
+                    className='px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50'
                   >
                     Cancel
                   </button>
                   <button
                     onClick={deleteSession}
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 min-w-[100px]"
+                    className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 min-w-[100px]'
                   >
                     {isSubmitting ? 'Deleting...' : deleteAll ? 'Delete Series' : 'Delete Session'}
                   </button>
@@ -868,21 +891,21 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
               </div>
             ) : (
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center">
+                <p className='text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center'>
                   Are you sure you want to delete this session? This action cannot be undone.
                 </p>
-                <div className="flex justify-center gap-4">
+                <div className='flex justify-center gap-4'>
                   <button
                     onClick={() => setShowDeleteModal(false)}
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50"
+                    className='px-4 py-2 rounded-md bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50'
                   >
                     Cancel
                   </button>
                   <button
                     onClick={deleteSession}
                     disabled={isSubmitting}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                    className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50'
                   >
                     {isSubmitting ? 'Deleting...' : 'Delete'}
                   </button>
@@ -894,66 +917,66 @@ const EditSession: pageWithLayout<InferGetServerSidePropsType<GetServerSideProps
       )}
 
       {showUpdateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4 text-center">
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
+          <div className='bg-white dark:bg-zinc-800 rounded-lg shadow-xl p-6 w-full max-w-md'>
+            <h2 className='text-lg font-semibold text-zinc-900 dark:text-white mb-4 text-center'>
               Update Session Series
             </h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center">
+            <p className='text-sm text-zinc-600 dark:text-zinc-300 mb-6 text-center'>
               This session is part of a recurring series. How would you like to apply these changes?
             </p>
 
-            <div className="space-y-4 mb-6">
-              <label className="flex items-start gap-3 cursor-pointer">
+            <div className='space-y-4 mb-6'>
+              <label className='flex items-start gap-3 cursor-pointer'>
                 <input
-                  type="radio"
-                  name="updateScope"
+                  type='radio'
+                  name='updateScope'
                   checked={!updateAll}
                   onChange={() => setUpdateAll(false)}
-                  className="mt-1"
+                  className='mt-1'
                 />
                 <div>
-                  <div className="font-medium text-zinc-900 dark:text-white">This session only</div>
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className='font-medium text-zinc-900 dark:text-white'>This session only</div>
+                  <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                     Apply changes to this specific session instance
                   </div>
                 </div>
               </label>
 
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className='flex items-start gap-3 cursor-pointer'>
                 <input
-                  type="radio"
-                  name="updateScope"
+                  type='radio'
+                  name='updateScope'
                   checked={updateAll}
                   onChange={() => setUpdateAll(true)}
-                  className="mt-1"
+                  className='mt-1'
                 />
                 <div>
-                  <div className="font-medium text-zinc-900 dark:text-white">
+                  <div className='font-medium text-zinc-900 dark:text-white'>
                     All sessions in series
                   </div>
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <div className='text-sm text-zinc-500 dark:text-zinc-400'>
                     Apply changes to all sessions in this recurring series
                   </div>
                 </div>
               </label>
             </div>
 
-            <div className="flex justify-center gap-4">
+            <div className='flex justify-center gap-4'>
               <button
                 onClick={() => {
                   setShowUpdateModal(false);
                   setUpdateAll(false);
                 }}
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50"
+                className='px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white disabled:opacity-50'
               >
                 Cancel
               </button>
               <button
                 onClick={() => updateSession(updateAll)}
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 min-w-[100px]"
+                className='px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 min-w-[100px]'
               >
                 {isSubmitting ? 'Updating...' : 'Update'}
               </button>
@@ -995,32 +1018,36 @@ const Status: React.FC<{
 
   return (
     <FormProvider {...methods}>
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center">
+      <div className='flex justify-between items-center mb-3'>
+        <div className='flex items-center'>
           {index !== undefined && (
-            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2">
+            <span className='w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium mr-2'>
               {index}
             </span>
           )}
-          <h3 className="font-medium dark:text-white">{watch('value') || 'New Status'}</h3>
+          <h3 className='font-medium dark:text-white'>{watch('value') || 'New Status'}</h3>
         </div>
         <Button
           onPress={deleteStatus}
           compact
-          classoverride="bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1"
+          classoverride='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center gap-1'
         >
           <IconTrash size={16} /> Delete
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input {...register('value')} label="Status Name" placeholder="In Progress" />
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <Input
+          {...register('value')}
+          label='Status Name'
+          placeholder='In Progress'
+        />
         <Input
           {...register('minutes')}
-          label="Time After (minutes)"
-          type="number"
-          placeholder="15"
+          label='Time After (minutes)'
+          type='number'
+          placeholder='15'
         />
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2">
+        <p className='text-xs text-zinc-500 dark:text-zinc-400 md:col-span-2'>
           Status will activate {watch('minutes') || 0} minutes after session starts
         </p>
       </div>

@@ -1,3 +1,4 @@
+import { loginState, workspacestate } from '@/state';
 import { Menu, Listbox } from '@headlessui/react';
 import {
   IconHome,
@@ -39,8 +40,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 
-import { loginState, workspacestate } from '@/state';
-
 interface SidebarProps {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
@@ -72,23 +71,23 @@ function MobileWorkspaceSwitcher({
   );
 
   return (
-    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 overflow-hidden">
+    <div className='rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 overflow-hidden'>
       <button
-        type="button"
+        type='button'
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="w-full min-w-0 flex items-center gap-2.5 px-3 py-2.5 outline-none transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70"
+        className='w-full min-w-0 flex items-center gap-2.5 px-3 py-2.5 outline-none transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70'
       >
         <img
           src={workspace.groupThumbnail || '/favicon.png'}
-          alt=""
-          className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-zinc-700 shrink-0"
+          alt=''
+          className='w-8 h-8 rounded-lg object-contain bg-white dark:bg-zinc-700 shrink-0'
         />
-        <div className="flex-1 min-w-0 text-left">
-          <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+        <div className='flex-1 min-w-0 text-left'>
+          <p className='text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight'>
             {currentName}
           </p>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
+          <p className='text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight'>
             {expanded ? 'Choose a workspace' : 'Tap to switch workspace'}
           </p>
         </div>
@@ -107,47 +106,50 @@ function MobileWorkspaceSwitcher({
           expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
         )}
       >
-        <div className="overflow-hidden">
-          <div className="px-2 pb-2 pt-0.5 flex flex-col gap-0.5">
+        <div className='overflow-hidden'>
+          <div className='px-2 pb-2 pt-0.5 flex flex-col gap-0.5'>
             {otherWorkspaces.length > 0 ? (
               otherWorkspaces.map((ws: any) => (
                 <button
                   key={ws.groupId}
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setExpanded(false);
                     onSelect(ws);
                   }}
-                  className="w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
+                  className='w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none'
                 >
                   <img
                     src={ws.groupThumbnail || '/favicon.svg'}
-                    alt=""
-                    className="w-8 h-8 rounded-lg object-cover bg-white dark:bg-zinc-700 shrink-0"
+                    alt=''
+                    className='w-8 h-8 rounded-lg object-cover bg-white dark:bg-zinc-700 shrink-0'
                   />
-                  <span className="flex-1 min-w-0 text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                  <span className='flex-1 min-w-0 text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate'>
                     {resolveWorkspaceName(ws.customName, ws.groupName)}
                   </span>
                 </button>
               ))
             ) : (
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-3">
+              <p className='text-xs text-zinc-400 dark:text-zinc-500 text-center py-3'>
                 No other workspaces available
               </p>
             )}
 
             <button
-              type="button"
+              type='button'
               onClick={() => {
                 setExpanded(false);
                 onGoHome();
               }}
-              className="w-full flex items-center gap-3 p-2 mt-0.5 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none"
+              className='w-full flex items-center gap-3 p-2 mt-0.5 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none'
             >
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 shrink-0">
-                <IconGridDots className="w-4 h-4" stroke={1.5} />
+              <span className='flex items-center justify-center w-8 h-8 rounded-lg bg-white dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 shrink-0'>
+                <IconGridDots
+                  className='w-4 h-4'
+                  stroke={1.5}
+                />
               </span>
-              <span className="flex-1 min-w-0 text-sm font-medium text-zinc-500 dark:text-zinc-400 truncate">
+              <span className='flex-1 min-w-0 text-sm font-medium text-zinc-500 dark:text-zinc-400 truncate'>
                 All workspaces
               </span>
             </button>
@@ -493,8 +495,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         <aside
           className={clsx('h-full flex flex-col flex-1 min-w-0', 'bg-zinc-50 dark:bg-zinc-950')}
         >
-          <div className="flex flex-col h-full min-h-0 py-4 px-3 pb-4">
-            <div className="shrink-0 overflow-visible px-0">
+          <div className='flex flex-col h-full min-h-0 py-4 px-3 pb-4'>
+            <div className='shrink-0 overflow-visible px-0'>
               <Listbox
                 value={workspace.groupId}
                 onChange={(id) => {
@@ -511,7 +513,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   }
                 }}
               >
-                <div className="relative" ref={workspaceListboxWrapperRef}>
+                <div
+                  className='relative'
+                  ref={workspaceListboxWrapperRef}
+                >
                   <Listbox.Button
                     className={clsx(
                       'w-full flex items-center gap-3 rounded-2xl p-2.5 transition-colors duration-200 outline-none',
@@ -527,43 +532,49 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     >
                       <img
                         src={workspace.groupThumbnail || '/favicon-32x32.png'}
-                        alt=""
+                        alt=''
                         width={isCollapsed ? 36 : 40}
                         height={isCollapsed ? 36 : 40}
-                        className="h-full w-full object-contain"
+                        className='h-full w-full object-contain'
                       />
                     </span>
                     {!isCollapsed && (
                       <>
-                        <div className="flex-1 min-w-0 text-left">
-                          <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
+                        <div className='flex-1 min-w-0 text-left'>
+                          <p className='text-sm font-semibold truncate text-zinc-900 dark:text-white'>
                             {resolveWorkspaceName(
                               login?.workspaces?.find((ws) => ws.groupId === workspace.groupId)
                                 ?.customName,
                               workspace.groupName,
                             )}
                           </p>
-                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                          <p className='text-[11px] text-zinc-500 dark:text-zinc-400 truncate'>
                             Workspace
                           </p>
                         </div>
-                        <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={1.5} />
+                        <IconChevronDown
+                          className='w-4 h-4 text-zinc-400 shrink-0'
+                          stroke={1.5}
+                        />
                       </>
                     )}
                   </Listbox.Button>
-                  <Listbox.Options className="absolute top-full left-0 mt-1.5 py-2 rounded-2xl w-max min-w-[14rem] max-w-[18rem] max-h-[min(20rem,60vh)] overflow-y-auto z-50 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg shadow-zinc-200/50 dark:shadow-zinc-950/50 border border-zinc-200/50 dark:border-zinc-800/80">
+                  <Listbox.Options className='absolute top-full left-0 mt-1.5 py-2 rounded-2xl w-max min-w-[14rem] max-w-[18rem] max-h-[min(20rem,60vh)] overflow-y-auto z-50 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl shadow-lg shadow-zinc-200/50 dark:shadow-zinc-950/50 border border-zinc-200/50 dark:border-zinc-800/80'>
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => {
                         workspaceListboxWrapperRef.current?.querySelector('button')?.click();
                         router.push('/');
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl mx-2 transition-colors duration-150"
+                      className='w-full flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl mx-2 transition-colors duration-150'
                     >
-                      <IconChevronLeft className="w-4 h-4 shrink-0" stroke={1.5} />
+                      <IconChevronLeft
+                        className='w-4 h-4 shrink-0'
+                        stroke={1.5}
+                      />
                       Back to menu
                     </button>
-                    <div className="my-1.5 mx-2 h-px bg-zinc-200/80 dark:bg-zinc-700/60" />
+                    <div className='my-1.5 mx-2 h-px bg-zinc-200/80 dark:bg-zinc-700/60' />
                     {login?.workspaces && login.workspaces.length > 1 ? (
                       login.workspaces
                         .filter((ws) => ws.groupId !== workspace.groupId)
@@ -582,15 +593,15 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                               <>
                                 <img
                                   src={ws.groupThumbnail || '/placeholder.svg'}
-                                  alt=""
-                                  className="w-8 h-8 rounded-lg object-cover shrink-0"
+                                  alt=''
+                                  className='w-8 h-8 rounded-lg object-cover shrink-0'
                                 />
-                                <span className="flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">
+                                <span className='flex-1 min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200'>
                                   {resolveWorkspaceName(ws.customName, ws.groupName)}
                                 </span>
                                 {selected && (
                                   <IconCheck
-                                    className="w-4 h-4 text-[color:rgb(var(--group-theme))] shrink-0"
+                                    className='w-4 h-4 text-[color:rgb(var(--group-theme))] shrink-0'
                                     stroke={2}
                                   />
                                 )}
@@ -599,7 +610,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           </Listbox.Option>
                         ))
                     ) : (
-                      <div className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap">
+                      <div className='px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap'>
                         No other workspaces
                       </div>
                     )}
@@ -608,7 +619,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </Listbox>
             </div>
 
-            <nav className="flex-1 mt-5 space-y-0.5 min-h-0 overflow-y-auto overflow-x-hidden">
+            <nav className='flex-1 mt-5 space-y-0.5 min-h-0 overflow-y-auto overflow-x-hidden'>
               {visiblePages.map((page) => {
                 const isActive =
                   router.asPath === page.href.replace('[id]', workspace.groupId.toString());
@@ -617,7 +628,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 return (
                   <button
                     key={page.name}
-                    type="button"
+                    type='button'
                     onClick={() => gotopage(page.href)}
                     className={clsx(
                       'w-full flex items-center gap-2.5 rounded-xl py-2 px-2.5 text-left outline-none select-none transition-all duration-150',
@@ -633,15 +644,15 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       stroke={isActive ? 2 : 1.75}
                     />
                     {!isCollapsed && (
-                      <span className="flex-1 truncate text-[13px]">{page.name}</span>
+                      <span className='flex-1 truncate text-[13px]'>{page.name}</span>
                     )}
                     {!isCollapsed && badge > 0 && (
-                      <span className="min-w-[1.25rem] h-4.5 px-1.5 py-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[10px] font-semibold flex items-center justify-center leading-none">
+                      <span className='min-w-[1.25rem] h-4.5 px-1.5 py-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[10px] font-semibold flex items-center justify-center leading-none'>
                         {badge}
                       </span>
                     )}
                     {isCollapsed && badge > 0 && (
-                      <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[8px] font-bold flex items-center justify-center">
+                      <span className='absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[8px] font-bold flex items-center justify-center'>
                         {badge}
                       </span>
                     )}
@@ -650,11 +661,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               })}
             </nav>
 
-            <div className="shrink-0 mt-auto pt-3 flex flex-col gap-1.5 overflow-visible">
+            <div className='shrink-0 mt-auto pt-3 flex flex-col gap-1.5 overflow-visible'>
               <button
-                type="button"
+                type='button'
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex items-center justify-center rounded-xl py-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors outline-none w-full"
+                className='hidden lg:flex items-center justify-center rounded-xl py-1.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors outline-none w-full'
                 aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
                 <IconChevronLeft
@@ -666,7 +677,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 />
               </button>
 
-              <Menu as="div" className="relative">
+              <Menu
+                as='div'
+                className='relative'
+              >
                 <Menu.Button
                   className={clsx(
                     'w-full flex items-center gap-3 rounded-2xl p-2.5 outline-none transition-colors duration-200',
@@ -676,7 +690,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 >
                   <img
                     src={login?.thumbnail || '/placeholder.svg'}
-                    alt=""
+                    alt=''
                     className={clsx(
                       'rounded-xl object-cover shrink-0',
                       isCollapsed ? 'w-9 h-9' : 'w-10 h-10',
@@ -684,44 +698,47 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   />
                   {!isCollapsed && (
                     <>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="text-sm font-semibold truncate text-zinc-900 dark:text-white">
+                      <div className='flex-1 min-w-0 text-left'>
+                        <p className='text-sm font-semibold truncate text-zinc-900 dark:text-white'>
                           {login?.displayname}
                         </p>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                        <p className='text-[11px] text-zinc-500 dark:text-zinc-400 truncate'>
                           Account
                         </p>
                       </div>
-                      <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" stroke={1.5} />
+                      <IconChevronDown
+                        className='w-4 h-4 text-zinc-400 shrink-0'
+                        stroke={1.5}
+                      />
                     </>
                   )}
                 </Menu.Button>
-                <Menu.Items className="absolute bottom-full left-0 mb-2 z-50 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-200/60 dark:shadow-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 overflow-hidden focus:outline-none">
-                  <div className="px-3 pt-3 pb-2.5">
-                    <div className="flex items-center gap-2.5">
+                <Menu.Items className='absolute bottom-full left-0 mb-2 z-50 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl shadow-zinc-200/60 dark:shadow-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 overflow-hidden focus:outline-none'>
+                  <div className='px-3 pt-3 pb-2.5'>
+                    <div className='flex items-center gap-2.5'>
                       <img
                         src={login?.thumbnail || '/placeholder.svg'}
-                        alt=""
-                        className="w-9 h-9 rounded-xl object-cover shrink-0 ring-2 ring-zinc-100 dark:ring-zinc-800"
+                        alt=''
+                        className='w-9 h-9 rounded-xl object-cover shrink-0 ring-2 ring-zinc-100 dark:ring-zinc-800'
                       />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                      <div className='flex-1 min-w-0'>
+                        <p className='text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight'>
                           {login?.displayname}
                         </p>
-                        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                        <p className='text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight'>
                           @{login?.username}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mx-3 mb-1.5 h-px bg-zinc-100 dark:bg-zinc-800" />
+                  <div className='mx-3 mb-1.5 h-px bg-zinc-100 dark:bg-zinc-800' />
 
-                  <div className="px-1.5 pb-1.5 space-y-0.5">
+                  <div className='px-1.5 pb-1.5 space-y-0.5'>
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          type="button"
+                          type='button'
                           onClick={toggleTheme}
                           className={clsx(
                             'w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left',
@@ -739,9 +756,15 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             )}
                           >
                             {resolvedTheme === 'dark' ? (
-                              <IconSun className="w-3.5 h-3.5" stroke={2} />
+                              <IconSun
+                                className='w-3.5 h-3.5'
+                                stroke={2}
+                              />
                             ) : (
-                              <IconMoon className="w-3.5 h-3.5" stroke={2} />
+                              <IconMoon
+                                className='w-3.5 h-3.5'
+                                stroke={2}
+                              />
                             )}
                           </span>
                           {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
@@ -750,13 +773,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     </Menu.Item>
                   </div>
 
-                  <div className="mx-3 mb-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+                  <div className='mx-3 mb-1 h-px bg-zinc-100 dark:bg-zinc-800' />
 
-                  <div className="px-1.5 pb-2 pt-1">
+                  <div className='px-1.5 pb-2 pt-1'>
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          type="button"
+                          type='button'
                           onClick={logout}
                           className={clsx(
                             'w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left',
@@ -772,7 +795,10 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                                 : 'bg-red-50 dark:bg-red-950/30',
                             )}
                           >
-                            <IconLogout className="w-3.5 h-3.5" stroke={2} />
+                            <IconLogout
+                              className='w-3.5 h-3.5'
+                              stroke={2}
+                            />
                           </span>
                           Sign out
                         </button>
@@ -797,7 +823,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        <div className="flex items-stretch h-16 w-full">
+        <div className='flex items-stretch h-16 w-full'>
           {bottomBarPages.map((page) => {
             const isActive =
               router.asPath === page.href.replace('[id]', workspace.groupId.toString());
@@ -808,7 +834,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             return (
               <button
                 key={page.name}
-                type="button"
+                type='button'
                 onClick={() => gotopage(page.href)}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={clsx(
@@ -818,10 +844,13 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     : 'text-zinc-400 dark:text-zinc-500 active:text-zinc-600 dark:active:text-zinc-300',
                 )}
               >
-                <div className="relative">
-                  <IconComponent className="w-6 h-6" stroke={1.5} />
+                <div className='relative'>
+                  <IconComponent
+                    className='w-6 h-6'
+                    stroke={1.5}
+                  />
                   {hasBadge && (
-                    <span className="absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                    <span className='absolute -top-1 -right-1.5 min-w-[1rem] h-4 px-0.5 rounded-full bg-[color:rgb(var(--group-theme))] text-white text-[9px] font-bold flex items-center justify-center leading-none'>
                       {badgeCount}
                     </span>
                   )}
@@ -835,17 +864,17 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   {page.name}
                 </span>
                 {isActive && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-[color:rgb(var(--group-theme))]" />
+                  <span className='absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-[color:rgb(var(--group-theme))]' />
                 )}
               </button>
             );
           })}
 
           <button
-            type="button"
+            type='button'
             onClick={openMoreSheet}
             style={{ WebkitTapHighlightColor: 'transparent' }}
-            aria-label="Open menu"
+            aria-label='Open menu'
             className={clsx(
               'flex-1 flex flex-col items-center justify-center gap-1 relative outline-none select-none transition-colors duration-150',
               mobileMoreOpen
@@ -864,8 +893,8 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             >
               <img
                 src={login?.thumbnail || '/default-avatar.jpg'}
-                alt=""
-                className="w-6 h-6 rounded-full object-cover bg-zinc-200 dark:bg-zinc-700"
+                alt=''
+                className='w-6 h-6 rounded-full object-cover bg-zinc-200 dark:bg-zinc-700'
               />
             </span>
             <span
@@ -877,7 +906,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               Menu
             </span>
             {mobileMoreOpen && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-[color:rgb(var(--group-theme))]" />
+              <span className='absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-[color:rgb(var(--group-theme))]' />
             )}
           </button>
         </div>
@@ -915,22 +944,22 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 : 'translateY(100%) translateZ(0)',
             }}
           >
-            <div className="pt-3 pb-1 flex justify-center">
-              <div className="w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+            <div className='pt-3 pb-1 flex justify-center'>
+              <div className='w-10 h-1 rounded-full bg-zinc-200 dark:bg-zinc-700' />
             </div>
 
-            <div className="px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800 space-y-2">
-              <div className="flex items-center gap-3 px-2 py-1.5">
+            <div className='px-3 pt-2 pb-3 border-b border-zinc-100 dark:border-zinc-800 space-y-2'>
+              <div className='flex items-center gap-3 px-2 py-1.5'>
                 <img
                   src={login?.thumbnail || '/default-avatar.jpg'}
-                  alt=""
-                  className="w-10 h-10 rounded-full object-cover shrink-0 bg-zinc-200 dark:bg-zinc-700 ring-2 ring-zinc-100 dark:ring-zinc-800"
+                  alt=''
+                  className='w-10 h-10 rounded-full object-cover shrink-0 bg-zinc-200 dark:bg-zinc-700 ring-2 ring-zinc-100 dark:ring-zinc-800'
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                <div className='flex-1 min-w-0'>
+                  <p className='text-sm font-semibold text-zinc-900 dark:text-white truncate leading-tight'>
                     {login?.displayname}
                   </p>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                  <p className='text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight'>
                     @{login?.username}
                   </p>
                 </div>
@@ -958,11 +987,11 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             </div>
 
             {morePages.length > 0 && (
-              <div className="px-3 pt-3 pb-1">
-                <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              <div className='px-3 pt-3 pb-1'>
+                <p className='px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500'>
                   Pages
                 </p>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className='grid grid-cols-2 gap-1.5'>
                   {morePages.map((page) => {
                     const isActive =
                       router.asPath === page.href.replace('[id]', workspace.groupId.toString());
@@ -973,7 +1002,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                     return (
                       <button
                         key={page.name}
-                        type="button"
+                        type='button'
                         onClick={() => gotopage(page.href)}
                         style={{ WebkitTapHighlightColor: 'transparent' }}
                         className={clsx(
@@ -991,9 +1020,12 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                               : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400',
                           )}
                         >
-                          <IconComponent className="w-5 h-5" stroke={1.5} />
+                          <IconComponent
+                            className='w-5 h-5'
+                            stroke={1.5}
+                          />
                           {hasBadge && (
-                            <span className="absolute -top-1 -right-1 min-w-[1rem] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-zinc-900">
+                            <span className='absolute -top-1 -right-1 min-w-[1rem] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none ring-2 ring-white dark:ring-zinc-900'>
                               {badgeCount}
                             </span>
                           )}
@@ -1009,7 +1041,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                           {page.name}
                         </span>
                         <IconChevronRight
-                          className="w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0"
+                          className='w-4 h-4 text-zinc-300 dark:text-zinc-600 shrink-0'
                           stroke={2}
                         />
                       </button>
@@ -1019,45 +1051,54 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               </div>
             )}
 
-            <div className="px-3 pt-2 pb-1">
-              <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            <div className='px-3 pt-2 pb-1'>
+              <p className='px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500'>
                 Account
               </p>
-              <div className="flex flex-col gap-0.5">
+              <div className='flex flex-col gap-0.5'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={toggleTheme}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
-                  className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800"
+                  className='flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800'
                 >
-                  <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400">
+                  <span className='flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400'>
                     {resolvedTheme === 'dark' ? (
-                      <IconSun className="w-5 h-5" stroke={1.5} />
+                      <IconSun
+                        className='w-5 h-5'
+                        stroke={1.5}
+                      />
                     ) : (
-                      <IconMoon className="w-5 h-5" stroke={1.5} />
+                      <IconMoon
+                        className='w-5 h-5'
+                        stroke={1.5}
+                      />
                     )}
                   </span>
-                  <span className="flex-1 text-[15px] font-medium text-zinc-800 dark:text-zinc-200">
+                  <span className='flex-1 text-[15px] font-medium text-zinc-800 dark:text-zinc-200'>
                     {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
                   </span>
                 </button>
                 <button
-                  type="button"
+                  type='button'
                   onClick={logout}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
-                  className="flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-red-50/80 dark:hover:bg-red-950/30 active:bg-red-100/80 dark:active:bg-red-950/50"
+                  className='flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-red-50/80 dark:hover:bg-red-950/30 active:bg-red-100/80 dark:active:bg-red-950/50'
                 >
-                  <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400">
-                    <IconLogout className="w-5 h-5" stroke={1.5} />
+                  <span className='flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-red-50 dark:bg-red-950/40 text-red-500 dark:text-red-400'>
+                    <IconLogout
+                      className='w-5 h-5'
+                      stroke={1.5}
+                    />
                   </span>
-                  <span className="flex-1 text-[15px] font-medium text-red-600 dark:text-red-400">
+                  <span className='flex-1 text-[15px] font-medium text-red-600 dark:text-red-400'>
                     Logout
                   </span>
                 </button>
               </div>
             </div>
 
-            <div className="h-4" />
+            <div className='h-4' />
           </div>
         </>
       )}

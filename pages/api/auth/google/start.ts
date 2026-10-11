@@ -1,8 +1,7 @@
-import { google } from 'googleapis';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 // import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { google } from 'googleapis';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

@@ -66,7 +66,10 @@ export function PodiumBadge({
       )}
       aria-hidden
     >
-      <Icon className={clsx(sizes.icon, 'text-white')} strokeWidth={2.5} />
+      <Icon
+        className={clsx(sizes.icon, 'text-white')}
+        strokeWidth={2.5}
+      />
     </div>
   );
 }

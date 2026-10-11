@@ -1,3 +1,4 @@
+import { AuthenticatedRequest, AuthHandler, withAuth } from '@/lib/withAuth';
 import * as cookie from 'cookie';
 import type {
   NextApiRequest,
@@ -6,8 +7,6 @@ import type {
   GetServerSidePropsContext,
 } from 'next';
 import * as noblox from 'noblox.js';
-
-import { AuthenticatedRequest, AuthHandler, withAuth } from '@/lib/withAuth';
 
 import cache from './cache';
 import { getConfig } from './configEngine';

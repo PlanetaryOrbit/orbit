@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { validateApiKey } from '@/utils/api-auth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET')

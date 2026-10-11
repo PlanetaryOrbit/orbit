@@ -1,7 +1,6 @@
+import { workspacestate } from '@/state';
 import React, { FC, ReactNode } from 'react';
 import { useRecoilState } from 'recoil';
-
-import { workspacestate } from '@/state';
 
 type Props = {
   children?: ReactNode;
@@ -60,11 +59,15 @@ const Tooltip: FC<Props> = ({ children, orientation, tooltipText }: Props) => {
 
   return (
     <div
-      className="relative flex items-center"
+      className='relative flex items-center'
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className={containerClasses} style={{ opacity: 0 }} ref={tipRef}>
+      <div
+        className={containerClasses}
+        style={{ opacity: 0 }}
+        ref={tipRef}
+      >
         <div className={pointerClasses} />
         {tooltipText}
       </div>

@@ -1,3 +1,16 @@
+import { ActivityOverview } from '@/components/profile/activityoverview';
+import { QuotasProgress } from '@/components/profile/quotas';
+import { SessionsHistory } from '@/components/profile/sessions';
+import {
+  profileTabClass,
+  profileTabListClass,
+  profileInputClass,
+  profilePanelShadow,
+  profilePrimaryButtonClass,
+  profileSecondaryButtonClass,
+} from '@/components/profile/shell';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import { Dialog, Transition, Tab } from '@headlessui/react';
 import type { ActivitySession, Quota, inactivityNotice } from '@prisma/client';
 import {
@@ -15,20 +28,6 @@ import { useRouter } from 'next/router';
 import { Fragment, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import { ActivityOverview } from '@/components/profile/activityoverview';
-import { QuotasProgress } from '@/components/profile/quotas';
-import { SessionsHistory } from '@/components/profile/sessions';
-import {
-  profileTabClass,
-  profileTabListClass,
-  profileInputClass,
-  profilePanelShadow,
-  profilePrimaryButtonClass,
-  profileSecondaryButtonClass,
-} from '@/components/profile/shell';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 type Props = {
   timeSpent: number;
@@ -194,31 +193,40 @@ const Activity: FC<Props> = ({
       <Tab.Group>
         <Tab.List className={profileTabListClass}>
           <Tab className={({ selected }) => profileTabClass(selected)}>
-            <IconChartBar className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
+            <IconChartBar
+              className='w-3.5 h-3.5 sm:w-4 sm:h-4'
+              stroke={1.75}
+            />
             Activity
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
-            <IconCalendarEvent className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
+            <IconCalendarEvent
+              className='w-3.5 h-3.5 sm:w-4 sm:h-4'
+              stroke={1.75}
+            />
             Sessions
           </Tab>
           <Tab className={({ selected }) => profileTabClass(selected)}>
-            <IconTarget className="w-3.5 h-3.5 sm:w-4 sm:h-4" stroke={1.75} />
+            <IconTarget
+              className='w-3.5 h-3.5 sm:w-4 sm:h-4'
+              stroke={1.75}
+            />
             Quotas
           </Tab>
         </Tab.List>
 
         {getCurrentWeekLabel && (
-          <div className="flex justify-center mt-4 mb-6 px-2">
-            <div className="inline-flex max-w-full items-center gap-1.5 rounded-xl bg-zinc-100 px-2 sm:px-3 py-1.5 dark:bg-zinc-800/80">
+          <div className='flex justify-center mt-4 mb-6 px-2'>
+            <div className='inline-flex max-w-full items-center gap-1.5 rounded-xl bg-zinc-100 px-2 sm:px-3 py-1.5 dark:bg-zinc-800/80'>
               <button
                 onClick={goToPreviousWeek}
                 disabled={!canGoBack || loadingHistory}
-                className="p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                className='p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0'
               >
-                <IconChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <IconChevronLeft className='w-3.5 h-3.5 sm:w-4 sm:h-4' />
               </button>
-              <div className="px-1 sm:px-2 min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap truncate">
+              <div className='px-1 sm:px-2 min-w-0'>
+                <p className='text-xs sm:text-sm font-medium text-zinc-800 dark:text-zinc-50 whitespace-nowrap truncate'>
                   {selectedWeek > 0 && availableHistory[selectedWeek - 1] ? (
                     <>
                       {moment(availableHistory[selectedWeek - 1].period.start).format('MMM DD')} -{' '}
@@ -232,24 +240,27 @@ const Activity: FC<Props> = ({
               <button
                 onClick={goToNextWeek}
                 disabled={!canGoForward || loadingHistory}
-                className="p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                className='p-1 sm:p-1.5 rounded-full text-zinc-500 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0'
               >
-                <IconChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <IconChevronRight className='w-3.5 h-3.5 sm:w-4 sm:h-4' />
               </button>
             </div>
           </div>
         )}
 
         {loadingHistory ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="mx-auto max-w-md rounded-xl bg-zinc-50/80 p-8 text-center dark:bg-zinc-800/40">
-              <div className="mx-auto mb-4 flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-primary/10">
-                <IconChartBar className="h-7 w-7 text-primary" stroke={1.75} />
+          <div className='flex items-center justify-center py-12'>
+            <div className='mx-auto max-w-md rounded-xl bg-zinc-50/80 p-8 text-center dark:bg-zinc-800/40'>
+              <div className='mx-auto mb-4 flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-primary/10'>
+                <IconChartBar
+                  className='h-7 w-7 text-primary'
+                  stroke={1.75}
+                />
               </div>
-              <h3 className="mb-1 text-base font-medium text-zinc-900 dark:text-white">
+              <h3 className='mb-1 text-base font-medium text-zinc-900 dark:text-white'>
                 Loading Historical Data
               </h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                 Please wait while we fetch the activity data...
               </p>
             </div>
@@ -257,19 +268,19 @@ const Activity: FC<Props> = ({
         ) : (
           <div>
             {isHistorical && historicalPeriod && (
-              <div className="mb-6 rounded-xl bg-amber-500/10 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-amber-500/15 p-2">
+              <div className='mb-6 rounded-xl bg-amber-500/10 p-4'>
+                <div className='flex items-center gap-3'>
+                  <div className='rounded-lg bg-amber-500/15 p-2'>
                     <IconCalendarTime
-                      className="h-5 w-5 text-amber-600 dark:text-amber-400"
+                      className='h-5 w-5 text-amber-600 dark:text-amber-400'
                       stroke={1.75}
                     />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                    <h3 className='text-sm font-medium text-amber-900 dark:text-amber-200'>
                       Historical Activity Data
                     </h3>
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                    <p className='text-xs text-amber-700 dark:text-amber-300'>
                       Showing activity from {moment(historicalPeriod.start).format('MMM DD')} -{' '}
                       {moment(historicalPeriod.end).format('MMM DD, YYYY')}
                     </p>
@@ -278,15 +289,18 @@ const Activity: FC<Props> = ({
               </div>
             )}
 
-            <Tab.Panels className="min-h-[400px]">
+            <Tab.Panels className='min-h-[400px]'>
               <Tab.Panel>
                 {!isHistorical && canAdjustActivity && (
-                  <div className="mb-4 flex justify-end">
+                  <div className='mb-4 flex justify-end'>
                     <button
                       onClick={() => setAdjustModal(true)}
                       className={profilePrimaryButtonClass}
                     >
-                      <IconAdjustments className="h-4 w-4" stroke={1.75} />
+                      <IconAdjustments
+                        className='h-4 w-4'
+                        stroke={1.75}
+                      />
                       Manual Adjustment
                     </button>
                   </div>
@@ -357,50 +371,58 @@ const Activity: FC<Props> = ({
         )}
       </Tab.Group>
 
-      <Transition appear show={adjustModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setAdjustModal(false)}>
+      <Transition
+        appear
+        show={adjustModal}
+        as={Fragment}
+      >
+        <Dialog
+          as='div'
+          className='relative z-10'
+          onClose={() => setAdjustModal(false)}
+        >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+            <div className='fixed inset-0 bg-black/30 backdrop-blur-sm' />
           </Transition.Child>
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
                 <Dialog.Panel
                   className={`w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle transition-all dark:bg-zinc-900 ${profilePanelShadow}`}
                 >
                   <Dialog.Title
-                    as="h3"
-                    className="mb-4 text-lg font-semibold text-zinc-900 dark:text-white"
+                    as='h3'
+                    className='mb-4 text-lg font-semibold text-zinc-900 dark:text-white'
                   >
                     Manual Adjustment
                   </Dialog.Title>
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     <div className={profileTabListClass}>
                       <button
-                        type="button"
+                        type='button'
                         onClick={() => setAdjustType('award')}
                         className={`flex-1 ${profileTabClass(adjustType === 'award')}`}
                       >
                         Award
                       </button>
                       <button
-                        type="button"
+                        type='button'
                         onClick={() => setAdjustType('remove')}
                         className={`flex-1 ${profileTabClass(adjustType === 'remove')} ${
                           adjustType === 'remove' ? '!bg-red-600 !text-white dark:!bg-red-600' : ''
@@ -410,11 +432,11 @@ const Activity: FC<Props> = ({
                       </button>
                     </div>
                     <div>
-                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
+                      <label className='mb-1 block text-[11px] font-medium text-zinc-400'>
                         Minutes
                       </label>
                       <input
-                        type="number"
+                        type='number'
                         min={1}
                         max={1000}
                         value={adjustMinutes}
@@ -424,11 +446,11 @@ const Activity: FC<Props> = ({
                           )
                         }
                         className={profileInputClass}
-                        placeholder="e.g. 10"
+                        placeholder='e.g. 10'
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
+                      <label className='mb-1 block text-[11px] font-medium text-zinc-400'>
                         Reason (optional)
                       </label>
                       <textarea
@@ -436,11 +458,11 @@ const Activity: FC<Props> = ({
                         onChange={(e) => setAdjustReason(e.target.value)}
                         rows={3}
                         className={`${profileInputClass} resize-none`}
-                        placeholder="Recognition for outstanding support"
+                        placeholder='Recognition for outstanding support'
                       />
                     </div>
                   </div>
-                  <div className="mt-6 flex gap-2">
+                  <div className='mt-6 flex gap-2'>
                     <button
                       onClick={() => setAdjustModal(false)}
                       className={`flex-1 justify-center px-4 py-2 text-sm ${profileSecondaryButtonClass}`}

@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withKey } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Define all valid permissions as a const array
 const VALID_PERMISSIONS = [

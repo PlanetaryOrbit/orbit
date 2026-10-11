@@ -1,11 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { fetchworkspace, getConfig, setConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 type Data = {
   success: boolean;
   error?: string;

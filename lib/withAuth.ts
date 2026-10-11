@@ -1,5 +1,9 @@
 import * as crypto from 'crypto';
 
+import { validateApiKey } from '@/utils/api-auth';
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { getSessionByToken } from '@/utils/session';
 import * as cookie from 'cookie';
 import type {
   NextApiHandler,
@@ -9,11 +13,6 @@ import type {
   GetServerSidePropsResult,
 } from 'next';
 import zxcvbn from 'zxcvbn';
-
-import { validateApiKey } from '@/utils/api-auth';
-import { getConfig } from '@/utils/configEngine';
-import prisma from '@/utils/database';
-import { getSessionByToken } from '@/utils/session';
 
 import { verifyWorkspace } from './security';
 

@@ -1,3 +1,21 @@
+import Checkbox from '@/components/checkbox';
+import Input from '@/components/input';
+import {
+  ViewsPageShell,
+  ViewsPageHeader,
+  ViewsPanel,
+  viewsPanelShadow,
+} from '@/components/views/shell';
+import StaffOrgChart from '@/components/views/StaffOrgChart';
+import type { OrgChartEdge, OrgChartNode } from '@/components/views/StaffOrgChart';
+import workspace from '@/layouts/workspace';
+import { pageWithLayout } from '@/layoutTypes';
+import { loginState } from '@/state';
+import { workspacestate } from '@/state';
+import { getConfig } from '@/utils/configEngine';
+import prisma from '@/utils/database';
+import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { SAVED_VIEW_NAME_MAX_LENGTH } from '@/utils/savedViewLimits';
 import { Dialog, Popover, Transition } from '@headlessui/react';
 import { inactivityNotice, userBook, wallPost } from '@prisma/client';
 import {
@@ -55,25 +73,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
-
-import Checkbox from '@/components/checkbox';
-import Input from '@/components/input';
-import {
-  ViewsPageShell,
-  ViewsPageHeader,
-  ViewsPanel,
-  viewsPanelShadow,
-} from '@/components/views/shell';
-import StaffOrgChart from '@/components/views/StaffOrgChart';
-import type { OrgChartEdge, OrgChartNode } from '@/components/views/StaffOrgChart';
-import workspace from '@/layouts/workspace';
-import { pageWithLayout } from '@/layoutTypes';
-import { loginState } from '@/state';
-import { workspacestate } from '@/state';
-import { getConfig } from '@/utils/configEngine';
-import prisma from '@/utils/database';
-import { withPermissionCheckSsr } from '@/utils/permissionsManager';
-import { SAVED_VIEW_NAME_MAX_LENGTH } from '@/utils/savedViewLimits';
 
 type User = {
   info: {
@@ -331,14 +330,14 @@ const Views: pageWithLayout<pageProps> = ({
             >
               <img
                 src={`/api/user/${row.getValue().userId}/avatar`}
-                className="h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900"
+                className='h-10 w-10 rounded-full border-2 border-white object-cover dark:border-zinc-900'
                 style={{ background: 'transparent' }}
-                alt=""
+                alt=''
               />
             </div>
             <p
               title={row.getValue().username || undefined}
-              className="my-auto truncate px-2 text-sm font-semibold text-zinc-900 dark:text-white"
+              className='my-auto truncate px-2 text-sm font-semibold text-zinc-900 dark:text-white'
             >
               {row.getValue().username}
             </p>
@@ -349,7 +348,7 @@ const Views: pageWithLayout<pageProps> = ({
     columnHelper.accessor('rankName', {
       header: 'Rank',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue() || 'Guest'}</p>;
+        return <p className='dark:text-white'>{row.getValue() || 'Guest'}</p>;
       },
     }),
     columnHelper.accessor('hostedSessions', {
@@ -357,19 +356,19 @@ const Views: pageWithLayout<pageProps> = ({
       cell: (row) => {
         const hosted = row.getValue() as any;
         const len = hosted && typeof hosted.length === 'number' ? hosted.length : 0;
-        return <p className="dark:text-white">{len}</p>;
+        return <p className='dark:text-white'>{len}</p>;
       },
     }),
     columnHelper.accessor('sessionsAttended', {
       header: 'Sessions Attended',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
+        return <p className='dark:text-white'>{row.getValue()}</p>;
       },
     }),
     columnHelper.accessor('allianceVisits', {
       header: 'Alliance Visits',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
+        return <p className='dark:text-white'>{row.getValue()}</p>;
       },
     }),
     columnHelper.accessor('book', {
@@ -377,31 +376,31 @@ const Views: pageWithLayout<pageProps> = ({
       cell: (row) => {
         const book = row.getValue() as any[];
         const warnings = Array.isArray(book) ? book.filter((b) => b.type === 'warning').length : 0;
-        return <p className="dark:text-white">{warnings}</p>;
+        return <p className='dark:text-white'>{warnings}</p>;
       },
     }),
     columnHelper.accessor('inactivityNotices', {
       header: 'Inactivity notices',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue().length}</p>;
+        return <p className='dark:text-white'>{row.getValue().length}</p>;
       },
     }),
     columnHelper.accessor('minutes', {
       header: 'Minutes',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
+        return <p className='dark:text-white'>{row.getValue()}</p>;
       },
     }),
     columnHelper.accessor('idleMinutes', {
       header: 'Idle minutes',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
+        return <p className='dark:text-white'>{row.getValue()}</p>;
       },
     }),
     columnHelper.accessor('messages', {
       header: 'Messages',
       cell: (row) => {
-        return <p className="dark:text-white">{row.getValue()}</p>;
+        return <p className='dark:text-white'>{row.getValue()}</p>;
       },
     }),
     columnHelper.accessor('registered', {
@@ -861,31 +860,34 @@ const Views: pageWithLayout<pageProps> = ({
   return (
     <ViewsPageShell>
       <ViewsPageHeader
-        title="Staff Management"
-        subtitle="View and manage your staff members"
+        title='Staff Management'
+        subtitle='View and manage your staff members'
         workspaceLabel={workspaceLabel}
       />
 
-      <div className="flex flex-col gap-5 md:flex-row md:gap-6">
-        <div className="w-full shrink-0 md:w-56">
-          <ViewsPanel className="overflow-hidden">
-            <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-3 dark:border-zinc-800">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+      <div className='flex flex-col gap-5 md:flex-row md:gap-6'>
+        <div className='w-full shrink-0 md:w-56'>
+          <ViewsPanel className='overflow-hidden'>
+            <div className='flex items-center justify-between border-b border-zinc-100 px-3 py-3 dark:border-zinc-800'>
+              <span className='text-[10px] font-semibold uppercase tracking-wider text-zinc-400'>
                 Views
               </span>
               {hasUseSavedViews() && hasCreateViews() && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={openSaveDialog}
-                  title="Create View"
-                  className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                  title='Create View'
+                  className='rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
                 >
-                  <IconPlus className="h-3.5 w-3.5" stroke={2} />
+                  <IconPlus
+                    className='h-3.5 w-3.5'
+                    stroke={2}
+                  />
                 </button>
               )}
             </div>
 
-            <div className="space-y-0.5 p-1.5">
+            <div className='space-y-0.5 p-1.5'>
               <div
                 className={`group flex items-center justify-between gap-1 rounded-lg transition-colors ${
                   mainPanelMode === 'table' && selectedViewId === null
@@ -894,14 +896,17 @@ const Views: pageWithLayout<pageProps> = ({
                 }`}
               >
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     resetToDefault();
                   }}
-                  className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  className='flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left'
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                    <IconUsers className="h-3.5 w-3.5" stroke={1.75} />
+                  <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'>
+                    <IconUsers
+                      className='h-3.5 w-3.5'
+                      stroke={1.75}
+                    />
                   </span>
                   <span
                     className={`truncate text-sm font-medium ${
@@ -923,16 +928,19 @@ const Views: pageWithLayout<pageProps> = ({
                 }`}
               >
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setSelectedViewId(null);
                     setIsEditMode(false);
                     setMainPanelMode('orgChart');
                   }}
-                  className="flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left"
+                  className='flex w-full min-w-0 items-center gap-2.5 px-2 py-1.5 text-left'
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                    <IconSitemap className="h-3.5 w-3.5" stroke={1.75} />
+                  <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'>
+                    <IconSitemap
+                      className='h-3.5 w-3.5'
+                      stroke={1.75}
+                    />
                   </span>
                   <span
                     className={`truncate text-sm font-medium ${
@@ -949,7 +957,7 @@ const Views: pageWithLayout<pageProps> = ({
               {hasUseSavedViews() && (
                 <>
                   {savedViews.length === 0 && (
-                    <p className="px-2 py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
+                    <p className='px-2 py-2 text-center text-xs text-zinc-400 dark:text-zinc-500'>
                       No saved views
                     </p>
                   )}
@@ -970,16 +978,16 @@ const Views: pageWithLayout<pageProps> = ({
                             applySavedView(v);
                           }
                         }}
-                        className="flex items-center gap-2.5 text-left w-full px-2 py-1.5 min-w-0"
+                        className='flex items-center gap-2.5 text-left w-full px-2 py-1.5 min-w-0'
                       >
                         <span
-                          className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-zinc-800"
+                          className='w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-zinc-800'
                           style={{ background: v.color || '#e5e7eb' }}
                         >
                           {v.icon ? (
                             renderIcon(v.icon, 'w-3.5 h-3.5')
                           ) : (
-                            <span className="text-xs font-semibold">
+                            <span className='text-xs font-semibold'>
                               {(v.name || '').charAt(0).toUpperCase()}
                             </span>
                           )}
@@ -1002,10 +1010,10 @@ const Views: pageWithLayout<pageProps> = ({
                             setViewToDelete(v.id);
                             setShowDeleteModal(true);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 mr-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition flex-shrink-0"
-                          title="Delete View"
+                          className='opacity-0 group-hover:opacity-100 p-1 mr-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition flex-shrink-0'
+                          title='Delete View'
                         >
-                          <IconX className="w-3 h-3" />
+                          <IconX className='w-3 h-3' />
                         </button>
                       )}
                     </div>
@@ -1016,12 +1024,12 @@ const Views: pageWithLayout<pageProps> = ({
           </ViewsPanel>
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className='min-w-0 flex-1'>
           {mainPanelMode === 'table' && (
-            <ViewsPanel className="relative z-10 mb-4 overflow-visible p-4">
-              <div className="flex flex-col md:flex-row gap-3 relative z-20">
-                <div className="flex gap-2">
-                  <Popover className="relative z-20">
+            <ViewsPanel className='relative z-10 mb-4 overflow-visible p-4'>
+              <div className='flex flex-col md:flex-row gap-3 relative z-20'>
+                <div className='flex gap-2'>
+                  <Popover className='relative z-20'>
                     {({ open }) => (
                       <>
                         <Popover.Button
@@ -1035,27 +1043,33 @@ const Views: pageWithLayout<pageProps> = ({
                                 : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white',
                           )}
                         >
-                          <IconFilter className="h-4 w-4" stroke={1.75} />
+                          <IconFilter
+                            className='h-4 w-4'
+                            stroke={1.75}
+                          />
                           <span>Filters</span>
                         </Popover.Button>
 
                         <Transition
                           as={Fragment}
-                          enter="transition ease-out duration-200"
-                          enterFrom="opacity-0 translate-y-1"
-                          enterTo="opacity-100 translate-y-0"
-                          leave="transition ease-in duration-150"
-                          leaveFrom="opacity-100 translate-y-0"
-                          leaveTo="opacity-0 translate-y-1"
+                          enter='transition ease-out duration-200'
+                          enterFrom='opacity-0 translate-y-1'
+                          enterTo='opacity-100 translate-y-0'
+                          leave='transition ease-in duration-150'
+                          leaveFrom='opacity-100 translate-y-0'
+                          leaveTo='opacity-0 translate-y-1'
                         >
-                          <Popover.Panel className="absolute left-0 top-full z-50 mt-2 w-72 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-                            <div className="space-y-3">
+                          <Popover.Panel className='absolute left-0 top-full z-50 mt-2 w-72 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900'>
+                            <div className='space-y-3'>
                               <button
-                                type="button"
+                                type='button'
                                 onClick={newfilter}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                                className='inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                               >
-                                <IconPlus className="h-4 w-4" stroke={2} />
+                                <IconPlus
+                                  className='h-4 w-4'
+                                  stroke={2}
+                                />
                                 Add filter
                               </button>
 
@@ -1072,7 +1086,7 @@ const Views: pageWithLayout<pageProps> = ({
                                 />
                               ))}
                               {colFilters.length === 0 && (
-                                <p className="py-3 text-center text-xs text-zinc-400">
+                                <p className='py-3 text-center text-xs text-zinc-400'>
                                   No filters yet
                                 </p>
                               )}
@@ -1083,7 +1097,7 @@ const Views: pageWithLayout<pageProps> = ({
                     )}
                   </Popover>
 
-                  <Popover className="relative z-20">
+                  <Popover className='relative z-20'>
                     {({ open }) => (
                       <>
                         <Popover.Button
@@ -1097,33 +1111,36 @@ const Views: pageWithLayout<pageProps> = ({
                                 : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white',
                           )}
                         >
-                          <IconUsers className="h-4 w-4" stroke={1.75} />
+                          <IconUsers
+                            className='h-4 w-4'
+                            stroke={1.75}
+                          />
                           <span>Columns</span>
                         </Popover.Button>
 
                         <Transition
                           as={Fragment}
-                          enter="transition ease-out duration-200"
-                          enterFrom="opacity-0 translate-y-1"
-                          enterTo="opacity-100 translate-y-0"
-                          leave="transition ease-in duration-150"
-                          leaveFrom="opacity-100 translate-y-0"
-                          leaveTo="opacity-0 translate-y-1"
+                          enter='transition ease-out duration-200'
+                          enterFrom='opacity-0 translate-y-1'
+                          enterTo='opacity-100 translate-y-0'
+                          leave='transition ease-in duration-150'
+                          leaveFrom='opacity-100 translate-y-0'
+                          leaveTo='opacity-0 translate-y-1'
                         >
-                          <Popover.Panel className="absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-                            <div className="space-y-2">
+                          <Popover.Panel className='absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900'>
+                            <div className='space-y-2'>
                               {table.getAllLeafColumns().map((column: any) => {
                                 if (column.id !== 'select' && column.id !== 'info') {
                                   return (
                                     <label
                                       key={column.id}
-                                      className="flex items-center space-x-2 cursor-pointer group"
+                                      className='flex items-center space-x-2 cursor-pointer group'
                                     >
                                       <Checkbox
                                         checked={column.getIsVisible()}
                                         onChange={column.getToggleVisibilityHandler()}
                                       />
-                                      <span className="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+                                      <span className='text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors'>
                                         {getSelectionName(column.id)}
                                       </span>
                                     </label>
@@ -1138,25 +1155,25 @@ const Views: pageWithLayout<pageProps> = ({
                   </Popover>
                 </div>
 
-                <div className="relative flex-1 md:flex-none md:w-56">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <IconSearch className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+                <div className='relative flex-1 md:flex-none md:w-56'>
+                  <div className='relative'>
+                    <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                      <IconSearch className='h-4 w-4 text-zinc-400 dark:text-zinc-500' />
                     </div>
                     <input
-                      type="text"
+                      type='text'
                       value={searchQuery}
                       onChange={(e) => updateSearchQuery(e.target.value)}
-                      className="block w-full rounded-xl border-0 bg-zinc-100 py-2 pl-10 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder-zinc-500"
-                      placeholder="Search staff..."
+                      className='block w-full rounded-xl border-0 bg-zinc-100 py-2 pl-10 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder-zinc-500'
+                      placeholder='Search staff...'
                     />
                   </div>
 
                   {searchOpen && (
-                    <div className="absolute z-10 mt-1 w-full rounded-xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-                      <div className="py-1 max-h-48 overflow-y-auto">
+                    <div className='absolute z-10 mt-1 w-full rounded-xl border border-zinc-200/80 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900'>
+                      <div className='py-1 max-h-48 overflow-y-auto'>
                         {searchResults.length === 0 && (
-                          <div className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+                          <div className='px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 text-center'>
                             No results found
                           </div>
                         )}
@@ -1164,14 +1181,14 @@ const Views: pageWithLayout<pageProps> = ({
                           <button
                             key={u.username}
                             onClick={() => updateSearchFilter(u.username)}
-                            className="w-full text-left px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center space-x-2 transition-colors group"
+                            className='w-full text-left px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center space-x-2 transition-colors group'
                           >
                             <img
                               src={u.thumbnail}
                               alt={u.username}
-                              className="w-6 h-6 rounded-full bg-primary"
+                              className='w-6 h-6 rounded-full bg-primary'
                             />
-                            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
+                            <span className='text-sm font-medium text-zinc-900 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors'>
                               {u.username}
                             </span>
                           </button>
@@ -1184,16 +1201,16 @@ const Views: pageWithLayout<pageProps> = ({
                 {selectedViewId !== null && hasManageViews() && (
                   <button
                     onClick={handleEditOrSaveView}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
+                    className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all bg-zinc-50 dark:bg-zinc-700/50 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white'
                   >
                     {hasUnsavedChanges() ? (
                       <>
-                        <IconDeviceFloppy className="w-4 h-4" />
+                        <IconDeviceFloppy className='w-4 h-4' />
                         <span>Save</span>
                       </>
                     ) : (
                       <>
-                        <IconPencil className="w-4 h-4" />
+                        <IconPencil className='w-4 h-4' />
                         <span>Edit</span>
                       </>
                     )}
@@ -1202,8 +1219,8 @@ const Views: pageWithLayout<pageProps> = ({
               </div>
 
               {table.getSelectedRowModel().flatRows.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 py-2">
+                <div className='mt-4 flex flex-wrap gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800'>
+                  <span className='text-xs font-medium text-zinc-600 dark:text-zinc-400 py-2'>
                     {table.getSelectedRowModel().flatRows.length} selected
                   </span>
                   <button
@@ -1211,9 +1228,9 @@ const Views: pageWithLayout<pageProps> = ({
                       setType('promotion');
                       setIsOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-emerald-600/80 hover:bg-emerald-600 transition-all"
+                    className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-emerald-600/80 hover:bg-emerald-600 transition-all'
                   >
-                    <IconUserCheck className="w-4 h-4" />
+                    <IconUserCheck className='w-4 h-4' />
                     Promote
                   </button>
                   <button
@@ -1221,9 +1238,9 @@ const Views: pageWithLayout<pageProps> = ({
                       setType('warning');
                       setIsOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-amber-600/80 hover:bg-amber-600 transition-all"
+                    className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-amber-600/80 hover:bg-amber-600 transition-all'
                   >
-                    <IconAlertCircle className="w-4 h-4" />
+                    <IconAlertCircle className='w-4 h-4' />
                     Warn
                   </button>
                   <button
@@ -1231,9 +1248,9 @@ const Views: pageWithLayout<pageProps> = ({
                       setType('termination');
                       setIsOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all"
+                    className='inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-white bg-red-600/80 hover:bg-red-600 transition-all'
                   >
-                    <IconShieldX className="w-4 h-4" />
+                    <IconShieldX className='w-4 h-4' />
                     Terminate
                   </button>
                 </div>
@@ -1243,23 +1260,23 @@ const Views: pageWithLayout<pageProps> = ({
 
           {mainPanelMode === 'table' ? (
             isLoading ? (
-              <ViewsPanel className="p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading staff data…</p>
+              <ViewsPanel className='p-12'>
+                <div className='flex flex-col items-center justify-center text-center'>
+                  <div className='mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700' />
+                  <p className='text-sm text-zinc-500 dark:text-zinc-400'>Loading staff data…</p>
                 </div>
               </ViewsPanel>
             ) : (
-              <ViewsPanel className="overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full table-auto md:table-fixed">
-                    <thead className="border-b border-zinc-100 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-800/40">
+              <ViewsPanel className='overflow-hidden'>
+                <div className='overflow-x-auto'>
+                  <table className='w-full table-auto md:table-fixed'>
+                    <thead className='border-b border-zinc-100 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-800/40'>
                       {table.getHeaderGroups().map((headerGroup) => (
                         <tr key={headerGroup.id}>
                           {headerGroup.headers.map((header) => (
                             <th
                               key={header.id}
-                              scope="col"
+                              scope='col'
                               aria-sort={
                                 header.column.getIsSorted?.() === 'asc'
                                   ? 'ascending'
@@ -1275,18 +1292,18 @@ const Views: pageWithLayout<pageProps> = ({
                               onClick={header.column.getToggleSortingHandler()}
                             >
                               {header.isPlaceholder ? null : (
-                                <div className="flex items-center space-x-1.5">
+                                <div className='flex items-center space-x-1.5'>
                                   <span>
                                     {flexRender(
                                       header.column.columnDef.header,
                                       header.getContext(),
                                     )}
                                   </span>
-                                  <span className="text-zinc-400">
+                                  <span className='text-zinc-400'>
                                     {header.column.getIsSorted?.() === 'asc' ? (
-                                      <IconArrowUp className="w-3 h-3" />
+                                      <IconArrowUp className='w-3 h-3' />
                                     ) : header.column.getIsSorted?.() === 'desc' ? (
-                                      <IconArrowDown className="w-3 h-3" />
+                                      <IconArrowDown className='w-3 h-3' />
                                     ) : null}
                                   </span>
                                 </div>
@@ -1296,11 +1313,11 @@ const Views: pageWithLayout<pageProps> = ({
                         </tr>
                       ))}
                     </thead>
-                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody className='divide-y divide-zinc-100 dark:divide-zinc-800'>
                       {table.getRowModel().rows.map((row) => (
                         <tr
                           key={row.id}
-                          className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                          className='transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
                         >
                           {row.getVisibleCells().map((cell) => (
                             <td
@@ -1333,24 +1350,24 @@ const Views: pageWithLayout<pageProps> = ({
                   </table>
                 </div>
 
-                <div className="flex items-center justify-center border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
-                  <div className="flex gap-2">
+                <div className='flex items-center justify-center border-t border-zinc-100 px-4 py-3 dark:border-zinc-800'>
+                  <div className='flex gap-2'>
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => table.previousPage()}
                       disabled={!table.getCanPreviousPage()}
-                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                      className='rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
                     >
                       Previous
                     </button>
-                    <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-zinc-500">
+                    <span className='inline-flex items-center px-3 py-1.5 text-sm font-medium text-zinc-500'>
                       Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                     </span>
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => table.nextPage()}
                       disabled={!table.getCanNextPage()}
-                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                      className='rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
                     >
                       Next
                     </button>
@@ -1359,14 +1376,14 @@ const Views: pageWithLayout<pageProps> = ({
               </ViewsPanel>
             )
           ) : orgChartLoading ? (
-            <ViewsPanel className="p-12">
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading org chart…</p>
+            <ViewsPanel className='p-12'>
+              <div className='flex flex-col items-center justify-center text-center'>
+                <div className='mb-4 h-10 w-10 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700' />
+                <p className='text-sm text-zinc-500 dark:text-zinc-400'>Loading org chart…</p>
               </div>
             </ViewsPanel>
           ) : (
-            <ViewsPanel className="p-4 sm:p-6">
+            <ViewsPanel className='p-4 sm:p-6'>
               <StaffOrgChart
                 workspaceId={String(router.query.id)}
                 nodes={orgChartData?.nodes ?? []}
@@ -1378,41 +1395,52 @@ const Views: pageWithLayout<pageProps> = ({
         </div>
       </div>
 
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)}>
+      <Transition
+        appear
+        show={isOpen}
+        as={Fragment}
+      >
+        <Dialog
+          as='div'
+          className='relative z-50'
+          onClose={() => setIsOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className='fixed inset-0 bg-black bg-opacity-25' />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title as="div" className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-medium text-zinc-900 dark:text-white">
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 p-5 text-left align-middle shadow-xl transition-all'>
+                  <Dialog.Title
+                    as='div'
+                    className='flex items-center justify-between mb-3'
+                  >
+                    <h3 className='text-lg font-medium text-zinc-900 dark:text-white'>
                       Mass {type} {type === 'add' ? 'minutes' : ''}
                     </h3>
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="text-zinc-400 hover:text-zinc-500"
+                      className='text-zinc-400 hover:text-zinc-500'
                     >
-                      <IconX className="w-5 h-5" />
+                      <IconX className='w-5 h-5' />
                     </button>
                   </Dialog.Title>
 
@@ -1423,13 +1451,13 @@ const Views: pageWithLayout<pageProps> = ({
                       },
                     })}
                   >
-                    <div className="mt-3">
+                    <div className='mt-3'>
                       <Input
                         type={type === 'add' ? 'number' : 'text'}
                         placeholder={type === 'add' ? 'Minutes' : 'Message'}
                         value={type === 'add' ? minutes.toString() : message}
-                        name="value"
-                        id="value"
+                        name='value'
+                        id='value'
                         onBlur={async () => true}
                         onChange={async (e) => {
                           if (type === 'add') {
@@ -1443,17 +1471,17 @@ const Views: pageWithLayout<pageProps> = ({
                     </div>
                   </FormProvider>
 
-                  <div className="mt-5 flex justify-end gap-2">
+                  <div className='mt-5 flex justify-end gap-2'>
                     <button
-                      type="button"
-                      className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                      type='button'
+                      className='inline-flex justify-center px-3 py-1.5 text-sm font-medium text-zinc-700 bg-white dark:text-white dark:bg-zinc-800 border border-gray-300 rounded-md hover:bg-zinc-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary'
                       onClick={() => setIsOpen(false)}
                     >
                       Cancel
                     </button>
                     <button
-                      type="button"
-                      className="inline-flex justify-center px-3 py-1.5 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+                      type='button'
+                      className='inline-flex justify-center px-3 py-1.5 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary'
                       onClick={massAction}
                     >
                       Confirm
@@ -1466,29 +1494,37 @@ const Views: pageWithLayout<pageProps> = ({
         </Dialog>
       </Transition>
 
-      <Transition appear show={isSaveOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsSaveOpen(false)}>
+      <Transition
+        appear
+        show={isSaveOpen}
+        as={Fragment}
+      >
+        <Dialog
+          as='div'
+          className='relative z-50'
+          onClose={() => setIsSaveOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-200"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-150"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-200'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-150'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+            <div className='fixed inset-0 bg-black/40 backdrop-blur-sm' />
           </Transition.Child>
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-200"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-150"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-200'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-150'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
                 <Dialog.Panel
                   className={clsx(
@@ -1496,47 +1532,50 @@ const Views: pageWithLayout<pageProps> = ({
                     viewsPanelShadow,
                   )}
                 >
-                  <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className='mb-4 flex items-start justify-between gap-3'>
                     <div>
-                      <Dialog.Title className="text-base font-semibold text-zinc-900 dark:text-white">
+                      <Dialog.Title className='text-base font-semibold text-zinc-900 dark:text-white'>
                         Save view
                       </Dialog.Title>
-                      <p className="mt-0.5 text-xs text-zinc-400">
+                      <p className='mt-0.5 text-xs text-zinc-400'>
                         Name this view and pick a color and icon
                       </p>
                     </div>
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => setIsSaveOpen(false)}
-                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                      className='rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
                     >
-                      <IconX className="h-5 w-5" stroke={1.75} />
+                      <IconX
+                        className='h-5 w-5'
+                        stroke={1.75}
+                      />
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className='space-y-4'>
                     <div>
-                      <label className="mb-1 block text-[11px] font-medium text-zinc-400">
+                      <label className='mb-1 block text-[11px] font-medium text-zinc-400'>
                         Name ({saveName.length}/{SAVED_VIEW_NAME_MAX_LENGTH})
                       </label>
                       <input
-                        type="text"
-                        name="save-name"
+                        type='text'
+                        name='save-name'
                         maxLength={SAVED_VIEW_NAME_MAX_LENGTH}
                         value={saveName}
                         onChange={(e) =>
                           setSaveName(e.target.value.slice(0, SAVED_VIEW_NAME_MAX_LENGTH))
                         }
-                        placeholder="e.g. Active moderators"
-                        className="w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500"
+                        placeholder='e.g. Active moderators'
+                        className='w-full rounded-xl border-0 bg-zinc-100 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:bg-zinc-800 dark:text-white dark:placeholder-zinc-500'
                       />
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-[11px] font-medium text-zinc-400">
+                      <label className='mb-2 block text-[11px] font-medium text-zinc-400'>
                         Color
                       </label>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className='flex flex-wrap gap-1.5'>
                         {[
                           '#fef2f2',
                           '#fef3c7',
@@ -1560,7 +1599,7 @@ const Views: pageWithLayout<pageProps> = ({
                         ].map((c) => (
                           <button
                             key={c}
-                            type="button"
+                            type='button'
                             onClick={() => setSaveColor(c)}
                             title={c}
                             className={clsx(
@@ -1576,16 +1615,16 @@ const Views: pageWithLayout<pageProps> = ({
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-[11px] font-medium text-zinc-400">
+                      <label className='mb-2 block text-[11px] font-medium text-zinc-400'>
                         Icon
                       </label>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className='flex flex-wrap gap-1.5'>
                         {ICON_OPTIONS.map((opt) => {
                           const IconComp = opt.Icon;
                           return (
                             <button
                               key={opt.key}
-                              type="button"
+                              type='button'
                               onClick={() => setSaveIcon(opt.key)}
                               title={opt.title || opt.key}
                               className={clsx(
@@ -1596,7 +1635,7 @@ const Views: pageWithLayout<pageProps> = ({
                               )}
                             >
                               <IconComp
-                                className="h-4 w-4 text-zinc-700 dark:text-zinc-200"
+                                className='h-4 w-4 text-zinc-700 dark:text-zinc-200'
                                 stroke={1.75}
                               />
                             </button>
@@ -1606,17 +1645,17 @@ const Views: pageWithLayout<pageProps> = ({
                     </div>
                   </div>
 
-                  <div className="mt-5 flex justify-end gap-2">
+                  <div className='mt-5 flex justify-end gap-2'>
                     <button
-                      type="button"
-                      className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                      type='button'
+                      className='rounded-xl px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300'
                       onClick={() => setIsSaveOpen(false)}
                     >
                       Cancel
                     </button>
                     <button
-                      type="button"
-                      className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      type='button'
+                      className='rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'
                       onClick={saveCurrentView}
                       disabled={!saveName.trim()}
                     >
@@ -1630,32 +1669,32 @@ const Views: pageWithLayout<pageProps> = ({
         </Dialog>
       </Transition>
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm">
-            <div className="p-6">
-              <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
-                <IconTrash className="w-5 h-5 text-red-500" />
+        <div className='fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+          <div className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm'>
+            <div className='p-6'>
+              <div className='w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4'>
+                <IconTrash className='w-5 h-5 text-red-500' />
               </div>
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-white mb-1">
+              <h2 className='text-base font-semibold text-zinc-900 dark:text-white mb-1'>
                 Delete view?
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className='text-sm text-zinc-500 dark:text-zinc-400'>
                 This saved view will be permanently removed. This action cannot be undone.
               </p>
             </div>
-            <div className="flex gap-2 px-6 pb-5">
+            <div className='flex gap-2 px-6 pb-5'>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setViewToDelete(null);
                 }}
-                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                className='flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors'
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteSavedView}
-                className="flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
+                className='flex-1 px-4 py-2 text-sm font-medium rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors'
               >
                 Delete
               </button>
@@ -1740,25 +1779,34 @@ const Filter: React.FC<{
 
   return (
     <FormProvider {...methods}>
-      <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Filter rule</span>
+      <div className='rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50'>
+        <div className='mb-3 flex items-center justify-between'>
+          <span className='text-xs font-medium text-zinc-500 dark:text-zinc-400'>Filter rule</span>
           <button
-            type="button"
+            type='button'
             onClick={deleteFilter}
-            className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-200/70 hover:text-red-500 dark:hover:bg-zinc-700 dark:hover:text-red-400"
-            title="Remove filter"
+            className='rounded-lg p-1 text-zinc-400 transition-colors hover:bg-zinc-200/70 hover:text-red-500 dark:hover:bg-zinc-700 dark:hover:text-red-400'
+            title='Remove filter'
           >
-            <IconTrash className="h-3.5 w-3.5" stroke={1.75} />
+            <IconTrash
+              className='h-3.5 w-3.5'
+              stroke={1.75}
+            />
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className='space-y-3'>
           <div>
             <label className={filterLabelClass}>Column</label>
-            <select {...register('col')} className={filterInputClass}>
+            <select
+              {...register('col')}
+              className={filterInputClass}
+            >
               {Object.keys(filters).map((filter) => (
-                <option value={filter} key={filter}>
+                <option
+                  value={filter}
+                  key={filter}
+                >
                   {filter}
                 </option>
               ))}
@@ -1767,9 +1815,15 @@ const Filter: React.FC<{
 
           <div>
             <label className={filterLabelClass}>Operation</label>
-            <select {...register('op')} className={filterInputClass}>
+            <select
+              {...register('op')}
+              className={filterInputClass}
+            >
               {(filters[selectedCol] || filters.username).map((filter) => (
-                <option value={filter} key={filter}>
+                <option
+                  value={filter}
+                  key={filter}
+                >
                   {filterNames[filter]}
                 </option>
               ))}
@@ -1782,16 +1836,25 @@ const Filter: React.FC<{
             selectedCol !== 'department' && (
               <div>
                 <label className={filterLabelClass}>Value</label>
-                <input {...register('value')} className={filterInputClass} />
+                <input
+                  {...register('value')}
+                  className={filterInputClass}
+                />
               </div>
             )}
 
           {selectedCol === 'rank' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register('value')} className={filterInputClass}>
+              <select
+                {...register('value')}
+                className={filterInputClass}
+              >
                 {ranks.map((rank) => (
-                  <option value={rank.rank} key={rank.id}>
+                  <option
+                    value={rank.rank}
+                    key={rank.id}
+                  >
                     {rank.name}
                   </option>
                 ))}
@@ -1802,9 +1865,12 @@ const Filter: React.FC<{
           {selectedCol === 'registered' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register('value')} className={filterInputClass}>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
+              <select
+                {...register('value')}
+                className={filterInputClass}
+              >
+                <option value='true'>Yes</option>
+                <option value='false'>No</option>
               </select>
             </div>
           )}
@@ -1812,9 +1878,12 @@ const Filter: React.FC<{
           {selectedCol === 'quota' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register('value')} className={filterInputClass}>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
+              <select
+                {...register('value')}
+                className={filterInputClass}
+              >
+                <option value='true'>Yes</option>
+                <option value='false'>No</option>
               </select>
             </div>
           )}
@@ -1822,9 +1891,15 @@ const Filter: React.FC<{
           {selectedCol === 'department' && (
             <div>
               <label className={filterLabelClass}>Value</label>
-              <select {...register('value')} className={filterInputClass}>
+              <select
+                {...register('value')}
+                className={filterInputClass}
+              >
                 {departments.map((dept) => (
-                  <option value={dept.id} key={dept.id}>
+                  <option
+                    value={dept.id}
+                    key={dept.id}
+                  >
                     {dept.name}
                   </option>
                 ))}

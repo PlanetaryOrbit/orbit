@@ -1,11 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-import semver from 'semver';
-
 import packageJson from '@/package.json';
 import cache from '@/utils/cache';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import semver from 'semver';
 
 type ChangelogRelease = {
   version: string;

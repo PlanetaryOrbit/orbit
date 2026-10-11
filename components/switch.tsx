@@ -31,8 +31,8 @@ const SwitchComponent: FC<Props> = ({
     <div className={clsx('flex items-center gap-2', classoverride)}>
       <button
         id={id}
-        type="button"
-        role="switch"
+        type='button'
+        role='switch'
         aria-checked={checked}
         aria-disabled={disabled}
         disabled={disabled}

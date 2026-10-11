@@ -33,18 +33,24 @@ export default function AuthBackground({ darkBackground, lightBackground }: Prop
   if (!background) {
     return (
       <div
-        className="
+        className='
           absolute inset-0
           bg-linear-to-b
           from-ctp-base/40
           via-ctp-base/80
           to-ctp-base
-        "
+        '
       />
     );
   }
 
   return (
-    <Image src={background} alt="" fill priority className="pointer-events-none object-cover" />
+    <Image
+      src={background}
+      alt=''
+      fill
+      priority
+      className='pointer-events-none object-cover'
+    />
   );
 }

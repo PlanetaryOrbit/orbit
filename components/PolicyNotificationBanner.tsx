@@ -107,16 +107,16 @@ const PolicyNotificationBanner: FC<PolicyNotificationBannerProps> = ({
         exit={{ opacity: 0, height: 0 }}
         className={`border-l-4 p-4 mb-6 ${getBannerColor()}`}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3">
+        <div className='flex items-start justify-between'>
+          <div className='flex items-start space-x-3'>
             <IconAlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${getIconColor()}`} />
-            <div className="flex-1">
+            <div className='flex-1'>
               <h4 className={`text-sm font-medium ${getTextColor()}`}>
                 Policy Acknowledgment Required
               </h4>
               <p className={`text-sm mt-1 ${getTextColor()}`}>{getMessage()}</p>
               {urgentPolicies.length <= 3 && (
-                <div className="mt-3 space-y-1">
+                <div className='mt-3 space-y-1'>
                   {urgentPolicies.map((policy) => {
                     const deadlineDate = new Date(policy.acknowledgmentDeadline);
                     const isOverdue = new Date() > deadlineDate;
@@ -125,7 +125,7 @@ const PolicyNotificationBanner: FC<PolicyNotificationBannerProps> = ({
                     return (
                       <div
                         key={policy.id}
-                        className="flex items-center space-x-2 cursor-pointer hover:underline"
+                        className='flex items-center space-x-2 cursor-pointer hover:underline'
                         onClick={() => onPolicyClick?.(policy.id)}
                       >
                         <IconFileText className={`w-3 h-3 ${getIconColor()}`} />
@@ -144,9 +144,9 @@ const PolicyNotificationBanner: FC<PolicyNotificationBannerProps> = ({
           <button
             onClick={() => setIsDismissed(true)}
             className={`ml-4 p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 ${getTextColor()}`}
-            title="Dismiss notification"
+            title='Dismiss notification'
           >
-            <IconX className="w-4 h-4" />
+            <IconX className='w-4 h-4' />
           </button>
         </div>
       </motion.div>

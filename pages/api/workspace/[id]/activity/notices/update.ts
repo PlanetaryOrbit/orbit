@@ -1,10 +1,9 @@
-// pages/api/workspace/[id]/activity/notices/update.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+// pages/api/workspace/[id]/activity/notices/update.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

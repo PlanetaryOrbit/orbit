@@ -1,7 +1,6 @@
+import prisma from '@/utils/database';
 import { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
-
-import prisma from '@/utils/database';
 
 async function withTimeout<T>(
   promise: Promise<T>,

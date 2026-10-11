@@ -1,11 +1,10 @@
 import * as crypto from 'crypto';
 import * as net from 'net';
 
-import axios from 'axios';
-import { UAParser } from 'ua-parser-js';
-
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
+import axios from 'axios';
+import { UAParser } from 'ua-parser-js';
 
 interface IpapiRes {
   country_name: string;

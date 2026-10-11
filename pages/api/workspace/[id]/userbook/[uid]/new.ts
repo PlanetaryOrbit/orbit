@@ -1,16 +1,15 @@
 import fs from 'fs';
 
-import formidable, { File as FormidableFile } from 'formidable';
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-import * as noblox from 'noblox.js';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { RankGunAPI, getRankGun } from '@/utils/rankgun';
 import * as rbx from '@/utils/roblox';
+import formidable, { File as FormidableFile } from 'formidable';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as noblox from 'noblox.js';
 
 type RankingResultLike = {
   success: boolean;

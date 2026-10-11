@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { initiateClient } from '@/utils/roblox';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH')

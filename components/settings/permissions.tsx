@@ -1,11 +1,10 @@
-import { Role } from 'noblox.js';
-import React, { FC, ReactNode, useEffect } from 'react';
-
 import Departments from '@/components/settings/permissions/departments';
 import { Department } from '@/components/settings/permissions/departments';
 import Roles from '@/components/settings/permissions/roles';
 import Users from '@/components/settings/permissions/users';
 import { role } from '@/utils/database';
+import { Role } from 'noblox.js';
+import React, { FC, ReactNode, useEffect } from 'react';
 
 type Props = {
   users: any[];
@@ -20,9 +19,19 @@ const Button: FC<Props> = (props) => {
 
   return (
     <div>
-      <Users roles={roles} users={props.users} />
-      <Roles setRoles={setRoles} roles={roles} grouproles={props.grouproles} />
-      <Departments setDepartments={setDepartments} departments={departments} />
+      <Users
+        roles={roles}
+        users={props.users}
+      />
+      <Roles
+        setRoles={setRoles}
+        roles={roles}
+        grouproles={props.grouproles}
+      />
+      <Departments
+        setDepartments={setDepartments}
+        departments={departments}
+      />
     </div>
   );
 };

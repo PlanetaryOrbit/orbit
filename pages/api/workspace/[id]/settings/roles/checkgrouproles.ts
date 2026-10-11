@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import cache from '@/utils/cache';
 import { withPermissionCheck, checkGroupRoles } from '@/utils/permissionsManager';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withPermissionCheck(handler, 'admin');
 

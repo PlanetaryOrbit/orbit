@@ -14,7 +14,7 @@ export function ProfilePageShell({
   className?: string;
 }) {
   return (
-    <div className="pagePadding pb-10">
+    <div className='pagePadding pb-10'>
       <div className={clsx('mx-auto w-full max-w-7xl', className)}>{children}</div>
     </div>
   );
@@ -63,15 +63,18 @@ export function ProfileStatCard({
   description: string;
 }) {
   return (
-    <div className="rounded-xl bg-zinc-50/80 p-5 dark:bg-zinc-800/40">
-      <div className="mb-4 flex items-center gap-2.5">
-        <div className="rounded-lg bg-primary/10 p-1.5">
-          <Icon className="h-4 w-4 text-primary" stroke={1.75} />
+    <div className='rounded-xl bg-zinc-50/80 p-5 dark:bg-zinc-800/40'>
+      <div className='mb-4 flex items-center gap-2.5'>
+        <div className='rounded-lg bg-primary/10 p-1.5'>
+          <Icon
+            className='h-4 w-4 text-primary'
+            stroke={1.75}
+          />
         </div>
-        <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+        <p className='text-[11px] font-medium uppercase tracking-wide text-zinc-400'>{label}</p>
       </div>
-      <div className="text-3xl font-bold tabular-nums text-zinc-900 dark:text-white">{value}</div>
-      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+      <div className='text-3xl font-bold tabular-nums text-zinc-900 dark:text-white'>{value}</div>
+      <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>{description}</p>
     </div>
   );
 }
@@ -91,7 +94,7 @@ export function ProfileSection({
 }) {
   return (
     <div className={clsx('space-y-3', className)}>
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{title}</h3>
+      <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>{title}</h3>
       {children}
     </div>
   );
@@ -107,13 +110,16 @@ export function ProfileEmptyState({
   description: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-700/50">
-        <Icon className="h-5 w-5 text-zinc-400 dark:text-zinc-500" stroke={1.75} />
+    <div className='flex flex-col items-center justify-center gap-3 py-12'>
+      <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-700/50'>
+        <Icon
+          className='h-5 w-5 text-zinc-400 dark:text-zinc-500'
+          stroke={1.75}
+        />
       </div>
-      <div className="text-center">
-        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{title}</p>
-        <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{description}</p>
+      <div className='text-center'>
+        <p className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>{title}</p>
+        <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>{description}</p>
       </div>
     </div>
   );

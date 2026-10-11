@@ -1,9 +1,8 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { checkGroupRoles } from '@/utils/permissionsManager';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiResponse } from 'next';
 type Data = {
   success: boolean;
   error?: string;

@@ -34,17 +34,20 @@ const Input: FC<Props> = ({
   maxLength,
 }) => {
   return (
-    <div className="mb-3">
+    <div className='mb-3'>
       {label && (
-        <label htmlFor={id} className="text-zinc-500 text-sm dark:text-zinc-200">
+        <label
+          htmlFor={id}
+          className='text-zinc-500 text-sm dark:text-zinc-200'
+        >
           {label}
         </label>
       )}
       {!textarea ? (
-        <div className="flex flex-wrap items-stretch w-full mb-0 relative">
+        <div className='flex flex-wrap items-stretch w-full mb-0 relative'>
           {prepend && (
-            <div className="flex -ml-px">
-              <span className="flex items-center leading-normal bg-grey-lighter rounded-lg rounded-r-none border-2 border-r-0 border-grey-light px-3 whitespace-no-wrap text-grey-dark text-sm">
+            <div className='flex -ml-px'>
+              <span className='flex items-center leading-normal bg-grey-lighter rounded-lg rounded-r-none border-2 border-r-0 border-grey-light px-3 whitespace-no-wrap text-grey-dark text-sm'>
                 {prepend}
               </span>
             </div>

@@ -1,11 +1,10 @@
-import moment from 'moment';
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { generateSessionTimeMessage } from '@/utils/sessionMessage';
+import moment from 'moment';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiRequest, NextApiResponse } from 'next';
 type Data = {
   success: boolean;
   error?: string;

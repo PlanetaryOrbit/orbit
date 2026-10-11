@@ -1,3 +1,6 @@
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import { Dialog, Listbox, Transition } from '@headlessui/react';
 import {
   IconCheck,
@@ -16,10 +19,6 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState, Fragment } from 'react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import SwitchComponenet from '@/components/switch';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 const sessionTypes = [
   { value: 'shift', label: 'Shift' },
@@ -51,11 +50,11 @@ function SettingField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
+    <div className='space-y-2'>
       <div>
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{label}</p>
+        <p className='text-sm font-medium text-zinc-800 dark:text-zinc-200'>{label}</p>
         {hint ? (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{hint}</p>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed'>{hint}</p>
         ) : null}
       </div>
       {children}
@@ -86,41 +85,44 @@ const Board: FC<props> = (props) => {
   const cardHeaderClass = 'px-5 py-4 border-b border-zinc-100 dark:border-zinc-800/80';
 
   return (
-    <div className="relative z-15 mx-auto max-w-3xl space-y-6">
+    <div className='relative z-15 mx-auto max-w-3xl space-y-6'>
       <section className={cardClass}>
         <div className={clsx(cardHeaderClass, 'bg-zinc-50/80 dark:bg-zinc-800/20')}>
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))]">
-              <IconCalendarTime className="h-5 w-5" stroke={1.5} />
+          <div className='flex items-start gap-3'>
+            <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:rgb(var(--group-theme)/0.12)] text-[color:rgb(var(--group-theme))]'>
+              <IconCalendarTime
+                className='h-5 w-5'
+                stroke={1.5}
+              />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+            <div className='min-w-0'>
+              <h2 className='text-base font-semibold text-zinc-900 dark:text-white'>
                 Sessions Board
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+              <p className='text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed'>
                 Display upcoming sessions effortlessly with our session board.
               </p>
             </div>
           </div>
         </div>
-        <div className="p-5 space-y-0 divide-y divide-zinc-100 dark:divide-zinc-800/80">
-          <div className="pb-5">
+        <div className='p-5 space-y-0 divide-y divide-zinc-100 dark:divide-zinc-800/80'>
+          <div className='pb-5'>
             <SettingField
-              label="Session type"
-              hint="Select the type of session to display on the board."
+              label='Session type'
+              hint='Select the type of session to display on the board.'
             >
               <Listbox
                 value={selectedSessionType}
                 onChange={setSelectedSessionType}
-                as="div"
-                className="relative"
+                as='div'
+                className='relative'
               >
                 <Listbox.Button className={listboxButtonClass}>
-                  <span className="truncate">
+                  <span className='truncate'>
                     {sessionTypes.find((t) => t.value === selectedSessionType)?.label ||
                       'Select session type'}
                   </span>
-                  <IconChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
+                  <IconChevronDown className='w-4 h-4 text-zinc-400 shrink-0' />
                 </Listbox.Button>
                 <Listbox.Options className={listboxOptionsClass}>
                   {sessionTypes.map((type) => (
@@ -133,7 +135,7 @@ const Board: FC<props> = (props) => {
                         <>
                           <span className={selected ? 'font-semibold' : ''}>{type.label}</span>
                           {selected && (
-                            <IconCheck className="w-4 h-4 text-[color:rgb(var(--group-theme))]" />
+                            <IconCheck className='w-4 h-4 text-[color:rgb(var(--group-theme))]' />
                           )}
                         </>
                       )}
@@ -143,83 +145,86 @@ const Board: FC<props> = (props) => {
               </Listbox>
             </SettingField>
           </div>
-          <div className="pt-5 pb-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <div className='pt-5 pb-5'>
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='min-w-0'>
+                <p className='text-sm font-medium text-zinc-800 dark:text-zinc-200'>
                   Use light mode
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
                   Tailor your board's look for the game's best fit
                 </p>
               </div>
-              <div className="flex items-center justify-end gap-2 shrink-0">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right">
+              <div className='flex items-center justify-end gap-2 shrink-0'>
+                <span className='text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right'>
                   {lightMode ? 'On' : 'Off'}
                 </span>
                 <SwitchComponenet
                   checked={lightMode}
                   onChange={() => setLightMode(!lightMode)}
-                  label=""
+                  label=''
                 />
               </div>
             </div>
           </div>
-          <div className="pt-5 pb-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <div className='pt-5 pb-5'>
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='min-w-0'>
+                <p className='text-sm font-medium text-zinc-800 dark:text-zinc-200'>
                   Use 24h format
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
                   Set to which format you wanna see the time.
                 </p>
               </div>
-              <div className="flex items-center justify-end gap-2 shrink-0">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right">
+              <div className='flex items-center justify-end gap-2 shrink-0'>
+                <span className='text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right'>
                   {globalFormat ? 'On' : 'Off'}
                 </span>
                 <SwitchComponenet
                   checked={globalFormat}
                   onChange={() => setGlobalFormat(!globalFormat)}
-                  label=""
+                  label=''
                 />
               </div>
             </div>
           </div>
-          <div className="pt-5 pb-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <div className='pt-5 pb-5'>
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='min-w-0'>
+                <p className='text-sm font-medium text-zinc-800 dark:text-zinc-200'>
                   Only show claimed sessions
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
                   If enabled, it'll only show claimed sessions
                 </p>
               </div>
-              <div className="flex items-center justify-end gap-2 shrink-0">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right">
+              <div className='flex items-center justify-end gap-2 shrink-0'>
+                <span className='text-xs text-zinc-500 dark:text-zinc-400 tabular-nums w-12 text-right'>
                   {showClaimed ? 'On' : 'Off'}
                 </span>
                 <SwitchComponenet
                   checked={showClaimed}
                   onChange={() => setShowClaimed(!showClaimed)}
-                  label=""
+                  label=''
                 />
               </div>
             </div>
           </div>
-          <div className="pt-5">
-            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Download Board</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">
+          <div className='pt-5'>
+            <p className='text-sm font-medium text-zinc-800 dark:text-zinc-200'>Download Board</p>
+            <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3'>
               Once you feel the board is ready, download it and see the upcoming sessions
             </p>
             <button
-              type="button"
+              type='button'
               onClick={downloadLoader}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[color:rgb(var(--group-theme))] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+              className='inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[color:rgb(var(--group-theme))] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90'
             >
-              <IconDownload className="h-4 w-4" stroke={1.5} />
+              <IconDownload
+                className='h-4 w-4'
+                stroke={1.5}
+              />
               Download Board
             </button>
           </div>

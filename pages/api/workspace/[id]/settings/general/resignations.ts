@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

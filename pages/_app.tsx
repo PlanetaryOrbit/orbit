@@ -1,3 +1,10 @@
+import HelpFloatingButton, { HelpProvider } from '@/components/HelpFloatingButton';
+
+import '@/styles/globals.scss';
+import LoadingScreen from '@/components/loading';
+import type { pageWithLayout } from '@/layoutTypes';
+import { workspacestate } from '@/state';
+import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from '@/utils/themeColor';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,8 +16,6 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
-
-import '@/styles/globals.scss';
 import { ThemeProvider, useTheme } from 'next-themes';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -18,12 +23,6 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { RecoilRoot, useRecoilState } from 'recoil';
-
-import HelpFloatingButton, { HelpProvider } from '@/components/HelpFloatingButton';
-import LoadingScreen from '@/components/loading';
-import type { pageWithLayout } from '@/layoutTypes';
-import { workspacestate } from '@/state';
-import { getRGBFromTailwindColor, DEFAULT_THEME_RGB } from '@/utils/themeColor';
 
 import AuthProvider from './AuthProvider';
 
@@ -151,24 +150,38 @@ function Orbit({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <RecoilRoot>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeProvider
+        attribute='class'
+        defaultTheme='system'
+        enableSystem
+        disableTransitionOnChange
+      >
         <Head>
           <title>Orbit</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-          <meta name="description" content="Orbit — The all-in-one staff management solution." />
+          <meta
+            name='viewport'
+            content='width=device-width, initial-scale=1, viewport-fit=cover'
+          />
+          <meta
+            name='description'
+            content='Orbit — The all-in-one staff management solution.'
+          />
         </Head>
 
         <div>
           <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:bg-zinc-900 dark:focus:text-white"
+            href='#main-content'
+            className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:bg-zinc-900 dark:focus:text-white'
           >
             Skip to main content
           </a>
 
           <ConsoleBanner />
 
-          <AuthProvider loading={loading} setLoading={setLoading} />
+          <AuthProvider
+            loading={loading}
+            setLoading={setLoading}
+          />
           <ColorThemeHandler />
 
           {showLoader && <LoadingScreen done={!loading} />}
@@ -176,7 +189,11 @@ function Orbit({ Component, pageProps }: AppPropsWithLayout) {
           {!showLoader && (
             <Layout>
               <HelpProvider>
-                <main id="main-content" tabIndex={-1} className="pb-8 outline-none sm:pb-0">
+                <main
+                  id='main-content'
+                  tabIndex={-1}
+                  className='pb-8 outline-none sm:pb-0'
+                >
                   <Toaster
                     position={isMobile ? 'top-center' : 'bottom-center'}
                     toastOptions={{

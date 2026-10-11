@@ -1,3 +1,5 @@
+import { ActivitySessionDetailsDialog } from '@/components/activity/ActivitySessionDetailsDialog';
+import { ProfileEmptyState, ProfileSection, ProfileStatCard } from '@/components/profile/shell';
 import type { ActivitySession, inactivityNotice } from '@prisma/client';
 import {
   IconPlayerPlay,
@@ -25,9 +27,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import toast from 'react-hot-toast';
-
-import { ActivitySessionDetailsDialog } from '@/components/activity/ActivitySessionDetailsDialog';
-import { ProfileEmptyState, ProfileSection, ProfileStatCard } from '@/components/profile/shell';
 
 ChartJS.register(
   CategoryScale,
@@ -225,43 +224,43 @@ export function ActivityOverview({
   }, [data, isDark]);
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+    <div className='space-y-5'>
+      <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
         <ProfileStatCard
           icon={IconPlayerPlay}
-          label="Activity"
+          label='Activity'
           value={displayMinutes}
-          description="minutes of activity"
+          description='minutes of activity'
         />
         <ProfileStatCard
           icon={IconUsers}
-          label="Messages"
+          label='Messages'
           value={messages}
-          description="messages this period"
+          description='messages this period'
         />
         {idleTimeEnabled && (
           <ProfileStatCard
             icon={IconClock}
-            label="Idle Time"
+            label='Idle Time'
             value={idleTime}
-            description="minutes idle"
+            description='minutes idle'
           />
         )}
       </div>
 
       <ProfileSection
         icon={IconCalendarTime}
-        title="Activity Timeline"
-        subtitle="Sessions and manual adjustments"
+        title='Activity Timeline'
+        subtitle='Sessions and manual adjustments'
       >
         {sortedTimeline.length === 0 ? (
           <ProfileEmptyState
             icon={IconClipboardList}
-            title="No activity yet"
-            description="Sessions and adjustments will appear here"
+            title='No activity yet'
+            description='Sessions and adjustments will appear here'
           />
         ) : (
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
             {sortedTimeline.map((item: TimelineItem) => {
               if (item.__type === 'session') {
                 const isLive = (item as any).active && !(item as any).endTime;
@@ -282,38 +281,38 @@ export function ActivityOverview({
                     onClick={() => !isLive && fetchSession((item as any).id)}
                     className={`flex items-start justify-between gap-3 py-3.5 ${!isLive ? 'cursor-pointer' : ''}`}
                   >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="mt-0.5 shrink-0">
+                    <div className='flex items-start gap-3 min-w-0'>
+                      <div className='mt-0.5 shrink-0'>
                         {isLive ? (
-                          <span className="relative flex h-5 w-5 items-center justify-center">
-                            <span className="absolute h-5 w-5 animate-ping rounded-full bg-emerald-500 opacity-30" />
-                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                          <span className='relative flex h-5 w-5 items-center justify-center'>
+                            <span className='absolute h-5 w-5 animate-ping rounded-full bg-emerald-500 opacity-30' />
+                            <span className='h-2.5 w-2.5 rounded-full bg-emerald-500' />
                           </span>
                         ) : (
                           <img
-                            className="h-5 w-5 rounded-full object-cover"
+                            className='h-5 w-5 rounded-full object-cover'
                             src={(item as any).user?.picture || avatar}
-                            alt="avatar"
+                            alt='avatar'
                           />
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                          <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                      <div className='min-w-0'>
+                        <div className='flex flex-wrap items-center gap-2 mb-0.5'>
+                          <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                             Activity Session
                           </span>
                           {isLive && (
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <span className='rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400'>
                               Live
                             </span>
                           )}
                         </div>
                         {isLive ? (
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          <p className='text-xs text-emerald-600 dark:text-emerald-400'>
                             Currently active · {sessionDuration}m
                           </p>
                         ) : (
-                          <p className="text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                          <p className='text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                             {moment((item as any).startTime).format('HH:mm')}–
                             {moment((item as any).endTime).format('HH:mm')} ·{' '}
                             {moment((item as any).startTime).format('D MMM')} · {sessionDuration}m
@@ -327,7 +326,7 @@ export function ActivityOverview({
                           e.stopPropagation();
                           onEndSession((item as any).id, id as string);
                         }}
-                        className="shrink-0 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400"
+                        className='shrink-0 rounded-lg bg-zinc-100 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400'
                       >
                         Not in game?
                       </button>
@@ -340,19 +339,19 @@ export function ActivityOverview({
                 return (
                   <div
                     key={`adjust-${(item as any).id}`}
-                    className="flex items-start justify-between gap-3 py-3.5"
+                    className='flex items-start justify-between gap-3 py-3.5'
                   >
-                    <div className="flex items-start gap-3 min-w-0">
+                    <div className='flex items-start gap-3 min-w-0'>
                       <div
                         className={`mt-0.5 shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${positive ? 'bg-emerald-500' : 'bg-red-500'}`}
                       >
                         {positive ? '+' : '−'}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-zinc-900 dark:text-white">
+                      <div className='min-w-0'>
+                        <p className='text-sm font-medium text-zinc-900 dark:text-white'>
                           Manual Adjustment
                         </p>
-                        <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                        <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
                           <span
                             className={
                               positive
@@ -368,7 +367,7 @@ export function ActivityOverview({
                         </p>
                       </div>
                     </div>
-                    <time className="shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500">
+                    <time className='shrink-0 text-xs tabular-nums text-zinc-400 dark:text-zinc-500'>
                       {moment((item as any).createdAt).format('D MMM, HH:mm')}
                     </time>
                   </div>

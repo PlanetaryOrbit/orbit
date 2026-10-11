@@ -1,8 +1,7 @@
+import packageInfo from '@/package.json';
 import { OpenCloud } from '@relatiohq/opencloud';
 import axios from 'axios';
 import noblox from 'noblox.js';
-
-import packageInfo from '@/package.json';
 
 interface groupAlly {
   relatedGroups: {

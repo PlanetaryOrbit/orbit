@@ -53,7 +53,7 @@ function BubbleBtn({
 }) {
   return (
     <button
-      type="button"
+      type='button'
       title={title}
       onMouseDown={(e) => {
         e.preventDefault();
@@ -82,10 +82,10 @@ function InsertBtn({
 }) {
   return (
     <button
-      type="button"
+      type='button'
       title={title}
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+      className='inline-flex items-center gap-1.5 rounded-xl bg-zinc-100 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white'
     >
       {children}
     </button>
@@ -340,17 +340,35 @@ export default function RichDocumentEditor({
     <>
       <div className={clsx('relative flex-1', className)}>
         {!disabled && (
-          <div className="mb-2 flex flex-wrap items-center gap-1.5 px-4 sm:px-6">
-            <InsertBtn onClick={() => openMediaModal('image')} title="Insert image">
-              <IconPhoto className="h-3.5 w-3.5" stroke={1.75} />
+          <div className='mb-2 flex flex-wrap items-center gap-1.5 px-4 sm:px-6'>
+            <InsertBtn
+              onClick={() => openMediaModal('image')}
+              title='Insert image'
+            >
+              <IconPhoto
+                className='h-3.5 w-3.5'
+                stroke={1.75}
+              />
               Image
             </InsertBtn>
-            <InsertBtn onClick={() => openMediaModal('gif')} title="Insert GIF">
-              <IconGif className="h-3.5 w-3.5" stroke={1.75} />
+            <InsertBtn
+              onClick={() => openMediaModal('gif')}
+              title='Insert GIF'
+            >
+              <IconGif
+                className='h-3.5 w-3.5'
+                stroke={1.75}
+              />
               GIF
             </InsertBtn>
-            <InsertBtn onClick={() => openMediaModal('video')} title="Insert video">
-              <IconVideo className="h-3.5 w-3.5" stroke={1.75} />
+            <InsertBtn
+              onClick={() => openMediaModal('video')}
+              title='Insert video'
+            >
+              <IconVideo
+                className='h-3.5 w-3.5'
+                stroke={1.75}
+              />
               Video
             </InsertBtn>
           </div>
@@ -360,82 +378,119 @@ export default function RichDocumentEditor({
           <BubbleMenu
             editor={editor}
             options={{ placement: 'top', offset: 10 }}
-            className="flex items-center gap-0.5 rounded-lg border border-zinc-200/90 bg-white/95 p-0.5 shadow-xl backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/95"
+            className='flex items-center gap-0.5 rounded-lg border border-zinc-200/90 bg-white/95 p-0.5 shadow-xl backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/95'
           >
             <BubbleBtn
-              title="Bold"
+              title='Bold'
               active={editor.isActive('bold')}
               onClick={() => editor.chain().focus().toggleBold().run()}
             >
-              <IconBold className="h-3.5 w-3.5" stroke={2.5} />
+              <IconBold
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Italic"
+              title='Italic'
               active={editor.isActive('italic')}
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
-              <IconItalic className="h-3.5 w-3.5" stroke={2.5} />
+              <IconItalic
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Underline"
+              title='Underline'
               active={editor.isActive('underline')}
               onClick={() => editor.chain().focus().toggleUnderline().run()}
             >
-              <IconUnderline className="h-3.5 w-3.5" stroke={2.5} />
+              <IconUnderline
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Strikethrough"
+              title='Strikethrough'
               active={editor.isActive('strike')}
               onClick={() => editor.chain().focus().toggleStrike().run()}
             >
-              <IconStrikethrough className="h-3.5 w-3.5" stroke={2.5} />
+              <IconStrikethrough
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
-            <span className="mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+            <span className='mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700' />
             <BubbleBtn
-              title="Heading 1"
+              title='Heading 1'
               active={editor.isActive('heading', { level: 1 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             >
-              <IconH1 className="h-3.5 w-3.5" stroke={2.5} />
+              <IconH1
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Heading 2"
+              title='Heading 2'
               active={editor.isActive('heading', { level: 2 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             >
-              <IconH2 className="h-3.5 w-3.5" stroke={2.5} />
+              <IconH2
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Heading 3"
+              title='Heading 3'
               active={editor.isActive('heading', { level: 3 })}
               onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
             >
-              <IconH3 className="h-3.5 w-3.5" stroke={2.5} />
+              <IconH3
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
-            <span className="mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+            <span className='mx-0.5 h-4 w-px bg-zinc-200 dark:bg-zinc-700' />
             <BubbleBtn
-              title="Bullet list"
+              title='Bullet list'
               active={editor.isActive('bulletList')}
               onClick={() => editor.chain().focus().toggleBulletList().run()}
             >
-              <IconList className="h-3.5 w-3.5" stroke={2.5} />
+              <IconList
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Numbered list"
+              title='Numbered list'
               active={editor.isActive('orderedList')}
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
             >
-              <IconListNumbers className="h-3.5 w-3.5" stroke={2.5} />
+              <IconListNumbers
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
             <BubbleBtn
-              title="Quote"
+              title='Quote'
               active={editor.isActive('blockquote')}
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
             >
-              <IconQuote className="h-3.5 w-3.5" stroke={2.5} />
+              <IconQuote
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
-            <BubbleBtn title="Link" active={editor.isActive('link')} onClick={openLinkModal}>
-              <IconLink className="h-3.5 w-3.5" stroke={2.5} />
+            <BubbleBtn
+              title='Link'
+              active={editor.isActive('link')}
+              onClick={openLinkModal}
+            >
+              <IconLink
+                className='h-3.5 w-3.5'
+                stroke={2.5}
+              />
             </BubbleBtn>
           </BubbleMenu>
         )}

@@ -1,9 +1,3 @@
-import { IconBolt } from '@tabler/icons-react';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import type toast from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import { workspacestate } from '@/state';
 import { FC } from '@/types/settingsComponent';
 import {
@@ -11,6 +5,11 @@ import {
   ALLIANCE_STRIKES_MIN,
   ALLIANCE_STRIKES_SETTING_MAX,
 } from '@/utils/allianceStrikesConfig';
+import { IconBolt } from '@tabler/icons-react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import type toast from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 type props = {
   triggerToast: typeof toast;
@@ -53,35 +52,38 @@ const Other: FC<props> = ({ triggerToast }) => {
   };
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-600 dark:bg-zinc-900/40">
-      <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-primary/10 p-2">
-          <IconBolt className="h-5 w-5 text-primary" stroke={2} />
+    <div className='rounded-xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-600 dark:bg-zinc-900/40'>
+      <div className='flex items-start gap-3'>
+        <div className='rounded-lg bg-primary/10 p-2'>
+          <IconBolt
+            className='h-5 w-5 text-primary'
+            stroke={2}
+          />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-zinc-900 dark:text-white">Alliance strike limit</p>
-          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className='min-w-0 flex-1'>
+          <p className='text-sm font-medium text-zinc-900 dark:text-white'>Alliance strike limit</p>
+          <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
             Caps how many strikes each alliance can hold. The alliance page shows one meter segment
             per strike (between {ALLIANCE_STRIKES_MIN} and {ALLIANCE_STRIKES_SETTING_MAX}).
           </p>
-          <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div className='mt-4 flex flex-wrap items-end gap-3'>
             <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <label className='mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400'>
                 Max strikes
               </label>
               <input
-                type="number"
+                type='number'
                 min={ALLIANCE_STRIKES_MIN}
                 max={ALLIANCE_STRIKES_SETTING_MAX}
                 value={maxStrikes}
                 onChange={(e) => setMaxStrikes(Number(e.target.value))}
-                className="w-28 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                className='w-28 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white'
               />
             </div>
             <button
-              type="button"
+              type='button'
               onClick={() => void save()}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+              className='rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90'
             >
               Save
             </button>

@@ -1,10 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import noblox from 'noblox.js';
-
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getThumbnail } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import noblox from 'noblox.js';
 
 export default withPermissionCheck(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {

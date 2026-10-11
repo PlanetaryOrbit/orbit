@@ -1,12 +1,3 @@
-import { IconCheck, IconWorld, IconTrash } from '@tabler/icons-react';
-import axios from 'axios';
-import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import {
   documentContentToMarkdown,
   getDocumentMode,
@@ -30,6 +21,14 @@ import { AuthenticatedRequest } from '@/lib/withAuth';
 import { workspacestate } from '@/state';
 import prisma from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { IconCheck, IconWorld, IconTrash } from '@tabler/icons-react';
+import axios from 'axios';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 export const getServerSideProps: GetServerSideProps = withPermissionCheckSsr(
   async (context) => {
@@ -201,30 +200,36 @@ const EditDocument: pageWithLayout<any> = ({
         <DocEditorPage
           backHref={docHref}
           actions={
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               {canDelete && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowDeleteModal(true)}
-                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                  className='inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10'
                 >
-                  <IconTrash className="h-4 w-4" stroke={1.75} />
+                  <IconTrash
+                    className='h-4 w-4'
+                    stroke={1.75}
+                  />
                 </button>
               )}
               {canEdit && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={form.handleSubmit(updateDoc)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                  className='inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90'
                 >
-                  <IconCheck className="h-4 w-4" stroke={2} />
+                  <IconCheck
+                    className='h-4 w-4'
+                    stroke={2}
+                  />
                   Save
                 </button>
               )}
             </div>
           }
           sidebar={
-            <div className="space-y-4">
+            <div className='space-y-4'>
               <FolderPicker
                 folders={folders as DocFolderOption[]}
                 value={selectedFolderId}
@@ -255,15 +260,18 @@ const EditDocument: pageWithLayout<any> = ({
             titlePlaceholder={mode === 'external' ? 'Link title' : 'Untitled document'}
             footer={
               mode === 'external' ? (
-                <div className="flex items-center gap-2">
-                  <IconWorld className="h-4 w-4 shrink-0 text-zinc-400" stroke={1.75} />
+                <div className='flex items-center gap-2'>
+                  <IconWorld
+                    className='h-4 w-4 shrink-0 text-zinc-400'
+                    stroke={1.75}
+                  />
                   <input
-                    type="url"
+                    type='url'
                     value={externalUrl}
                     onChange={(e) => setExternalUrl(e.target.value)}
                     disabled={!canEdit}
-                    placeholder="https://docs.example.com"
-                    className="w-full border-0 bg-transparent text-sm text-zinc-600 placeholder-zinc-300 focus:outline-none focus:ring-0 disabled:opacity-60 dark:text-zinc-300 dark:placeholder-zinc-600"
+                    placeholder='https://docs.example.com'
+                    className='w-full border-0 bg-transparent text-sm text-zinc-600 placeholder-zinc-300 focus:outline-none focus:ring-0 disabled:opacity-60 dark:text-zinc-300 dark:placeholder-zinc-600'
                   />
                 </div>
               ) : undefined
@@ -277,7 +285,7 @@ const EditDocument: pageWithLayout<any> = ({
                 disabled={!canEdit}
               />
             ) : (
-              <p className="px-4 text-sm text-zinc-400 sm:px-6">
+              <p className='px-4 text-sm text-zinc-400 sm:px-6'>
                 This document links to an external page.
               </p>
             )}

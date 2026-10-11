@@ -1,4 +1,11 @@
 import {
+  ProfileEmptyState,
+  profileInputClass,
+  profilePrimaryButtonClass,
+  profileSecondaryButtonClass,
+} from '@/components/profile/shell';
+import { FC } from '@/types/settingsComponent';
+import {
   IconPencil,
   IconX,
   IconAlertTriangle,
@@ -16,14 +23,6 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-
-import {
-  ProfileEmptyState,
-  profileInputClass,
-  profilePrimaryButtonClass,
-  profileSecondaryButtonClass,
-} from '@/components/profile/shell';
-import { FC } from '@/types/settingsComponent';
 
 interface Props {
   userBook: any[];
@@ -229,19 +228,19 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
   const getIcon = (type: string) => {
     switch (type) {
       case 'note':
-        return <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />;
+        return <IconClipboardList className='w-5 h-5 text-zinc-500 dark:text-white' />;
       case 'warning':
-        return <IconAlertTriangle className="w-5 h-5 text-yellow-500" />;
+        return <IconAlertTriangle className='w-5 h-5 text-yellow-500' />;
       case 'promotion':
-        return <IconStar className="w-5 h-5 text-primary" />;
+        return <IconStar className='w-5 h-5 text-primary' />;
       case 'demotion':
-        return <IconX className="w-5 h-5 text-red-500" />;
+        return <IconX className='w-5 h-5 text-red-500' />;
       case 'rank_change':
-        return <IconRocket className="w-5 h-5 text-blue-500" />;
+        return <IconRocket className='w-5 h-5 text-blue-500' />;
       case 'termination':
-        return <IconX className="w-5 h-5 text-red-500" />;
+        return <IconX className='w-5 h-5 text-red-500' />;
       default:
-        return <IconClipboardList className="w-5 h-5 text-zinc-500 dark:text-white" />;
+        return <IconClipboardList className='w-5 h-5 text-zinc-500 dark:text-white' />;
     }
   };
 
@@ -369,22 +368,22 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
       : 'Add note';
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Add entry</h3>
+    <div className='space-y-6'>
+      <div className='space-y-4'>
+        <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>Add entry</h3>
 
         {!isSelf ? (
           <div>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <p className='mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
               Entry type
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className='flex flex-wrap gap-1.5'>
               {logbookPermissions?.note && (
                 <button
                   onClick={() => setType('note')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'note' ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconClipboardList className="h-3.5 w-3.5" /> Note
+                  <IconClipboardList className='h-3.5 w-3.5' /> Note
                 </button>
               )}
               {logbookPermissions?.warning && (
@@ -392,7 +391,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onClick={() => setType('warning')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'warning' ? 'bg-amber-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconAlertTriangle className="h-3.5 w-3.5" /> Warning
+                  <IconAlertTriangle className='h-3.5 w-3.5' /> Warning
                 </button>
               )}
               {logbookPermissions?.promotion && (
@@ -400,7 +399,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onClick={() => setType('promotion')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'promotion' ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconStar className="h-3.5 w-3.5" /> Promotion
+                  <IconStar className='h-3.5 w-3.5' /> Promotion
                 </button>
               )}
               {logbookPermissions?.demotion && (
@@ -408,7 +407,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onClick={() => setType('demotion')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'demotion' ? 'bg-red-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconX className="h-3.5 w-3.5" /> Demotion
+                  <IconX className='h-3.5 w-3.5' /> Demotion
                 </button>
               )}
               {rankingEnabled && logbookPermissions?.rank && (
@@ -416,7 +415,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onClick={() => setType('rank_change')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'rank_change' ? 'bg-blue-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconRocket className="h-3.5 w-3.5" /> Rank Change
+                  <IconRocket className='h-3.5 w-3.5' /> Rank Change
                 </button>
               )}
               {logbookPermissions?.termination && (
@@ -424,14 +423,14 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                   onClick={() => setType('termination')}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${type === 'termination' ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                 >
-                  <IconX className="h-3.5 w-3.5" /> Termination
+                  <IconX className='h-3.5 w-3.5' /> Termination
                 </button>
               )}
             </div>
           </div>
         ) : (
-          <div className="rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/50">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <div className='rounded-xl bg-zinc-50 px-4 py-3 dark:bg-zinc-800/50'>
+            <p className='text-sm text-zinc-500 dark:text-zinc-400'>
               You can&apos;t add entries to yourself.
             </p>
           </div>
@@ -442,9 +441,9 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
             className={`flex items-start gap-2.5 rounded-xl px-4 py-3 ${logbookPermissions?.rank ? 'bg-blue-500/10' : 'bg-amber-500/10'}`}
           >
             {logbookPermissions?.rank ? (
-              <IconRocket className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+              <IconRocket className='mt-0.5 h-4 w-4 shrink-0 text-blue-500' />
             ) : (
-              <IconAlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <IconAlertTriangle className='mt-0.5 h-4 w-4 shrink-0 text-amber-500' />
             )}
             <div>
               <p
@@ -473,12 +472,12 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
 
         {!isSelf && type === 'rank_change' && (
           <div>
-            <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <label className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
               Target rank
             </label>
             {loadingRanks ? (
-              <div className="flex items-center gap-2 py-2 text-sm text-zinc-400">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700" />
+              <div className='flex items-center gap-2 py-2 text-sm text-zinc-400'>
+                <div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-primary dark:border-zinc-700' />
                 Loading ranks…
               </div>
             ) : (
@@ -487,11 +486,14 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                 onChange={(e) => setTargetRank(e.target.value)}
                 className={profileInputClass}
               >
-                <option value="">Select a rank…</option>
+                <option value=''>Select a rank…</option>
                 {ranks
                   .filter((r) => r.rank > 0)
                   .map((r) => (
-                    <option key={r.id} value={r.id}>
+                    <option
+                      key={r.id}
+                      value={r.id}
+                    >
                       {r.name}
                     </option>
                   ))}
@@ -503,17 +505,17 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
         {!isSelf && (
           <div>
             <label
-              htmlFor="note"
-              className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500"
+              htmlFor='note'
+              className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'
             >
               Note
             </label>
             <textarea
-              id="note"
+              id='note'
               rows={4}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Enter your note here…"
+              placeholder='Enter your note here…'
               className={`${profileInputClass} resize-none`}
             />
           </div>
@@ -521,50 +523,50 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
 
         {!isSelf && (
           <div>
-            <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+            <label className='mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
               Attachments
             </label>
-            <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
+            <div className='rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50'>
               <label
                 className={`inline-flex cursor-pointer items-center gap-2 ${profileSecondaryButtonClass}`}
               >
-                <IconPaperclip className="h-3.5 w-3.5" />
+                <IconPaperclip className='h-3.5 w-3.5' />
                 Add files
                 <input
-                  type="file"
-                  accept=".pdf,image/*"
+                  type='file'
+                  accept='.pdf,image/*'
                   multiple
                   disabled={isSelf}
-                  className="hidden"
+                  className='hidden'
                   onChange={onAttachmentChange}
                 />
               </label>
-              <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+              <p className='mt-1.5 text-xs text-zinc-400 dark:text-zinc-500'>
                 PDF, JPG, PNG, WEBP, GIF — max 5 files.
               </p>
               {attachments.length > 0 && (
-                <div className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-700/60">
+                <div className='mt-3 divide-y divide-zinc-200 dark:divide-zinc-700/60'>
                   {attachments.map((file) => {
                     const isImage = file.type.startsWith('image/');
                     return (
                       <div
                         key={`${file.name}-${file.size}`}
-                        className="flex items-center justify-between gap-2 py-2"
+                        className='flex items-center justify-between gap-2 py-2'
                       >
-                        <div className="flex min-w-0 items-center gap-2">
+                        <div className='flex min-w-0 items-center gap-2'>
                           {isImage ? (
-                            <IconPhoto className="h-4 w-4 shrink-0 text-zinc-400" />
+                            <IconPhoto className='h-4 w-4 shrink-0 text-zinc-400' />
                           ) : (
-                            <IconFileDescription className="h-4 w-4 shrink-0 text-zinc-400" />
+                            <IconFileDescription className='h-4 w-4 shrink-0 text-zinc-400' />
                           )}
-                          <span className="truncate text-xs text-zinc-700 dark:text-zinc-300">
+                          <span className='truncate text-xs text-zinc-700 dark:text-zinc-300'>
                             {file.name}
                           </span>
                         </div>
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => removeAttachment(file.name, file.size)}
-                          className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-500/10 dark:text-red-400 transition-colors"
+                          className='shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-500/10 dark:text-red-400 transition-colors'
                         >
                           Remove
                         </button>
@@ -584,7 +586,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
             className={`w-full justify-center ${profilePrimaryButtonClass} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isSubmitting && (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <div className='h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white' />
             )}
             {submitLabel}
           </button>
@@ -592,11 +594,11 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
       </div>
 
       {logbookPermissions?.view && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">History</h3>
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <h3 className='text-sm font-semibold text-zinc-900 dark:text-white'>History</h3>
             {localBook.length > 0 && (
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+              <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                 {localBook.length}
               </span>
             )}
@@ -605,31 +607,34 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
           {localBook.length === 0 ? (
             <ProfileEmptyState
               icon={IconClipboardList}
-              title="No entries yet"
-              description="Logbook entries will appear here"
+              title='No entries yet'
+              description='Logbook entries will appear here'
             />
           ) : (
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <div className='divide-y divide-zinc-100 dark:divide-zinc-800/60'>
               {localBook.map((entry: any) => {
                 const rankChangeText = getRankChangeText(entry);
                 const badge = entryBadge[entry.type] || entryBadge.note;
                 const parsedReason = parseEntryReason(entry.reason);
                 return (
-                  <div key={entry.id} className="flex items-start gap-3 py-3.5">
-                    <div className="mt-0.5 shrink-0">{getIcon(entry.type)}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                  <div
+                    key={entry.id}
+                    className='flex items-start gap-3 py-3.5'
+                  >
+                    <div className='mt-0.5 shrink-0'>{getIcon(entry.type)}</div>
+                    <div className='min-w-0 flex-1'>
+                      <div className='mb-0.5 flex flex-wrap items-center gap-2'>
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${badge}`}>
                           {getEntryTitle(entry.type)}
                         </span>
                         {rankChangeText && (
-                          <span className="inline-flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                            <IconArrowRight className="h-3 w-3" />
+                          <span className='inline-flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400'>
+                            <IconArrowRight className='h-3 w-3' />
                             {rankChangeText}
                           </span>
                         )}
                         {entry.redacted && (
-                          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className='rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
                             Redacted
                           </span>
                         )}
@@ -640,29 +645,29 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                         {parsedReason.text}
                       </p>
                       {parsedReason.attachments.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <div className='mt-2 flex flex-wrap gap-2'>
                           {parsedReason.attachments.map((att) => {
                             const isImage = att.mime.startsWith('image/');
                             return (
                               <a
                                 key={`${entry.id}-${att.name}-${att.size}`}
                                 href={att.dataUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                                target='_blank'
+                                rel='noreferrer'
+                                className='inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors'
                               >
                                 {isImage ? (
-                                  <IconPhoto className="h-3.5 w-3.5" />
+                                  <IconPhoto className='h-3.5 w-3.5' />
                                 ) : (
-                                  <IconFileDescription className="h-3.5 w-3.5" />
+                                  <IconFileDescription className='h-3.5 w-3.5' />
                                 )}
-                                <span className="max-w-[12rem] truncate">{att.name}</span>
+                                <span className='max-w-[12rem] truncate'>{att.name}</span>
                               </a>
                             );
                           })}
                         </div>
                       )}
-                      <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                      <p className='mt-1 text-xs text-zinc-400 dark:text-zinc-500'>
                         {moment(entry.createdAt).format('D MMM YYYY')} · Logged by{' '}
                         {entry.admin?.username || 'Unknown'}
                         {entry.redacted && entry.redactedByUser?.username && (
@@ -677,21 +682,21 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
                       </p>
                     </div>
                     {(logbookPermissions?.redact || logbookPermissions?.delete) && (
-                      <div className="flex shrink-0 flex-col items-end gap-1">
+                      <div className='flex shrink-0 flex-col items-end gap-1'>
                         {logbookPermissions?.redact && (
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => redactEntry(entry)}
-                            className="rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
+                            className='rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400'
                           >
                             {entry.redacted ? 'Undo' : 'Redact'}
                           </button>
                         )}
                         {logbookPermissions?.delete && (
                           <button
-                            type="button"
+                            type='button'
                             onClick={() => deleteEntry(entry)}
-                            className="rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
+                            className='rounded-lg bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400'
                           >
                             Delete
                           </button>
@@ -707,20 +712,20 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
       )}
 
       {showRedactModal && redactTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900">
-            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10">
-              <IconAlertTriangle className="h-5 w-5 text-amber-500" />
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900'>
+            <div className='mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10'>
+              <IconAlertTriangle className='h-5 w-5 text-amber-500' />
             </div>
-            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
+            <h2 className='mb-1 text-base font-semibold text-zinc-900 dark:text-white'>
               {redactTarget.redacted ? 'Undo redaction' : 'Redact entry'}
             </h2>
-            <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className='mb-5 text-sm text-zinc-500 dark:text-zinc-400'>
               {redactTarget.redacted
                 ? 'This will make the entry visible again.'
                 : 'This will cross out the entry for all viewers.'}
             </p>
-            <div className="flex gap-3">
+            <div className='flex gap-3'>
               <button
                 onClick={() => {
                   setShowRedactModal(false);
@@ -732,7 +737,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               </button>
               <button
                 onClick={confirmRedact}
-                className="flex-1 rounded-xl bg-amber-500 py-2 text-sm font-medium text-white transition hover:bg-amber-600"
+                className='flex-1 rounded-xl bg-amber-500 py-2 text-sm font-medium text-white transition hover:bg-amber-600'
               >
                 {redactTarget.redacted ? 'Undo' : 'Redact'}
               </button>
@@ -742,18 +747,18 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
       )}
 
       {showDeleteModal && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900">
-            <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
-              <IconTrash className="h-5 w-5 text-red-500" />
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900'>
+            <div className='mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10'>
+              <IconTrash className='h-5 w-5 text-red-500' />
             </div>
-            <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-white">
+            <h2 className='mb-1 text-base font-semibold text-zinc-900 dark:text-white'>
               Delete entry
             </h2>
-            <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className='mb-5 text-sm text-zinc-500 dark:text-zinc-400'>
               This action is permanent and cannot be undone.
             </p>
-            <div className="flex gap-3">
+            <div className='flex gap-3'>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
@@ -765,7 +770,7 @@ const Book: FC<Props> = ({ userBook, onRefetch, logbookPermissions, isSelf }) =>
               </button>
               <button
                 onClick={confirmDeleteEntry}
-                className="flex-1 rounded-xl bg-red-500 py-2 text-sm font-medium text-white transition hover:bg-red-600"
+                className='flex-1 rounded-xl bg-red-500 py-2 text-sm font-medium text-white transition hover:bg-red-600'
               >
                 Delete
               </button>

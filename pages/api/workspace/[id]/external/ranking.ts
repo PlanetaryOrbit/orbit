@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import { getRankGun } from '@/utils/rankgun';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withPermissionCheck(handler, 'rank_users');
 

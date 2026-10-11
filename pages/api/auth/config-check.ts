@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const CACHE_KEY = 'orbit:auth:config-check';
 const CACHE_TTL = 60 * 60 * 24 * 30;

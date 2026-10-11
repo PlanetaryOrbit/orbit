@@ -161,7 +161,10 @@ export function FolderIconBadge({
     <div
       className={clsx('flex shrink-0 items-center justify-center rounded-xl', s.box, bg, className)}
     >
-      <Icon className={clsx(s.icon, text)} stroke={1.75} />
+      <Icon
+        className={clsx(s.icon, text)}
+        stroke={1.75}
+      />
     </div>
   );
 }
@@ -174,13 +177,13 @@ export function FolderIconPicker({
   onChange: (icon: FolderIconId) => void;
 }) {
   return (
-    <div className="grid grid-cols-7 gap-1.5 sm:grid-cols-8">
+    <div className='grid grid-cols-7 gap-1.5 sm:grid-cols-8'>
       {FOLDER_ICON_OPTIONS.map(({ id, Icon, bg, text, label }) => {
         const selected = value === id;
         return (
           <button
             key={id}
-            type="button"
+            type='button'
             title={label}
             onClick={() => onChange(id)}
             className={clsx(
@@ -191,7 +194,10 @@ export function FolderIconPicker({
                 : 'opacity-80 hover:opacity-100',
             )}
           >
-            <Icon className={clsx('h-4 w-4', text)} stroke={1.75} />
+            <Icon
+              className={clsx('h-4 w-4', text)}
+              stroke={1.75}
+            />
           </button>
         );
       })}

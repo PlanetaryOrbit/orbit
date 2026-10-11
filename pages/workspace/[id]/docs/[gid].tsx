@@ -1,11 +1,3 @@
-import { IconPencil, IconTrash, IconExternalLink, IconLink } from '@tabler/icons-react';
-import axios from 'axios';
-import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
-
 import { isExternalContent } from '@/components/docs/content';
 import {
   DocEditorPage,
@@ -25,6 +17,13 @@ import { AuthenticatedRequest } from '@/lib/withAuth';
 import { workspacestate } from '@/state';
 import prisma from '@/utils/database';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
+import { IconPencil, IconTrash, IconExternalLink, IconLink } from '@tabler/icons-react';
+import axios from 'axios';
+import { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useRecoilState } from 'recoil';
 
 type Props = {
   document: any;
@@ -125,24 +124,30 @@ const ViewDocument: pageWithLayout<Props> = ({ document, canEdit, canDelete }) =
         backHref={docsHref}
         actions={
           canEdit || canDelete ? (
-            <div className="flex items-center gap-1">
+            <div className='flex items-center gap-1'>
               {canEdit && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => router.push(`${docsHref}/${document.id}/edit`)}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                  className='inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
                 >
-                  <IconPencil className="h-4 w-4" stroke={1.75} />
+                  <IconPencil
+                    className='h-4 w-4'
+                    stroke={1.75}
+                  />
                   Edit
                 </button>
               )}
               {canDelete && (
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowDeleteModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                  className='inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10'
                 >
-                  <IconTrash className="h-4 w-4" stroke={1.75} />
+                  <IconTrash
+                    className='h-4 w-4'
+                    stroke={1.75}
+                  />
                 </button>
               )}
             </div>
@@ -168,29 +173,38 @@ const ViewDocument: pageWithLayout<Props> = ({ document, canEdit, canDelete }) =
           }
         >
           {external ? (
-            <div className="flex flex-col items-start gap-4 py-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <IconLink className="h-5 w-5 text-primary" stroke={1.75} />
+            <div className='flex flex-col items-start gap-4 py-4'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10'>
+                <IconLink
+                  className='h-5 w-5 text-primary'
+                  stroke={1.75}
+                />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                <p className='text-sm font-medium text-zinc-700 dark:text-zinc-200'>
                   External link
                 </p>
-                <p className="mt-1 max-w-md text-sm text-zinc-400">
+                <p className='mt-1 max-w-md text-sm text-zinc-400'>
                   This document points to a resource outside your workspace.
                 </p>
               </div>
               <button
-                type="button"
+                type='button'
                 onClick={() => externalLink.prompt(document.content.url)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                className='inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90'
               >
-                <IconExternalLink className="h-4 w-4" stroke={2} />
+                <IconExternalLink
+                  className='h-4 w-4'
+                  stroke={2}
+                />
                 Open link
               </button>
             </div>
           ) : (
-            <DocViewer content={document.content} onExternalLink={externalLink.prompt} />
+            <DocViewer
+              content={document.content}
+              onExternalLink={externalLink.prompt}
+            />
           )}
         </DocViewSurface>
       </DocEditorPage>

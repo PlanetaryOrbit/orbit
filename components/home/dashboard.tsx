@@ -1,6 +1,3 @@
-import clsx from 'clsx';
-import React from 'react';
-
 import Birthdays from '@/components/birthdays';
 import Docs from '@/components/home/docs';
 import FeaturedExperiences from '@/components/home/featuredExperiences';
@@ -12,6 +9,8 @@ import Wall from '@/components/home/wall';
 import NewToTeam from '@/components/newmembers';
 import StickyNoteAnnouncement from '@/components/stickyannouncement';
 import type { HomeWidgetId } from '@/utils/homeWidgets';
+import clsx from 'clsx';
+import React from 'react';
 
 const PANEL_META: Record<
   'wall' | 'sessions' | 'notices' | 'documents',
@@ -70,23 +69,23 @@ function WeekSection({
   if (!hasBirthdays && !hasNewMembers) return null;
 
   return (
-    <section className="space-y-4 sm:space-y-5">
-      <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-base">
+    <section className='space-y-4 sm:space-y-5'>
+      <h2 className='text-sm font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-base'>
         This week at {workspaceName}
       </h2>
       {widgets
         .filter((id) => id === 'birthdays' || id === 'new_members')
         .map((id) =>
           id === 'birthdays' ? (
-            <div key="birthdays">
-              <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">
+            <div key='birthdays'>
+              <p className='mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500'>
                 Birthdays
               </p>
-              <Birthdays layout="strip" />
+              <Birthdays layout='strip' />
             </div>
           ) : (
-            <div key="new_members">
-              <p className="mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500">
+            <div key='new_members'>
+              <p className='mb-2.5 text-xs font-medium text-zinc-400 dark:text-zinc-500'>
                 New to the team
               </p>
               <NewToTeam embedded />
@@ -154,9 +153,13 @@ export function HomeDashboard({
         <>
           <StickyNoteAnnouncement />
           {fallbackIds.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               {fallbackIds.map((id) => (
-                <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
+                <WidgetPanel
+                  key={id}
+                  id={id}
+                  workspaceId={workspaceId}
+                />
               ))}
             </div>
           )}
@@ -179,13 +182,21 @@ export function HomeDashboard({
           )}
         >
           <StickyNoteAnnouncement />
-          <WidgetPanel id={mainId} workspaceId={workspaceId} tall={mainId === 'wall'} />
+          <WidgetPanel
+            id={mainId}
+            workspaceId={workspaceId}
+            tall={mainId === 'wall'}
+          />
         </div>
 
         {showSidebar && (
-          <aside className="flex flex-col gap-3 sm:gap-4 lg:col-span-5 xl:col-span-4">
+          <aside className='flex flex-col gap-3 sm:gap-4 lg:col-span-5 xl:col-span-4'>
             {sidebarPanels.map((id) => (
-              <WidgetPanel key={id} id={id} workspaceId={workspaceId} />
+              <WidgetPanel
+                key={id}
+                id={id}
+                workspaceId={workspaceId}
+              />
             ))}
             {has('music_quote') && <RandomMusic />}
           </aside>
@@ -195,17 +206,29 @@ export function HomeDashboard({
   };
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-7">
+    <div className='flex flex-col gap-5 sm:gap-7'>
       {orderedBuckets.map((bucket) => {
         switch (bucket) {
           case 'quick_links':
-            return <FeaturedExperiences key="quick_links" />;
+            return <FeaturedExperiences key='quick_links' />;
           case 'week':
-            return <WeekSection key="week" workspaceName={workspaceName} widgets={widgets} />;
+            return (
+              <WeekSection
+                key='week'
+                workspaceName={workspaceName}
+                widgets={widgets}
+              />
+            );
           case 'main_block':
-            return <React.Fragment key="main_block">{renderMainBlock()}</React.Fragment>;
+            return <React.Fragment key='main_block'>{renderMainBlock()}</React.Fragment>;
           case 'documents_below':
-            return <WidgetPanel key="documents_below" id="documents" workspaceId={workspaceId} />;
+            return (
+              <WidgetPanel
+                key='documents_below'
+                id='documents'
+                workspaceId={workspaceId}
+              />
+            );
           default:
             return null;
         }

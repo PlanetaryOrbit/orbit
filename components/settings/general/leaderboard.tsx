@@ -1,12 +1,11 @@
+import SwitchComponenet from '@/components/switch';
+import { workspacestate } from '@/state';
+import { FC } from '@/types/settingsComponent';
 import { IconTrophy, IconList, IconPodium } from '@tabler/icons-react';
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import type toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
-
-import SwitchComponenet from '@/components/switch';
-import { workspacestate } from '@/state';
-import { FC } from '@/types/settingsComponent';
 
 type props = {
   triggerToast: typeof toast;
@@ -65,14 +64,17 @@ const Leaderboard: FC<props> = (props) => {
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <IconTrophy size={18} className="text-primary" />
+    <div className='flex items-center justify-between px-5 py-4'>
+      <div className='flex items-center gap-3'>
+        <div className='p-2 bg-primary/10 rounded-lg'>
+          <IconTrophy
+            size={18}
+            className='text-primary'
+          />
         </div>
         <div>
-          <p className="text-sm font-medium text-zinc-900 dark:text-white">Leaderboard</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className='text-sm font-medium text-zinc-900 dark:text-white'>Leaderboard</p>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
             View top performers on your workspace
           </p>
         </div>
@@ -80,8 +82,8 @@ const Leaderboard: FC<props> = (props) => {
       <SwitchComponenet
         checked={workspace.settings?.leaderboardEnabled}
         onChange={() => updateLeaderboard(!workspace.settings.leaderboardEnabled)}
-        label=""
-        classoverride="mt-0"
+        label=''
+        classoverride='mt-0'
       />
     </div>
   );
@@ -131,15 +133,15 @@ export const LeaderboardStyleSelector: FC<props> = (props) => {
   };
 
   return (
-    <div className="mb-6">
-      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+    <div className='mb-6'>
+      <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
         Leaderboard Style
       </label>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+      <p className='text-xs text-zinc-500 dark:text-zinc-400 mb-3'>
         Choose how the leaderboard is displayed
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className='grid grid-cols-2 gap-3'>
         <button
           onClick={() => handleStyleChange('list')}
           className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
@@ -154,8 +156,8 @@ export const LeaderboardStyleSelector: FC<props> = (props) => {
               leaderboardStyle === 'list' ? 'text-primary' : 'text-zinc-600 dark:text-zinc-400'
             }
           />
-          <span className="text-sm font-medium text-zinc-900 dark:text-white">List</span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+          <span className='text-sm font-medium text-zinc-900 dark:text-white'>List</span>
+          <span className='text-xs text-zinc-500 dark:text-zinc-400 text-center'>
             Compact ranked list
           </span>
         </button>
@@ -173,8 +175,8 @@ export const LeaderboardStyleSelector: FC<props> = (props) => {
               leaderboardStyle === 'podium' ? 'text-primary' : 'text-zinc-600 dark:text-zinc-400'
             }
           />
-          <span className="text-sm font-medium text-zinc-900 dark:text-white">Podium</span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+          <span className='text-sm font-medium text-zinc-900 dark:text-white'>Podium</span>
+          <span className='text-xs text-zinc-500 dark:text-zinc-400 text-center'>
             Visual podium display
           </span>
         </button>

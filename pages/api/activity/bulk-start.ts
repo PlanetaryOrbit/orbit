@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import cache from '@/utils/cache';
 import { getConfig } from '@/utils/configEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type ActivityConfig = {
   minTrackedRank?: number;

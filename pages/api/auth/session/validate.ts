@@ -1,8 +1,7 @@
 import crypto from 'crypto';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 function hashToken(token: string): string {
   // Remove DONOTSHARE_ prefix before hashing if present

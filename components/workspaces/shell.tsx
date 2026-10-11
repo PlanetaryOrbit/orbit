@@ -29,7 +29,7 @@ export function WorkspacesPageShell({
   className?: string;
 }) {
   return (
-    <div className="pagePadding pb-10">
+    <div className='pagePadding pb-10'>
       <div className={clsx('mx-auto w-full max-w-6xl', className)}>{children}</div>
     </div>
   );
@@ -55,18 +55,18 @@ export function WorkspacesPageHeader({
     });
 
   return (
-    <header className="mb-5 sm:mb-6">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{label}</p>
-          <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl">
+    <header className='mb-5 sm:mb-6'>
+      <div className='flex flex-col gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800 sm:flex-row sm:items-end sm:justify-between'>
+        <div className='min-w-0'>
+          <p className='text-xs text-zinc-500 dark:text-zinc-400'>{label}</p>
+          <h1 className='mt-0.5 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-2xl'>
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>
+            <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>{subtitle}</p>
           ) : null}
         </div>
-        {action ? <div className="shrink-0 self-start sm:self-auto">{action}</div> : null}
+        {action ? <div className='shrink-0 self-start sm:self-auto'>{action}</div> : null}
       </div>
     </header>
   );
@@ -111,7 +111,7 @@ export function WorkspacesPanel({
 
 export function WorkspacesSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+    <p className='mb-3 text-[11px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500'>
       {children}
     </p>
   );
@@ -129,15 +129,18 @@ export function WorkspacesEmptyState({
   action?: ReactNode;
 }) {
   return (
-    <WorkspacesPanel className="mx-auto max-w-md px-8 py-12 text-center">
-      <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-        <Icon className="h-5 w-5 text-primary" stroke={1.75} />
+    <WorkspacesPanel className='mx-auto max-w-md px-8 py-12 text-center'>
+      <div className='mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10'>
+        <Icon
+          className='h-5 w-5 text-primary'
+          stroke={1.75}
+        />
       </div>
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
-      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-zinc-400 dark:text-zinc-500">
+      <h3 className='text-sm font-semibold text-zinc-900 dark:text-zinc-100'>{title}</h3>
+      <p className='mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-zinc-400 dark:text-zinc-500'>
         {description}
       </p>
-      {action ? <div className="mt-5">{action}</div> : null}
+      {action ? <div className='mt-5'>{action}</div> : null}
     </WorkspacesPanel>
   );
 }
@@ -176,42 +179,46 @@ export function WorkspaceCard({
       onClick={onOpen}
     >
       {featured ? (
-        <div className="relative aspect-[21/9] overflow-hidden sm:aspect-[3/1]">
+        <div className='relative aspect-[21/9] overflow-hidden sm:aspect-[3/1]'>
           <img
             src={logo}
-            alt=""
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            alt=''
+            className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]'
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent dark:from-zinc-900 dark:via-zinc-900/20" />
+          <div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent dark:from-zinc-900 dark:via-zinc-900/20' />
         </div>
       ) : null}
 
       <div className={clsx('flex items-center gap-3', featured ? 'p-4 sm:p-5' : 'p-4')}>
         {!featured ? (
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700/60">
-            <img src={logo} alt="" className="h-full w-full object-contain p-1" />
+          <div className='relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700/60'>
+            <img
+              src={logo}
+              alt=''
+              className='h-full w-full object-contain p-1'
+            />
           </div>
         ) : null}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-sm font-semibold text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100 sm:text-base">
+        <div className='min-w-0 flex-1'>
+          <div className='flex items-center gap-2'>
+            <h3 className='truncate text-sm font-semibold text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100 sm:text-base'>
               {name}
             </h3>
             {isPinned ? (
-              <span className="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+              <span className='shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
                 Pinned
               </span>
             ) : null}
           </div>
-          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+          <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
             Group {workspace.groupId}
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className='flex shrink-0 items-center gap-1'>
           <button
-            type="button"
+            type='button'
             onClick={onTogglePin}
             className={clsx(
               'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
@@ -222,13 +229,22 @@ export function WorkspaceCard({
             title={isPinned ? 'Unpin workspace' : 'Pin as featured workspace'}
           >
             {isPinned ? (
-              <IconPinFilled className="h-4 w-4" stroke={1.5} />
+              <IconPinFilled
+                className='h-4 w-4'
+                stroke={1.5}
+              />
             ) : (
-              <IconPin className="h-4 w-4" stroke={1.5} />
+              <IconPin
+                className='h-4 w-4'
+                stroke={1.5}
+              />
             )}
           </button>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-            <IconChevronRight className="h-4 w-4" stroke={2} />
+          <span className='flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary'>
+            <IconChevronRight
+              className='h-4 w-4'
+              stroke={2}
+            />
           </span>
         </div>
       </div>

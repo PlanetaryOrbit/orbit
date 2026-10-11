@@ -1,8 +1,7 @@
+import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import React from 'react';
-
-import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
 
 interface InactiveUser {
   userId: number;
@@ -60,23 +59,23 @@ const NoticesWidget: React.FC = () => {
         const toDate = new Date(u.to);
         return (
           <HomeListItem key={`${u.userId}-${u.from}`}>
-            <div className="flex items-start gap-3">
+            <div className='flex items-start gap-3'>
               <img
                 src={u.picture || '/default-avatar.jpg'}
-                alt=""
-                className="h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700"
+                alt=''
+                className='h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700'
                 onError={(e) => {
                   e.currentTarget.src = '/default-avatar.jpg';
                 }}
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+              <div className='min-w-0 flex-1'>
+                <p className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
                   {u.username || 'Unknown'}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 truncate'>
                   {u.reason || 'No reason given'}
                 </p>
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+                <p className='text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums'>
                   {fromDate.toLocaleDateString()} – {toDate.toLocaleDateString()}
                 </p>
               </div>

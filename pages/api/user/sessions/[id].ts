@@ -1,8 +1,7 @@
-import { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { forceDeleteSession } from '@/utils/session';
+import { NextApiResponse } from 'next';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {

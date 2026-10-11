@@ -1,5 +1,3 @@
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import {
   ALLIANCE_STRIKES_DEFAULT_MAX,
@@ -8,6 +6,7 @@ import {
 import { getConfig, setConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import type { NextApiResponse } from 'next';
 
 export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const userId = req.auth?.userId;

@@ -1,5 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
@@ -10,6 +8,7 @@ import {
   recommendationStatus,
   type RecommendationStatus,
 } from '@/utils/recommendations';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type RecommendationResponse = {
   id: string;

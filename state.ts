@@ -1,7 +1,6 @@
+import { ALLIANCE_STRIKES_DEFAULT_MAX } from '@/utils/allianceStrikesConfig';
 import { role } from '@prisma/client';
 import { atom, RecoilState, AtomOptions } from 'recoil';
-
-import { ALLIANCE_STRIKES_DEFAULT_MAX } from '@/utils/allianceStrikesConfig';
 
 const g = global as any;
 if (!g.__recoilAtoms) g.__recoilAtoms = {};

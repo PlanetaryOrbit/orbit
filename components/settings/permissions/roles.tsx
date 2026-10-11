@@ -1,3 +1,5 @@
+import { workspacestate } from '@/state';
+import { role } from '@/utils/database';
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -17,9 +19,6 @@ import React, { FC, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
 
-import { workspacestate } from '@/state';
-import { role } from '@/utils/database';
-
 type Props = {
   setRoles: React.Dispatch<React.SetStateAction<role[]>>;
   roles: role[];
@@ -37,20 +36,27 @@ const SortableRole = ({ role, children }: { role: role; children: React.ReactNod
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className='relative'
+    >
       <div
         {...attributes}
         {...listeners}
-        title="Drag to reorder"
-        className="
+        title='Drag to reorder'
+        className='
           absolute left-2 top-1/2 -translate-y-1/2
           z-20 cursor-grab rounded-md p-1.5
           text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700
           dark:hover:bg-zinc-700 dark:hover:text-zinc-200
           active:cursor-grabbing touch-none
-        "
+        '
       >
-        <IconGripVertical size={18} stroke={2} />
+        <IconGripVertical
+          size={18}
+          stroke={2}
+        />
       </div>
 
       {children}
@@ -70,7 +76,11 @@ const AutoSaveDisclosure = ({
   return (
     <Disclosure>
       {({ open }) => (
-        <AutoSaveContent open={open} role={role} saveRole={saveRole}>
+        <AutoSaveContent
+          open={open}
+          role={role}
+          saveRole={saveRole}
+        >
           {children}
         </AutoSaveContent>
       )}
@@ -458,72 +468,90 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
   };
 
   return (
-    <div className="mt-6 space-y-5">
-      <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className='mt-6 space-y-5'>
+      <div className='rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50/40 dark:bg-zinc-900/25 p-4 sm:p-5'>
+        <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
           <div>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Roles</h3>
-            <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+            <h3 className='text-lg font-semibold text-zinc-900 dark:text-white'>Roles</h3>
+            <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
               Create roles, pick a color, control what each role can access, and drag to reorder.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 shrink-0">
+          <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 shrink-0'>
             <button
-              type="button"
+              type='button'
               onClick={newRole}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap w-full sm:w-auto"
+              className='inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap w-full sm:w-auto'
             >
-              <IconPlus size={16} className="mr-1.5 shrink-0" />
+              <IconPlus
+                size={16}
+                className='mr-1.5 shrink-0'
+              />
               Add Role
             </button>
             <button
-              type="button"
+              type='button'
               onClick={() => setSyncModalOpen(true)}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 transition-colors whitespace-nowrap w-full sm:w-auto"
+              className='inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 transition-colors whitespace-nowrap w-full sm:w-auto'
             >
-              <IconRefresh size={16} className="mr-1.5 shrink-0" />
+              <IconRefresh
+                size={16}
+                className='mr-1.5 shrink-0'
+              />
               Sync Groups
             </button>
           </div>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleRoleDragEnd}>
-          <SortableContext items={roles.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+      <div className='space-y-3'>
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleRoleDragEnd}
+        >
+          <SortableContext
+            items={roles.map((r) => r.id)}
+            strategy={verticalListSortingStrategy}
+          >
             {roles.map((role) => (
-              <SortableRole key={role.id} role={role}>
-                <div className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-sm transition-colors dark:border-zinc-700/80 dark:bg-zinc-900/40">
-                  <AutoSaveDisclosure role={role} saveRole={saveRole}>
+              <SortableRole
+                key={role.id}
+                role={role}
+              >
+                <div className='overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-sm transition-colors dark:border-zinc-700/80 dark:bg-zinc-900/40'>
+                  <AutoSaveDisclosure
+                    role={role}
+                    saveRole={saveRole}
+                  >
                     {({ open }) => (
                       <>
-                        <Disclosure.Button className="w-full pl-12 pr-4 py-3.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 rounded-xl">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <Disclosure.Button className='w-full pl-12 pr-4 py-3.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 rounded-xl'>
+                          <div className='flex items-center justify-between gap-3'>
+                            <div className='flex min-w-0 flex-wrap items-center gap-2'>
                               <span
-                                className="
+                                className='
                                 relative flex h-5 w-5 shrink-0 items-center justify-center
                                 rounded-full border border-white/40
                                 shadow-sm ring-1 ring-black/10
                                 dark:border-zinc-700 dark:ring-white/10
-                              "
+                              '
                                 style={{
                                   backgroundColor: role.color || '#6b7280',
                                 }}
                               >
                                 <span
-                                  className="
+                                  className='
                                   absolute inset-0 rounded-full
                                   bg-white/20
                                   blur-[1px]
-                                "
+                                '
                                 />
                               </span>
-                              <span className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                              <span className='text-sm font-semibold text-zinc-900 dark:text-white truncate'>
                                 {role.name}
                               </span>
                               {role.isOwnerRole && (
-                                <span className="inline-flex shrink-0 items-center rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                                <span className='inline-flex shrink-0 items-center rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-600 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'>
                                   Owner
                                 </span>
                               )}
@@ -534,69 +562,72 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                 open && 'rotate-180',
                               )}
                             >
-                              <IconChevronDown className="h-4 w-4" stroke={2} />
+                              <IconChevronDown
+                                className='h-4 w-4'
+                                stroke={2}
+                              />
                             </span>
                           </div>
                         </Disclosure.Button>
 
                         <Transition
-                          enter="transition duration-100 ease-out"
-                          enterFrom="transform scale-95 opacity-0"
-                          enterTo="transform scale-100 opacity-100"
-                          leave="transition duration-75 ease-out"
-                          leaveFrom="transform scale-100 opacity-100"
-                          leaveTo="transform scale-95 opacity-0"
+                          enter='transition duration-100 ease-out'
+                          enterFrom='transform scale-95 opacity-0'
+                          enterTo='transform scale-100 opacity-100'
+                          leave='transition duration-75 ease-out'
+                          leaveFrom='transform scale-100 opacity-100'
+                          leaveTo='transform scale-95 opacity-0'
                         >
-                          <Disclosure.Panel className="border-t border-zinc-100 px-4 pb-4 pt-1 dark:border-zinc-700/80">
-                            <div className="space-y-5 pt-4">
+                          <Disclosure.Panel className='border-t border-zinc-100 px-4 pb-4 pt-1 dark:border-zinc-700/80'>
+                            <div className='space-y-5 pt-4'>
                               <div>
-                                <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                <label className='mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400'>
                                   Role name
                                 </label>
                                 <input
-                                  type="text"
-                                  placeholder="Role name"
+                                  type='text'
+                                  placeholder='Role name'
                                   value={role.name}
                                   onChange={(e) => updateRole(e.target.value, role.id)}
                                   disabled={role.isOwnerRole === true}
-                                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                  className='w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500'
                                 />
                                 {role.isOwnerRole === true && (
-                                  <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='mt-1.5 text-xs text-zinc-500 dark:text-zinc-400'>
                                     Owner role name cannot be changed
                                   </p>
                                 )}
                               </div>
 
                               <div>
-                                <h4 className="mb-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                <h4 className='mb-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400'>
                                   Role color
                                 </h4>
-                                <div className="flex items-center gap-3">
+                                <div className='flex items-center gap-3'>
                                   <input
-                                    type="color"
-                                    className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-600"
+                                    type='color'
+                                    className='h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-600'
                                     value={role.color || '#6b7280'}
                                     onChange={(e) => updateRoleColor(e.target.value, role.id)}
                                   />
                                   <input
-                                    type="text"
-                                    className="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                                    type='text'
+                                    className='min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 font-mono text-sm text-zinc-900 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white'
                                     value={role.color || '#6b7280'}
                                     onChange={(e) => updateRoleColor(e.target.value, role.id)}
-                                    placeholder="#6b7280"
+                                    placeholder='#6b7280'
                                   />
                                 </div>
                               </div>
 
                               <div>
-                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                <h4 className='text-sm font-semibold text-zinc-900 dark:text-white'>
                                   Permissions
                                 </h4>
-                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                                <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
                                   Manage the permissions assigned to this role
                                 </p>
-                                <div className="mt-3 space-y-2">
+                                <div className='mt-3 space-y-2'>
                                   {Object.entries(permissionCategories).map(([category, perms]) => {
                                     const isExpanded = expandedCategories.has(category);
                                     const hasSubcategories =
@@ -626,11 +657,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                     return (
                                       <div
                                         key={category}
-                                        className="overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-50/50 dark:border-zinc-700/60 dark:bg-zinc-900/35"
+                                        className='overflow-hidden rounded-xl border border-zinc-200/70 bg-zinc-50/50 dark:border-zinc-700/60 dark:bg-zinc-900/35'
                                       >
-                                        <div className="flex items-center gap-2 px-3 py-2.5">
+                                        <div className='flex items-center gap-2 px-3 py-2.5'>
                                           <input
-                                            type="checkbox"
+                                            type='checkbox'
                                             checked={allChecked}
                                             ref={(el) => {
                                               if (el) el.indeterminate = someChecked && !allChecked;
@@ -639,14 +670,14 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                               toggleCategoryPermissions(role.id, category)
                                             }
                                             disabled={role.isOwnerRole === true}
-                                            className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className='h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
                                           />
                                           <button
-                                            type="button"
+                                            type='button'
                                             onClick={() => toggleCategory(category)}
-                                            className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
+                                            className='flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md'
                                           >
-                                            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                                            <span className='text-sm font-medium text-zinc-900 dark:text-white'>
                                               {category}
                                             </span>
                                             <span
@@ -655,12 +686,15 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                 isExpanded && 'rotate-180',
                                               )}
                                             >
-                                              <IconChevronDown className="h-3.5 w-3.5" stroke={2} />
+                                              <IconChevronDown
+                                                className='h-3.5 w-3.5'
+                                                stroke={2}
+                                              />
                                             </span>
                                           </button>
                                         </div>
                                         {isExpanded && (
-                                          <div className="space-y-2 border-t border-zinc-200/60 bg-white px-3 py-3 dark:border-zinc-700/60 dark:bg-zinc-800/50">
+                                          <div className='space-y-2 border-t border-zinc-200/60 bg-white px-3 py-3 dark:border-zinc-700/60 dark:bg-zinc-800/50'>
                                             {hasSubcategories
                                               ? Object.entries((perms as any)._subcategories).map(
                                                   ([subcat, subPerms]: [string, any]) => {
@@ -680,11 +714,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                     return (
                                                       <div
                                                         key={subcat}
-                                                        className="ml-3 overflow-hidden rounded-lg border border-zinc-200/80 dark:border-zinc-700/70 sm:ml-4"
+                                                        className='ml-3 overflow-hidden rounded-lg border border-zinc-200/80 dark:border-zinc-700/70 sm:ml-4'
                                                       >
-                                                        <div className="flex items-center gap-2 bg-zinc-100/80 px-3 py-2 dark:bg-zinc-900/70">
+                                                        <div className='flex items-center gap-2 bg-zinc-100/80 px-3 py-2 dark:bg-zinc-900/70'>
                                                           <input
-                                                            type="checkbox"
+                                                            type='checkbox'
                                                             checked={allSubChecked}
                                                             ref={(el) => {
                                                               if (el)
@@ -730,16 +764,16 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                               setRoles(rroles);
                                                             }}
                                                             disabled={role.isOwnerRole === true}
-                                                            className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            className='h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
                                                           />
                                                           <button
-                                                            type="button"
+                                                            type='button'
                                                             onClick={() =>
                                                               toggleSubcategory(subcatKey)
                                                             }
-                                                            className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md"
+                                                            className='flex min-w-0 flex-1 items-center justify-between gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded-md'
                                                           >
-                                                            <span className="text-xs font-medium text-zinc-900 dark:text-white">
+                                                            <span className='text-xs font-medium text-zinc-900 dark:text-white'>
                                                               {subcat} Sessions
                                                             </span>
                                                             <span
@@ -749,22 +783,22 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                               )}
                                                             >
                                                               <IconChevronDown
-                                                                className="h-3 w-3"
+                                                                className='h-3 w-3'
                                                                 stroke={2}
                                                               />
                                                             </span>
                                                           </button>
                                                         </div>
                                                         {isSubExpanded && (
-                                                          <div className="space-y-1.5 border-t border-zinc-200/60 px-3 py-2 dark:border-zinc-700/60">
+                                                          <div className='space-y-1.5 border-t border-zinc-200/60 px-3 py-2 dark:border-zinc-700/60'>
                                                             {Object.entries(subPerms).map(
                                                               ([label, value]: [string, any]) => (
                                                                 <label
                                                                   key={value}
-                                                                  className="flex cursor-pointer items-center gap-2.5 pl-4"
+                                                                  className='flex cursor-pointer items-center gap-2.5 pl-4'
                                                                 >
                                                                   <input
-                                                                    type="checkbox"
+                                                                    type='checkbox'
                                                                     checked={role.permissions.includes(
                                                                       value,
                                                                     )}
@@ -777,9 +811,9 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                                     disabled={
                                                                       role.isOwnerRole === true
                                                                     }
-                                                                    className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                    className='h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
                                                                   />
-                                                                  <span className="text-xs text-zinc-700 dark:text-zinc-200">
+                                                                  <span className='text-xs text-zinc-700 dark:text-zinc-200'>
                                                                     {label}
                                                                   </span>
                                                                 </label>
@@ -795,18 +829,18 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                                   ([label, value]) => (
                                                     <label
                                                       key={value}
-                                                      className="flex cursor-pointer items-center gap-2.5 pl-1"
+                                                      className='flex cursor-pointer items-center gap-2.5 pl-1'
                                                     >
                                                       <input
-                                                        type="checkbox"
+                                                        type='checkbox'
                                                         checked={role.permissions.includes(value)}
                                                         onChange={() =>
                                                           togglePermission(role.id, value)
                                                         }
                                                         disabled={role.isOwnerRole === true}
-                                                        className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        className='h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
                                                       />
-                                                      <span className="text-sm text-zinc-700 dark:text-zinc-200">
+                                                      <span className='text-sm text-zinc-700 dark:text-zinc-200'>
                                                         {label}
                                                       </span>
                                                     </label>
@@ -819,20 +853,20 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                   })}
                                 </div>
                                 {role.isOwnerRole === true && (
-                                  <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='mt-3 text-xs text-zinc-500 dark:text-zinc-400'>
                                     Owner role permissions are automatically managed
                                   </p>
                                 )}
                               </div>
 
-                              <div className="rounded-xl border border-zinc-200/70 bg-zinc-50/40 p-4 dark:border-zinc-700/60 dark:bg-zinc-900/25">
-                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                              <div className='rounded-xl border border-zinc-200/70 bg-zinc-50/40 p-4 dark:border-zinc-700/60 dark:bg-zinc-900/25'>
+                                <h4 className='text-sm font-semibold text-zinc-900 dark:text-white'>
                                   Group-synced roles
                                 </h4>
-                                <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                                <p className='mt-0.5 text-sm text-zinc-500 dark:text-zinc-400'>
                                   Each rank can only be assigned to one role
                                 </p>
-                                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                                <div className='mt-3 max-h-48 space-y-2 overflow-y-auto pr-1'>
                                   {filteredRoles.map((groupRole) => {
                                     const isAssignedElsewhere = aroledoesincludegrouprole(
                                       role.id,
@@ -841,11 +875,11 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                     return (
                                       <label
                                         key={groupRole.id}
-                                        className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent px-1 py-0.5 hover:border-zinc-200/80 hover:bg-white/80 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
+                                        className='flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-transparent px-1 py-0.5 hover:border-zinc-200/80 hover:bg-white/80 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50'
                                       >
-                                        <div className="flex min-w-0 items-center gap-2.5">
+                                        <div className='flex min-w-0 items-center gap-2.5'>
                                           <input
-                                            type="checkbox"
+                                            type='checkbox'
                                             checked={role.groupRoles
                                               .map(String)
                                               .includes(String(groupRole.id))}
@@ -853,7 +887,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                             disabled={
                                               role.isOwnerRole === true || isAssignedElsewhere
                                             }
-                                            className="h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className='h-4 w-4 shrink-0 rounded border-zinc-300 text-primary focus:ring-primary/40 dark:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-50'
                                           />
                                           <span
                                             className={clsx(
@@ -864,7 +898,7 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                             )}
                                           >
                                             {groupRole.name}{' '}
-                                            <span className="text-zinc-400 dark:text-zinc-500">
+                                            <span className='text-zinc-400 dark:text-zinc-500'>
                                               (rank: {groupRole.rank})
                                             </span>
                                           </span>
@@ -874,20 +908,23 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
                                   })}
                                 </div>
                                 {role.isOwnerRole === true && (
-                                  <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+                                  <p className='mt-3 text-xs text-zinc-500 dark:text-zinc-400'>
                                     Owner role group synchronization is disabled
                                   </p>
                                 )}
                               </div>
 
                               {!role.isOwnerRole && (
-                                <div className="flex flex-col gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-700/80 sm:flex-row sm:items-center">
+                                <div className='flex flex-col gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-700/80 sm:flex-row sm:items-center'>
                                   <button
-                                    type="button"
+                                    type='button'
                                     onClick={() => deleteRole(role.id)}
-                                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+                                    className='inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10'
                                   >
-                                    <IconTrash size={16} className="shrink-0" />
+                                    <IconTrash
+                                      size={16}
+                                      className='shrink-0'
+                                    />
                                     Delete role
                                   </button>
                                 </div>
@@ -910,41 +947,44 @@ const RolesManager: FC<Props> = ({ roles, setRoles, grouproles }) => {
         onClose={() => {
           if (!syncing) setSyncModalOpen(false);
         }}
-        className="relative z-50"
+        className='relative z-50'
       >
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
+        <div
+          className='fixed inset-0 bg-black/40 backdrop-blur-sm'
+          aria-hidden='true'
+        />
 
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
-            <Dialog.Title className="text-lg font-semibold text-zinc-900 dark:text-white">
+        <div className='fixed inset-0 flex items-center justify-center p-4'>
+          <Dialog.Panel className='w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-700 dark:bg-zinc-900'>
+            <Dialog.Title className='text-lg font-semibold text-zinc-900 dark:text-white'>
               Sync roles from Roblox?
             </Dialog.Title>
 
-            <Dialog.Description className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+            <Dialog.Description className='mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400'>
               This will delete all existing Orbit roles except the Owner role and override them with
               your existing roblox group roles. Custom permissions, colors, names, assignments,
               quotas, will be lost.
             </Dialog.Description>
 
-            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+            <div className='mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400'>
               This action cannot be undone.
             </div>
 
-            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <div className='mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
               <button
-                type="button"
+                type='button'
                 disabled={syncing}
                 onClick={() => setSyncModalOpen(false)}
-                className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                className='rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800'
               >
                 Cancel
               </button>
 
               <button
-                type="button"
+                type='button'
                 disabled={syncing}
                 onClick={checkRoles}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className='rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 {syncing ? 'Syncing...' : 'Delete and sync'}
               </button>

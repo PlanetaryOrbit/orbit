@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { validateCsrf } from '@/utils/csrf';
 import prisma from '@/utils/database';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Simple in-memory rate limiting for notes creation
 const notesCreationLimits: { [key: string]: { count: number; resetTime: number } } = {};

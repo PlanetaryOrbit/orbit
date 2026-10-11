@@ -1,8 +1,7 @@
-import axios from 'axios';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 interface OpenCloudKeyRes {
   name: string;

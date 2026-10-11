@@ -2,12 +2,11 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import axios from 'axios';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import packageInfo from '@/package.json';
 import { getConfig, setConfig } from '@/utils/configEngine';
 import { withPermissionCheck } from '@/utils/permissionsManager';
+import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default withPermissionCheck(handler, 'admin');
 

@@ -1,10 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { withAuth } from '@/lib/withAuth';
 import { setConfig, getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
 import { getUsername } from '@/utils/userinfoEngine';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type SessionColors = {
   recurring: string;

@@ -1,10 +1,9 @@
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import React, { useState } from 'react';
-
 import { HomeEmpty, HomeList, HomeListItem } from '@/components/home/shell';
 import { useSessionColors } from '@/hooks/useSessionColors';
 import type { Session } from '@/utils/database';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 
 type SessionWithRelations = Session & {
   owner: {
@@ -91,22 +90,22 @@ const Sessions: React.FC = () => {
           : null;
         return (
           <HomeListItem key={session.id}>
-            <div className="flex items-start gap-3">
+            <div className='flex items-start gap-3'>
               <img
                 src={session.owner?.picture ?? '/default-avatar.jpg'}
-                alt=""
-                className="h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700"
+                alt=''
+                className='h-9 w-9 shrink-0 rounded-md object-cover bg-zinc-100 dark:bg-zinc-700'
                 onError={(e) => {
                   e.currentTarget.src = '/default-avatar.jpg';
                 }}
               />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+              <div className='min-w-0 flex-1'>
+                <div className='flex flex-wrap items-center gap-x-2 gap-y-0.5'>
+                  <p className='text-sm font-medium text-zinc-900 dark:text-white truncate'>
                     {sessionLabel(session)}
                   </p>
                   {session.isLive && (
-                    <span className="text-[11px] font-medium text-primary">Live</span>
+                    <span className='text-[11px] font-medium text-primary'>Live</span>
                   )}
                   {typeLabel && (
                     <span
@@ -116,10 +115,10 @@ const Sessions: React.FC = () => {
                     </span>
                   )}
                   {status && status !== 'Open' && status !== 'Concluded' && (
-                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{status}</span>
+                    <span className='text-[11px] text-zinc-500 dark:text-zinc-400'>{status}</span>
                   )}
                 </div>
-                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
                   {session.owner?.username ? `Hosted by ${session.owner.username}` : 'No host'}
                   {activeSessions.length === 0 && nextSession && (
                     <>

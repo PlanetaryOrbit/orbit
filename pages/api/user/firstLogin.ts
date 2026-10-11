@@ -1,8 +1,7 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiResponse } from 'next';
-
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+import type { NextApiResponse } from 'next';
 
 export default withAuth(handler);
 

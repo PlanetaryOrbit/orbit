@@ -1,10 +1,9 @@
 import fs from 'fs';
 import fsPromises from 'fs/promises';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { getMedia, getMediaPathForFile } from '@/utils/media';
 import { getCachedMedia, setCachedMedia } from '@/utils/mediaCache';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
   api: {
