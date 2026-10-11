@@ -35,8 +35,6 @@ All notable changes to Orbit are documented here. It is fetched by the backend.
 - **Fixed** security issues and improved API permission checks.
 - **Fixed** various synchronization issues.
 - **Removed** forced identity from webhooks.
-- **Removed** changelog-related code and references where no longer needed.
-- **Removed** the media API.
 
 ### Contributors
 
