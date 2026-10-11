@@ -4,6 +4,9 @@
 All notable changes to Orbit are documented here. It is fetched by the backend.
 -->
 
+## [2.2.1] - 2026-10-10
+- **Fixed** Cron task deleting roles
+
 ## [2.2.0] - 2026-10-10
 
 - **Added** automatic workspace role synchronization on login, throttled to once per hour per user. (Thanks @tiagoodevs)
