@@ -1,6 +1,5 @@
 <div align="center">
   <img height="90px" src=".github/logo.png" alt="Orbit Logo" /><br /><br />
-
   <img src="https://img.shields.io/github/contributors/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
   <img src="https://img.shields.io/github/license/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
   <img src="https://img.shields.io/github/v/tag/PlanetaryOrbit/orbit?style=for-the-badge&color=FF0099" />
@@ -11,19 +10,17 @@
   </a>
 
   <h1>Orbit</h1>
-  <p><strong>A modern, open-source staff management platform for Roblox groups — maintained by Team Planetary and the pawesome contributors.</strong></p>
+  <p><strong>A modern, open-source staff management platform for Roblox groups</strong></p>
 
 <a href="https://planetaryapp.cloud">Website</a> ·
 <a href="https://docs.planetaryapp.cloud">Documentation</a> ·
-<a href="https://feedback.planetaryapp.cloud/bugs">Report a Bug</a> ·
-<a href="https://feedback.planetaryapp.cloud/changelog">Changelog</a> ·
+<a href="https://github.com/PlanetaryOrbit/orbit/issues">Report a Bug</a> ·
+<a href="https://github.com/PlanetaryOrbit/orbit/blob/main/CHANGELOG.md">Changelog</a> ·
 <a href="https://discord.com/invite/mWqdZmEkDc">Discord</a>
 </div>
 
----
-
 > [!NOTE]
-> **Orbit is currently in beta.** We've resolved the critical issues present in Tovy and continue to ship improvements, but you may encounter bugs. Please [report any issues](https://feedback.planetaryapp.cloud/bugs) you find or submit a pull request.
+> Orbit is in beta. Please expect bugs or unfinished features.
 
 ---
 
@@ -44,9 +41,7 @@
 
 ## Overview
 
-Orbit is a maintained and improved fork of [Tovy](https://github.com/tovyblox/tovy), the open-source staff management platform for Roblox. It gives group owners and staff teams the tools they need to manage members, run sessions, enforce policies, and track activity — all from a single, intuitive interface.
-
-Team Planetary continues the original Tovy mission: keep the platform actively maintained, fix long-standing bugs, and introduce meaningful new features. Since forking, we have resolved critical issues that rendered Tovy unusable, refreshed the UI, added image support to the group wall, and launched Planetary Cloud — a free, one-click hosting solution built on a custom runtime.
+Orbit is an open-source staff management platform for Roblox groups. It gives group owners and staff teams the tools they need to manage members, run sessions, enforce policies, and track activity, all from a single, intuitive interface.
 
 ---
 
@@ -72,27 +67,19 @@ Orbit ships with a comprehensive set of management tools out of the box:
 
 ### Planetary Cloud (Recommended)
 
-The fastest and easiest way to run Orbit is through **Planetary Cloud** — our free, managed hosting service. No configuration required.
-
-👉 **[Get started at planetaryapp.cloud](https://planetaryapp.cloud)**
+The fastest and easiest way to run Orbit is through **Planetary Cloud**. It is free and hosts your instance for you, giving you peace of mind.
+> **[Get started at planetaryapp.cloud](https://planetaryapp.cloud)**
 
 ---
 
 ### One-Click Deploy to Vercel
 
-> [!WARNING]
-> **We strongly recommend using Planetary Cloud instead of Vercel.**
->
-> Vercel's serverless architecture introduces real limitations that affect Orbit's reliability — including cold starts, execution timeouts, and constraints on long-running processes like session handling and activity tracking. You may run into hard-to-debug issues that simply don't exist on Planetary Cloud.
->
-> Vercel support ended with v2.1.11beta.1. Version v2.1.10beta21 is the last Vercel-supported release. Later releases do not receive Vercel support because Vercel's serverless infrastructure limits memory caching.
-> More information can be found in the latest update announcement ([Discord Announcement](https://discord.com/channels/1348101138670682156/1363239258659487864/1534022285453951087)).
->
-> **[Planetary Cloud](https://planetaryapp.cloud) is free, purpose-built for Orbit, and works out of the box — no configuration needed.** We can't guarantee a great experience on Vercel, and support for Vercel-specific issues is limited.
+> [!DANGER]
+> Vercel is no longer supported after v2.1.11beta.21. The button below will only work with beta 21, it will not go further.
 
 Prefer to host on your own Vercel account? Deploy in seconds:
 
-<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit%2Ftree%2Fv2.1.10beta21&env=SESSION_SECRET,DATABASE_URL,PUBLIC_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
+<a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FPlanetaryOrbit%2Forbit%2Ftree%2Fv2.1.11beta21&env=SESSION_SECRET,DATABASE_URL,PUBLIC_URL&build-command=npx%20prisma%20db%20push%20%26%26%20npx%20prisma%20generate%20%26%26%20npx%20next%20build%20--webpack">
   <img src="https://vercel.com/button" alt="Deploy with Vercel" />
 </a>
 
@@ -134,8 +121,6 @@ The minimum requirements are intended to represent the lowest practical configur
 ---
 
 ## Screenshots
-
-<br />
 
 <table>
   <tr>
@@ -273,5 +258,5 @@ Orbit is licensed under the [GNU General Public License v3.0](./LICENSE). You ar
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://planetaryapp.cloud">Team Planetary</a>. meow</sub>.
+  <sub>Built with ❤️ by <a href="https://planetaryapp.cloud">Team Planetary</a> and pawesome contributers. meow</sub>.
 </div>
