@@ -28,7 +28,7 @@
       "optional": "Opcional",
       "required": "Obligatorio",
       "passwords": {
-        "0": "Débil",
+        "0": "Muy Débil",
         "1": "Débil",
         "2": "Aceptable",
         "3": "Segura",
