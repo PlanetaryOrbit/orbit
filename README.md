@@ -15,3 +15,4 @@ Locale files are located in `i18n/locales/`.
 - @tucnak1111: cs-CZ translations (1061593251498430494)
 - @nemusyy: fr-FR translations (800033088393707580)
 - @carteraccs: es-EN translations (1149841240897114154)
+- @gonzagamer088: es-EN translations (757625671273938956)
