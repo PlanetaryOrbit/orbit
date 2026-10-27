@@ -1,4 +1,5 @@
-import { AuthenticatedRequest } from '@/lib/withAuth';
+import { AuthenticatedRequest, withInstanceAuth } from '@/lib/withAuth';
+import { validateCsrf } from '@/utils/csrf';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -8,11 +9,18 @@ type Data = {
   error?: string;
 };
 
-export default withPermissionCheck(handler);
+export default withInstanceAuth(handler);
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'DELETE')
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  if (!validateCsrf(req, res)) {
+    return res.status(403).json({
+      success: false,
+      error: 'CSRF validation failed',
+    });
+  }
 
   try {
     const workspaceId = parseInt(req.query.id as string);
@@ -21,6 +29,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (!userId) return res.status(401).json({ success: false, error: 'Not logged in' });
     if (!workspaceId)
       return res.status(400).json({ success: false, error: 'No workspace id provided' });
+
+    const owner = await prisma.user.findUnique({
+      where: { userid: userId },
+      select: { isOwner: true },
+    });
+
     const membership = await prisma.workspaceMember.findUnique({
       where: {
         workspaceGroupId_userId: {
@@ -30,10 +44,11 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     });
 
-    if (!membership?.isAdmin) {
-      return res
-        .status(403)
-        .json({ success: false, error: 'Only workspace owners can delete the workspace' });
+    if (!owner?.isOwner || !membership?.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only instance owners or workspace admins can delete a workspace',
+      });
     }
 
     const workspace = await prisma.workspace.findUnique({

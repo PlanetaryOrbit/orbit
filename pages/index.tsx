@@ -29,7 +29,7 @@ import {
   IconServerCog,
   IconClock,
   IconUserCog,
-  IconClockCog,
+  IconClockCog, IconTrash
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
@@ -41,6 +41,13 @@ import { useState, useEffect, Fragment, useRef, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useRecoilState } from 'recoil';
+
+interface InstanceWorkspace {
+  groupId: number;
+  groupName: string | null;
+  groupLogo: string | null;
+  memberCount: number | null;
+}
 
 interface Workspaces {
   groupId: number;
@@ -60,6 +67,9 @@ const Home: NextPage = () => {
   const [showInstanceSettings, setShowInstanceSettings] = useState(false);
   const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspaces[] | []>([]);
+  const [instanceWorkspaces, setInstanceWorkspaces] = useState<InstanceWorkspace[]>([]);
+  const [workspacesLoading, setWorkspacesLoading] = useState(false);
+  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState<number | null>(null);
   const [externalConfig, setExternalConfig] = useState({
     clientId: '',
     clientSecret: '',
@@ -294,10 +304,10 @@ const Home: NextPage = () => {
   };
 
   useEffect(() => {
-    if (!isOwner) return;
-    if (showInstanceSettings) {
-      loadRobloxConfig();
-    }
+    if (!isOwner || !showInstanceSettings) return;
+
+    loadRobloxConfig();
+    loadInstanceWorkspaces();
   }, [showInstanceSettings, isOwner]);
 
   useEffect(() => {
@@ -389,6 +399,56 @@ const Home: NextPage = () => {
     try {
       await axios.post('/api/user/firstLogin');
     } catch {}
+  };
+
+  const loadInstanceWorkspaces = async () => {
+    setWorkspacesLoading(true);
+
+    try {
+      const response = await axios.get('/api/admin/workspaces');
+      setInstanceWorkspaces(response.data.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load instance workspaces.');
+      console.error('Failed to load instance workspaces:', error);
+    } finally {
+      setWorkspacesLoading(false);
+    }
+  };
+
+  const deleteInstanceWorkspace = async (workspace: InstanceWorkspace) => {
+    const confirmed = window.confirm(
+      `Permanently delete "${workspace.groupName || workspace.groupId}"?\n\n` +
+        'This deletes the workspace and its stored data. This action cannot be undone.',
+    );
+
+    if (!confirmed) return;
+
+    setDeletingWorkspaceId(workspace.groupId);
+
+    try {
+      await axios.delete(
+        `/api/workspace/${workspace.groupId}/settings/general/deletews`,
+      );
+
+      setInstanceWorkspaces((current) =>
+        current.filter((item) => item.groupId !== workspace.groupId),
+      );
+      setWorkspaces((current) =>
+        current.filter((item) => item.groupId !== workspace.groupId),
+      );
+
+      if (pinnedWorkspaceId === workspace.groupId) {
+        setPinnedWorkspaceId(null);
+        localStorage.removeItem(PINNED_WORKSPACE_KEY);
+      }
+
+      toast.success('Workspace deleted.');
+    } catch (error) {
+      toast.error('Failed to delete workspace.');
+      console.error('Failed to delete workspace:', error);
+    } finally {
+      setDeletingWorkspaceId(null);
+    }
   };
 
   const uploadBackground = useCallback(async (file: File) => {
@@ -973,6 +1033,53 @@ const Home: NextPage = () => {
                               />
                             </div>
                           </div>
+
+                          <section className="space-y-3 mt-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                Workspace Management
+                              </h4>
+                              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                Remove workspaces created on this instance, including Roblox groups
+                                you no longer have access to.
+                              </p>
+                            </div>
+
+                            {workspacesLoading ? (
+                              <p className="text-sm text-zinc-500">Loading workspaces...</p>
+                            ) : instanceWorkspaces.length === 0 ? (
+                              <p className="text-sm text-zinc-500">No workspaces found.</p>
+                            ) : (
+                              <ul className="space-y-2">
+                                {instanceWorkspaces.map((workspace) => (
+                                  <li
+                                    key={workspace.groupId}
+                                    className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                                        {workspace.groupName || 'Unnamed workspace'}
+                                      </p>
+                                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                        Group ID: {workspace.groupId}
+                                      </p>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteInstanceWorkspace(workspace)}
+                                      disabled={deletingWorkspaceId !== null}
+                                      aria-label={`Delete workspace ${workspace.groupName || workspace.groupId}`}
+                                      className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                                    >
+                                      <IconTrash className="h-4 w-4" />
+                                      {deletingWorkspaceId === workspace.groupId ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </section>
 
                           <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2'>
                             Need a hand? Check our documentation at{' '}
