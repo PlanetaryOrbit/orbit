@@ -50,9 +50,17 @@ let setupCache: {
 const CACHE_DURATION = 30000; // 30 seconds
 
 async function checkSetup(request: NextRequest): Promise<boolean> {
-  if (setupCache && Date.now() - setupCache.timestamp < CACHE_DURATION) {
-    return setupCache.isSetup;
-  }
+  const { pathname } = request.nextUrl;
+
+  const bypassCache = pathname === '/' || pathname === '/welcome';
+
+  if (
+      !bypassCache &&
+      setupCache &&
+      Date.now() - setupCache.timestamp < CACHE_DURATION
+    ) {
+      return setupCache.isSetup;
+    }
 
   try {
     const url = internalUrl(request, '/api/admin/first-setup/config');

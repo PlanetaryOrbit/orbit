@@ -155,6 +155,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const hashedPassword = await bcryptjs.hash(password, 10);
 
+    const existingUserCount = await prisma.user.count();
+
+    if (existingUserCount > 0) {
+      return res.status(403).json({
+        success: false,
+        error: 'Instance setup has already been completed',
+      });
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.workspace.create({
         data: {
@@ -309,8 +318,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       user: userInfo,
     });
   } catch (error) {
-    console.error('Error in setup workspace:', error);
-
     return res.status(500).json({
       success: false,
       error: 'Internal server error',

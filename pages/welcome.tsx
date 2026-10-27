@@ -85,15 +85,15 @@ const Login: NextPage = () => {
       ])) as { data: { success: boolean; user: any } };
 
       if (request?.data.success) {
-        toast.success('Workspace created successfully!');
+        toast.success('Instance setup completed.');
+
         setLogin((prev) => ({
           ...prev,
           ...request?.data.user,
           isOwner: true,
         }));
-        setTimeout(() => {
-          Router.replace('/');
-        }, 1000);
+
+        await Router.replace('/');
       }
     } catch (e: any) {
       if (e?.response?.status === 404) {
