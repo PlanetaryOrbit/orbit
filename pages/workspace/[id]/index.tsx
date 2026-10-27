@@ -30,8 +30,6 @@ const Home: pageWithLayout = () => {
   const text = useMemo(() => randomText(login.displayname), [login.displayname]);
   const [ready, setReady] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
-  const [showWarn, setShowWarn] = useState<boolean>(false);
-  const [syncWarnDismissed, setSyncWarnDismissed] = useState(false);
   const [workspaceMembership, setWorkspaceMembership] = useState<{
     isAdmin: boolean | null;
   } | null>(null);
@@ -73,16 +71,6 @@ const Home: pageWithLayout = () => {
 
   useEffect(() => {
     if (!workspace?.groupId) return;
-    fetch(`/api/workspace/${workspace.groupId}/`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setShowWarn(!data.workspace.lastSyncedSuccessful);
-      })
-      .catch(() => {});
-  }, [workspace.groupId]);
-
-  useEffect(() => {
-    if (!workspace?.groupId) return;
     fetch(`/api/workspace/${workspace.groupId}/settings/general/banner`)
       .then((r) => r.json())
       .then((data) => {
@@ -100,31 +88,6 @@ const Home: pageWithLayout = () => {
   return (
     <div className='pagePadding'>
       <div className='mx-auto max-w-6xl'>
-        {showWarn && !syncWarnDismissed && (
-          <div className='mb-5 flex flex-col gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/60 sm:flex-row sm:items-center sm:justify-between'>
-            <p className='text-sm text-zinc-600 dark:text-zinc-400'>
-              <span className='font-medium text-zinc-900 dark:text-zinc-200'>Sync failed.</span>{' '}
-              Group sync did not finish — check API keys in settings.
-            </p>
-            <div className='flex shrink-0 items-center gap-2'>
-              <button
-                type='button'
-                onClick={() => router.push(`/workspace/${workspace.groupId}/settings`)}
-                className='rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90'
-              >
-                Settings
-              </button>
-              <button
-                type='button'
-                onClick={() => setSyncWarnDismissed(true)}
-                className='rounded-md px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800'
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        )}
-
         <header className='mb-5 sm:mb-6'>
           {banner ? (
             <div className='relative overflow-hidden rounded-2xl'>

@@ -172,7 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           groupLogo,
           lastSynced: new Date(),
           isVerified: verified,
-          lastSyncedSuccessful: typeof opencloudKey === 'string' && opencloudKey.trim().length > 0,
+          lastSyncedSuccessful: null,
         },
       });
 
