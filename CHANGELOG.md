@@ -4,6 +4,9 @@
 All notable changes to Orbit are documented here. It is fetched by the backend.
 -->
 
+## [2.2.2] - 2026-10-26
+- **Fixed** a Major Security Vulnerbility
+
 ## [2.2.1] - 2026-10-10
 - **Fixed** Cron task deleting roles
 
