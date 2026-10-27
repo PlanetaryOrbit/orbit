@@ -36,7 +36,6 @@ model workspace {
   externalServices     workspaceExternalServices?
   members              workspaceMember[]
   policyLinks          PolicyShareableLink[]
-  stickyAnnouncements  StickyAnnouncement[]
   staffResignations    staffResignation[]
   promotionRecommendations promotionRecommendation[]
 }
@@ -287,22 +286,6 @@ model wallPost {
   @@index([workspaceGroupId, createdAt(sort: Desc)])
   @@index([authorId])
   @@index([mediaId])
-}
-
-model StickyAnnouncement {
-  id               Int       @id @default(autoincrement())
-  workspaceGroupId Int
-  title            String
-  subtitle         String?
-  sections         Json // Array of {title: string, content: string}
-  editorId         BigInt?
-  editorUsername   String?
-  editorPicture    String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  workspace        workspace @relation(fields: [workspaceGroupId], references: [groupId])
-
-  @@unique([workspaceGroupId])
 }
 
 model AuditLog {

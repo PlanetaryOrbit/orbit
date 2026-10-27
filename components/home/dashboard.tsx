@@ -7,7 +7,6 @@ import Sessions from '@/components/home/sessions';
 import { HomePanel } from '@/components/home/shell';
 import Wall from '@/components/home/wall';
 import NewToTeam from '@/components/newmembers';
-import StickyNoteAnnouncement from '@/components/stickyannouncement';
 import type { HomeWidgetId } from '@/utils/homeWidgets';
 import clsx from 'clsx';
 import React from 'react';
@@ -151,7 +150,6 @@ export function HomeDashboard({
       );
       return (
         <>
-          <StickyNoteAnnouncement />
           {fallbackIds.length > 0 && (
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               {fallbackIds.map((id) => (
@@ -181,7 +179,6 @@ export function HomeDashboard({
             showSidebar ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-12',
           )}
         >
-          <StickyNoteAnnouncement />
           <WidgetPanel
             id={mainId}
             workspaceId={workspaceId}
