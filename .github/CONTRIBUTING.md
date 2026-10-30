@@ -11,9 +11,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 > - Mention Orbit in your project's README
 > - Tell friends, colleagues, or local communities about the project
 
-A quick note before you contribute:
-
-> Orbit is an open source project owned by Planetary, a product of Sleepy Lab. Day-to-day development and community management are currently handled by @buddywinte on Planetary's behalf.
+Please note that bug reports and enhancement suggestions are handled through our Feedback Portal, not GitHub Issues. Pull requests and RFCs can still be submitted through GitHub.
 
 ---
 
@@ -51,19 +49,13 @@ Please report unacceptable behavior to [contact@sleepylab.ca](mailto:contact@sle
 
 Before asking, check whether your question has already been answered:
 
-- Search existing [GitHub Issues](https://github.com/PlanetaryOrbit/orbit/issues).
 - Check the documentation.
 - Search for existing discussions or solutions online.
 - Ask in our [Discord server](https://discord.gg/M3CX76KQsK).
 
-Orbit does not use GitHub Discussions. Questions should either be asked through Issues or Discord.
+Orbit does not use GitHub Discussions or GitHub Issues for general support.
 
-If you still need help:
-
-- Open a GitHub Issue.
-- Provide as much context as possible.
-- Include relevant versions and environment details.
-- Explain what you have already tried.
+If you still need help, ask in our Discord server and provide as much context as possible, including relevant versions, environment details, and what you have already tried.
 
 ---
 
@@ -139,14 +131,13 @@ After an RFC has been approved, implementation can begin through normal pull req
 
 ## Before You Submit a Bug Report
 
-Before opening an issue, please make sure the problem has not already been reported and is not caused by your environment.
+Before submitting a report, please make sure the problem has not already been reported and is not caused by your environment.
 
 Please:
 
 - Ensure you are running the latest version of Orbit.
 - Confirm the issue is not caused by unsupported software or configuration.
 - Read the documentation.
-- Search existing issues.
 - Check whether others have experienced the same issue.
 
 When preparing your report, include:
@@ -167,27 +158,22 @@ When preparing your report, include:
 
 > ## Security Notice
 >
-> Do **not** report security vulnerabilities, exploits, or issues containing sensitive information publicly through GitHub Issues.
+> Do **not** report security vulnerabilities, exploits, or issues containing sensitive information through the public feedback portal.
 >
 > Security-related reports should be sent privately to [IT@planetaryapp.cloud](mailto:IT@planetaryapp.cloud).
 
-Orbit uses GitHub Issues to track bugs and unexpected behavior.
+All bug reports must be submitted through the [Orbit Feedback Portal](https://feedback.planetaryapp.cloud/). GitHub Issues are no longer used for bug tracking. Any new issues opened on GitHub will be closed and redirected to the feedback portal.
 
-When opening a bug report:
+When submitting a bug report:
 
-- Use a clear and descriptive title.
+- Provide a clear and descriptive title.
 - Explain what you expected to happen.
 - Explain what actually happened.
 - Include detailed reproduction steps.
 - Include logs, screenshots, or recordings where helpful.
 - Provide a minimal reproduction case if possible.
 
-After submitting:
-
-- A maintainer will review and triage the issue.
-- Issues missing enough information may be marked as `needs-repro`.
-- Confirmed bugs may be labeled `needs-fix`, `critical`, or other relevant labels.
-- Confirmed issues may be picked up by contributors.
+Submitted reports will be reviewed and triaged by the maintainers. Additional information may be requested if necessary.
 
 ---
 
@@ -199,7 +185,7 @@ Before suggesting an enhancement:
 
 - Make sure you are using the latest version.
 - Read the documentation to ensure the feature does not already exist.
-- Search existing issues to see if the suggestion has already been made.
+- Check the feedback portal for existing suggestions.
 - Consider whether the feature fits Orbit's goals and intended use cases.
 
 Features should generally benefit a significant portion of Orbit users.
@@ -208,9 +194,9 @@ If your idea only benefits a very specific use case, consider whether it would b
 
 ## How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked through GitHub Issues.
+All enhancement suggestions must be submitted through the [Orbit Feedback Portal](https://feedback.planetaryapp.cloud/). GitHub Issues are no longer used for feature requests. Any new issues opened on GitHub will be closed and redirected to the feedback portal.
 
-When creating one:
+When submitting a suggestion:
 
 - Use a clear and descriptive title.
 - Explain the problem your suggestion solves.
