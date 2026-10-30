@@ -20,7 +20,7 @@
 </div>
 
 > [!NOTE]
-> Orbit is in beta. Please expect bugs or unfinished features.
+> Orbit is currently in beta, so bugs and unfinished features are to be expected. Please submit all bug reports and suggestions through our [Feedback Portal](https://feedback.planetaryapp.cloud/).
 
 ---
 
