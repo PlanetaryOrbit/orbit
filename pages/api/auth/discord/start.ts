@@ -1,11 +1,29 @@
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
-// import { withAuth } from '@/lib/withSession';
+import type { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { getSessionByToken } from '@/utils/session';
+import * as cookie from 'cookie';
+import type { NextApiResponse } from 'next';
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const isLink = req.query.link === '1';
+  let linkUserId: bigint | null = null;
+
+  if (isLink) {
+    const sessionToken = cookie.parse(req.headers.cookie || '').session_token;
+    if (!sessionToken) {
+      return res.redirect('/settings?tab=connections&error=auth_required');
+    }
+
+    const session = await getSessionByToken(sessionToken);
+    if (!session) {
+      return res.redirect('/settings?tab=connections&error=auth_required');
+    }
+
+    linkUserId = session.userId;
   }
 
   let clientId: string | undefined;
@@ -37,11 +55,13 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
   const state =
     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
   await prisma.oAuthState.create({
     data: {
       state,
       provider: 'discord',
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      userId: linkUserId,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     },
   });
 

@@ -1,10 +1,11 @@
-import { AuthenticatedRequest } from '@/lib/withAuth';
+import type { AuthenticatedRequest } from '@/lib/withAuth';
 import Package from '@/package.json';
+import { invalidateUserProfileCache } from '@/utils/accountCache';
 import prisma from '@/utils/database';
 import { createSession, getSessionByToken } from '@/utils/session';
 import axios from 'axios';
 import * as cookie from 'cookie';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 
 type DiscordTokenResponse = {
   access_token: string;
@@ -38,7 +39,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     where: { state },
   });
 
-  if (!oauthState) {
+  if (!oauthState || (oauthState.provider && oauthState.provider !== 'discord')) {
     return res.redirect('/login?error=invalid_state');
   }
 
@@ -48,6 +49,19 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   }
 
   await prisma.oAuthState.delete({ where: { state } });
+
+  const isLink = oauthState.userId !== null;
+  const accountError = (code: string) =>
+    `/settings?tab=connections&error=${encodeURIComponent(code)}`;
+
+  if (isLink) {
+    const sessionToken = cookie.parse(req.headers.cookie || '').session_token;
+    const activeSession = sessionToken ? await getSessionByToken(sessionToken) : null;
+
+    if (!activeSession || activeSession.userId !== oauthState.userId) {
+      return res.redirect(accountError('session_mismatch'));
+    }
+  }
 
   let clientId = process.env.DISCORD_APPLICATION_ID;
   let clientSecret = process.env.DISCORD_SECRET;
@@ -74,7 +88,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   }
 
   if (!clientId || !clientSecret) {
-    return res.redirect('/login?error=config_error');
+    return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
   }
 
   try {
@@ -114,33 +128,36 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       where: { discordUserId },
     });
 
-    console.log(existingDiscord);
-    console.log(req);
+    if (isLink) {
+      const userId = oauthState.userId!;
 
-    const cookies = cookie.parse(req.headers.cookie || '');
-    const sessionToken = cookies.session_token;
-
-    if (sessionToken) {
-      const info = await getSessionByToken(sessionToken);
-
-      if (info) {
-        await prisma.discordUser.upsert({
-          where: { discordUserId },
-          update: {
-            username: discordUser.username,
-            avatar: discordUser.avatar,
-            robloxUserId: info.userId,
-          },
-          create: {
-            discordUserId,
-            username: discordUser.username,
-            avatar: discordUser.avatar,
-            robloxUserId: info.userId,
-          },
-        });
-
-        return res.redirect('/?action=linked');
+      if (existingDiscord?.robloxUserId && existingDiscord.robloxUserId !== userId) {
+        return res.redirect(accountError('already_linked'));
       }
+
+      await prisma.discordUser.upsert({
+        where: { discordUserId },
+        update: {
+          username: discordUser.username,
+          avatar: discordUser.avatar,
+          robloxUserId: userId,
+        },
+        create: {
+          discordUserId,
+          username: discordUser.username,
+          avatar: discordUser.avatar,
+          robloxUserId: userId,
+        },
+      });
+
+      await invalidateUserProfileCache(userId);
+
+      return res.redirect('/settings?tab=connections&linked=discord');
+    }
+
+    const sessionToken = cookie.parse(req.headers.cookie || '').session_token;
+    if (sessionToken && (await getSessionByToken(sessionToken))) {
+      return res.redirect('/');
     }
 
     if (!existingDiscord?.robloxUserId) {
@@ -168,11 +185,11 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     return res.redirect('/');
   } catch (err) {
     console.error('Discord OAuth error:', err);
-    console.log('hi');
 
     if (axios.isAxiosError(err)) {
       console.error(err.response?.data);
     }
-    return res.redirect('/login?error=oauth_failed');
+
+    return res.redirect(isLink ? accountError('oauth_failed') : '/login?error=oauth_failed');
   }
 }
