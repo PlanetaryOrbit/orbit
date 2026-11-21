@@ -208,12 +208,7 @@ const Topbar: NextPage = () => {
                       aria-label='Open account dropdown'
                       className='group flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:hover:bg-zinc-800'
                     >
-                      <motion.span
-                        animate={{ scale: open ? 1.08 : 1, rotate: open ? -4 : 0 }}
-                        transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-                        className='relative shrink-0'
-                      >
-                        <img
+                      <img
                           src={login?.thumbnail || '/default-avatar.jpg'}
                           alt={login?.displayname ?? 'Profile'}
                           className='h-9 w-9 rounded-full object-cover ring-2 ring-white transition-colors group-hover:ring-primary/30 dark:ring-zinc-800 dark:group-hover:ring-primary/40'
@@ -223,7 +218,6 @@ const Topbar: NextPage = () => {
                             <IconCrown className='h-2.5 w-2.5 text-white' />
                           </span>
                         )}
-                      </motion.span>
                       <span className='hidden text-sm font-medium text-zinc-800 dark:text-zinc-100 sm:block'>
                         {login?.displayname}
                       </span>
@@ -244,7 +238,7 @@ const Topbar: NextPage = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -6, scale: 0.97 }}
                           transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.7 }}
-                          className='absolute right-0 z-50 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-black/5 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/30'
+                          className='absolute right-0 z-50 mt-4 w-64 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-black/5 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-black/30'
                         >
                           <div className='px-3 py-2'>
                             <p className='truncate text-sm font-semibold text-zinc-900 dark:text-white'>
@@ -252,8 +246,6 @@ const Topbar: NextPage = () => {
                             </p>
                             <p className='truncate text-xs text-zinc-500'>@{login?.username}</p>
                           </div>
-
-                          <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
 
                           <Menu.Item>
                             {({ active }) => (
