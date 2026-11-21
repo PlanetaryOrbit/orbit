@@ -4,6 +4,7 @@ import { HomeDashboard } from '@/components/home/dashboard';
 import Workspace from '@/layouts/workspace';
 import type { pageWithLayout } from '@/layoutTypes';
 import { loginState, workspacestate } from '@/state';
+import { highResGroupLogo } from '@/utils/groupLogo';
 import { normalizeHomeWidgetOrder } from '@/utils/homeWidgets';
 import { withPermissionCheckSsr } from '@/utils/permissionsManager';
 import randomText from '@/utils/randomText';
@@ -118,7 +119,7 @@ const Home: pageWithLayout = () => {
               </div>
               {workspace.groupThumbnail ? (
                 <img
-                  src={workspace.groupThumbnail}
+                  src={highResGroupLogo(workspace.groupThumbnail)}
                   alt=''
                   className='h-10 w-10 shrink-0 rounded-xl border border-zinc-200 object-cover dark:border-zinc-700 sm:h-14 sm:w-14'
                 />

@@ -18,6 +18,7 @@ import {
   IconXd,
 } from '@tabler/icons-react';
 import axios from 'axios';
+import { AnimatePresence, motion } from 'framer-motion';
 import moment from 'moment';
 import type { NextPage } from 'next';
 import { useTheme } from 'next-themes';
@@ -47,7 +48,7 @@ function DeviceIcon({ device }: { device: string | null }) {
   return <IconDeviceLaptop className='w-5 h-5' />;
 }
 
-type Panel = 'settings' | 'sessions';
+type Panel = 'sessions';
 
 const Topbar: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
@@ -56,7 +57,7 @@ const Topbar: NextPage = () => {
   const isDiscordOAuth = discordOAuth.available;
   const isGoogleOAuth = googleOAuth.available;
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<Panel>('settings');
+  const [panel, setPanel] = useState<Panel>('sessions');
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const router = useRouter();
@@ -107,6 +108,7 @@ const Topbar: NextPage = () => {
       workspaces: [],
       isOwner: false,
       isFirstLogin: false,
+      hasPassword: false,
     });
     router.push('/login');
   }
@@ -146,16 +148,26 @@ const Topbar: NextPage = () => {
 
   useEffect(() => {
     if (!Router.isReady || errorToastShown.current) return;
-    const { action, ...rest } = Router.query;
-    if (action) {
-      toast[action === 'linked' ? 'success' : 'error'](
-        action === 'linked' ? 'Discord linked!' : 'Error signing in.',
-      );
-      errorToastShown.current = true;
-      Router.replace({ pathname: Router.pathname, query: rest }, undefined, {
-        shallow: true,
-      });
+
+    const { action, linked, error, ...rest } = Router.query;
+    if (!action && !linked && !error) return;
+
+    const provider = Array.isArray(linked) ? linked[0] : linked;
+
+    if (provider === 'discord' || provider === 'google') {
+      toast.success(`${provider === 'discord' ? 'Discord' : 'Google'} connected`);
+    } else if (action === 'linked') {
+      toast.success('Account linked');
+    } else if (action) {
+      toast.error('Error signing in.');
+    } else if (error) {
+      toast.error('Something went wrong while updating your account.');
     }
+
+    errorToastShown.current = true;
+    Router.replace({ pathname: Router.pathname, query: rest }, undefined, {
+      shallow: true,
+    });
   }, [Router.isReady, Router.query]);
 
   return (
@@ -187,155 +199,182 @@ const Topbar: NextPage = () => {
                 as='div'
                 className='relative'
               >
-                <Menu.Button
-                  type='button'
-                  aria-label='Open account dropdown'
-                  className='group flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                >
-                  <span className='relative shrink-0'>
-                    <img
-                      src={login?.thumbnail || '/default-avatar.jpg'}
-                      alt={login?.displayname ?? 'Profile'}
-                      className='h-9 w-9 rounded-full object-cover ring-2 ring-white transition-colors group-hover:ring-zinc-100 dark:ring-zinc-800 dark:group-hover:ring-zinc-700'
-                    />
-                    {login?.isOwner && (
-                      <span className='absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800'>
-                        <IconCrown className='h-2.5 w-2.5 text-white' />
-                      </span>
-                    )}
-                  </span>
-                  <span className='hidden text-sm font-medium text-zinc-800 dark:text-zinc-100 sm:block'>
-                    {login?.displayname}
-                  </span>
-                  <IconChevronDown className='hidden h-4 w-4 text-zinc-400 transition-transform group-hover:text-zinc-600 dark:group-hover:text-zinc-300 sm:block' />
-                </Menu.Button>
-                <Menu.Items className='absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-700 dark:bg-zinc-900'>
-                  <div className='px-3 py-2'>
-                    <p className='truncate text-sm font-semibold text-zinc-900 dark:text-white'>
-                      {login?.displayname}
-                    </p>
-                    <p className='truncate text-xs text-zinc-500'>@{login?.username}</p>
-                  </div>
-
-                  <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
-
-                  {login.canMakeWorkspace && (
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={() => {
-                            setPanel('settings');
-                            setOpen(true);
-                          }}
-                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                            active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
-                          }`}
-                        >
-                          <IconSettings className='h-4 w-4' />
-                          Account Settings
-                        </button>
-                      )}
-                    </Menu.Item>
-                  )}
-
-                  <Menu.Item>
-                    <button
-                      onClick={() => {
-                        setPanel('sessions');
-                        setOpen(true);
-                        fetchSessions();
-                      }}
-                      className='flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors'
+                {({ open }) => (
+                  <>
+                    <Menu.Button
+                      as={motion.button}
+                      type='button'
+                      whileTap={{ scale: 0.96 }}
+                      aria-label='Open account dropdown'
+                      className='group flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:hover:bg-zinc-800'
                     >
-                      <IconDevices className='h-4 w-4' />
-                      Sessions
-                    </button>
-                  </Menu.Item>
-                  {(isDiscordOAuth || isGoogleOAuth) && (
-                    <>
-                      <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
-                      {isDiscordOAuth && (
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={
-                                login.discordUser
-                                  ? unlink
-                                  : () => (window.location.href = '/api/auth/discord/start')
-                              }
-                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
-                                active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
-                              }`}
-                            >
-                              <img
-                                src='/discord.svg'
-                                className='h-4 w-4 invert dark:invert-0'
-                                alt=''
-                              />
-                              {login.discordUser ? 'Unlink Discord' : 'Link Discord'}
-                            </button>
-                          )}
-                        </Menu.Item>
-                      )}
-                      {isGoogleOAuth && (
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={
-                                login.googleUser
-                                  ? googleUnlink
-                                  : () => (window.location.href = '/api/auth/google/start')
-                              }
-                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
-                                active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
-                              }`}
-                            >
-                              <img
-                                src='/google.svg'
-                                className='h-4 w-4 invert dark:invert-0'
-                                alt=''
-                              />
-                              {login.googleUser ? 'Unlink Google' : 'Link Google'}
-                            </button>
-                          )}
-                        </Menu.Item>
-                      )}
-                    </>
-                  )}
-                  <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={logout}
-                        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
-                          active ? 'bg-red-50 dark:bg-red-500/10' : ''
-                        }`}
+                      <motion.span
+                        animate={{ scale: open ? 1.08 : 1, rotate: open ? -4 : 0 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                        className='relative shrink-0'
                       >
-                        <IconLogout className='h-4 w-4' />
-                        Logout
-                      </button>
-                    )}
-                  </Menu.Item>
-                  {!login.canMakeWorkspace && (
-                    <>
-                      <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
-
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={deleteAccount}
-                            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
-                              active ? 'bg-red-50 dark:bg-red-500/10' : ''
-                            }`}
-                          >
-                            <IconTrash className='h-4 w-4' />
-                            Delete Account
-                          </button>
+                        <img
+                          src={login?.thumbnail || '/default-avatar.jpg'}
+                          alt={login?.displayname ?? 'Profile'}
+                          className='h-9 w-9 rounded-full object-cover ring-2 ring-white transition-colors group-hover:ring-primary/30 dark:ring-zinc-800 dark:group-hover:ring-primary/40'
+                        />
+                        {login?.isOwner && (
+                          <span className='absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 ring-2 ring-white dark:ring-zinc-800'>
+                            <IconCrown className='h-2.5 w-2.5 text-white' />
+                          </span>
                         )}
-                      </Menu.Item>
-                    </>
-                  )}
-                </Menu.Items>
+                      </motion.span>
+                      <span className='hidden text-sm font-medium text-zinc-800 dark:text-zinc-100 sm:block'>
+                        {login?.displayname}
+                      </span>
+                      <motion.span
+                        animate={{ rotate: open ? 180 : 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                        className='hidden sm:block'
+                      >
+                        <IconChevronDown className='h-4 w-4 text-zinc-400 transition-colors group-hover:text-zinc-600 dark:group-hover:text-zinc-300' />
+                      </motion.span>
+                    </Menu.Button>
+                    <AnimatePresence>
+                      {open ? (
+                        <Menu.Items
+                          as={motion.div}
+                          static
+                          initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                          transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.7 }}
+                          className='absolute right-0 z-50 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-black/5 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/30'
+                        >
+                          <div className='px-3 py-2'>
+                            <p className='truncate text-sm font-semibold text-zinc-900 dark:text-white'>
+                              {login?.displayname}
+                            </p>
+                            <p className='truncate text-xs text-zinc-500'>@{login?.username}</p>
+                          </div>
+
+                          <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
+
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={() => router.push('/settings')}
+                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                  active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+                                }`}
+                              >
+                                <IconSettings className='h-4 w-4' />
+                                Account Settings
+                              </button>
+                            )}
+                          </Menu.Item>
+
+                          <Menu.Item>
+                            <button
+                              onClick={() => {
+                                setPanel('sessions');
+                                setOpen(true);
+                                fetchSessions();
+                              }}
+                              className='flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors'
+                            >
+                              <IconDevices className='h-4 w-4' />
+                              Sessions
+                            </button>
+                          </Menu.Item>
+                          {(isDiscordOAuth || isGoogleOAuth) && (
+                            <>
+                              <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
+                              {isDiscordOAuth && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={
+                                        login.discordUser
+                                          ? unlink
+                                          : () =>
+                                              (window.location.href =
+                                                '/api/auth/discord/start?link=1')
+                                      }
+                                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                                        active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+                                      }`}
+                                    >
+                                      <img
+                                        src='/discord.svg'
+                                        className='h-4 w-4 invert dark:invert-0'
+                                        alt=''
+                                      />
+                                      {login.discordUser ? 'Unlink Discord' : 'Link Discord'}
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
+                              {isGoogleOAuth && (
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      onClick={
+                                        login.googleUser
+                                          ? googleUnlink
+                                          : () =>
+                                              (window.location.href =
+                                                '/api/auth/google/start?link=1')
+                                      }
+                                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                                        active ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+                                      }`}
+                                    >
+                                      <img
+                                        src='/google.svg'
+                                        className='h-4 w-4 invert dark:invert-0'
+                                        alt=''
+                                      />
+                                      {login.googleUser ? 'Unlink Google' : 'Link Google'}
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              )}
+                            </>
+                          )}
+                          <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
+                          <Menu.Item>
+                            {({ active }) => (
+                              <button
+                                onClick={logout}
+                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
+                                  active ? 'bg-red-50 dark:bg-red-500/10' : ''
+                                }`}
+                              >
+                                <IconLogout className='h-4 w-4' />
+                                Logout
+                              </button>
+                            )}
+                          </Menu.Item>
+                          {!login.canMakeWorkspace && (
+                            <>
+                              <div className='my-2 h-px bg-zinc-200 dark:bg-zinc-700' />
+
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={deleteAccount}
+                                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-500 ${
+                                      active ? 'bg-red-50 dark:bg-red-500/10' : ''
+                                    }`}
+                                  >
+                                    <IconTrash className='h-4 w-4' />
+                                    Delete Account
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            </>
+                          )}
+                        </Menu.Items>
+                      ) : null}
+                    </AnimatePresence>
+                  </>
+                )}
               </Menu>
             </div>
           </div>
@@ -448,165 +487,6 @@ const Topbar: NextPage = () => {
                           ))}
                         </div>
                       )}
-                    </div>
-                  </>
-                )}
-
-                {panel === 'settings' && (
-                  <>
-                    <div className='flex items-center gap-2 border-b border-zinc-100 px-4 py-3.5 dark:border-zinc-800/80'>
-                      <button
-                        onClick={() => setOpen(false)}
-                        className='rounded-lg p-1 text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      >
-                        <IconX className='h-4 w-4' />
-                      </button>
-
-                      <div>
-                        <p className='text-sm font-semibold text-zinc-900 dark:text-white'>
-                          Account settings
-                        </p>
-                        <p className='text-xs text-zinc-500'>
-                          Manage connected accounts and security
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className='space-y-5 p-4'>
-                      {isDiscordOAuth ||
-                        (isGoogleOAuth && (
-                          <section className='space-y-2'>
-                            <h3 className='px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400'>
-                              Connected accounts
-                            </h3>
-
-                            <div className='space-y-2'>
-                              {isDiscordOAuth &&
-                                (login.discordUser ? (
-                                  <div className='group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700'>
-                                    <img
-                                      src={`https://cdn.discordapp.com/avatars/${login.discordUser.discordUserId}/${login.discordUser.avatar}.png`}
-                                      alt=''
-                                      className='h-9 w-9 rounded-full'
-                                    />
-
-                                    <div className='min-w-0 flex-1'>
-                                      <p className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
-                                        {login.discordUser.username}
-                                      </p>
-                                      <div className='flex items-center gap-1.5'>
-                                        <span className='h-1.5 w-1.5 rounded-full bg-green-500' />
-                                        <p className='text-xs text-zinc-500'>Discord connected</p>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      onClick={unlink}
-                                      className='rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10'
-                                    >
-                                      Unlink
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() =>
-                                      (window.location.href = '/api/auth/discord/start')
-                                    }
-                                    className='flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'
-                                  >
-                                    <img
-                                      src='/discord.svg'
-                                      alt=''
-                                      className='h-5 w-5 invert dark:invert-0'
-                                    />
-                                    Connect Discord
-                                  </button>
-                                ))}
-
-                              {isGoogleOAuth &&
-                                (login.googleUser ? (
-                                  <div className='group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700'>
-                                    <img
-                                      src={
-                                        login.googleUser.avatar
-                                          ? `/api/google/avatar-proxy?url=${encodeURIComponent(
-                                              login.googleUser.avatar,
-                                            )}`
-                                          : '/default-avatar.jpg'
-                                      }
-                                      alt=''
-                                      className='h-9 w-9 rounded-full'
-                                    />
-
-                                    <div className='min-w-0 flex-1'>
-                                      <p className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
-                                        {login.googleUser.email}
-                                      </p>
-                                      <div className='flex items-center gap-1.5'>
-                                        <span className='h-1.5 w-1.5 rounded-full bg-green-500' />
-                                        <p className='text-xs text-zinc-500'>Google connected</p>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      onClick={googleUnlink}
-                                      className='rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10'
-                                    >
-                                      Unlink
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() =>
-                                      (window.location.href = '/api/auth/google/start')
-                                    }
-                                    className='flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'
-                                  >
-                                    <img
-                                      src='/google.svg'
-                                      alt=''
-                                      className='h-5 w-5'
-                                    />
-                                    Connect Google
-                                  </button>
-                                ))}
-                            </div>
-                          </section>
-                        ))}
-
-                      <section className='space-y-2'>
-                        <h3 className='px-1 text-xs font-semibold uppercase tracking-wide text-red-500'>
-                          Danger zone
-                        </h3>
-
-                        <div className='overflow-hidden rounded-xl border border-red-200 bg-red-50/50 dark:border-red-500/20 dark:bg-red-500/5'>
-                          <button
-                            onClick={revokeAll}
-                            className='flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-500/10'
-                          >
-                            <IconDevices className='h-4 w-4' />
-                            <div className='text-left'>
-                              <p className='font-medium'>Sign out all devices</p>
-                            </div>
-                          </button>
-
-                          {!login.canMakeWorkspace && (
-                            <button
-                              onClick={deleteAccount}
-                              className='flex w-full items-center gap-3 border-t border-red-200 px-4 py-3 text-sm text-red-600 transition hover:bg-red-100/50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/10'
-                            >
-                              <IconTrash className='h-4 w-4' />
-
-                              <div className='text-left'>
-                                <p className='font-medium'>Delete account</p>
-                                <p className='text-xs text-red-500/70'>
-                                  Permanently remove your account
-                                </p>
-                              </div>
-                            </button>
-                          )}
-                        </div>
-                      </section>
                     </div>
                   </>
                 )}
