@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 type OAuthProvider = {
   available: boolean;
+  oauthOnly?: boolean;
   configured: {
     applicationId: boolean;
     applicationSecret: boolean;
@@ -57,12 +58,12 @@ export function useOAuthConfig() {
           throw new Error(`OAuth config request returned ${response.status}`);
         }
 
-        const data = (await response.json()) as OAuthConfig;
+        const data = (await response.json()) as Partial<OAuthConfig>;
 
         setConfig({
           discord: data.discord ?? DEFAULT_CONFIG.discord,
           google: data.google ?? DEFAULT_CONFIG.google,
-          oauthOnly: data.oauthOnly ?? false,
+          oauthOnly: data.oauthOnly ?? data.discord?.oauthOnly ?? data.google?.oauthOnly ?? false,
         });
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
