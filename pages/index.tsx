@@ -338,8 +338,10 @@ const Home: NextPage = () => {
 
   const loadRobloxConfig = async () => {
     try {
-      const response = await axios.get('/api/admin/instance-config');
-      console.log(response);
+      const [configResponse, backgroundResponse] = await Promise.all([
+        axios.get('/api/admin/instance-config'),
+        axios.get('/api/instance/login-background').catch(() => null),
+      ]);
       const {
         robloxClientId,
         robloxClientSecret,
@@ -354,27 +356,40 @@ const Home: NextPage = () => {
         google_email_filtration,
         loginBackgroundTintEnabled,
         loginBackgroundTintOpacity,
-      } = response.data;
+      } = configResponse.data;
+      const background = backgroundResponse?.data;
       const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-      console.log(window.location);
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`;
+
+      const tintEnabled =
+        typeof background?.tintEnabled === 'boolean'
+          ? background.tintEnabled
+          : typeof loginBackgroundTintEnabled === 'boolean'
+            ? loginBackgroundTintEnabled
+            : true;
+      const tintOpacity =
+        typeof background?.tintOpacity === 'number'
+          ? background.tintOpacity
+          : typeof loginBackgroundTintOpacity === 'number'
+            ? loginBackgroundTintOpacity
+            : 60;
 
       setExternalConfig({
         clientId: robloxClientId || '',
         clientSecret: robloxClientSecret || '',
         redirectUri: autoRedirectUri,
-        discordAppId: discordApplicationID || '', // was missing the fallback
-        discordAppSecret: discordClientSecret || '', // was missing the fallback
+        discordAppId: discordApplicationID || '',
+        discordAppSecret: discordClientSecret || '',
         oauthOnlyLogin: oauthOnlyLogin || false,
-        loginBackgroundTintEnabled: loginBackgroundTintEnabled ?? true,
-        loginBackgroundTintOpacity: loginBackgroundTintOpacity ?? 60,
-        redirect_wid: redirectWorkspace || '', // was missing the fallback
+        loginBackgroundTintEnabled: tintEnabled,
+        loginBackgroundTintOpacity: tintOpacity,
+        redirect_wid: redirectWorkspace || '',
         google_id: google_id || '',
         google_secret: google_secret || '',
         google_email_filtration: google_email_filtration || '',
       });
       setUsingEnvVars(envVars || false);
-      setLoginBackground(bg || null);
+      setLoginBackground(background?.backgroundUrl || bg || null);
     } catch (error) {
       console.error('Failed to load OAuth config:', error);
     }
