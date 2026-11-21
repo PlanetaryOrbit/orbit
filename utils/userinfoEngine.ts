@@ -36,4 +36,10 @@ export function getThumbnail(userId: number | bigint): string {
   return `/api/user/${Number(userId)}/avatar`;
 }
 
+export function clearUserCache(userId: number | bigint): void {
+  const id = toNumber(userId);
+  cache.del(key('username', id));
+  cache.del(key('displayname', id));
+}
+
 export { getRobloxUsername };

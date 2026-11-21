@@ -1,6 +1,26 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Recoil 0.7.7 and Headless UI v1 both use React APIs removed in React 19.
+  // Their small incompatible helpers are redirected to public-API shims.
+  webpack: (config, { webpack }) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      recoil: path.resolve(__dirname, 'lib/recoil-compat.tsx'),
+    };
+
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /stable-collection\.js$/,
+        path.resolve(__dirname, 'lib/headlessui-stable-collection.js'),
+      ),
+    );
+
+    return config;
+  },
 
   experimental: {
     workerThreads: false,

@@ -1,3 +1,8 @@
+import {
+  ACCOUNT_PREFERENCES_KEY,
+  applyAccountPreferences,
+  readAccountPreferences,
+} from '@/components/account/types';
 import HelpFloatingButton, { HelpProvider } from '@/components/HelpFloatingButton';
 
 import '@/styles/globals.scss';
@@ -68,6 +73,23 @@ function ColorThemeHandler() {
       activeTheme ? getRGBFromTailwindColor(activeTheme) : DEFAULT_THEME_RGB,
     );
   }, [workspace, resolvedTheme]);
+
+  return null;
+}
+
+function AccountPreferencesHandler() {
+  useEffect(() => {
+    applyAccountPreferences(readAccountPreferences());
+
+    const syncFromStorage = (event: StorageEvent) => {
+      if (event.key === ACCOUNT_PREFERENCES_KEY) {
+        applyAccountPreferences(readAccountPreferences());
+      }
+    };
+
+    window.addEventListener('storage', syncFromStorage);
+    return () => window.removeEventListener('storage', syncFromStorage);
+  }, []);
 
   return null;
 }
@@ -183,6 +205,7 @@ function Orbit({ Component, pageProps }: AppPropsWithLayout) {
             setLoading={setLoading}
           />
           <ColorThemeHandler />
+          <AccountPreferencesHandler />
 
           {showLoader && <LoadingScreen done={!loading} />}
 

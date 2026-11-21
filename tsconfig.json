@@ -15,7 +15,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "recoil": ["./lib/recoil-compat.tsx"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

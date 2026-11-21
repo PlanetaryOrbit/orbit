@@ -54,13 +54,9 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
 
   const bypassCache = pathname === '/' || pathname === '/welcome';
 
-  if (
-      !bypassCache &&
-      setupCache &&
-      Date.now() - setupCache.timestamp < CACHE_DURATION
-    ) {
-      return setupCache.isSetup;
-    }
+  if (!bypassCache && setupCache && Date.now() - setupCache.timestamp < CACHE_DURATION) {
+    return setupCache.isSetup;
+  }
 
   try {
     const url = internalUrl(request, '/api/admin/first-setup/config');

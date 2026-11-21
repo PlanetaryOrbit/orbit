@@ -14,6 +14,7 @@ import {
   workspacesSecondaryButtonClass,
 } from '@/components/workspaces/shell';
 import { loginState } from '@/state';
+import { highResGroupLogo } from '@/utils/groupLogo';
 import { Transition, Dialog } from '@headlessui/react';
 import {
   IconPlus,
@@ -27,9 +28,11 @@ import {
   IconFileText,
   IconRocket,
   IconServerCog,
-  IconClock,
   IconUserCog,
-  IconClockCog, IconTrash
+  IconClockCog,
+  IconTrash,
+  IconKey,
+  IconPalette,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
@@ -57,6 +60,8 @@ interface Workspaces {
 
 const PINNED_WORKSPACE_KEY = 'orbit-pinned-workspace';
 
+type InstanceSettingsTab = 'authentication' | 'appearance' | 'workspaces';
+
 const Home: NextPage = () => {
   const [login, setLogin] = useRecoilState(loginState);
   const [loading, setLoading] = useState(false);
@@ -65,6 +70,8 @@ const Home: NextPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showInstanceSettings, setShowInstanceSettings] = useState(false);
+  const [instanceSettingsTab, setInstanceSettingsTab] =
+    useState<InstanceSettingsTab>('authentication');
   const [pinnedWorkspaceId, setPinnedWorkspaceId] = useState<number | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspaces[] | []>([]);
   const [instanceWorkspaces, setInstanceWorkspaces] = useState<InstanceWorkspace[]>([]);
@@ -98,6 +105,17 @@ const Home: NextPage = () => {
     (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) ||
     (externalConfig.clientId.trim().length > 0 && externalConfig.clientSecret.trim().length > 0) ||
     (externalConfig.google_id.trim().length > 0 && externalConfig.google_secret.trim().length > 0);
+
+  const instanceSettingsTabs = [
+    { id: 'authentication', label: 'Authentication', icon: IconKey },
+    { id: 'appearance', label: 'Appearance', icon: IconPalette },
+    {
+      id: 'workspaces',
+      label: 'Workspaces',
+      icon: IconBuildingSkyscraper,
+      count: instanceWorkspaces.length,
+    },
+  ] as const;
 
   const features = [
     {
@@ -320,8 +338,10 @@ const Home: NextPage = () => {
 
   const loadRobloxConfig = async () => {
     try {
-      const response = await axios.get('/api/admin/instance-config');
-      console.log(response);
+      const [configResponse, backgroundResponse] = await Promise.all([
+        axios.get('/api/admin/instance-config'),
+        axios.get('/api/instance/login-background').catch(() => null),
+      ]);
       const {
         robloxClientId,
         robloxClientSecret,
@@ -336,27 +356,40 @@ const Home: NextPage = () => {
         google_email_filtration,
         loginBackgroundTintEnabled,
         loginBackgroundTintOpacity,
-      } = response.data;
+      } = configResponse.data;
+      const background = backgroundResponse?.data;
       const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-      console.log(window.location);
       const autoRedirectUri = `${currentOrigin}/api/auth/roblox/callback`;
+
+      const tintEnabled =
+        typeof background?.tintEnabled === 'boolean'
+          ? background.tintEnabled
+          : typeof loginBackgroundTintEnabled === 'boolean'
+            ? loginBackgroundTintEnabled
+            : true;
+      const tintOpacity =
+        typeof background?.tintOpacity === 'number'
+          ? background.tintOpacity
+          : typeof loginBackgroundTintOpacity === 'number'
+            ? loginBackgroundTintOpacity
+            : 60;
 
       setExternalConfig({
         clientId: robloxClientId || '',
         clientSecret: robloxClientSecret || '',
         redirectUri: autoRedirectUri,
-        discordAppId: discordApplicationID || '', // was missing the fallback
-        discordAppSecret: discordClientSecret || '', // was missing the fallback
+        discordAppId: discordApplicationID || '',
+        discordAppSecret: discordClientSecret || '',
         oauthOnlyLogin: oauthOnlyLogin || false,
-        loginBackgroundTintEnabled: loginBackgroundTintEnabled ?? true,
-        loginBackgroundTintOpacity: loginBackgroundTintOpacity ?? 60,
-        redirect_wid: redirectWorkspace || '', // was missing the fallback
+        loginBackgroundTintEnabled: tintEnabled,
+        loginBackgroundTintOpacity: tintOpacity,
+        redirect_wid: redirectWorkspace || '',
         google_id: google_id || '',
         google_secret: google_secret || '',
         google_email_filtration: google_email_filtration || '',
       });
       setUsingEnvVars(envVars || false);
-      setLoginBackground(bg || null);
+      setLoginBackground(background?.backgroundUrl || bg || null);
     } catch (error) {
       console.error('Failed to load OAuth config:', error);
     }
@@ -426,16 +459,12 @@ const Home: NextPage = () => {
     setDeletingWorkspaceId(workspace.groupId);
 
     try {
-      await axios.delete(
-        `/api/workspace/${workspace.groupId}/settings/general/deletews`,
-      );
+      await axios.delete(`/api/workspace/${workspace.groupId}/settings/general/deletews`);
 
       setInstanceWorkspaces((current) =>
         current.filter((item) => item.groupId !== workspace.groupId),
       );
-      setWorkspaces((current) =>
-        current.filter((item) => item.groupId !== workspace.groupId),
-      );
+      setWorkspaces((current) => current.filter((item) => item.groupId !== workspace.groupId));
 
       if (pinnedWorkspaceId === workspace.groupId) {
         setPinnedWorkspaceId(null);
@@ -570,7 +599,10 @@ const Home: NextPage = () => {
                 {isOwner ? (
                   <button
                     type='button'
-                    onClick={() => setShowInstanceSettings(true)}
+                    onClick={() => {
+                      setInstanceSettingsTab('authentication');
+                      setShowInstanceSettings(true);
+                    }}
                     className='flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-primary dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
                     title='Instance settings'
                   >
@@ -785,7 +817,7 @@ const Home: NextPage = () => {
               </Transition.Child>
 
               <div className='fixed inset-0 overflow-y-auto'>
-                <div className='flex min-h-full items-center justify-center p-4 text-center'>
+                <div className='flex min-h-full items-center justify-center p-4 pb-24 text-center'>
                   <Transition.Child
                     as={Fragment}
                     enter='ease-out duration-300'
@@ -798,17 +830,30 @@ const Home: NextPage = () => {
                     <Dialog.Panel
                       className={clsx(
                         workspacesModalPanelClass,
-                        'flex max-h-[90vh] max-w-lg flex-col',
+                        'flex h-[min(640px,calc(100vh-7rem))] max-w-xl flex-col',
                       )}
                     >
-                      <div className='flex items-center justify-between px-6 pt-6 pb-4 shrink-0'>
-                        <Dialog.Title className='text-lg font-semibold text-zinc-900 dark:text-white'>
-                          Instance Settings
-                        </Dialog.Title>
+                      <div className='flex shrink-0 items-start justify-between gap-4 px-6 pb-2 pt-6'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary'>
+                            <IconSettings
+                              className='h-5 w-5'
+                              stroke={1.75}
+                            />
+                          </div>
+                          <div>
+                            <Dialog.Title className='text-lg font-semibold text-zinc-900 dark:text-white'>
+                              Instance Settings
+                            </Dialog.Title>
+                            <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
+                              Configure sign-in, branding and workspaces.
+                            </p>
+                          </div>
+                        </div>
                         <button
                           type='button'
                           onClick={() => setShowInstanceSettings(false)}
-                          className='p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 transition-colors'
+                          className='rounded-xl p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white'
                         >
                           <IconX
                             className='w-5 h-5'
@@ -817,23 +862,83 @@ const Home: NextPage = () => {
                         </button>
                       </div>
 
-                      <div className='overflow-y-auto px-6 pb-2 space-y-4'>
-                        <div>
+                      <div
+                        role='tablist'
+                        aria-label='Instance settings sections'
+                        className='flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-100 px-6 dark:border-zinc-800'
+                      >
+                        {instanceSettingsTabs.map((tab) => {
+                          const Icon = tab.icon;
+                          const active = instanceSettingsTab === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              type='button'
+                              role='tab'
+                              aria-selected={active}
+                              onClick={() => setInstanceSettingsTab(tab.id)}
+                              className={clsx(
+                                'relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors',
+                                active
+                                  ? 'text-primary'
+                                  : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
+                              )}
+                            >
+                              <Icon
+                                className='h-4 w-4'
+                                stroke={1.75}
+                              />
+                              {tab.label}
+                              {'count' in tab && tab.count !== undefined ? (
+                                <span className='rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
+                                  {tab.count}
+                                </span>
+                              ) : null}
+                              {active ? (
+                                <motion.span
+                                  layoutId='instance-settings-tab-indicator'
+                                  className='absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary'
+                                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                                />
+                              ) : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className='min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5'>
+                        <div
+                          className={clsx(
+                            instanceSettingsTab === 'authentication' ? 'space-y-5' : 'hidden',
+                          )}
+                        >
                           {usingEnvVars && (
-                            <div className='mb-3 p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'>
-                              <p className='text-sm text-blue-800 dark:text-blue-200 font-medium'>
+                            <div className='mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3'>
+                              <p className='text-sm font-semibold text-primary'>
                                 🔒 Using Environment Variables
                               </p>
-                              <p className='text-xs text-blue-700 dark:text-blue-300 mt-0.5'>
+                              <p className='mt-0.5 text-xs text-zinc-500 dark:text-zinc-400'>
                                 Database configuration is disabled.
                               </p>
                             </div>
                           )}
 
-                          <div className='space-y-2.5'>
+                          <div>
+                            <h4 className='text-sm font-semibold text-zinc-900 dark:text-white'>
+                              OAuth providers
+                            </h4>
+                            <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
+                              Choose which sign-in methods appear on your login page.
+                            </p>
+                          </div>
+
+                          <div className='space-y-5'>
+                            <p className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
+                              Roblox
+                            </p>
                             <div className='grid grid-cols-2 gap-2.5'>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Client ID
                                 </label>
                                 <input
@@ -847,15 +952,15 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='23748326747865334'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Client Secret
                                 </label>
                                 <input
@@ -869,17 +974,17 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='JHJD_NMIRHNSD$ER$6dj38'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                             </div>
 
                             <div>
-                              <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                              <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                 Redirect URI{' '}
                                 <span className='text-zinc-400 dark:text-zinc-500'>
                                   (auto-generated)
@@ -890,14 +995,17 @@ const Home: NextPage = () => {
                                 value={externalConfig.redirectUri}
                                 readOnly
                                 placeholder='https://instance.planetaryapp.cloud/api/auth/roblox/callback'
-                                className='w-full px-3 py-1.5 border border-zinc-300 dark:border-zinc-600 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm cursor-not-allowed'
+                                className='w-full cursor-not-allowed rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'
                                 title='This field is automatically generated based on your current domain'
                               />
                             </div>
 
+                            <p className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
+                              Discord
+                            </p>
                             <div className='grid grid-cols-2 gap-2.5'>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Discord App ID
                                 </label>
                                 <input
@@ -911,15 +1019,15 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='1234567890'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Discord App Secret
                                 </label>
                                 <input
@@ -933,18 +1041,21 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='eYli_RL3dUJUb7ieBQXhp0lLs…'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                             </div>
 
+                            <p className='mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500'>
+                              Google
+                            </p>
                             <div className='grid grid-cols-2 gap-2.5'>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Google App ID
                                 </label>
                                 <input
@@ -958,15 +1069,15 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='1234567890'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                               <div>
-                                <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                                <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                   Google App Secret
                                 </label>
                                 <input
@@ -980,16 +1091,16 @@ const Home: NextPage = () => {
                                   }
                                   placeholder='eYli_RL3dUJUb7ieBQXhp0lLs…'
                                   disabled={usingEnvVars}
-                                  className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                  className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                     usingEnvVars
-                                      ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                      : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                      ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                      : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                   }`}
                                 />
                               </div>
                             </div>
                             <div>
-                              <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                              <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                 Google email domain filtration
                               </label>
                               <input
@@ -1003,15 +1114,15 @@ const Home: NextPage = () => {
                                 }
                                 placeholder='@domain.com'
                                 disabled={usingEnvVars}
-                                className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                   usingEnvVars
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                    : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                 }`}
                               />
                             </div>
                             <div>
-                              <label className='block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1'>
+                              <label className='mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400'>
                                 Redirect to workspace
                               </label>
                               <input
@@ -1025,81 +1136,113 @@ const Home: NextPage = () => {
                                 }
                                 placeholder='35724790'
                                 disabled={usingEnvVars}
-                                className={`w-full px-3 py-1.5 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                className={`w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white ${
                                   usingEnvVars
-                                    ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-                                    : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white'
+                                    ? 'cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500'
+                                    : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:hover:border-zinc-600'
                                 }`}
                               />
                             </div>
                           </div>
+                        </div>
 
-                          <section className="space-y-3 mt-3">
+                        <div
+                          className={clsx(
+                            instanceSettingsTab === 'workspaces' ? 'space-y-5' : 'hidden',
+                          )}
+                        >
+                          <section className='space-y-3'>
                             <div>
-                              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                                Workspace Management
-                              </h4>
-                              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                              <div className='flex items-center gap-2'>
+                                <h4 className='text-sm font-semibold text-zinc-900 dark:text-white'>
+                                  Workspace Management
+                                </h4>
+                                <span className='rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'>
+                                  {instanceWorkspaces.length}
+                                </span>
+                              </div>
+                              <p className='mt-1 text-xs text-zinc-500 dark:text-zinc-400'>
                                 Remove workspaces created on this instance, including Roblox groups
                                 you no longer have access to.
                               </p>
                             </div>
 
                             {workspacesLoading ? (
-                              <p className="text-sm text-zinc-500">Loading workspaces...</p>
+                              <p className='text-sm text-zinc-500'>Loading workspaces...</p>
                             ) : instanceWorkspaces.length === 0 ? (
-                              <p className="text-sm text-zinc-500">No workspaces found.</p>
+                              <p className='text-sm text-zinc-500'>No workspaces found.</p>
                             ) : (
-                              <ul className="space-y-2">
+                              <ul className='space-y-2'>
                                 {instanceWorkspaces.map((workspace) => (
                                   <li
                                     key={workspace.groupId}
-                                    className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700"
+                                    className='flex items-center justify-between gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3 transition-colors hover:border-primary/30 hover:bg-white dark:border-zinc-800 dark:bg-zinc-800/40 dark:hover:border-primary/40 dark:hover:bg-zinc-800/70'
                                   >
-                                    <div className="min-w-0">
-                                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
-                                        {workspace.groupName || 'Unnamed workspace'}
-                                      </p>
-                                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                        Group ID: {workspace.groupId}
-                                      </p>
+                                    <div className='flex min-w-0 items-center gap-3'>
+                                      <div className='flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-zinc-200/80 dark:bg-zinc-900 dark:ring-zinc-700'>
+                                        <img
+                                          src={highResGroupLogo(workspace.groupLogo)}
+                                          alt=''
+                                          className='h-full w-full object-contain p-1'
+                                        />
+                                      </div>
+                                      <div className='min-w-0'>
+                                        <p className='truncate text-sm font-medium text-zinc-900 dark:text-white'>
+                                          {workspace.groupName || 'Unnamed workspace'}
+                                        </p>
+                                        <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+                                          Group ID: {workspace.groupId}
+                                        </p>
+                                      </div>
                                     </div>
 
                                     <button
-                                      type="button"
+                                      type='button'
                                       onClick={() => deleteInstanceWorkspace(workspace)}
                                       disabled={deletingWorkspaceId !== null}
                                       aria-label={`Delete workspace ${workspace.groupName || workspace.groupId}`}
-                                      className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                                      className='flex shrink-0 items-center gap-1.5 rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/70 dark:text-red-400 dark:hover:bg-red-950/50'
                                     >
-                                      <IconTrash className="h-4 w-4" />
-                                      {deletingWorkspaceId === workspace.groupId ? 'Deleting...' : 'Delete'}
+                                      <IconTrash className='h-4 w-4' />
+                                      {deletingWorkspaceId === workspace.groupId
+                                        ? 'Deleting...'
+                                        : 'Delete'}
                                     </button>
                                   </li>
                                 ))}
                               </ul>
                             )}
                           </section>
+                        </div>
 
-                          <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2'>
+                        <div
+                          className={clsx(
+                            instanceSettingsTab === 'authentication' ? 'block' : 'hidden',
+                          )}
+                        >
+                          <p className='text-xs text-zinc-500 dark:text-zinc-400'>
                             Need a hand? Check our documentation at{' '}
                             <a
                               href='https://docs.planetaryapp.cloud/workspace/roblox-oauth'
                               target='_blank'
                               rel='noopener noreferrer'
-                              className='text-blue-600 hover:underline'
+                              className='text-primary hover:underline'
                             >
                               docs.planetaryapp.cloud
                             </a>
                           </p>
                         </div>
 
-                        <div className='mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700'>
-                          <label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
+                        <div
+                          className={clsx(
+                            instanceSettingsTab === 'appearance' ? 'space-y-5' : 'hidden',
+                          )}
+                        >
+                          <label className='mb-2 block text-sm font-semibold text-zinc-700 dark:text-zinc-300'>
                             Login Page Background
                           </label>
                           {loginBackground ? (
-                            <div className='relative mb-2 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-600 h-28 bg-zinc-100 dark:bg-zinc-800'>
+                            <div className='relative mb-2 h-28 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800'>
                               <img
                                 src={loginBackground}
                                 alt='Custom login background'
@@ -1107,7 +1250,7 @@ const Home: NextPage = () => {
                               />
                             </div>
                           ) : (
-                            <div className='mb-2 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-600 h-28 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50'>
+                            <div className='mb-2 flex h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-500'>
                               <svg
                                 className='w-8 h-8 mb-1'
                                 fill='none'
@@ -1140,7 +1283,7 @@ const Home: NextPage = () => {
                               type='button'
                               disabled={bgUploading}
                               onClick={() => bgFileInputRef.current?.click()}
-                              className='flex-1 px-3 py-2 rounded-lg text-sm font-medium border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                              className='flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-primary/50'
                             >
                               {bgUploading
                                 ? 'Uploading…'
@@ -1153,7 +1296,7 @@ const Home: NextPage = () => {
                                 type='button'
                                 disabled={bgUploading}
                                 onClick={removeBackground}
-                                className='px-3 py-2 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                                className='rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50'
                               >
                                 Remove
                               </button>
@@ -1233,7 +1376,12 @@ const Home: NextPage = () => {
                           )}
                         </div>
 
-                        <div className='mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700'>
+                        <div
+                          className={clsx(
+                            'rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-800/30',
+                            instanceSettingsTab === 'authentication' ? '' : 'hidden',
+                          )}
+                        >
                           <label className='flex items-center cursor-pointer'>
                             <input
                               type='checkbox'
@@ -1263,10 +1411,10 @@ const Home: NextPage = () => {
                         </div>
                       </div>
 
-                      <div className='px-6 pt-3 pb-5 shrink-0 border-t border-zinc-100 dark:border-zinc-700/60'>
+                      <div className='shrink-0 border-t border-zinc-100 px-6 pb-5 pt-4 dark:border-zinc-800'>
                         {saveMessage && (
                           <div
-                            className={`mb-3 p-2.5 rounded-md text-sm ${
+                            className={`mb-3 rounded-xl p-2.5 text-sm ${
                               saveMessage.includes('successfully')
                                 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
                                 : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'

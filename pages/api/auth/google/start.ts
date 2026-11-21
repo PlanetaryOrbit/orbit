@@ -1,11 +1,29 @@
-// import { withAuth } from '@/lib/withSession';
 import prisma from '@/utils/database';
+import { getSessionByToken } from '@/utils/session';
+import * as cookie from 'cookie';
 import { google } from 'googleapis';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const isLink = req.query.link === '1';
+  let linkUserId: bigint | null = null;
+
+  if (isLink) {
+    const sessionToken = cookie.parse(req.headers.cookie || '').session_token;
+    if (!sessionToken) {
+      return res.redirect('/settings?tab=connections&error=auth_required');
+    }
+
+    const session = await getSessionByToken(sessionToken);
+    if (!session) {
+      return res.redirect('/settings?tab=connections&error=auth_required');
+    }
+
+    linkUserId = session.userId;
   }
 
   let clientId: string | undefined;
@@ -58,24 +76,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state =
     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  req.session.oauthState = state;
-  await req.session.save();
+
+  await prisma.oAuthState.create({
+    data: {
+      state,
+      provider: 'google',
+      userId: linkUserId,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    },
+  });
+
+  const redirectUri = `${
+    process.env.PLANETARY_CLOUD_URL
+      ? `https://${process.env.PLANETARY_CLOUD_URL}`
+      : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL
+  }/api/auth/google/callback`;
 
   const scopes = ['email', 'openid', 'profile'];
 
-  const oauth2 = new google.auth.OAuth2(
-    clientId,
-    secret,
-    `${process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/google/callback`,
-  );
+  const oauth2 = new google.auth.OAuth2(clientId, secret, redirectUri);
 
   const authUrl = oauth2.generateAuthUrl({
     access_type: 'online',
     scope: scopes,
     include_granted_scopes: true,
-    state: state,
+    state,
     client_id: clientId,
-    redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
+    redirect_uri: redirectUri,
   });
 
   res.redirect(authUrl);

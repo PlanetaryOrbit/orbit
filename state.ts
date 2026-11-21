@@ -26,6 +26,7 @@ export type LoginState = {
   workspaces: workspaceinfo[];
   isOwner: boolean;
   isFirstLogin: boolean;
+  hasPassword?: boolean;
   discordUser?: {
     discordUserId: string;
     username: string;
@@ -49,6 +50,7 @@ const loginState = stableAtom<LoginState>({
     canMakeWorkspace: false,
     workspaces: [] as workspaceinfo[],
     isOwner: false,
+    hasPassword: false,
     discordUser: null,
     googleUser: null,
   },

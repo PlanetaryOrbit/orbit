@@ -1,8 +1,12 @@
+import { highResGroupLogo } from '@/utils/groupLogo';
 import { IconChevronRight, IconPin, IconPinFilled } from '@tabler/icons-react';
 import clsx from 'clsx';
 import type { ElementType, MouseEvent, ReactNode } from 'react';
 
-type WorkspaceIcon = ElementType<{ className?: string; stroke?: string | number }>;
+type WorkspaceIcon = ElementType<{
+  className?: string;
+  stroke?: string | number;
+}>;
 
 export const workspacesPanelShadow =
   'shadow-[0_1px_3px_0_rgb(0,0,0,0.06),0_1px_2px_-1px_rgb(0,0,0,0.04)] dark:shadow-zinc-950/30';
@@ -17,8 +21,7 @@ export const workspacesFormInputOverride =
   '!rounded-xl !border-0 !bg-zinc-100 !px-3 !py-2 !text-sm !text-zinc-900 focus:!outline-none focus:!ring-2 focus:!ring-primary/40 dark:!bg-zinc-800 dark:!text-white !shadow-none';
 
 export const workspacesModalPanelClass = clsx(
-  'w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle transition-all dark:bg-zinc-900',
-  workspacesPanelShadow,
+  'w-full transform overflow-hidden rounded-2xl border border-zinc-200/80 bg-white text-left align-middle shadow-2xl shadow-black/10 transition-all dark:border-zinc-700/70 dark:bg-zinc-900 dark:shadow-black/40',
 );
 
 export function WorkspacesPageShell({
@@ -97,7 +100,7 @@ export function WorkspacesPanel({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={clsx(
-        'rounded-2xl bg-white dark:bg-zinc-900/70',
+        'rounded-2xl border border-zinc-200/70 bg-white dark:border-zinc-800 dark:bg-zinc-900/70',
         workspacesPanelShadow,
         onClick &&
           'cursor-pointer transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
@@ -157,6 +160,70 @@ function workspaceDisplayName(workspace: WorkspaceCardData) {
   return workspace.groupName;
 }
 
+function PinButton({
+  featured,
+  isPinned,
+  onTogglePin,
+  className,
+}: {
+  featured: boolean;
+  isPinned: boolean;
+  onTogglePin: (e: MouseEvent<HTMLButtonElement>) => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type='button'
+      onClick={onTogglePin}
+      className={clsx(
+        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border backdrop-blur-md transition-colors',
+        className,
+        featured
+          ? clsx(
+              'border-white/20',
+              isPinned
+                ? 'bg-primary/90 text-white hover:bg-primary'
+                : 'bg-black/25 text-white hover:bg-black/45',
+            )
+          : isPinned
+            ? 'border-primary/30 bg-primary/90 text-white hover:bg-primary'
+            : 'border-zinc-200/80 bg-white/70 text-zinc-500 hover:border-primary/40 hover:text-primary dark:border-zinc-700/70 dark:bg-zinc-800/70 dark:text-zinc-400 dark:hover:border-primary/50',
+      )}
+      title={isPinned ? 'Unpin workspace' : 'Pin as featured workspace'}
+    >
+      {isPinned ? (
+        <IconPinFilled
+          className='h-4 w-4'
+          stroke={1.5}
+        />
+      ) : (
+        <IconPin
+          className='h-4 w-4'
+          stroke={1.5}
+        />
+      )}
+    </button>
+  );
+}
+
+function OpenIndicator({ featured }: { featured: boolean }) {
+  return (
+    <span
+      className={clsx(
+        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full backdrop-blur-md transition-all duration-300',
+        featured
+          ? 'bg-white/20 text-white group-hover/card:border-primary/50 group-hover/card:bg-primary group-hover/card:shadow-md group-hover/card:shadow-black/30'
+          : 'bg-white/70 text-zinc-500 group-hover/card:border-primary/40 group-hover/card:bg-primary group-hover/card:text-white group-hover/card:shadow-md group-hover/card:shadow-primary/30 dark:bg-zinc-800/70 dark:text-zinc-400',
+      )}
+    >
+      <IconChevronRight
+        className='h-4 w-4'
+        stroke={2}
+      />
+    </span>
+  );
+}
+
 export function WorkspaceCard({
   workspace,
   featured = false,
@@ -171,83 +238,81 @@ export function WorkspaceCard({
   onTogglePin: (e: MouseEvent<HTMLButtonElement>) => void;
 }) {
   const name = workspaceDisplayName(workspace);
-  const logo = workspace.groupLogo || '/favicon-32x32.png';
+  const logo = highResGroupLogo(workspace.groupLogo);
 
   return (
     <WorkspacesPanel
-      className={clsx('group overflow-hidden p-0', featured && 'max-w-2xl')}
+      className={clsx(
+        'group/card relative overflow-hidden p-0 transition-all duration-300',
+        'hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10',
+        'dark:hover:border-primary/40',
+        featured && 'max-w-2xl',
+      )}
       onClick={onOpen}
     >
       {featured ? (
-        <div className='relative aspect-[21/9] overflow-hidden sm:aspect-[3/1]'>
+        <div className='relative h-40 overflow-hidden sm:h-44'>
+          <div
+            aria-hidden
+            className='absolute inset-0 scale-125 bg-cover bg-center opacity-40 blur-2xl'
+            style={{ backgroundImage: `url(${logo})` }}
+          />
           <img
             src={logo}
             alt=''
-            className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]'
+            className='relative h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-105'
           />
-          <div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent dark:from-zinc-900 dark:via-zinc-900/20' />
-        </div>
-      ) : null}
+          <div className='absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/20 to-transparent' />
 
-      <div className={clsx('flex items-center gap-3', featured ? 'p-4 sm:p-5' : 'p-4')}>
-        {!featured ? (
-          <div className='relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700/60'>
+          <div className='absolute inset-x-4 top-4 flex justify-end'>
+            <PinButton
+              featured
+              isPinned={isPinned}
+              onTogglePin={onTogglePin}
+            />
+          </div>
+
+          <div className='absolute inset-x-4 bottom-4 flex items-end justify-between gap-3'>
+            <div className='min-w-0'>
+              <h3 className='truncate text-lg font-semibold text-white drop-shadow-sm sm:text-xl'>
+                {name}
+              </h3>
+              <p className='mt-0.5 text-xs font-medium text-white/70'>Group {workspace.groupId}</p>
+            </div>
+            <OpenIndicator featured />
+          </div>
+        </div>
+      ) : (
+        <div className='flex items-center gap-3 p-4 pr-14'>
+          <PinButton
+            featured={false}
+            isPinned={isPinned}
+            onTogglePin={onTogglePin}
+            className='absolute right-3 top-3'
+          />
+
+          <div className='relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-zinc-200/80 transition-all duration-300 group-hover/card:from-primary/25 group-hover/card:to-primary/10 group-hover/card:ring-primary/30 dark:ring-zinc-700/60'>
             <img
               src={logo}
               alt=''
-              className='h-full w-full object-contain p-1'
+              className='h-full w-full object-contain p-1.5'
             />
           </div>
-        ) : null}
 
-        <div className='min-w-0 flex-1'>
-          <div className='flex items-center gap-2'>
-            <h3 className='truncate text-sm font-semibold text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100 sm:text-base'>
-              {name}
-            </h3>
-            {isPinned ? (
-              <span className='shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary'>
-                Pinned
-              </span>
-            ) : null}
+          <div className='min-w-0 flex-1'>
+            <div className='flex items-center gap-2'>
+              <h3 className='truncate text-sm font-semibold text-zinc-900 transition-colors group-hover/card:text-primary dark:text-zinc-100 sm:text-base'>
+                {name}
+              </h3>
+            </div>
+            <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
+              Group {workspace.groupId}
+            </p>
           </div>
-          <p className='mt-0.5 text-xs text-zinc-400 dark:text-zinc-500'>
-            Group {workspace.groupId}
-          </p>
-        </div>
 
-        <div className='flex shrink-0 items-center gap-1'>
-          <button
-            type='button'
-            onClick={onTogglePin}
-            className={clsx(
-              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-              isPinned
-                ? 'bg-primary/10 text-primary hover:bg-primary/15'
-                : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-            )}
-            title={isPinned ? 'Unpin workspace' : 'Pin as featured workspace'}
-          >
-            {isPinned ? (
-              <IconPinFilled
-                className='h-4 w-4'
-                stroke={1.5}
-              />
-            ) : (
-              <IconPin
-                className='h-4 w-4'
-                stroke={1.5}
-              />
-            )}
-          </button>
-          <span className='flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary'>
-            <IconChevronRight
-              className='h-4 w-4'
-              stroke={2}
-            />
-          </span>
+          <OpenIndicator featured={false} />
         </div>
-      </div>
+      )}
     </WorkspacesPanel>
   );
 }

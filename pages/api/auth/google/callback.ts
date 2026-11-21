@@ -1,10 +1,10 @@
-import { AuthenticatedRequest } from '@/lib/withAuth';
+import type { AuthenticatedRequest } from '@/lib/withAuth';
+import { invalidateUserProfileCache } from '@/utils/accountCache';
 import prisma from '@/utils/database';
 import { createSession, getSessionByToken } from '@/utils/session';
 import cookie from 'cookie';
-// import { withAuth } from '@/lib/withSession';
 import { google } from 'googleapis';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,16 +13,34 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     });
   }
 
-  const { code, error } = req.query;
+  const { code, state, error } = req.query;
 
   if (error) {
-    console.error('OAuth error:', error);
     return res.redirect('/login?error=oauth_error');
   }
 
-  if (!code) {
-    return res.redirect('/login?error=missing_code');
+  if (!code || !state || typeof state !== 'string') {
+    return res.redirect('/login?error=missing_params');
   }
+
+  const oauthState = await prisma.oAuthState.findUnique({
+    where: { state },
+  });
+
+  if (!oauthState || (oauthState.provider && oauthState.provider !== 'google')) {
+    return res.redirect('/login?error=invalid_state');
+  }
+
+  if (oauthState.expiresAt < new Date()) {
+    await prisma.oAuthState.delete({ where: { state } });
+    return res.redirect('/login?error=expired_state');
+  }
+
+  await prisma.oAuthState.delete({ where: { state } });
+
+  let isLink = oauthState.userId !== null;
+  const accountError = (code: string) =>
+    `/settings?tab=connections&error=${encodeURIComponent(code)}`;
 
   const originUrl = req.headers.host;
   const isLocalhost = originUrl?.includes('localhost');
@@ -61,7 +79,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   }
 
   if (!clientId || !clientSecret) {
-    return res.redirect('/login?error=config_error');
+    return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
   }
 
   const oauth2Client = new google.auth.OAuth2(
@@ -69,6 +87,13 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     clientSecret,
     `${baseUrl}/api/auth/google/callback`,
   );
+
+  const sessionToken = cookie.parse(req.headers.cookie || '').session_token;
+  const activeSession = sessionToken ? await getSessionByToken(sessionToken) : null;
+
+  if (isLink && (!activeSession || activeSession.userId !== oauthState.userId)) {
+    return res.redirect(accountError('session_mismatch'));
+  }
 
   try {
     const { tokens } = await oauth2Client.getToken(code as string);
@@ -105,7 +130,9 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
     if (emailFiltration) {
       if (!email?.includes(emailFiltration)) {
-        return res.redirect('/login?error=unauthorized-domain');
+        return res.redirect(
+          isLink ? accountError('unauthorized-domain') : '/login?error=unauthorized-domain',
+        );
       }
     }
 
@@ -115,33 +142,39 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       },
     });
 
-    const cookies = cookie.parse(req.headers.cookie || '');
-    const sessionToken = cookies.session_token;
+    if (isLink) {
+      const userId = oauthState.userId!;
 
-    if (sessionToken) {
-      const info = await getSessionByToken(sessionToken);
-      if (info) {
-        await prisma.googleUser.upsert({
-          where: {
-            googleUserId: googleId,
-          },
-          update: {
-            username: displayName,
-            avatar,
-            email,
-            robloxUserId: req.auth.userId,
-          },
-          create: {
-            googleUserId: googleId,
-            username: displayName,
-            avatar,
-            email,
-            robloxUserId: req.auth.userId,
-          },
-        });
-
-        return res.redirect('/?action=linked');
+      if (existingGoogle?.robloxUserId && existingGoogle.robloxUserId !== userId) {
+        return res.redirect(accountError('already_linked'));
       }
+
+      await prisma.googleUser.upsert({
+        where: {
+          googleUserId: googleId,
+        },
+        update: {
+          username: displayName,
+          avatar,
+          email,
+          robloxUserId: userId,
+        },
+        create: {
+          googleUserId: googleId,
+          username: displayName,
+          avatar,
+          email,
+          robloxUserId: userId,
+        },
+      });
+
+      await invalidateUserProfileCache(userId);
+
+      return res.redirect('/settings?tab=connections&linked=google');
+    }
+
+    if (activeSession) {
+      return res.redirect('/');
     }
 
     if (!existingGoogle?.robloxUserId) {
@@ -168,6 +201,6 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   } catch (err) {
     console.error('Google OAuth callback error:', err);
 
-    return res.redirect('/?error=link-fail');
+    return res.redirect(isLink ? accountError('oauth_failed') : '/?error=link-fail');
   }
 }

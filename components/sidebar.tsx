@@ -1,4 +1,5 @@
 import { loginState, workspacestate } from '@/state';
+import { highResGroupLogo } from '@/utils/groupLogo';
 import { Menu, Listbox } from '@headlessui/react';
 import {
   IconHome,
@@ -31,6 +32,7 @@ import {
   IconGridDots,
   IconChevronRight,
   IconArrowUp,
+  IconUserCog,
 } from '@tabler/icons-react';
 import axios from 'axios';
 import clsx from 'clsx';
@@ -79,7 +81,7 @@ function MobileWorkspaceSwitcher({
         className='w-full min-w-0 flex items-center gap-2.5 px-3 py-2.5 outline-none transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70'
       >
         <img
-          src={workspace.groupThumbnail || '/favicon.png'}
+          src={highResGroupLogo(workspace.groupThumbnail, '/favicon.png')}
           alt=''
           className='w-8 h-8 rounded-lg object-contain bg-white dark:bg-zinc-700 shrink-0'
         />
@@ -120,7 +122,7 @@ function MobileWorkspaceSwitcher({
                   className='w-full flex items-center gap-3 p-2 rounded-xl text-left hover:bg-white dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-700/60 transition-colors duration-150 outline-none select-none'
                 >
                   <img
-                    src={ws.groupThumbnail || '/favicon.svg'}
+                    src={highResGroupLogo(ws.groupThumbnail, '/favicon.svg')}
                     alt=''
                     className='w-8 h-8 rounded-lg object-cover bg-white dark:bg-zinc-700 shrink-0'
                   />
@@ -401,6 +403,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       workspaces: [],
       isOwner: false,
       isFirstLogin: false,
+      hasPassword: false,
     });
     router.push('/login');
   };
@@ -531,7 +534,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                       )}
                     >
                       <img
-                        src={workspace.groupThumbnail || '/favicon-32x32.png'}
+                        src={highResGroupLogo(workspace.groupThumbnail)}
                         alt=''
                         width={isCollapsed ? 36 : 40}
                         height={isCollapsed ? 36 : 40}
@@ -592,7 +595,7 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                             {({ selected }) => (
                               <>
                                 <img
-                                  src={ws.groupThumbnail || '/placeholder.svg'}
+                                  src={highResGroupLogo(ws.groupThumbnail, '/placeholder.svg')}
                                   alt=''
                                   className='w-8 h-8 rounded-lg object-cover shrink-0'
                                 />
@@ -735,6 +738,36 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   <div className='mx-3 mb-1.5 h-px bg-zinc-100 dark:bg-zinc-800' />
 
                   <div className='px-1.5 pb-1.5 space-y-0.5'>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <button
+                          type='button'
+                          onClick={() => router.push('/settings')}
+                          className={clsx(
+                            'w-full flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-xl transition-colors duration-150 text-left',
+                            active
+                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white'
+                              : 'text-zinc-700 dark:text-zinc-300',
+                          )}
+                        >
+                          <span
+                            className={clsx(
+                              'flex items-center justify-center w-7 h-7 rounded-lg shrink-0',
+                              active
+                                ? 'bg-zinc-200/70 dark:bg-zinc-700'
+                                : 'bg-zinc-100 dark:bg-zinc-800',
+                            )}
+                          >
+                            <IconUserCog
+                              className='w-3.5 h-3.5'
+                              stroke={1.8}
+                            />
+                          </span>
+                          Account settings
+                        </button>
+                      )}
+                    </Menu.Item>
+
                     <Menu.Item>
                       {({ active }) => (
                         <button
@@ -1056,6 +1089,22 @@ const Sidebar: NextPage<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 Account
               </p>
               <div className='flex flex-col gap-0.5'>
+                <button
+                  type='button'
+                  onClick={() => gotopage('/settings')}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  className='flex items-center gap-3 rounded-2xl pl-2 pr-3 py-2 text-left transition-colors duration-150 select-none outline-none hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 active:bg-zinc-100 dark:active:bg-zinc-800'
+                >
+                  <span className='flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-zinc-100 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400'>
+                    <IconUserCog
+                      className='w-5 h-5'
+                      stroke={1.5}
+                    />
+                  </span>
+                  <span className='flex-1 text-[15px] font-medium text-zinc-800 dark:text-zinc-200'>
+                    Account settings
+                  </span>
+                </button>
                 <button
                   type='button'
                   onClick={toggleTheme}

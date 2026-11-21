@@ -1,5 +1,6 @@
 import { workspacestate } from '@/state';
 import { FC } from '@/types/settingsComponent';
+import { highResGroupLogo } from '@/utils/groupLogo';
 import {
   HOME_WIDGET_LABELS,
   DEFAULT_WIDGET_ORDER,
@@ -240,7 +241,7 @@ const home: FC<props> = (props) => {
       <div className='flex flex-col sm:flex-row sm:items-center gap-4 mb-6'>
         <div className='w-20 h-20 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0'>
           <img
-            src={workspace.groupThumbnail || '/favicon.png'}
+            src={highResGroupLogo(workspace.groupThumbnail, '/favicon.png')}
             alt=''
             className='w-full h-full object-cover'
           />

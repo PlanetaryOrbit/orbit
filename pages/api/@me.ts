@@ -12,6 +12,7 @@ type User = {
   thumbnail: string;
   registered: boolean;
   isFirstLogin: boolean;
+  hasPassword?: boolean;
   birthdayDay?: number | null;
   birthdayMonth?: number | null;
 
@@ -90,6 +91,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           birthdayMonth: true,
           isFirstLogin: true,
 
+          info: {
+            select: {
+              passwordhash: true,
+            },
+          },
+
           discordUser: {
             select: {
               discordUserId: true,
@@ -155,6 +162,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
           birthdayMonth: dbuser?.birthdayMonth ?? null,
 
           isFirstLogin: dbuser?.isFirstLogin ?? true,
+          hasPassword: Boolean(dbuser?.info?.passwordhash),
 
           discordUser: dbuser?.discordUser
             ? {

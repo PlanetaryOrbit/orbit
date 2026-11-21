@@ -87,6 +87,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
               'discordAppID',
               'discordAppSecret',
               'loginBackground',
+              'loginBackgroundTintEnabled',
+              'loginBackgroundTintOpacity',
               'google_id',
               'google_secret',
               'google_email_filtration',
@@ -117,6 +119,14 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         google_email_filtration: configMap.google_email_filtration,
         loginBackground:
           typeof configMap.loginBackground === 'string' ? configMap.loginBackground : null,
+        loginBackgroundTintEnabled:
+          typeof configMap.loginBackgroundTintEnabled === 'boolean'
+            ? configMap.loginBackgroundTintEnabled
+            : true,
+        loginBackgroundTintOpacity:
+          typeof configMap.loginBackgroundTintOpacity === 'number'
+            ? Math.min(100, Math.max(0, configMap.loginBackgroundTintOpacity))
+            : 60,
       });
     } catch (error) {
       console.error('Failed to fetch instance config:', error);
