@@ -5,14 +5,17 @@ All notable changes to Orbit are documented here. It is fetched by the backend.
 -->
 
 # [2.2.3] - 2026-10-26
+
 - **Fixed** More security stuff
 - **Removed** "Group Sync Failed" banner on instances
 - **Added** a way to delete groups as a instance owner
 
 ## [2.2.2] - 2026-10-26
+
 - **Fixed** Security Patches
 
 ## [2.2.1] - 2026-10-10
+
 - **Fixed** Cron task deleting roles
 
 ## [2.2.0] - 2026-10-10
