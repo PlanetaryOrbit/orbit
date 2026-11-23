@@ -4,20 +4,23 @@
 	<External>nil</External>
 	<Item class="Model" referent="RBXF74322DFFFD445F09099B18CE5FEED8B">
 		<Properties>
+			<Content name="ExplorerIconContent">
+				<null></null>
+			</Content>
 			<token name="LevelOfDetail">0</token>
 			<CoordinateFrame name="ModelMeshCFrame">
-				<X>9.42601585</X>
-				<Y>-6.82475519</Y>
-				<Z>0.0053408742</Z>
-				<R00>1</R00>
-				<R01>0</R01>
-				<R02>0</R02>
-				<R10>0</R10>
-				<R11>1.0000875</R11>
-				<R12>-5.84198517e-07</R12>
-				<R20>0</R20>
-				<R21>5.82214341e-07</R21>
-				<R22>1.0000875</R22>
+				<X>138.524734</X>
+				<Y>-9.73208046</Y>
+				<Z>-32.0453644</Z>
+				<R00>-0.999999702</R00>
+				<R01>-5.96817173e-09</R01>
+				<R02>1.15105649e-08</R02>
+				<R10>-2.47746357e-09</R10>
+				<R11>1.00008702</R11>
+				<R12>-5.36441803e-07</R12>
+				<R20>-1.51485438e-08</R20>
+				<R21>-5.36442201e-07</R21>
+				<R22>-1.00008726</R22>
 			</CoordinateFrame>
 			<SharedString name="ModelMeshData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			<Vector3 name="ModelMeshSize">
@@ -32,10 +35,10 @@
 			<SharedString name="SlimHash">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			<OptionalCoordinateFrame name="WorldPivotData">
 				<CFrame>
-					<X>8.79601479</X>
-					<Y>5.3690362</Y>
-					<Z>14.6814594</Z>
-					<R00>1</R00>
+					<X>139.1548</X>
+					<Y>2.46171069</Y>
+					<Z>-46.7214813</Z>
+					<R00>-1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
@@ -43,22 +46,25 @@
 					<R12>0</R12>
 					<R20>0</R20>
 					<R21>0</R21>
-					<R22>1</R22>
+					<R22>-1</R22>
 				</CFrame>
 			</OptionalCoordinateFrame>
 			<BinaryString name="AttributesSerialize"></BinaryString>
 			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 			<bool name="DefinesCapabilities">false</bool>
 			<string name="Name">Planetary | Sessions Board</string>
+			<BinaryString name="SerializedOverrides"></BinaryString>
 			<int64 name="SourceAssetId">-1</int64>
-			<BinaryString name="Tags"></BinaryString>
+			<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 		</Properties>
 		<Item class="UnionOperation" referent="RBX90C0879A7A244E0785349794E6FFAFBB">
 			<Properties>
-				<Content name="AssetId"><null></null></Content>
 				<BinaryString name="ChildData"></BinaryString>
 				<SharedString name="ChildData2">sVTolcfWK0T8BTItDsce5A==</SharedString>
 				<int name="ComponentIndex">-1</int>
+				<Content name="Content">
+					<null></null>
+				</Content>
 				<token name="FormFactor">3</token>
 				<Vector3 name="InitialSize">
 					<X>9.43999958</X>
@@ -72,6 +78,7 @@
 				<token name="RenderFidelity">0</token>
 				<float name="SmoothingAngle">0</float>
 				<NetAssetRef name="SolidMeshHolder">yuZpQdnvvUBOTYh1jqZ2cA==</NetAssetRef>
+				<int name="TriangleCount">28</int>
 				<bool name="UsePartColor">true</bool>
 				<SharedString name="AeroMeshData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				<token name="FluidFidelityInternal">0</token>
@@ -104,18 +111,18 @@
 				<token name="BottomSurface">0</token>
 				<token name="BottomSurfaceInput">0</token>
 				<CoordinateFrame name="CFrame">
-					<X>8.79601479</X>
-					<Y>5.36910772</Y>
-					<Z>14.6814566</Z>
-					<R00>1</R00>
+					<X>139.1548</X>
+					<Y>2.46178651</Y>
+					<Z>-46.7214775</Z>
+					<R00>-1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
 					<R11>1.00000131</R11>
 					<R12>9.69268399e-09</R12>
 					<R20>0</R20>
-					<R21>-4.6740718e-09</R21>
-					<R22>1.00000131</R22>
+					<R21>4.6740718e-09</R21>
+					<R22>-1.00000131</R22>
 				</CoordinateFrame>
 				<bool name="CanCollide">true</bool>
 				<bool name="CanQuery">true</bool>
@@ -184,8 +191,9 @@
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 				<bool name="DefinesCapabilities">false</bool>
 				<string name="Name">Union</string>
+				<BinaryString name="SerializedOverrides"></BinaryString>
 				<int64 name="SourceAssetId">-1</int64>
-				<BinaryString name="Tags"></BinaryString>
+				<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			</Properties>
 		</Item>
 		<Item class="ModuleScript" referent="RBX2DADE7F8E26642B3B73F770543D26B5B">
@@ -209,7 +217,8 @@
 		colored_profiles = true, -- show the colored profiles, if you have the custom theme enabled, if not, it will use the default theme.
 		color_profile_color = "orbit", -- "orbit", "red", "purple" etc... or any hex color: eg.: "#ff0099"
 		clock_format = "<cformat>", -- 12h or 24h
-	}
+	},
+	
 }
 
 
@@ -220,10 +229,11 @@ return Config
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 				<bool name="DefinesCapabilities">false</bool>
 				<string name="Name">Configuration</string>
+				<BinaryString name="SerializedOverrides"></BinaryString>
 				<int64 name="SourceAssetId">-1</int64>
-				<BinaryString name="Tags"></BinaryString>
+				<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			</Properties>
-			<Item class="Script" referent="RBX12FAF1DA74C4409E8041C5F8DA6F579A">
+			<Item class="Script" referent="RBX0072E9005AA34329B95732B684D549F2">
 				<Properties>
 					<ProtectedString name="Source"><![CDATA[local Config = require(script.Parent)
 local httpservice = game:GetService("HttpService")
@@ -236,7 +246,7 @@ local SessionFrame = SessionsScreen.ScrollingFrame.SessionFrame.Frame
 local type = ""
 local rn = DateTime.now()
 local tomorrow = DateTime.fromUnixTimestamp(rn.UnixTimestamp + (86400))
-
+local apiError = false
 local isLight = string.lower(Config.customization.mode) == "light"
 local function c(light, dark) return isLight and light or dark end
 
@@ -294,51 +304,73 @@ local HTTP_ERRORS = {
 local oldWarn = warn
 local oldPrint = print
 
-warn = function(...)
+local warn = function(...)
 	local args = {...}
 	oldWarn(`[Planetary Sessions - {os.date("%H:%M:%S")}]`, unpack(args))
 end
 
-print = function(...)
+local print = function(...)
 	local args = {...}
 	oldPrint(`[Planetary Sessions - {os.date("%H:%M:%S")}]`, unpack(args))
 end
 
+local debugprint = function(...)
+	if Config.debugmode then
+		local args = {...}
+		oldPrint(`[Planetary :: Debug - {os.date("%H:%M:%S")}]`, unpack(args))
+	end
+end
+
+local debugwarn = function(...)
+	if Config.debugmode then
+		local args = {...}
+		oldPrint(`[Planetary :: Debug - {os.date("%H:%M:%S")}]`, unpack(args))
+	end
+end
+
 if not httpservice.HttpEnabled then
-	error("[Planetary | Sessions Board] HTTP requests disabled. Enable in Game Settings > Security > Allow HTTP requests.")
+	apiError = true
+	error("[Planetary | Sessions Board] HTTP requests are disabled. Enable in Game Settings > Security > Allow HTTP requests.")
 end
 
 if #Config.api_key == 0 then
+	apiError = true
 	warn("API key hasn't been set.")
 	return
 end
 
 if #Config.baseurl == 0 then
+	apiError = true
 	warn("Base URL hasn't been set.")
 	return
 end
 
 if #Config.workspace_id == 0 then
+	apiError = true
 	warn("Workspace ID hasn't been set.")
 	return
 end
 
 if #Config.event_type == 0 then
+	apiError = true
 	warn("Event type hasn't been set.")
 	return
 end
 
 if not Config.refresh then
+	apiError = true
 	warn("Renew sessions hasn't been set.")
 	return
 end
 
 if not Config.duration then
+	apiError = true
 	warn("Session duration hasn't been set.")
 	return
 end
 
 if #Config.customization.clock_format == 0 then
+	apiError = true
 	warn("Clock format hasn't been set.")
 	return
 end
@@ -435,16 +467,17 @@ local function GetInstance()
 end
 
 local function getSessions()
+	apiError = false
 	local startDate = rn:FormatUniversalTime("YYYY-MM-DDT00:00:00Z", "en-us")
 	local endDate = tomorrow:FormatUniversalTime("YYYY-MM-DDTHH:mm:ssZ", "en-us")
 
 	local categoryParam = string.lower(Config.event_type) ~= "all" 
-		and ("&category=" .. string.lower(Config.event_type)) 
+		and ("?category=" .. string.lower(Config.event_type)) 
 		or ""
 
 	local Payload = {
 		Url = Config.baseurl .. "api/public/v1/workspace/" .. Config.workspace_id 
-			.. "/sessions/calendar?startDate=" .. startDate .. "&endDate=" .. endDate .. categoryParam,
+			.. "/sessions/upcoming" .. categoryParam,
 		Method = "GET",
 		Headers = {
 			["Authorization"] = Config.api_key
@@ -462,7 +495,9 @@ local function getSessions()
 			end)
 
 			if decodeSuccess then
-				print("Successfully fetched " .. #(decoded.sessions or {}) .. " sessions")
+				if Config["log_sessions"] then
+					debugprint("Successfully fetched " .. #(decoded.sessions or {}) .. " sessions")
+				end
 				return decoded.sessions or {}
 			end
 
@@ -471,6 +506,7 @@ local function getSessions()
 			warn("Failed to fetch data on attempt " .. attempt .. ": " .. tostring(response))
 
 			if not success or not response.Success then
+				apiError = true
 				ErrorScreen.Visible = true
 				local decodeSuccess, decoded = pcall(function() 
 					return httpservice:JSONDecode(response.Body) 
@@ -645,9 +681,10 @@ local function PopulateSessions()
 	end
 
 	if displayedCount == 0 then
+		if apiError == true then return end
 		NoPlanned.Visible = true
 		NoPlanned.TextLabel.Text = "Woah! No " .. type .. "?"
-		warn("No sessions to display", "info")
+		debugwarn("No sessions to display", "info")
 	end
 end
 
@@ -673,7 +710,7 @@ end
 
 local function Init()
 	local success, err = pcall(function()
-
+		
 		local PlaceHolder = Screen:FindFirstChild("Placeholder")
 		if PlaceHolder then
 			PlaceHolder:Destroy()
@@ -690,6 +727,7 @@ local function Init()
 			PopulateSessions()
 			task.wait(Config.refresh)
 		end
+		debugprint("Successfully loaded the session board.")
 	end)
 
 	if not success then
@@ -706,13 +744,14 @@ Init()]]></ProtectedString>
 					<bool name="Disabled">false</bool>
 					<Content name="LinkedSource"><null></null></Content>
 					<token name="RunContext">0</token>
-					<string name="ScriptGuid">{937D051B-2954-44DF-AC62-78B1EEA9FFE0}</string>
+					<string name="ScriptGuid">{B9AF355E-C0A0-46F7-9C12-70EDEB48638D}</string>
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 					<bool name="DefinesCapabilities">false</bool>
 					<string name="Name">Engine</string>
+					<BinaryString name="SerializedOverrides"></BinaryString>
 					<int64 name="SourceAssetId">-1</int64>
-					<BinaryString name="Tags"></BinaryString>
+					<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				</Properties>
 			</Item>
 		</Item>
@@ -731,18 +770,18 @@ Init()]]></ProtectedString>
 				<token name="BottomSurface">0</token>
 				<token name="BottomSurfaceInput">0</token>
 				<CoordinateFrame name="CFrame">
-					<X>8.81488991</X>
-					<Y>5.35964537</Y>
-					<Z>14.6625805</Z>
-					<R00>0.99999994</R00>
+					<X>139.135925</X>
+					<Y>2.45231986</Y>
+					<Z>-46.7026024</Z>
+					<R00>-0.99999994</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
 					<R11>1.00000131</R11>
 					<R12>1.05577236e-08</R12>
 					<R20>0</R20>
-					<R21>-4.6740718e-09</R21>
-					<R22>1.00000119</R22>
+					<R21>4.6740718e-09</R21>
+					<R22>-1.00000119</R22>
 				</CoordinateFrame>
 				<bool name="CanCollide">true</bool>
 				<bool name="CanQuery">true</bool>
@@ -811,8 +850,9 @@ Init()]]></ProtectedString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 				<bool name="DefinesCapabilities">false</bool>
 				<string name="Name">Screen</string>
+				<BinaryString name="SerializedOverrides"></BinaryString>
 				<int64 name="SourceAssetId">-1</int64>
-				<BinaryString name="Tags"></BinaryString>
+				<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			</Properties>
 			<Item class="SurfaceGui" referent="RBXEEE831305CA8405AB8CAE64908D6A628">
 				<Properties>
@@ -833,8 +873,8 @@ Init()]]></ProtectedString>
 					<Ref name="Adornee">null</Ref>
 					<token name="Face">5</token>
 					<bool name="Enabled">true</bool>
+					<token name="InputSinkEnabled">0</token>
 					<bool name="ResetOnSpawn">true</bool>
-					<bool name="TabKeyboardNavigation">false</bool>
 					<token name="ZIndexBehavior">1</token>
 					<bool name="AutoLocalize">true</bool>
 					<Ref name="RootLocalizationTable">null</Ref>
@@ -847,8 +887,9 @@ Init()]]></ProtectedString>
 					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 					<bool name="DefinesCapabilities">false</bool>
 					<string name="Name">SurfaceGui</string>
+					<BinaryString name="SerializedOverrides"></BinaryString>
 					<int64 name="SourceAssetId">-1</int64>
-					<BinaryString name="Tags"></BinaryString>
+					<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 				</Properties>
 				<Item class="Frame" referent="RBX1171D43F10A94AA8A5896EFC144F00C4">
 					<Properties>
@@ -874,7 +915,6 @@ Init()]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="InputSink">0</token>
 						<bool name="Interactable">false</bool>
 						<int name="LayoutOrder">-1</int>
 						<Ref name="NextSelectionDown">null</Ref>
@@ -891,6 +931,7 @@ Init()]]></ProtectedString>
 						<bool name="Selectable">false</bool>
 						<Ref name="SelectionImageObject">null</Ref>
 						<int name="SelectionOrder">0</int>
+						<token name="Sink">0</token>
 						<UDim2 name="Size">
 							<XS>1</XS>
 							<XO>0</XO>
@@ -911,17 +952,20 @@ Init()]]></ProtectedString>
 						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">bg</string>
+						<BinaryString name="SerializedOverrides"></BinaryString>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 					<Item class="ImageLabel" referent="RBXDD910340A4CF48AD892FD6AB2E9CB58F">
 						<Properties>
-							<Content name="Image"><url>rbxassetid://122239748503967</url></Content>
 							<Color3 name="ImageColor3">
 								<R>1</R>
 								<G>1</G>
 								<B>1</B>
 							</Color3>
+							<Content name="ImageContent">
+								<uri>rbxassetid://122239748503967</uri>
+							</Content>
 							<Vector2 name="ImageRectOffset">
 								<X>0</X>
 								<Y>0</Y>
@@ -971,7 +1015,6 @@ Init()]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -988,6 +1031,7 @@ Init()]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.800000012</XS>
 								<XO>0</XO>
@@ -1008,8 +1052,9 @@ Init()]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ImageLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="UIAspectRatioConstraint" referent="RBX74D9DB4FD52846BFB74193C4B45606C4">
 							<Properties>
@@ -1020,8 +1065,9 @@ Init()]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIAspectRatioConstraint</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
@@ -1050,7 +1096,6 @@ Init()]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="InputSink">0</token>
 						<bool name="Interactable">true</bool>
 						<int name="LayoutOrder">0</int>
 						<Ref name="NextSelectionDown">null</Ref>
@@ -1067,6 +1112,7 @@ Init()]]></ProtectedString>
 						<bool name="Selectable">false</bool>
 						<Ref name="SelectionImageObject">null</Ref>
 						<int name="SelectionOrder">0</int>
+						<token name="Sink">0</token>
 						<UDim2 name="Size">
 							<XS>1</XS>
 							<XO>0</XO>
@@ -1087,8 +1133,9 @@ Init()]]></ProtectedString>
 						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">Sessions</string>
+						<BinaryString name="SerializedOverrides"></BinaryString>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 					<Item class="Frame" referent="RBXC6A93A1EC5364C67BF0C55A342BFAFF6">
 						<Properties>
@@ -1114,7 +1161,6 @@ Init()]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -1131,6 +1177,7 @@ Init()]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>1</XS>
 								<XO>0</XO>
@@ -1151,12 +1198,25 @@ Init()]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">Topbar</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="UICorner" referent="RBX3C425F0CE8D94D939E5A158C2B36D345">
 							<Properties>
-								<UDim name="CornerRadius">
+								<UDim name="BottomLeftRadius">
+									<S>0</S>
+									<O>0</O>
+								</UDim>
+								<UDim name="BottomRightRadius">
+									<S>0</S>
+									<O>0</O>
+								</UDim>
+								<UDim name="TopLeftRadius">
+									<S>0</S>
+									<O>0</O>
+								</UDim>
+								<UDim name="TopRightRadius">
 									<S>0</S>
 									<O>0</O>
 								</UDim>
@@ -1164,8 +1224,9 @@ Init()]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UICorner</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 						<Item class="Frame" referent="RBXAB3C3D5AD8FB4B70964C22E0B36D07E5">
@@ -1192,7 +1253,6 @@ Init()]]></ProtectedString>
 								<int name="BorderSizePixel">0</int>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
-								<token name="InputSink">0</token>
 								<bool name="Interactable">true</bool>
 								<int name="LayoutOrder">0</int>
 								<Ref name="NextSelectionDown">null</Ref>
@@ -1209,6 +1269,7 @@ Init()]]></ProtectedString>
 								<bool name="Selectable">false</bool>
 								<Ref name="SelectionImageObject">null</Ref>
 								<int name="SelectionOrder">0</int>
+								<token name="Sink">0</token>
 								<UDim2 name="Size">
 									<XS>0.449999988</XS>
 									<XO>0</XO>
@@ -1229,8 +1290,9 @@ Init()]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">Left</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 							<Item class="TextLabel" referent="RBX249C19E371DD4A1AA0844FE774E60754">
 								<Properties>
@@ -1286,7 +1348,6 @@ Init()]]></ProtectedString>
 									<int name="BorderSizePixel">0</int>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
-									<token name="InputSink">0</token>
 									<bool name="Interactable">true</bool>
 									<int name="LayoutOrder">0</int>
 									<Ref name="NextSelectionDown">null</Ref>
@@ -1303,6 +1364,7 @@ Init()]]></ProtectedString>
 									<bool name="Selectable">false</bool>
 									<Ref name="SelectionImageObject">null</Ref>
 									<int name="SelectionOrder">0</int>
+									<token name="Sink">0</token>
 									<UDim2 name="Size">
 										<XS>0</XS>
 										<XO>500</XO>
@@ -1323,8 +1385,9 @@ Init()]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">SessionType</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 							</Item>
 							<Item class="UIListLayout" referent="RBX055E55BCAE204297915F3A662D0EF6FE">
@@ -1345,8 +1408,9 @@ Init()]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">UIListLayout</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 							</Item>
 						</Item>
@@ -1374,7 +1438,6 @@ Init()]]></ProtectedString>
 								<int name="BorderSizePixel">0</int>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
-								<token name="InputSink">0</token>
 								<bool name="Interactable">true</bool>
 								<int name="LayoutOrder">0</int>
 								<Ref name="NextSelectionDown">null</Ref>
@@ -1391,6 +1454,7 @@ Init()]]></ProtectedString>
 								<bool name="Selectable">false</bool>
 								<Ref name="SelectionImageObject">null</Ref>
 								<int name="SelectionOrder">0</int>
+								<token name="Sink">0</token>
 								<UDim2 name="Size">
 									<XS>0.319999993</XS>
 									<XO>0</XO>
@@ -1411,8 +1475,9 @@ Init()]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">Right</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 							<Item class="TextLabel" referent="RBX28FB7DDA7EB044BAB08A3F6837895DD4">
 								<Properties>
@@ -1468,7 +1533,6 @@ Init()]]></ProtectedString>
 									<int name="BorderSizePixel">0</int>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
-									<token name="InputSink">0</token>
 									<bool name="Interactable">true</bool>
 									<int name="LayoutOrder">0</int>
 									<Ref name="NextSelectionDown">null</Ref>
@@ -1485,6 +1549,7 @@ Init()]]></ProtectedString>
 									<bool name="Selectable">false</bool>
 									<Ref name="SelectionImageObject">null</Ref>
 									<int name="SelectionOrder">0</int>
+									<token name="Sink">0</token>
 									<UDim2 name="Size">
 										<XS>0</XS>
 										<XO>350</XO>
@@ -1505,8 +1570,9 @@ Init()]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">Time</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 								<Item class="Script" referent="RBX86E3337F6C654A558BB945268183A69E">
 									<Properties>
@@ -1528,8 +1594,9 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">Script</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 								</Item>
 							</Item>
@@ -1551,8 +1618,9 @@ end]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">UIListLayout</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 							</Item>
 						</Item>
@@ -1579,8 +1647,9 @@ end]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIStroke</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 						<Item class="Script" referent="RBX37DC294634E24583918A26233CF78FC4">
@@ -1602,15 +1671,18 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">Script</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
 					<Item class="ScrollingFrame" referent="RBXB093CAE0EE1048E9A69C2856950AF278">
 						<Properties>
 							<token name="AutomaticCanvasSize">0</token>
-							<Content name="BottomImage"><url>rbxasset://textures/ui/Scroll/scroll-bottom.png</url></Content>
+							<Content name="BottomImageContent">
+								<uri>rbxasset://textures/ui/Scroll/scroll-bottom.png</uri>
+							</Content>
 							<Vector2 name="CanvasPosition">
 								<X>0</X>
 								<Y>0</Y>
@@ -1623,7 +1695,9 @@ end)]]></ProtectedString>
 							</UDim2>
 							<token name="ElasticBehavior">0</token>
 							<token name="HorizontalScrollBarInset">0</token>
-							<Content name="MidImage"><url>rbxasset://textures/ui/Scroll/scroll-middle.png</url></Content>
+							<Content name="MidImageContent">
+								<uri>rbxasset://textures/ui/Scroll/scroll-middle.png</uri>
+							</Content>
 							<Color3 name="ScrollBarImageColor3">
 								<R>0</R>
 								<G>0</G>
@@ -1633,7 +1707,9 @@ end)]]></ProtectedString>
 							<int name="ScrollBarThickness">12</int>
 							<token name="ScrollingDirection">4</token>
 							<bool name="ScrollingEnabled">true</bool>
-							<Content name="TopImage"><url>rbxasset://textures/ui/Scroll/scroll-top.png</url></Content>
+							<Content name="TopImageContent">
+								<uri>rbxasset://textures/ui/Scroll/scroll-top.png</uri>
+							</Content>
 							<token name="VerticalScrollBarInset">0</token>
 							<token name="VerticalScrollBarPosition">0</token>
 							<bool name="Active">true</bool>
@@ -1657,7 +1733,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">true</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -1674,6 +1749,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">true</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>1</XS>
 								<XO>0</XO>
@@ -1694,17 +1770,27 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ScrollingFrame</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="Folder" referent="RBX6282482ADA204D00A04ECBC3CBBA0906">
 							<Properties>
+								<Content name="ExplorerIconContent">
+									<null></null>
+								</Content>
+								<Color3 name="IconTint">
+									<R>0</R>
+									<G>0</G>
+									<B>0</B>
+								</Color3>
 								<BinaryString name="AttributesSerialize"></BinaryString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">SessionFrame</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 							<Item class="Frame" referent="RBXEFE68E3B89F141E79EA7FADAE7BC1135">
 								<Properties>
@@ -1730,7 +1816,6 @@ end)]]></ProtectedString>
 									<int name="BorderSizePixel">0</int>
 									<bool name="ClipsDescendants">false</bool>
 									<bool name="Draggable">false</bool>
-									<token name="InputSink">0</token>
 									<bool name="Interactable">true</bool>
 									<int name="LayoutOrder">0</int>
 									<Ref name="NextSelectionDown">null</Ref>
@@ -1747,6 +1832,7 @@ end)]]></ProtectedString>
 									<bool name="Selectable">false</bool>
 									<Ref name="SelectionImageObject">null</Ref>
 									<int name="SelectionOrder">0</int>
+									<token name="Sink">0</token>
 									<UDim2 name="Size">
 										<XS>0.970000029</XS>
 										<XO>0</XO>
@@ -1767,8 +1853,9 @@ end)]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">Frame</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 								<Item class="Frame" referent="RBX388E60E9B881442B9F3194CF1ED4DC19">
 									<Properties>
@@ -1794,7 +1881,6 @@ end)]]></ProtectedString>
 										<int name="BorderSizePixel">0</int>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
-										<token name="InputSink">0</token>
 										<bool name="Interactable">true</bool>
 										<int name="LayoutOrder">0</int>
 										<Ref name="NextSelectionDown">null</Ref>
@@ -1811,6 +1897,7 @@ end)]]></ProtectedString>
 										<bool name="Selectable">false</bool>
 										<Ref name="SelectionImageObject">null</Ref>
 										<int name="SelectionOrder">0</int>
+										<token name="Sink">0</token>
 										<UDim2 name="Size">
 											<XS>0</XS>
 											<XO>200</XO>
@@ -1831,8 +1918,9 @@ end)]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">LiveFrame</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 									<Item class="Frame" referent="RBX87461EBB01C342678F5DE4F185E52BBF">
 										<Properties>
@@ -1858,7 +1946,6 @@ end)]]></ProtectedString>
 											<int name="BorderSizePixel">0</int>
 											<bool name="ClipsDescendants">false</bool>
 											<bool name="Draggable">false</bool>
-											<token name="InputSink">0</token>
 											<bool name="Interactable">true</bool>
 											<int name="LayoutOrder">0</int>
 											<Ref name="NextSelectionDown">null</Ref>
@@ -1875,6 +1962,7 @@ end)]]></ProtectedString>
 											<bool name="Selectable">false</bool>
 											<Ref name="SelectionImageObject">null</Ref>
 											<int name="SelectionOrder">0</int>
+											<token name="Sink">0</token>
 											<UDim2 name="Size">
 												<XS>0.25</XS>
 												<XO>0</XO>
@@ -1895,12 +1983,25 @@ end)]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">LiveCircle</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 										<Item class="UICorner" referent="RBX4467C4EA73F54DCC97FC412CDAE14AB5">
 											<Properties>
-												<UDim name="CornerRadius">
+												<UDim name="BottomLeftRadius">
+													<S>1</S>
+													<O>0</O>
+												</UDim>
+												<UDim name="BottomRightRadius">
+													<S>1</S>
+													<O>0</O>
+												</UDim>
+												<UDim name="TopLeftRadius">
+													<S>1</S>
+													<O>0</O>
+												</UDim>
+												<UDim name="TopRightRadius">
 													<S>1</S>
 													<O>0</O>
 												</UDim>
@@ -1908,8 +2009,9 @@ end)]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">UICorner</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 										<Item class="UIAspectRatioConstraint" referent="RBX8B16068409574EC8A46FBAA9C7ACE11E">
@@ -1921,8 +2023,9 @@ end)]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">UIAspectRatioConstraint</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 									</Item>
@@ -1980,7 +2083,6 @@ end)]]></ProtectedString>
 											<int name="BorderSizePixel">0</int>
 											<bool name="ClipsDescendants">false</bool>
 											<bool name="Draggable">false</bool>
-											<token name="InputSink">0</token>
 											<bool name="Interactable">true</bool>
 											<int name="LayoutOrder">0</int>
 											<Ref name="NextSelectionDown">null</Ref>
@@ -1997,6 +2099,7 @@ end)]]></ProtectedString>
 											<bool name="Selectable">false</bool>
 											<Ref name="SelectionImageObject">null</Ref>
 											<int name="SelectionOrder">0</int>
+											<token name="Sink">0</token>
 											<UDim2 name="Size">
 												<XS>0.5</XS>
 												<XO>0</XO>
@@ -2017,8 +2120,9 @@ end)]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">TextLabel</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="Script" referent="RBX76A17545A4C947169B27575078C45C44">
@@ -2049,8 +2153,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">Script</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="UIListLayout" referent="RBXE4E92202B25F42DDBCE9BD6BAC65998E">
@@ -2071,8 +2176,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UIListLayout</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="UIStroke" referent="RBXD6758D579EBE44C2BFD38E5321F820B1">
@@ -2098,13 +2204,26 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UIStroke</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="UICorner" referent="RBXDF536FCAAD0C4044B42992BD39BAF3F0">
 										<Properties>
-											<UDim name="CornerRadius">
+											<UDim name="BottomLeftRadius">
+												<S>1</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="BottomRightRadius">
+												<S>1</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="TopLeftRadius">
+												<S>1</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="TopRightRadius">
 												<S>1</S>
 												<O>0</O>
 											</UDim>
@@ -2112,8 +2231,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UICorner</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 								</Item>
@@ -2141,7 +2261,6 @@ end]]></ProtectedString>
 										<int name="BorderSizePixel">0</int>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
-										<token name="InputSink">0</token>
 										<bool name="Interactable">true</bool>
 										<int name="LayoutOrder">0</int>
 										<Ref name="NextSelectionDown">null</Ref>
@@ -2158,6 +2277,7 @@ end]]></ProtectedString>
 										<bool name="Selectable">false</bool>
 										<Ref name="SelectionImageObject">null</Ref>
 										<int name="SelectionOrder">0</int>
+										<token name="Sink">0</token>
 										<UDim2 name="Size">
 											<XS>0</XS>
 											<XO>700</XO>
@@ -2178,8 +2298,9 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">Hosts</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 									<Item class="UIListLayout" referent="RBX92E35D6A54CC41F7B274E0B1F30C1EA7">
 										<Properties>
@@ -2199,8 +2320,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UIListLayout</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="Frame" referent="RBXF89658032AB54BF3BF6B5205DF7DC6B6">
@@ -2227,7 +2349,6 @@ end]]></ProtectedString>
 											<int name="BorderSizePixel">0</int>
 											<bool name="ClipsDescendants">false</bool>
 											<bool name="Draggable">false</bool>
-											<token name="InputSink">0</token>
 											<bool name="Interactable">true</bool>
 											<int name="LayoutOrder">0</int>
 											<Ref name="NextSelectionDown">null</Ref>
@@ -2244,6 +2365,7 @@ end]]></ProtectedString>
 											<bool name="Selectable">false</bool>
 											<Ref name="SelectionImageObject">null</Ref>
 											<int name="SelectionOrder">0</int>
+											<token name="Sink">0</token>
 											<UDim2 name="Size">
 												<XS>1</XS>
 												<XO>0</XO>
@@ -2264,8 +2386,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">Host</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 										<Item class="Frame" referent="RBX6308D2C3FFFD47548CD41F935B7C18C6">
 											<Properties>
@@ -2291,7 +2414,6 @@ end]]></ProtectedString>
 												<int name="BorderSizePixel">0</int>
 												<bool name="ClipsDescendants">false</bool>
 												<bool name="Draggable">false</bool>
-												<token name="InputSink">0</token>
 												<bool name="Interactable">true</bool>
 												<int name="LayoutOrder">0</int>
 												<Ref name="NextSelectionDown">null</Ref>
@@ -2308,6 +2430,7 @@ end]]></ProtectedString>
 												<bool name="Selectable">false</bool>
 												<Ref name="SelectionImageObject">null</Ref>
 												<int name="SelectionOrder">0</int>
+												<token name="Sink">0</token>
 												<UDim2 name="Size">
 													<XS>0</XS>
 													<XO>60</XO>
@@ -2328,17 +2451,20 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">hostImage</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 											<Item class="ImageLabel" referent="RBX506DCB14EEBB47C2AC5678C5B20D90DC">
 												<Properties>
-													<Content name="Image"><url>rbxthumb://type=AvatarHeadShot&amp;id=4831046746&amp;w=420&amp;h=420</url></Content>
 													<Color3 name="ImageColor3">
 														<R>1</R>
 														<G>1</G>
 														<B>1</B>
 													</Color3>
+													<Content name="ImageContent">
+														<uri>rbxthumb://type=AvatarHeadShot&amp;id=4831046746&amp;w=420&amp;h=420</uri>
+													</Content>
 													<Vector2 name="ImageRectOffset">
 														<X>0</X>
 														<Y>0</Y>
@@ -2388,7 +2514,6 @@ end]]></ProtectedString>
 													<int name="BorderSizePixel">0</int>
 													<bool name="ClipsDescendants">false</bool>
 													<bool name="Draggable">false</bool>
-													<token name="InputSink">0</token>
 													<bool name="Interactable">true</bool>
 													<int name="LayoutOrder">0</int>
 													<Ref name="NextSelectionDown">null</Ref>
@@ -2405,6 +2530,7 @@ end]]></ProtectedString>
 													<bool name="Selectable">false</bool>
 													<Ref name="SelectionImageObject">null</Ref>
 													<int name="SelectionOrder">0</int>
+													<token name="Sink">0</token>
 													<UDim2 name="Size">
 														<XS>1</XS>
 														<XO>0</XO>
@@ -2425,8 +2551,9 @@ end]]></ProtectedString>
 													<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 													<bool name="DefinesCapabilities">false</bool>
 													<string name="Name">ImageLabel</string>
+													<BinaryString name="SerializedOverrides"></BinaryString>
 													<int64 name="SourceAssetId">-1</int64>
-													<BinaryString name="Tags"></BinaryString>
+													<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 												</Properties>
 												<Item class="UIStroke" referent="RBXD35AE1CF435B4041BC4573ADF10E9A75">
 													<Properties>
@@ -2451,13 +2578,26 @@ end]]></ProtectedString>
 														<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 														<bool name="DefinesCapabilities">false</bool>
 														<string name="Name">UIStroke</string>
+														<BinaryString name="SerializedOverrides"></BinaryString>
 														<int64 name="SourceAssetId">-1</int64>
-														<BinaryString name="Tags"></BinaryString>
+														<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 													</Properties>
 												</Item>
 												<Item class="UICorner" referent="RBXF3B9A22E261E48548919F0E4D02C047A">
 													<Properties>
-														<UDim name="CornerRadius">
+														<UDim name="BottomLeftRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="BottomRightRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="TopLeftRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="TopRightRadius">
 															<S>1</S>
 															<O>0</O>
 														</UDim>
@@ -2465,8 +2605,9 @@ end]]></ProtectedString>
 														<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 														<bool name="DefinesCapabilities">false</bool>
 														<string name="Name">UICorner</string>
+														<BinaryString name="SerializedOverrides"></BinaryString>
 														<int64 name="SourceAssetId">-1</int64>
-														<BinaryString name="Tags"></BinaryString>
+														<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 													</Properties>
 												</Item>
 											</Item>
@@ -2479,8 +2620,9 @@ end]]></ProtectedString>
 													<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 													<bool name="DefinesCapabilities">false</bool>
 													<string name="Name">UIAspectRatioConstraint</string>
+													<BinaryString name="SerializedOverrides"></BinaryString>
 													<int64 name="SourceAssetId">-1</int64>
-													<BinaryString name="Tags"></BinaryString>
+													<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 												</Properties>
 											</Item>
 										</Item>
@@ -2538,7 +2680,6 @@ end]]></ProtectedString>
 												<int name="BorderSizePixel">0</int>
 												<bool name="ClipsDescendants">false</bool>
 												<bool name="Draggable">false</bool>
-												<token name="InputSink">0</token>
 												<bool name="Interactable">true</bool>
 												<int name="LayoutOrder">0</int>
 												<Ref name="NextSelectionDown">null</Ref>
@@ -2555,6 +2696,7 @@ end]]></ProtectedString>
 												<bool name="Selectable">false</bool>
 												<Ref name="SelectionImageObject">null</Ref>
 												<int name="SelectionOrder">0</int>
+												<token name="Sink">0</token>
 												<UDim2 name="Size">
 													<XS>0.800000012</XS>
 													<XO>0</XO>
@@ -2575,8 +2717,9 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">TextLabel</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 										<Item class="UIListLayout" referent="RBXEB6BC61899CB4BEDB317AABA2E03A32A">
@@ -2597,8 +2740,9 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">UIListLayout</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 									</Item>
@@ -2626,7 +2770,6 @@ end]]></ProtectedString>
 											<int name="BorderSizePixel">0</int>
 											<bool name="ClipsDescendants">false</bool>
 											<bool name="Draggable">false</bool>
-											<token name="InputSink">0</token>
 											<bool name="Interactable">true</bool>
 											<int name="LayoutOrder">1</int>
 											<Ref name="NextSelectionDown">null</Ref>
@@ -2643,6 +2786,7 @@ end]]></ProtectedString>
 											<bool name="Selectable">false</bool>
 											<Ref name="SelectionImageObject">null</Ref>
 											<int name="SelectionOrder">0</int>
+											<token name="Sink">0</token>
 											<UDim2 name="Size">
 												<XS>1</XS>
 												<XO>0</XO>
@@ -2663,8 +2807,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">Cohost</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 										<Item class="Frame" referent="RBXCEE92475C1E04527BCD5B925664AAD98">
 											<Properties>
@@ -2690,7 +2835,6 @@ end]]></ProtectedString>
 												<int name="BorderSizePixel">0</int>
 												<bool name="ClipsDescendants">false</bool>
 												<bool name="Draggable">false</bool>
-												<token name="InputSink">0</token>
 												<bool name="Interactable">true</bool>
 												<int name="LayoutOrder">0</int>
 												<Ref name="NextSelectionDown">null</Ref>
@@ -2707,6 +2851,7 @@ end]]></ProtectedString>
 												<bool name="Selectable">false</bool>
 												<Ref name="SelectionImageObject">null</Ref>
 												<int name="SelectionOrder">0</int>
+												<token name="Sink">0</token>
 												<UDim2 name="Size">
 													<XS>0</XS>
 													<XO>60</XO>
@@ -2727,8 +2872,9 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">CohostImage</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 											<Item class="UIAspectRatioConstraint" referent="RBX9528C2C7E6CB4D6FA9E093C835981543">
 												<Properties>
@@ -2739,18 +2885,21 @@ end]]></ProtectedString>
 													<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 													<bool name="DefinesCapabilities">false</bool>
 													<string name="Name">UIAspectRatioConstraint</string>
+													<BinaryString name="SerializedOverrides"></BinaryString>
 													<int64 name="SourceAssetId">-1</int64>
-													<BinaryString name="Tags"></BinaryString>
+													<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 												</Properties>
 											</Item>
 											<Item class="ImageLabel" referent="RBXA254CDC0399B40FCA7217C5087AC7520">
 												<Properties>
-													<Content name="Image"><url>rbxthumb://type=AvatarHeadShot&amp;id=4831046746&amp;w=420&amp;h=420</url></Content>
 													<Color3 name="ImageColor3">
 														<R>1</R>
 														<G>1</G>
 														<B>1</B>
 													</Color3>
+													<Content name="ImageContent">
+														<uri>rbxthumb://type=AvatarHeadShot&amp;id=4831046746&amp;w=420&amp;h=420</uri>
+													</Content>
 													<Vector2 name="ImageRectOffset">
 														<X>0</X>
 														<Y>0</Y>
@@ -2800,7 +2949,6 @@ end]]></ProtectedString>
 													<int name="BorderSizePixel">0</int>
 													<bool name="ClipsDescendants">false</bool>
 													<bool name="Draggable">false</bool>
-													<token name="InputSink">0</token>
 													<bool name="Interactable">true</bool>
 													<int name="LayoutOrder">0</int>
 													<Ref name="NextSelectionDown">null</Ref>
@@ -2817,6 +2965,7 @@ end]]></ProtectedString>
 													<bool name="Selectable">false</bool>
 													<Ref name="SelectionImageObject">null</Ref>
 													<int name="SelectionOrder">0</int>
+													<token name="Sink">0</token>
 													<UDim2 name="Size">
 														<XS>1</XS>
 														<XO>0</XO>
@@ -2837,12 +2986,25 @@ end]]></ProtectedString>
 													<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 													<bool name="DefinesCapabilities">false</bool>
 													<string name="Name">ImageLabel</string>
+													<BinaryString name="SerializedOverrides"></BinaryString>
 													<int64 name="SourceAssetId">-1</int64>
-													<BinaryString name="Tags"></BinaryString>
+													<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 												</Properties>
 												<Item class="UICorner" referent="RBX54C5FB34815245BBA3C0AB325F69C857">
 													<Properties>
-														<UDim name="CornerRadius">
+														<UDim name="BottomLeftRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="BottomRightRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="TopLeftRadius">
+															<S>1</S>
+															<O>0</O>
+														</UDim>
+														<UDim name="TopRightRadius">
 															<S>1</S>
 															<O>0</O>
 														</UDim>
@@ -2850,8 +3012,9 @@ end]]></ProtectedString>
 														<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 														<bool name="DefinesCapabilities">false</bool>
 														<string name="Name">UICorner</string>
+														<BinaryString name="SerializedOverrides"></BinaryString>
 														<int64 name="SourceAssetId">-1</int64>
-														<BinaryString name="Tags"></BinaryString>
+														<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 													</Properties>
 												</Item>
 												<Item class="UIStroke" referent="RBXB1C9ECEB31A944E8A9C13FC6891F5E5C">
@@ -2877,8 +3040,9 @@ end]]></ProtectedString>
 														<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 														<bool name="DefinesCapabilities">false</bool>
 														<string name="Name">UIStroke</string>
+														<BinaryString name="SerializedOverrides"></BinaryString>
 														<int64 name="SourceAssetId">-1</int64>
-														<BinaryString name="Tags"></BinaryString>
+														<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 													</Properties>
 												</Item>
 											</Item>
@@ -2937,7 +3101,6 @@ end]]></ProtectedString>
 												<int name="BorderSizePixel">0</int>
 												<bool name="ClipsDescendants">false</bool>
 												<bool name="Draggable">false</bool>
-												<token name="InputSink">0</token>
 												<bool name="Interactable">true</bool>
 												<int name="LayoutOrder">0</int>
 												<Ref name="NextSelectionDown">null</Ref>
@@ -2954,6 +3117,7 @@ end]]></ProtectedString>
 												<bool name="Selectable">false</bool>
 												<Ref name="SelectionImageObject">null</Ref>
 												<int name="SelectionOrder">0</int>
+												<token name="Sink">0</token>
 												<UDim2 name="Size">
 													<XS>0.800000012</XS>
 													<XO>0</XO>
@@ -2974,8 +3138,9 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">TextLabel</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 										<Item class="UIListLayout" referent="RBX35A2B20EBD214DEFB9476D35CCE915CB">
@@ -2996,8 +3161,9 @@ end]]></ProtectedString>
 												<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 												<bool name="DefinesCapabilities">false</bool>
 												<string name="Name">UIListLayout</string>
+												<BinaryString name="SerializedOverrides"></BinaryString>
 												<int64 name="SourceAssetId">-1</int64>
-												<BinaryString name="Tags"></BinaryString>
+												<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 											</Properties>
 										</Item>
 									</Item>
@@ -3025,13 +3191,26 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">UIStroke</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 								</Item>
 								<Item class="UICorner" referent="RBXF401A3038C7647F69E608E9DF58BEFF9">
 									<Properties>
-										<UDim name="CornerRadius">
+										<UDim name="BottomLeftRadius">
+											<S>0.150000006</S>
+											<O>0</O>
+										</UDim>
+										<UDim name="BottomRightRadius">
+											<S>0.150000006</S>
+											<O>0</O>
+										</UDim>
+										<UDim name="TopLeftRadius">
+											<S>0.150000006</S>
+											<O>0</O>
+										</UDim>
+										<UDim name="TopRightRadius">
 											<S>0.150000006</S>
 											<O>0</O>
 										</UDim>
@@ -3039,8 +3218,9 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">UICorner</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 								</Item>
 								<Item class="Frame" referent="RBX8FCCFB12DD1847FDB3DEC6DAE4F2FE23">
@@ -3067,7 +3247,6 @@ end]]></ProtectedString>
 										<int name="BorderSizePixel">0</int>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
-										<token name="InputSink">0</token>
 										<bool name="Interactable">true</bool>
 										<int name="LayoutOrder">0</int>
 										<Ref name="NextSelectionDown">null</Ref>
@@ -3084,6 +3263,7 @@ end]]></ProtectedString>
 										<bool name="Selectable">false</bool>
 										<Ref name="SelectionImageObject">null</Ref>
 										<int name="SelectionOrder">0</int>
+										<token name="Sink">0</token>
 										<UDim2 name="Size">
 											<XS>0.800000012</XS>
 											<XO>0</XO>
@@ -3104,8 +3284,9 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">EventInfo</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 									<Item class="TextLabel" referent="RBX09D2466ED1794F0584CC0CCAF20113AC">
 										<Properties>
@@ -3161,7 +3342,6 @@ end]]></ProtectedString>
 											<int name="BorderSizePixel">0</int>
 											<bool name="ClipsDescendants">false</bool>
 											<bool name="Draggable">false</bool>
-											<token name="InputSink">0</token>
 											<bool name="Interactable">true</bool>
 											<int name="LayoutOrder">0</int>
 											<Ref name="NextSelectionDown">null</Ref>
@@ -3178,6 +3358,7 @@ end]]></ProtectedString>
 											<bool name="Selectable">false</bool>
 											<Ref name="SelectionImageObject">null</Ref>
 											<int name="SelectionOrder">0</int>
+											<token name="Sink">0</token>
 											<UDim2 name="Size">
 												<XS>0</XS>
 												<XO>600</XO>
@@ -3198,8 +3379,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">EventName</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="UIListLayout" referent="RBXFC25D8ACCEC042618C818BC55AE8C3E2">
@@ -3220,8 +3402,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UIListLayout</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 								</Item>
@@ -3285,7 +3468,6 @@ end]]></ProtectedString>
 										<int name="BorderSizePixel">0</int>
 										<bool name="ClipsDescendants">false</bool>
 										<bool name="Draggable">false</bool>
-										<token name="InputSink">0</token>
 										<bool name="Interactable">true</bool>
 										<int name="LayoutOrder">0</int>
 										<Ref name="NextSelectionDown">null</Ref>
@@ -3302,6 +3484,7 @@ end]]></ProtectedString>
 										<bool name="Selectable">true</bool>
 										<Ref name="SelectionImageObject">null</Ref>
 										<int name="SelectionOrder">0</int>
+										<token name="Sink">1</token>
 										<UDim2 name="Size">
 											<XS>0</XS>
 											<XO>300</XO>
@@ -3322,12 +3505,25 @@ end]]></ProtectedString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
 										<string name="Name">TextButton</string>
+										<BinaryString name="SerializedOverrides"></BinaryString>
 										<int64 name="SourceAssetId">-1</int64>
-										<BinaryString name="Tags"></BinaryString>
+										<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 									</Properties>
 									<Item class="UICorner" referent="RBX778077391697460E89F05A9033BC27C9">
 										<Properties>
-											<UDim name="CornerRadius">
+											<UDim name="BottomLeftRadius">
+												<S>0.349999994</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="BottomRightRadius">
+												<S>0.349999994</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="TopLeftRadius">
+												<S>0.349999994</S>
+												<O>0</O>
+											</UDim>
+											<UDim name="TopRightRadius">
 												<S>0.349999994</S>
 												<O>0</O>
 											</UDim>
@@ -3335,8 +3531,9 @@ end]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">UICorner</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 									<Item class="Script" referent="RBX8095FEC15AE6483C8FA1C65E983F1F0A">
@@ -3393,8 +3590,9 @@ end)]]></ProtectedString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
 											<string name="Name">Script</string>
+											<BinaryString name="SerializedOverrides"></BinaryString>
 											<int64 name="SourceAssetId">-1</int64>
-											<BinaryString name="Tags"></BinaryString>
+											<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 										</Properties>
 									</Item>
 								</Item>
@@ -3424,7 +3622,6 @@ end)]]></ProtectedString>
 								<int name="BorderSizePixel">0</int>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
-								<token name="InputSink">0</token>
 								<bool name="Interactable">true</bool>
 								<int name="LayoutOrder">-1</int>
 								<Ref name="NextSelectionDown">null</Ref>
@@ -3441,6 +3638,7 @@ end)]]></ProtectedString>
 								<bool name="Selectable">false</bool>
 								<Ref name="SelectionImageObject">null</Ref>
 								<int name="SelectionOrder">0</int>
+								<token name="Sink">0</token>
 								<UDim2 name="Size">
 									<XS>0.0500000007</XS>
 									<XO>0</XO>
@@ -3461,8 +3659,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">spacer</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 						<Item class="UIListLayout" referent="RBX243C683BA6FD43F8A7102E3891FE7FA2">
@@ -3483,8 +3682,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIListLayout</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
@@ -3513,7 +3713,6 @@ end)]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="InputSink">0</token>
 						<bool name="Interactable">false</bool>
 						<int name="LayoutOrder">0</int>
 						<Ref name="NextSelectionDown">null</Ref>
@@ -3530,6 +3729,7 @@ end)]]></ProtectedString>
 						<bool name="Selectable">false</bool>
 						<Ref name="SelectionImageObject">null</Ref>
 						<int name="SelectionOrder">0</int>
+						<token name="Sink">0</token>
 						<UDim2 name="Size">
 							<XS>1</XS>
 							<XO>0</XO>
@@ -3550,17 +3750,20 @@ end)]]></ProtectedString>
 						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">ErrorScreen</string>
+						<BinaryString name="SerializedOverrides"></BinaryString>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 					<Item class="ImageLabel" referent="RBX863B6D94782E456892A78076D1CAF222">
 						<Properties>
-							<Content name="Image"><url>rbxassetid://73662910729419</url></Content>
 							<Color3 name="ImageColor3">
 								<R>1</R>
 								<G>0.254901975</G>
 								<B>0.266666681</B>
 							</Color3>
+							<Content name="ImageContent">
+								<uri>rbxassetid://73662910729419</uri>
+							</Content>
 							<Vector2 name="ImageRectOffset">
 								<X>0</X>
 								<Y>0</Y>
@@ -3610,7 +3813,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -3627,6 +3829,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.200000003</XS>
 								<XO>0</XO>
@@ -3647,8 +3850,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ImageLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="UIAspectRatioConstraint" referent="RBX154F88CFD18D4EE18DA0E4E65E9B0297">
 							<Properties>
@@ -3659,8 +3863,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIAspectRatioConstraint</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
@@ -3718,7 +3923,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -3735,6 +3939,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.800000012</XS>
 								<XO>0</XO>
@@ -3755,8 +3960,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">TextLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 					<Item class="TextLabel" referent="RBXC7D2821FB7A240779AAC456DF6DE8BEA">
@@ -3813,7 +4019,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -3830,6 +4035,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.800000012</XS>
 								<XO>0</XO>
@@ -3850,8 +4056,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ErrorLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 				</Item>
@@ -3879,7 +4086,6 @@ end)]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="InputSink">0</token>
 						<bool name="Interactable">true</bool>
 						<int name="LayoutOrder">0</int>
 						<Ref name="NextSelectionDown">null</Ref>
@@ -3896,6 +4102,7 @@ end)]]></ProtectedString>
 						<bool name="Selectable">false</bool>
 						<Ref name="SelectionImageObject">null</Ref>
 						<int name="SelectionOrder">0</int>
+						<token name="Sink">0</token>
 						<UDim2 name="Size">
 							<XS>1</XS>
 							<XO>0</XO>
@@ -3916,17 +4123,20 @@ end)]]></ProtectedString>
 						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">NoPlanned</string>
+						<BinaryString name="SerializedOverrides"></BinaryString>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 					<Item class="ImageLabel" referent="RBX7733BC6E71514A36B258DC97F3AD6973">
 						<Properties>
-							<Content name="Image"><url>rbxassetid://97883370799261</url></Content>
 							<Color3 name="ImageColor3">
 								<R>1</R>
 								<G>1</G>
 								<B>1</B>
 							</Color3>
+							<Content name="ImageContent">
+								<uri>rbxassetid://97883370799261</uri>
+							</Content>
 							<Vector2 name="ImageRectOffset">
 								<X>0</X>
 								<Y>0</Y>
@@ -3976,7 +4186,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -3993,6 +4202,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.200000003</XS>
 								<XO>0</XO>
@@ -4013,8 +4223,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ImageLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="UIAspectRatioConstraint" referent="RBX0A99C30E1A71400B874C123547E54A62">
 							<Properties>
@@ -4025,8 +4236,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIAspectRatioConstraint</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
@@ -4084,7 +4296,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -4101,6 +4312,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.800000012</XS>
 								<XO>0</XO>
@@ -4121,8 +4333,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">TextLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 					<Item class="TextLabel" referent="RBX8F081C8EC3244F8FAD94115B69D941E9">
@@ -4179,7 +4392,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -4196,6 +4408,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>0.800000012</XS>
 								<XO>0</XO>
@@ -4216,8 +4429,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">ErrorLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 				</Item>
@@ -4245,7 +4459,6 @@ end)]]></ProtectedString>
 						<int name="BorderSizePixel">0</int>
 						<bool name="ClipsDescendants">false</bool>
 						<bool name="Draggable">false</bool>
-						<token name="InputSink">0</token>
 						<bool name="Interactable">true</bool>
 						<int name="LayoutOrder">0</int>
 						<Ref name="NextSelectionDown">null</Ref>
@@ -4262,6 +4475,7 @@ end)]]></ProtectedString>
 						<bool name="Selectable">false</bool>
 						<Ref name="SelectionImageObject">null</Ref>
 						<int name="SelectionOrder">0</int>
+						<token name="Sink">0</token>
 						<UDim2 name="Size">
 							<XS>1</XS>
 							<XO>0</XO>
@@ -4282,8 +4496,9 @@ end)]]></ProtectedString>
 						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 						<bool name="DefinesCapabilities">false</bool>
 						<string name="Name">Placeholder</string>
+						<BinaryString name="SerializedOverrides"></BinaryString>
 						<int64 name="SourceAssetId">-1</int64>
-						<BinaryString name="Tags"></BinaryString>
+						<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 					</Properties>
 					<Item class="TextLabel" referent="RBXC1FCEA0E35AB4E9CAAE7B7CF7A07AFD6">
 						<Properties>
@@ -4339,7 +4554,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">2</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -4356,6 +4570,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>1</XS>
 								<XO>0</XO>
@@ -4376,8 +4591,9 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">TextLabel</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 					</Item>
 					<Item class="Frame" referent="RBXB92767BA3AE8468FBAD35C8776318422">
@@ -4404,7 +4620,6 @@ end)]]></ProtectedString>
 							<int name="BorderSizePixel">0</int>
 							<bool name="ClipsDescendants">false</bool>
 							<bool name="Draggable">false</bool>
-							<token name="InputSink">0</token>
 							<bool name="Interactable">true</bool>
 							<int name="LayoutOrder">0</int>
 							<Ref name="NextSelectionDown">null</Ref>
@@ -4421,6 +4636,7 @@ end)]]></ProtectedString>
 							<bool name="Selectable">false</bool>
 							<Ref name="SelectionImageObject">null</Ref>
 							<int name="SelectionOrder">0</int>
+							<token name="Sink">0</token>
 							<UDim2 name="Size">
 								<XS>1</XS>
 								<XO>0</XO>
@@ -4441,17 +4657,20 @@ end)]]></ProtectedString>
 							<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 							<bool name="DefinesCapabilities">false</bool>
 							<string name="Name">Frame</string>
+							<BinaryString name="SerializedOverrides"></BinaryString>
 							<int64 name="SourceAssetId">-1</int64>
-							<BinaryString name="Tags"></BinaryString>
+							<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 						</Properties>
 						<Item class="ImageLabel" referent="RBX974EB134A4E045F090C2689BFE70E382">
 							<Properties>
-								<Content name="Image"><url>rbxassetid://138724073369386</url></Content>
 								<Color3 name="ImageColor3">
 									<R>1</R>
 									<G>1</G>
 									<B>1</B>
 								</Color3>
+								<Content name="ImageContent">
+									<uri>rbxassetid://138724073369386</uri>
+								</Content>
 								<Vector2 name="ImageRectOffset">
 									<X>0</X>
 									<Y>0</Y>
@@ -4501,7 +4720,6 @@ end)]]></ProtectedString>
 								<int name="BorderSizePixel">0</int>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
-								<token name="InputSink">0</token>
 								<bool name="Interactable">true</bool>
 								<int name="LayoutOrder">0</int>
 								<Ref name="NextSelectionDown">null</Ref>
@@ -4518,6 +4736,7 @@ end)]]></ProtectedString>
 								<bool name="Selectable">false</bool>
 								<Ref name="SelectionImageObject">null</Ref>
 								<int name="SelectionOrder">0</int>
+								<token name="Sink">0</token>
 								<UDim2 name="Size">
 									<XS>0.200000003</XS>
 									<XO>0</XO>
@@ -4538,8 +4757,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">ImageLabel</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 							<Item class="UIAspectRatioConstraint" referent="RBXE1778DCF34174E24A91F4953C03E22D7">
 								<Properties>
@@ -4550,8 +4770,9 @@ end)]]></ProtectedString>
 									<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 									<bool name="DefinesCapabilities">false</bool>
 									<string name="Name">UIAspectRatioConstraint</string>
+									<BinaryString name="SerializedOverrides"></BinaryString>
 									<int64 name="SourceAssetId">-1</int64>
-									<BinaryString name="Tags"></BinaryString>
+									<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 								</Properties>
 							</Item>
 						</Item>
@@ -4609,7 +4830,6 @@ end)]]></ProtectedString>
 								<int name="BorderSizePixel">0</int>
 								<bool name="ClipsDescendants">false</bool>
 								<bool name="Draggable">false</bool>
-								<token name="InputSink">0</token>
 								<bool name="Interactable">true</bool>
 								<int name="LayoutOrder">1</int>
 								<Ref name="NextSelectionDown">null</Ref>
@@ -4626,6 +4846,7 @@ end)]]></ProtectedString>
 								<bool name="Selectable">false</bool>
 								<Ref name="SelectionImageObject">null</Ref>
 								<int name="SelectionOrder">0</int>
+								<token name="Sink">0</token>
 								<UDim2 name="Size">
 									<XS>0.5</XS>
 									<XO>0</XO>
@@ -4646,8 +4867,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">TextLabel</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 						<Item class="UIListLayout" referent="RBXF8D87771148C4B0F9E7CB07B08C04534">
@@ -4668,8 +4890,9 @@ end)]]></ProtectedString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
 								<string name="Name">UIListLayout</string>
+								<BinaryString name="SerializedOverrides"></BinaryString>
 								<int64 name="SourceAssetId">-1</int64>
-								<BinaryString name="Tags"></BinaryString>
+								<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 							</Properties>
 						</Item>
 					</Item>
