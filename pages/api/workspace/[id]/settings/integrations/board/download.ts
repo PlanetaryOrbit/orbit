@@ -82,7 +82,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ success: false, error: 'Unable to determine server URL' });
   }
 
-  const currentUrl = new URL(`${protocol}://${host}`);
+  const currentUrl = new URL(`${host}`);
 
   const result = xml_string
     .replace(/<apikey>/g, boardConfig.key)
