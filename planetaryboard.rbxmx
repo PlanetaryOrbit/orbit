@@ -9,18 +9,18 @@
 			</Content>
 			<token name="LevelOfDetail">0</token>
 			<CoordinateFrame name="ModelMeshCFrame">
-				<X>-129.729782</X>
-				<Y>-14.2699528</Y>
-				<Z>46.7238808</Z>
-				<R00>0.99999994</R00>
-				<R01>-5.68434189e-14</R01>
-				<R02>-1.49011612e-08</R02>
-				<R10>0</R10>
-				<R11>1.00008678</R11>
-				<R12>-5.84198176e-07</R12>
-				<R20>-2.98023224e-08</R20>
-				<R21>5.82214341e-07</R21>
-				<R22>1.00008738</R22>
+				<X>138.524734</X>
+				<Y>-9.73208046</Y>
+				<Z>-32.0453644</Z>
+				<R00>-0.999999702</R00>
+				<R01>-5.96817173e-09</R01>
+				<R02>1.15105649e-08</R02>
+				<R10>-2.47746357e-09</R10>
+				<R11>1.00008702</R11>
+				<R12>-5.36441803e-07</R12>
+				<R20>-1.51485438e-08</R20>
+				<R21>-5.36442201e-07</R21>
+				<R22>-1.00008726</R22>
 			</CoordinateFrame>
 			<SharedString name="ModelMeshData">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			<Vector3 name="ModelMeshSize">
@@ -31,14 +31,14 @@
 			<token name="ModelStreamingMode">0</token>
 			<bool name="NeedsPivotMigration">false</bool>
 			<Ref name="PrimaryPart">null</Ref>
-			<float name="ScaleFactor">0.944000006</float>
+			<float name="ScaleFactor">0.943856001</float>
 			<SharedString name="SlimHash">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			<OptionalCoordinateFrame name="WorldPivotData">
 				<CFrame>
-					<X>0</X>
-					<Y>0</Y>
-					<Z>0</Z>
-					<R00>1</R00>
+					<X>139.1548</X>
+					<Y>2.46171069</Y>
+					<Z>-46.7214813</Z>
+					<R00>-1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
@@ -46,7 +46,7 @@
 					<R12>0</R12>
 					<R20>0</R20>
 					<R21>0</R21>
-					<R22>1</R22>
+					<R22>-1</R22>
 				</CFrame>
 			</OptionalCoordinateFrame>
 			<BinaryString name="AttributesSerialize"></BinaryString>
@@ -111,18 +111,18 @@
 				<token name="BottomSurface">0</token>
 				<token name="BottomSurfaceInput">0</token>
 				<CoordinateFrame name="CFrame">
-					<X>0</X>
-					<Y>7.2243769e-05</Y>
-					<Z>-4.04160937e-06</Z>
-					<R00>1</R00>
+					<X>139.1548</X>
+					<Y>2.46178651</Y>
+					<Z>-46.7214775</Z>
+					<R00>-1</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
 					<R11>1.00000131</R11>
 					<R12>9.69268399e-09</R12>
 					<R20>0</R20>
-					<R21>-4.6740718e-09</R21>
-					<R22>1.00000131</R22>
+					<R21>4.6740718e-09</R21>
+					<R22>-1.00000131</R22>
 				</CoordinateFrame>
 				<bool name="CanCollide">true</bool>
 				<bool name="CanQuery">true</bool>
@@ -183,9 +183,9 @@
 					<Z>0</Z>
 				</Vector3>
 				<Vector3 name="size">
-					<X>8.91135979</X>
-					<Y>4.98432016</Y>
-					<Z>0.217119575</Z>
+					<X>8.90999985</X>
+					<Y>4.98356009</Y>
+					<Z>0.217086449</Z>
 				</Vector3>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
@@ -200,7 +200,7 @@
 			<Properties>
 				<Content name="LinkedSource"><null></null></Content>
 				<ProtectedString name="Source"><![CDATA[local Config = {
-	baseurl = "http://localhost:3000/", -- the URL of your instance, eg.: https://egg.planetaryapp.cloud/ or https://YOURDOMAIN.com/ (your Top Level Domain may change, additionally if the instance is under a subdomain, please include it.)
+	baseurl = "https://staff.glixera.eu/", -- the URL of your instance, eg.: https://egg.planetaryapp.cloud/ or https://YOURDOMAIN.com/ (your Top Level Domain may change, additionally if the instance is under a subdomain, please include it.)
 	api_key = "13ec4c9f5d19b95bda4fc7b4637b168a", -- automatically generated key
 	workspace_id = "16047689", -- your workspace id
 	event_type = "all", -- the default event, if it's not set on the table below, set "all" if you want it to show all upcoming events, available "shift", "event", "training"...
@@ -218,13 +218,13 @@
 		color_profile_color = "orbit", -- "orbit", "red", "purple" etc... or any hex color: eg.: "#ff0099"
 		clock_format = "12h", -- 12h or 24h
 	},
-	debugmode = false, -- if enabled, your console will be filled with debug information - not recommended for production use (false by default)
+	debugmode=false, -- if enabled, your console will be filled with debug information - not recommended for production use
 }
 
 
 return Config
 ]]></ProtectedString>
-				<string name="ScriptGuid">{F3870EB7-A0AB-49E8-AA5C-F028E493971E}</string>
+				<string name="ScriptGuid">{9B12BCB7-D0E3-4688-B0A3-7813F53F5EB9}</string>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 				<bool name="DefinesCapabilities">false</bool>
@@ -233,7 +233,7 @@ return Config
 				<int64 name="SourceAssetId">-1</int64>
 				<SharedString name="Tags">yuZpQdnvvUBOTYh1jqZ2cA==</SharedString>
 			</Properties>
-			<Item class="Script" referent="RBX12FAF1DA74C4409E8041C5F8DA6F579A">
+			<Item class="Script" referent="RBX0072E9005AA34329B95732B684D549F2">
 				<Properties>
 					<ProtectedString name="Source"><![CDATA[local Config = require(script.Parent)
 local httpservice = game:GetService("HttpService")
@@ -744,7 +744,7 @@ Init()]]></ProtectedString>
 					<bool name="Disabled">false</bool>
 					<Content name="LinkedSource"><null></null></Content>
 					<token name="RunContext">0</token>
-					<string name="ScriptGuid">{10762E13-748C-4EE1-8E5E-FB8DA6CD6531}</string>
+					<string name="ScriptGuid">{B9AF355E-C0A0-46F7-9C12-70EDEB48638D}</string>
 					<BinaryString name="AttributesSerialize"></BinaryString>
 					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 					<bool name="DefinesCapabilities">false</bool>
@@ -770,18 +770,18 @@ Init()]]></ProtectedString>
 				<token name="BottomSurface">0</token>
 				<token name="BottomSurfaceInput">0</token>
 				<CoordinateFrame name="CFrame">
-					<X>0.0188780017</X>
-					<Y>-0.00939798728</Y>
-					<Z>-0.0188856311</Z>
-					<R00>0.99999994</R00>
+					<X>139.135925</X>
+					<Y>2.45231986</Y>
+					<Z>-46.7026024</Z>
+					<R00>-0.99999994</R00>
 					<R01>0</R01>
 					<R02>0</R02>
 					<R10>0</R10>
 					<R11>1.00000131</R11>
 					<R12>1.05577236e-08</R12>
 					<R20>0</R20>
-					<R21>-4.6740718e-09</R21>
-					<R22>1.00000119</R22>
+					<R21>4.6740718e-09</R21>
+					<R22>-1.00000119</R22>
 				</CoordinateFrame>
 				<bool name="CanCollide">true</bool>
 				<bool name="CanQuery">true</bool>
@@ -842,9 +842,9 @@ Init()]]></ProtectedString>
 					<Z>0</Z>
 				</Vector3>
 				<Vector3 name="size">
-					<X>8.57151985</X>
-					<Y>4.71999979</Y>
-					<Z>0.179360002</Z>
+					<X>8.57021236</X>
+					<Y>4.71927977</Y>
+					<Z>0.179332644</Z>
 				</Vector3>
 				<BinaryString name="AttributesSerialize"></BinaryString>
 				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
@@ -863,9 +863,9 @@ Init()]]></ProtectedString>
 						<Y>600</Y>
 					</Vector2>
 					<bool name="ClipsDescendants">true</bool>
-					<float name="LightInfluence">0.300000012</float>
+					<float name="LightInfluence">1</float>
 					<float name="MaxDistance">1000</float>
-					<float name="PixelsPerStud">211.86441</float>
+					<float name="PixelsPerStud">211.896729</float>
 					<token name="SizingMode">1</token>
 					<float name="ToolPunchThroughDistance">0</float>
 					<float name="ZOffset">0</float>
@@ -1589,7 +1589,7 @@ end]]></ProtectedString>
 										<bool name="Disabled">false</bool>
 										<Content name="LinkedSource"><null></null></Content>
 										<token name="RunContext">2</token>
-										<string name="ScriptGuid">{0A64E973-3E66-4B67-AFB7-978E3CC0EAA8}</string>
+										<string name="ScriptGuid">{4D8A03EB-9937-4AAC-B870-5FAD69D771AC}</string>
 										<BinaryString name="AttributesSerialize"></BinaryString>
 										<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 										<bool name="DefinesCapabilities">false</bool>
@@ -1666,7 +1666,7 @@ end)]]></ProtectedString>
 								<bool name="Disabled">false</bool>
 								<Content name="LinkedSource"><null></null></Content>
 								<token name="RunContext">2</token>
-								<string name="ScriptGuid">{E4F6920F-176E-42D4-ADB2-E152EB3827C9}</string>
+								<string name="ScriptGuid">{69511ABA-4933-45EF-B0B2-E421F116807D}</string>
 								<BinaryString name="AttributesSerialize"></BinaryString>
 								<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 								<bool name="DefinesCapabilities">false</bool>
@@ -2148,7 +2148,7 @@ end]]></ProtectedString>
 											<bool name="Disabled">false</bool>
 											<Content name="LinkedSource"><null></null></Content>
 											<token name="RunContext">0</token>
-											<string name="ScriptGuid">{D75DB4DD-E164-415E-9367-A2C5C2D36FD2}</string>
+											<string name="ScriptGuid">{E2A3DCDC-E8BD-49B4-A055-EF4EB88D1F22}</string>
 											<BinaryString name="AttributesSerialize"></BinaryString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
@@ -3585,7 +3585,7 @@ end)]]></ProtectedString>
 											<bool name="Disabled">true</bool>
 											<Content name="LinkedSource"><null></null></Content>
 											<token name="RunContext">2</token>
-											<string name="ScriptGuid">{09F3EB5E-6D24-429D-8F33-55DBD0A7A09E}</string>
+											<string name="ScriptGuid">{EF31A79D-7170-4B50-AF4E-0FDA487ABC41}</string>
 											<BinaryString name="AttributesSerialize"></BinaryString>
 											<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
 											<bool name="DefinesCapabilities">false</bool>
