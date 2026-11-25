@@ -3,7 +3,8 @@ import {
   applyAccountPreferences,
   readAccountPreferences,
 } from '@/components/account/types';
-import HelpFloatingButton, { HelpProvider } from '@/components/HelpFloatingButton';
+import HelpFloatingButton from '@/components/help/HelpFloatingButton';
+import { HelpProvider } from '@/components/help/HelpProvider';
 
 import '@/styles/globals.scss';
 import LoadingScreen from '@/components/loading';

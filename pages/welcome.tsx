@@ -1,548 +1,116 @@
-import Input from '@/components/input';
-import PasswordStrengthBar from '@/components/passwordStrengthBar';
-import Slider from '@/components/slider';
-import packageinfo from '@/package.json';
+import AuthShell from '@/components/auth/AuthShell';
+import AccountStep from '@/components/setup/AccountStep';
+import { DEFAULT_ACCENT, STEP_COUNT } from '@/components/setup/constants';
+import OpenCloudStep from '@/components/setup/OpenCloudStep';
+import type { AccountValues } from '@/components/setup/types';
+import WorkspaceStep from '@/components/setup/WorkspaceStep';
 import { loginState } from '@/state';
-import { getContrastColor } from '@/utils/color';
-import { calculatePasswordStrength } from '@/utils/passwordStrength';
-import { IconCheck, IconEye, IconEyeOff, IconInfoCircle, IconX } from '@tabler/icons-react';
+import { getRGBFromTailwindColor } from '@/utils/themeColor';
 import axios from 'axios';
 import type { NextPage } from 'next';
+import Head from 'next/head';
 import Router from 'next/router';
-import React, { useEffect, useRef, useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 
-type FormData = {
-  username: string;
-  password: string;
-  verifypassword: string;
-};
+const SETUP_TIMEOUT_MS = 30000;
 
-const StepIndicator = ({ step, color }: { step: number; color: string }) => (
-  <div className='mb-6 flex items-center justify-between'>
-    <p className='text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400'>
-      Step {step} of 3
-    </p>
-    <div
-      className='flex items-center gap-1.5'
-      aria-hidden='true'
-    >
-      {[1, 2, 3].map((value) => (
-        <span
-          key={value}
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            value <= step ? '' : 'bg-zinc-200 dark:bg-zinc-600'
-          }`}
-          style={{
-            backgroundColor: value <= step ? color : undefined,
-            width: value === step ? 24 : 8,
-          }}
-        />
-      ))}
-    </div>
-  </div>
-);
+const Welcome: NextPage = () => {
+  const setLogin = useSetRecoilState(loginState);
+  const [step, setStep] = useState(0);
+  const [accent, setAccent] = useState(DEFAULT_ACCENT);
+  const [groupId, setGroupId] = useState('');
+  const [openCloudKey, setOpenCloudKey] = useState('');
 
-const Login: NextPage = () => {
-  const [selectedColor, setSelectedColor] = useState('#9d8fff');
-  const [login, setLogin] = useRecoilState(loginState);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const methods = useForm<{ groupid: string }>();
-  const signupform = useForm<FormData>();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = methods;
-  const [selectedSlide, setSelectedSlide] = useState(0);
-  const [ocEnabled, setOcEnabled] = useState(false);
-  const [ockey, setOckey] = useState('');
-  const [ocKeyStatus, setOcKeyStatus] = useState<'verified' | 'failed' | 'Saved' | null>(null);
-  const [ocTesting, setOcTesting] = useState(false);
-  const [ocLoading, setOcLoading] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
-  const testedKey = useRef<string | null>(null);
-  const signupPassword = signupform.watch('password') || '';
-  const signupPasswordStrength = calculatePasswordStrength(signupPassword);
-
-  async function createAccount() {
-    setIsLoading(true);
-    let request: { data: { success: boolean; user: any } } | undefined;
-
+  const createAccount = async ({ username, password }: AccountValues): Promise<string | null> => {
     try {
-      request = (await Promise.race([
-        axios.post('/api/setupworkspace', {
-          groupid: methods.getValues('groupid'),
-          username: signupform.getValues('username'),
-          password: signupform.getValues('password'),
-          color: selectedColor,
-          ...(ocKeyStatus === 'verified' && ockey.trim() ? { opencloudKey: ockey.trim() } : {}),
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 30000)),
-      ])) as { data: { success: boolean; user: any } };
+      const { data } = await axios.post(
+        '/api/setupworkspace',
+        {
+          groupid: groupId,
+          username,
+          password,
+          color: accent,
+          ...(openCloudKey ? { opencloudKey: openCloudKey } : {}),
+        },
+        { timeout: SETUP_TIMEOUT_MS },
+      );
 
-      if (request?.data.success) {
+      if (data.success) {
         toast.success('Instance setup completed.');
-
-        setLogin((prev) => ({
-          ...prev,
-          ...request?.data.user,
-          isOwner: true,
-        }));
-
+        setLogin((previous) => ({ ...previous, ...data.user, isOwner: true }));
         await Router.replace('/');
       }
-    } catch (e: any) {
-      if (e?.response?.status === 404) {
-        signupform.setError('username', {
-          type: 'custom',
-          message: e.response.data.error,
-        });
+
+      return null;
+    } catch (error) {
+      if (!axios.isAxiosError(error)) {
+        toast.error('An error occurred. Please try again.');
+        return null;
+      }
+
+      if (error.response?.status === 404) {
         toast.error('Username not found');
-      } else if (e?.response?.status === 403) {
+        return error.response.data?.error ?? 'Username not found';
+      }
+
+      if (error.response?.status === 403) {
         toast.error('Workspace already exists');
-      } else if (e?.message === 'Request timeout') {
+      } else if (error.code === 'ECONNABORTED') {
         toast.error('Request timed out. Please try again.');
       } else {
         toast.error('An error occurred. Please try again.');
-        console.error('Setup workspace error:', e);
       }
-      return;
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
-  const testOcKey = async (keyToTest: string | null): Promise<boolean> => {
-    const errorMessages: Record<number, string> = {
-      1: "API key is missing the 'group' scope",
-      2: 'API key needs both read and write permissions',
-      3: 'API key has expired',
-      4: 'API key is disabled',
-      5: 'Invalid API key',
-      400: 'API key is not provided in a valid format.',
-    };
-    try {
-      const payload = keyToTest && keyToTest.trim() !== '' ? { key: keyToTest } : {};
-      const response = await axios.post(`/api/setup/opencloudtest`, payload);
-      if (response.data.success) {
-        testedKey.current = keyToTest && keyToTest.trim() !== '' ? keyToTest.trim() : '•';
-        setOcKeyStatus('verified');
-        return true;
-      }
-      setOcKeyStatus('failed');
-      toast.error('API key is invalid');
-      return false;
-    } catch (error: any) {
-      const code = error?.response?.data?.code;
-      const message = error?.response?.data?.message;
-      setOcKeyStatus('failed');
-      toast.error(errorMessages[code] || message || 'Failed to test key');
-      return false;
+      return null;
     }
   };
-
-  const handleOcTest = async () => {
-    if (!ockey.trim()) {
-      toast.error('Please enter an Open Cloud API key first');
-      return;
-    }
-    setOcTesting(true);
-    const valid = await testOcKey(ockey);
-    if (valid) toast.success('API key is valid');
-    setOcTesting(false);
-  };
-
-  const nextSlide = () => {
-    setSelectedSlide(selectedSlide + 1);
-  };
-
-  const colors = [
-    '#fce7f3', // pink-100
-    '#ffe4e6', // rose-100
-    '#ffedd5', // orange-100
-    '#fef3c7', // amber-100
-    '#ecfccb', // lime-100
-    '#d1fae5', // emerald-100
-    '#cffafe', // cyan-100
-    '#e0f2fe', // sky-100
-    '#e0e7ff', // indigo-100
-    '#f3e8ff', // purple-100
-    '#f9a8d4', // pink-400
-    '#fb7185', // rose-400
-    '#fb923c', // orange-400
-    '#fbbf24', // amber-400
-    '#a3e635', // lime-400
-    '#34d399', // emerald-400
-    '#22d3ee', // cyan-400
-    '#38bdf8', // sky-400
-    '#818cf8', // indigo-400
-    '#a78bfa', // violet-400
-    '#9d8fff', // orbit
-    '#e11d48', // rose-600
-    '#ea580c', // orange-600
-    '#d97706', // amber-600
-    '#65a30d', // lime-600
-    '#059669', // emerald-600
-    '#0891b2', // cyan-600
-    '#0284c7', // sky-600
-    '#4f46e5', // indigo-600
-    '#7c3aed', // violet-600
-  ];
 
   return (
-    <div className={`min-h-screen bg-no-repeat bg-cover bg-center flex flex-col bg-orbit`}>
-      <div className='hidden sm:block absolute top-4 left-4 pointer-events-none'>
-        <p className='text-white sm:text-3xl md:text-5xl font-extrabold leading-tight'>
-          👋 Welcome <br /> to <span style={{ color: selectedColor }}>Orbit</span>
-        </p>
-      </div>
+    <>
+      <Head>
+        <title>Welcome · Orbit</title>
+      </Head>
 
-      <div className='flex-1 flex items-center justify-center px-4 py-10 sm:py-16'>
-        <div className='w-full max-w-md'>
-          <Slider activeSlide={selectedSlide}>
-            <div>
-              <StepIndicator
-                step={1}
-                color={selectedColor}
-              />
-              <p className='text-2xl font-bold text-zinc-900 dark:text-white'>
-                Let&apos;s get started
-              </p>
-              <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
-                To configure your Orbit instance, we&apos;ll need some information
-              </p>
-              <FormProvider {...methods}>
-                <form
-                  className='mt-4'
-                  onSubmit={handleSubmit(nextSlide)}
-                >
-                  <Input
-                    placeholder='35724790'
-                    label='Group ID'
-                    id='groupid'
-                    {...register('groupid', {
-                      required: {
-                        value: true,
-                        message: 'This field is required',
-                      },
-                      pattern: {
-                        value: /^\d+$/,
-                        message: 'Group ID must be a number',
-                      },
-                    })}
-                  />
-                </form>
-              </FormProvider>
+      <AuthShell
+        accentRgb={getRGBFromTailwindColor(accent)}
+        description='Set up your instance in a few quick steps.'
+        contentKey={step}
+        progress={{ current: step, total: STEP_COUNT }}
+      >
+        {step === 0 && (
+          <WorkspaceStep
+            groupId={groupId}
+            accent={accent}
+            onAccentChange={setAccent}
+            onContinue={(id) => {
+              setGroupId(id);
+              setStep(1);
+            }}
+          />
+        )}
 
-              <div className='mt-5'>
-                <label className='text-zinc-500 text-sm dark:text-zinc-200'>Color</label>
-                <div className='grid grid-cols-6 sm:grid-cols-10 gap-2 mt-2 mb-6'>
-                  {colors.map((color, i) => (
-                    <button
-                      key={i}
-                      type='button'
-                      onClick={() => setSelectedColor(color)}
-                      className={`aspect-square rounded-lg transform transition-all ease-in-out ${
-                        selectedColor === color
-                          ? 'ring-2 ring-black dark:ring-white ring-offset-2'
-                          : 'hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              </div>
-              {/* input a hex color */}
+        {step === 1 && (
+          <OpenCloudStep
+            savedKey={openCloudKey}
+            onBack={() => setStep(0)}
+            onContinue={(key) => {
+              setOpenCloudKey(key);
+              setStep(2);
+            }}
+          />
+        )}
 
-              <div className='flex gap-3'>
-                <button
-                  type='button'
-                  onClick={() =>
-                    window.open('https://docs.planetaryapp.cloud/', '_blank', 'noopener,noreferrer')
-                  }
-                  className='border-2 py-2.5 text-sm rounded-xl px-4 text-zinc-600 dark:text-white font-bold hover:bg-orbit/10 transition'
-                  style={{ borderColor: selectedColor }}
-                >
-                  Documentation
-                </button>
-                <button
-                  type='button'
-                  onClick={() => {
-                    handleSubmit(nextSlide)();
-                  }}
-                  className='ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90'
-                  style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <StepIndicator
-                step={2}
-                color={selectedColor}
-              />
-              <p className='text-2xl font-bold text-zinc-900 dark:text-white'>Open Cloud</p>
-              <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
-                Optionally connect Roblox Open Cloud for deeper integration with your group. You can
-                always set this up later in Settings.
-              </p>
-
-              <div className='mt-5 space-y-4'>
-                <div className='space-y-3'>
-                  <div>
-                    <label className='mb-1.5 block text-xs font-medium text-zinc-500 dark:text-zinc-400'>
-                      API key
-                    </label>
-                    <div className='relative'>
-                      <input
-                        type={showApiKey ? 'text' : 'password'}
-                        value={ockey}
-                        onChange={(e) => {
-                          setOckey(e.target.value);
-                          setOcKeyStatus(null);
-                        }}
-                        placeholder='Open Cloud API key'
-                        autoComplete='off'
-                        spellCheck={false}
-                        className='w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-11 text-sm text-zinc-900 transition-colors focus:border-orbit focus:ring-2 focus:ring-orbit/25 dark:border-zinc-600 dark:bg-zinc-950/50 dark:text-white'
-                      />
-                      <button
-                        type='button'
-                        onClick={() => setShowApiKey((v) => !v)}
-                        className='absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700/80 dark:hover:text-zinc-200'
-                        aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
-                      >
-                        {showApiKey ? (
-                          <IconEye
-                            className='h-4 w-4'
-                            stroke={1.5}
-                          />
-                        ) : (
-                          <IconEyeOff
-                            className='h-4 w-4'
-                            stroke={1.5}
-                          />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className='flex flex-wrap items-center gap-2'>
-                    <button
-                      type='button'
-                      onClick={handleOcTest}
-                      disabled={ocTesting || ocLoading || !ockey.trim()}
-                      className='rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600'
-                    >
-                      {ocTesting ? 'Testing…' : 'Test key'}
-                    </button>
-                    {ocKeyStatus === 'verified' && (
-                      <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
-                        <IconCheck
-                          className='h-4 w-4'
-                          stroke={2}
-                        />{' '}
-                        Verified
-                      </span>
-                    )}
-                    {ocKeyStatus === 'Saved' && (
-                      <span className='inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400'>
-                        <IconCheck
-                          className='h-4 w-4'
-                          stroke={2}
-                        />{' '}
-                        Saved
-                      </span>
-                    )}
-                    {ocKeyStatus === 'failed' && (
-                      <span className='inline-flex items-center gap-1 text-sm text-red-600 dark:text-red-400'>
-                        <IconX
-                          className='h-4 w-4'
-                          stroke={2}
-                        />{' '}
-                        Invalid
-                      </span>
-                    )}
-                  </div>
-
-                  <p className='text-xs text-zinc-500 dark:text-zinc-400'>
-                    Requires <b className='text-zinc-700 dark:text-zinc-200'>group:read</b> and{' '}
-                    <b className='text-zinc-700 dark:text-zinc-200'>group:write</b> permissions.
-                    Must be a USER API key.
-                  </p>
-                </div>
-              </div>
-
-              <div className='mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 dark:border-amber-500/30 dark:bg-amber-500/10'>
-                <IconInfoCircle
-                  className='mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400'
-                  stroke={2}
-                />
-                <p className='text-xs leading-relaxed text-amber-700 dark:text-amber-300'>
-                  <b>Recommended:</b> An API key unlocks deeper Roblox group features in Orbit. You
-                  can skip this and configure it later in Settings.
-                </p>
-              </div>
-
-              <div className='mt-6 flex gap-3'>
-                <button
-                  type='button'
-                  onClick={() => setSelectedSlide(0)}
-                  className='bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition'
-                >
-                  Back
-                </button>
-                <button
-                  type='button'
-                  onClick={() => setSelectedSlide(2)}
-                  disabled={ocTesting || (ockey.length > 0 && ocKeyStatus !== 'verified')}
-                  className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
-                    ocTesting || (ockey.length > 0 && ocKeyStatus !== 'verified')
-                      ? 'cursor-not-allowed opacity-50'
-                      : ''
-                  }`}
-                  style={{ backgroundColor: selectedColor, color: getContrastColor(selectedColor) }}
-                >
-                  {ockey.length === 0 ? 'Skip this' : 'Continue'}
-                </button>
-              </div>
-            </div>
-
-            {!isRegistered && (
-              <div>
-                <StepIndicator
-                  step={3}
-                  color={selectedColor}
-                />
-                <p className='text-2xl font-bold text-zinc-900 dark:text-white'>
-                  Make your Orbit account
-                </p>
-
-                <p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>
-                  You need to create an Orbit account to continue
-                </p>
-
-                <FormProvider {...signupform}>
-                  <form
-                    className='mt-4'
-                    onSubmit={signupform.handleSubmit(createAccount)}
-                  >
-                    <Input
-                      {...signupform.register('username', {
-                        required: 'Username is required',
-                      })}
-                      label='Roblox Username'
-                    />
-
-                    {signupform.formState.errors.username && (
-                      <p className='text-red-500 text-sm mt-1'>
-                        {signupform.formState.errors.username.message}
-                      </p>
-                    )}
-
-                    <div className='mt-3'>
-                      <Input
-                        type='password'
-                        {...signupform.register('password', {
-                          required: 'Password is required',
-                          validate: (value) => {
-                            const { score } = calculatePasswordStrength(value);
-
-                            return score >= 3 || 'Password must be at least Strong';
-                          },
-                        })}
-                        label='Password'
-                      />
-
-                      <PasswordStrengthBar password={signupPassword} />
-                    </div>
-
-                    {signupform.formState.errors.password && (
-                      <p className='text-red-500 text-sm mt-1'>
-                        {signupform.formState.errors.password.message}
-                      </p>
-                    )}
-
-                    <Input
-                      type='password'
-                      {...signupform.register('verifypassword', {
-                        required: 'Please verify your password',
-                        validate: (value) =>
-                          value === signupform.getValues('password') || 'Passwords do not match',
-                      })}
-                      label='Verify password'
-                    />
-
-                    {signupform.formState.errors.verifypassword && (
-                      <p className='text-red-500 text-sm mt-1'>
-                        {signupform.formState.errors.verifypassword.message}
-                      </p>
-                    )}
-                  </form>
-                </FormProvider>
-
-                <div className='mt-6 flex gap-3'>
-                  <button
-                    type='button'
-                    onClick={() => setSelectedSlide(1)}
-                    className='bg-zinc-100 dark:bg-zinc-700 py-2.5 text-sm rounded-xl px-6 text-zinc-700 dark:text-white font-bold hover:bg-zinc-200 dark:hover:bg-zinc-600 transition'
-                  >
-                    Back
-                  </button>
-
-                  <button
-                    type='button'
-                    onClick={signupform.handleSubmit(createAccount)}
-                    disabled={isLoading || signupPasswordStrength.score < 3}
-                    className={`ml-auto py-2.5 text-sm rounded-xl px-6 font-bold transition hover:enabled:opacity-90 ${
-                      isLoading || signupPasswordStrength.score < 3
-                        ? 'cursor-not-allowed opacity-50'
-                        : ''
-                    }`}
-                    style={{
-                      backgroundColor: selectedColor,
-                      color: getContrastColor(selectedColor),
-                    }}
-                  >
-                    {isLoading ? 'Creating...' : 'Continue'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </Slider>
-        </div>
-      </div>
-
-      <footer className='relative z-10 flex flex-col items-center gap-2 px-4 pb-8'>
-        <div className='flex items-center gap-5 text-xs font-semibold text-white/85'>
-          <a
-            href='https://docs.planetaryapp.cloud/'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='transition hover:text-white hover:underline'
-          >
-            Documentation
-          </a>
-          <a
-            href='https://github.com/planetaryorbit/orbit'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='transition hover:text-white hover:underline'
-          >
-            GitHub
-          </a>
-        </div>
-
-        <p className='text-[11px] text-white/60'>Orbit v{packageinfo.version}</p>
-      </footer>
-    </div>
+        {step === 2 && (
+          <AccountStep
+            onBack={() => setStep(1)}
+            onCreate={createAccount}
+          />
+        )}
+      </AuthShell>
+    </>
   );
 };
 
-export default Login;
+export default Welcome;

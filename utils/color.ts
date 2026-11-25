@@ -1,6 +1,4 @@
-// This file uses WCAG luminance calculation to detect weather text should be white or black.
-
-export function getContrastColor(hex?: string) {
+export function getContrastColor(hex?: string, luminanceThreshold = 0.179) {
   if (!hex || !hex.startsWith('#')) return '#ffffff';
 
   const rgb = hex
@@ -18,5 +16,14 @@ export function getContrastColor(hex?: string) {
 
   const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-  return luminance > 0.179 ? '#000000' : '#ffffff';
+  return luminance > luminanceThreshold ? '#000000' : '#ffffff';
+}
+
+export function getContrastColorFromRgb(rgb: string, luminanceThreshold?: number) {
+  const channels = rgb
+    .trim()
+    .split(/\s+/)
+    .map((value) => Number(value).toString(16).padStart(2, '0'));
+
+  return getContrastColor(`#${channels.join('')}`, luminanceThreshold);
 }
