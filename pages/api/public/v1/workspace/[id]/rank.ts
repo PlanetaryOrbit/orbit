@@ -4,7 +4,6 @@ import prisma from '@/utils/database';
 import { initiateClient } from '@/utils/roblox';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH')
     return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -46,3 +45,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         userid.toString(),
         roleid.toString(),
       );
+
+      await Client.groups.updateGroupMembership(workspaceId.toString(), userid, roleid);
+
+      return res.status(200).json({ success: true, message: 'User ranked successfully.' });
+    } catch (err) {
+      console.log(`[Ranking API]: Failed to rank user ${userid},`, err);
+      return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+  } catch (error) {
+    console.error('Error in public API:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+}
+
+export default withKey(handler);
