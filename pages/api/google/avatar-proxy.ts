@@ -16,7 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const target = await safeExternalUrl(url, ['lh3.googleusercontent.com']);
     if (!target) return res.status(400).end();
 
-    const canonicalTarget = new URL(target.pathname + target.search, 'https://lh3.googleusercontent.com');
+    const canonicalTarget = new URL(
+      target.pathname + target.search,
+      'https://lh3.googleusercontent.com',
+    );
 
     const upstream = await fetch(canonicalTarget, {
       redirect: 'manual',
