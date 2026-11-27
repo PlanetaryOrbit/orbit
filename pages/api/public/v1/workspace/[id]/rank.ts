@@ -2,8 +2,11 @@ import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { initiateClient } from '@/utils/roblox';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withKey } from '@/lib/withAuth'; 
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withKey(handler);
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH')
     return res.status(405).json({ success: false, error: 'Method not allowed' });
 

@@ -118,6 +118,9 @@
     "@parcel/watcher",
     "core-js",
     "noblox.js",
-    "unrs-resolver"
+    "unrs-resolver",
+    "@prisma/engines",
+    "prisma",
+    "sharp"
   ]
 }
