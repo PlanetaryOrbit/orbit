@@ -49,20 +49,26 @@ export async function safeExternalUrl(
     return null;
   }
 
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+  if (url.protocol !== 'https:') return null;
   if (url.username || url.password) return null;
 
   const hostname = url.hostname.toLowerCase();
   if (!allowedHostnames.map((h) => h.toLowerCase()).includes(hostname)) return null;
 
   if (isIP(hostname)) {
-    return isPrivateAddress(hostname) ? null : url;
+    if (isPrivateAddress(hostname)) return null;
+  } else {
+    const addresses = await dns.lookup(hostname, { all: true }).catch(() => []);
+    if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
+      return null;
+    }
   }
 
-  const addresses = await dns.lookup(hostname, { all: true }).catch(() => []);
-  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateAddress(address))) {
-    return null;
-  }
+  const safe = new URL('https://' + hostname);
+  safe.port = url.port;
+  safe.pathname = url.pathname;
+  safe.search = url.search;
+  safe.hash = url.hash;
 
-  return url;
+  return safe;
 }

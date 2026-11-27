@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const target = await safeExternalUrl(url, ['audio-ssl.itunes.apple.com']);
     if (!target) return res.status(400).end();
 
-    const upstream = await fetch(target.toString(), {
+    const upstream = await fetch(target.href, {
       redirect: 'manual',
       signal: AbortSignal.timeout(10000),
     });
