@@ -1,5 +1,4 @@
 import { getConfig } from '@/utils/configEngine';
-import prisma from '@/utils/database';
 import { initiateClient } from '@/utils/roblox';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withKey } from '@/lib/withAuth'; 
