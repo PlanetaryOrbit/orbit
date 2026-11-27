@@ -52,6 +52,30 @@ export interface APIRequest extends NextApiRequest {
   workspaceId?: bigint;
 }
 
+// The board key is shipped inside the downloadable planetaryboard.rbxmx model,
+// so treat it as public and only accept it on the endpoints that model calls.
+const BOARD_KEY_PATH_PATTERNS = [
+  /^\/api\/public\/v1\/workspace\/([^/]+)\/info$/,
+  /^\/api\/public\/v1\/workspace\/([^/]+)\/sessions\/upcoming$/,
+];
+const BOARD_KEY_QUERY_PARAMS = new Set(['id', 'category']);
+
+function isBoardKeyRequestAllowed(req: NextApiRequest, workspaceId?: number): boolean {
+  if (!workspaceId || req.method !== 'GET' || !req.url) return false;
+
+  if (Object.keys(req.query).some((param) => !BOARD_KEY_QUERY_PARAMS.has(param))) return false;
+
+  try {
+    const pathname = new URL(req.url, 'http://localhost').pathname.replace(/\/+$/, '');
+    const match = BOARD_KEY_PATH_PATTERNS.map((pattern) => pathname.match(pattern)).find(Boolean);
+    if (!match) return false;
+
+    return Number(decodeURIComponent(match[1])) === workspaceId;
+  } catch {
+    return false;
+  }
+}
+
 export function withAuth(
   handler: (req: AuthenticatedRequest, res: NextApiResponse) => any,
 ): NextApiHandler {
@@ -152,7 +176,7 @@ export function withKey(
         }
       }
 
-      if (!authenticated) {
+      if (!authenticated && isBoardKeyRequestAllowed(req, workspaceId)) {
         const secretKey = await getConfig('board_key', workspaceId as number);
         if (secretKey?.key && secretKey.key === auth) {
           authenticated = true;
