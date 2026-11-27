@@ -16,10 +16,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const target = await safeExternalUrl(url, ['lh3.googleusercontent.com']);
     if (!target) return res.status(400).end();
 
-    const canonicalTarget = new URL(
-      target.pathname + target.search,
-      'https://lh3.googleusercontent.com',
-    );
+    const pathname = target.pathname;
+    const search = target.search;
+
+    const decodedPath = decodeURIComponent(pathname).toLowerCase();
+    const hasTraversal =
+      decodedPath.includes('/../') ||
+      decodedPath.endsWith('/..') ||
+      decodedPath.includes('/./') ||
+      decodedPath.endsWith('/.');
+    const hasSuspiciousEncoding =
+      /%2e|%2f|%5c/i.test(pathname) || /%2e|%2f|%5c/i.test(search);
+
+    if (!pathname.startsWith('/') || hasTraversal || hasSuspiciousEncoding || target.hash) {
+      return res.status(400).end();
+    }
+
+    const canonicalTarget = new URL(pathname + search, 'https://lh3.googleusercontent.com');
 
     const upstream = await fetch(canonicalTarget, {
       redirect: 'manual',
