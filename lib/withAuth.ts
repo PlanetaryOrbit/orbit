@@ -1,6 +1,5 @@
-import * as crypto from 'crypto';
-
 import { validateApiKey } from '@/utils/api-auth';
+import { clearSessionCookie } from '@/utils/authCookies';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { getSessionByToken } from '@/utils/session';
@@ -17,7 +16,10 @@ import zxcvbn from 'zxcvbn';
 import { verifyWorkspace } from './security';
 
 if (process.env.NODE_ENV === 'production') {
-  const secret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error('SESSION_SECRET must be configured in production');
+  }
 
   if (secret === 'supersecretpassword') {
     throw new Error('SESSION_SECRET must be changed from the default secret in production');
@@ -98,12 +100,7 @@ export function withAuth(
       const session = await getSessionByToken(cookies.session_token);
 
       if (!session) {
-        res.setHeader(
-          'Set-Cookie',
-          ['session_token=', 'Path=/', 'HttpOnly', 'SameSite=lax', 'Secure', 'Max-Age=0'].join(
-            '; ',
-          ),
-        );
+        clearSessionCookie(res);
 
         return res.status(401).json({
           success: false,
@@ -234,12 +231,7 @@ export function withAuthSsr<
       const session = await getSessionByToken(token);
 
       if (!session) {
-        context.res.setHeader(
-          'Set-Cookie',
-          ['session_token=', 'Path=/', 'HttpOnly', 'SameSite=lax', 'Secure', 'Max-Age=0'].join(
-            '; ',
-          ),
-        );
+        clearSessionCookie(context.res as NextApiResponse);
 
         return {
           redirect: {

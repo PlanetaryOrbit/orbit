@@ -1,3 +1,4 @@
+import { safeEqual } from '@/lib/security';
 import { AuthenticatedRequest, AuthHandler, withAuth } from '@/lib/withAuth';
 import * as cookie from 'cookie';
 import type {
@@ -15,8 +16,28 @@ import prisma from './database';
 import { getSessionByToken } from './session';
 import { getThumbnail } from './userinfoEngine';
 
-const permissionsCache = new Map<string, { data: any; timestamp: number }>();
+const permissionsCache = new Map<string, { data: any; timestamp: number; generation: number }>();
+const permissionGenerations = new Map<number, number>();
 const PERMISSIONS_CACHE_DURATION = 120000;
+
+function bumpWorkspaceGeneration(workspaceId: number): number {
+  const generation = (permissionGenerations.get(workspaceId) ?? 0) + 1;
+  permissionGenerations.set(workspaceId, generation);
+  return generation;
+}
+
+export function invalidatePermissions(uid: bigint | number | string, workspaceId: number): void {
+  bumpWorkspaceGeneration(workspaceId);
+  permissionsCache.delete(`permissions_${uid}_${workspaceId}`);
+}
+
+export function invalidateWorkspacePermissions(workspaceId: number): void {
+  bumpWorkspaceGeneration(workspaceId);
+  const suffix = `_${workspaceId}`;
+  for (const key of permissionsCache.keys()) {
+    if (key.endsWith(suffix)) permissionsCache.delete(key);
+  }
+}
 
 interface GroupCache {
   userRoleMap: Map<number, { robloxRoleId: number; username: string }>;
@@ -265,25 +286,35 @@ export function withPermissionCheck(handler: AuthHandler, permission?: string | 
       });
     }
 
+    const uid = req.auth.userId;
+    if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
-    if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
-      if (req.headers['x-planetary-cloud-service-key'] === PLANETARY_CLOUD_SERVICE_KEY) {
-        return handler(req, res);
-      }
+    const serviceKey = req.headers['x-planetary-cloud-service-key'];
+    if (
+      PLANETARY_CLOUD_URL &&
+      PLANETARY_CLOUD_SERVICE_KEY &&
+      typeof serviceKey === 'string' &&
+      safeEqual(serviceKey, PLANETARY_CLOUD_SERVICE_KEY)
+    ) {
+      return handler(req, res);
     }
 
-    const uid = req.auth.userId; // BigInt, from withAuth
-    if (!uid) return res.status(401).json({ success: false, error: 'Unauthorized' });
     if (!req.query.id)
       return res.status(400).json({ success: false, error: 'Missing required fields' });
 
     const workspaceId = parseInt(req.query.id as string);
     const cacheKey = `permissions_${uid}_${workspaceId}`;
     const now = Date.now();
+    const generation = permissionGenerations.get(workspaceId) ?? 0;
     const cached = permissionsCache.get(cacheKey);
 
-    if (cached && now - cached.timestamp < PERMISSIONS_CACHE_DURATION) {
+    if (
+      cached &&
+      cached.generation === generation &&
+      now - cached.timestamp < PERMISSIONS_CACHE_DURATION
+    ) {
       const cachedData = cached.data;
       if (cachedData.isAdmin) return handler(req, res);
       if (!permission) return handler(req, res);
@@ -302,39 +333,21 @@ export function withPermissionCheck(handler: AuthHandler, permission?: string | 
     });
     if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
-    let membership = user.workspaceMemberships[0];
-    if (!membership && user.roles.length > 0) {
-      try {
-        membership = await prisma.workspaceMember.create({
-          data: {
-            workspaceGroupId: workspaceId,
-            userId: Number(uid),
-            joinDate: new Date(),
-            timezone: 'UTC',
-          },
-        });
-      } catch {
-        const existing = await prisma.workspaceMember.findUnique({
-          where: {
-            workspaceGroupId_userId: {
-              workspaceGroupId: workspaceId,
-              userId: Number(uid),
-            },
-          },
-        });
-        if (existing) membership = existing;
-      }
-    }
-
+    // Stale roles must not recreate membership; an existing workspaceMember is required.
+    const membership = user.workspaceMemberships[0];
     if (!membership) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
     const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, {
-      data: { permissions: userrole?.permissions || [], isAdmin },
-      timestamp: now,
-    });
+    // A role change during this lookup invalidated the cache; do not republish stale data.
+    if ((permissionGenerations.get(workspaceId) ?? 0) === generation) {
+      permissionsCache.set(cacheKey, {
+        data: { permissions: userrole?.permissions || [], isAdmin },
+        timestamp: now,
+        generation,
+      });
+    }
 
     if (isAdmin) return handler(req, res);
     if (!permission) return handler(req, res);
@@ -367,10 +380,15 @@ export function withPermissionCheckSsr(
 
     const PLANETARY_CLOUD_URL = process.env.PLANETARY_CLOUD_URL;
     const PLANETARY_CLOUD_SERVICE_KEY = process.env.PLANETARY_CLOUD_SERVICE_KEY;
-    if (PLANETARY_CLOUD_URL && PLANETARY_CLOUD_SERVICE_KEY?.length) {
-      if (req.headers['x-planetary-cloud-service-key'] === PLANETARY_CLOUD_SERVICE_KEY) {
-        return handler(context);
-      }
+    const serviceKey = req.headers['x-planetary-cloud-service-key'];
+    if (
+      PLANETARY_CLOUD_URL &&
+      PLANETARY_CLOUD_SERVICE_KEY &&
+      uid &&
+      typeof serviceKey === 'string' &&
+      safeEqual(serviceKey, PLANETARY_CLOUD_SERVICE_KEY)
+    ) {
+      return handler(context);
     }
 
     if (!query.id) return { redirect: { destination: '/', permanent: false } };
@@ -378,9 +396,14 @@ export function withPermissionCheckSsr(
     const workspaceId = parseInt(query.id as string);
     const cacheKey = `permissions_${uid}_${workspaceId}`;
     const now = Date.now();
+    const generation = permissionGenerations.get(workspaceId) ?? 0;
     const cached = permissionsCache.get(cacheKey);
 
-    if (cached && now - cached.timestamp < PERMISSIONS_CACHE_DURATION) {
+    if (
+      cached &&
+      cached.generation === generation &&
+      now - cached.timestamp < PERMISSIONS_CACHE_DURATION
+    ) {
       const cachedData = cached.data;
       if (cachedData.isAdmin) return handler(context);
       if (!permission) return handler(context);
@@ -399,39 +422,20 @@ export function withPermissionCheckSsr(
     });
     if (!user) return { redirect: { destination: '/', permanent: false } };
 
-    let membership = user.workspaceMemberships[0];
-    if (!membership && user.roles.length > 0) {
-      try {
-        membership = await prisma.workspaceMember.create({
-          data: {
-            workspaceGroupId: workspaceId,
-            userId: Number(uid),
-            joinDate: new Date(),
-            timezone: 'UTC',
-          },
-        });
-      } catch {
-        const existing = await prisma.workspaceMember.findUnique({
-          where: {
-            workspaceGroupId_userId: {
-              workspaceGroupId: workspaceId,
-              userId: Number(uid),
-            },
-          },
-        });
-        if (existing) membership = existing;
-      }
-    }
-
+    // Stale roles must not recreate membership; an existing workspaceMember is required.
+    const membership = user.workspaceMemberships[0];
     if (!membership) return { redirect: { destination: '/', permanent: false } };
 
     const isAdmin = membership.isAdmin || false;
     const userrole = user.roles[0];
 
-    permissionsCache.set(cacheKey, {
-      data: { permissions: userrole?.permissions || [], isAdmin },
-      timestamp: now,
-    });
+    if ((permissionGenerations.get(workspaceId) ?? 0) === generation) {
+      permissionsCache.set(cacheKey, {
+        data: { permissions: userrole?.permissions || [], isAdmin },
+        timestamp: now,
+        generation,
+      });
+    }
 
     if (isAdmin) return handler(context);
     if (!permission) return handler(context);

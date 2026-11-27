@@ -1,5 +1,7 @@
 const path = require('path');
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -41,7 +43,8 @@ const nextConfig = {
   },
 
   env: {
-    NEXT_PUBLIC_DATABASE_CHECK: process.env.DATABASE_URL ? 'true' : '',
+    NEXT_PUBLIC_DATABASE_CHECK:
+      process.env.NEXT_PUBLIC_DATABASE_CHECK || (process.env.DATABASE_URL ? 'true' : ''),
   },
 
   async headers() {
@@ -69,8 +72,9 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
-              "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+              "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ''),
+              "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
+                (isDev ? " 'unsafe-eval'" : ''),
               "script-src-attr 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",

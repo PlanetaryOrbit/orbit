@@ -53,7 +53,7 @@ const redisCache: CacheProvider | null = client
 
       async set(key: string, value: unknown, ttl = 300): Promise<void> {
         try {
-          await client!.set(key, JSON.stringify(value), 'EX', ttl);
+          await this.setStrict(key, value, ttl);
         } catch (error) {
           console.warn('[Cache] Redis set failed:', error);
         }
@@ -61,7 +61,7 @@ const redisCache: CacheProvider | null = client
 
       async del(key: string): Promise<void> {
         try {
-          await client!.del(key);
+          await this.delStrict(key);
         } catch (error) {
           console.warn('[Cache] Redis delete failed:', error);
         }
@@ -69,11 +69,23 @@ const redisCache: CacheProvider | null = client
 
       async has(key: string): Promise<boolean> {
         try {
-          return (await client!.exists(key)) === 1;
+          return await this.hasStrict(key);
         } catch (error) {
           console.warn('[Cache] Redis exists failed:', error);
           return false;
         }
+      },
+
+      async setStrict(key: string, value: unknown, ttl = 300): Promise<void> {
+        await client!.set(key, JSON.stringify(value), 'EX', ttl);
+      },
+
+      async delStrict(key: string): Promise<void> {
+        await client!.del(key);
+      },
+
+      async hasStrict(key: string): Promise<boolean> {
+        return (await client!.exists(key)) === 1;
       },
 
       async increment(key: string, ttl = 60): Promise<number> {

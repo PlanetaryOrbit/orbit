@@ -82,6 +82,14 @@ export default function AccountStep({ onBack, onCreate }: AccountStepProps) {
               value === original || 'Passwords do not match',
           })}
         />
+
+        <Field
+          label='Setup token'
+          type='password'
+          autoComplete='off'
+          hint='Required in production. Leave blank for local development.'
+          {...register('setupToken')}
+        />
       </div>
 
       <div className='mt-8 space-y-1'>

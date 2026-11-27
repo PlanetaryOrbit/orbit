@@ -1,6 +1,9 @@
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { validateCsrf } from '@/utils/csrf';
 import prisma from '@/utils/database';
 import type { NextApiRequest, NextApiResponse } from 'next';
+
+const REDACTED_SECRET = '••••••••';
 
 export default withAuth(handler);
 
@@ -16,6 +19,10 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
   if (!user?.isOwner) {
     return res.status(403).json({ error: 'Access denied. Owner privileges required.' });
+  }
+
+  if (!validateCsrf(req, res)) {
+    return res.status(403).json({ error: 'Invalid origin' });
   }
 
   if (req.method === 'GET') {
@@ -107,15 +114,15 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
       return res.json({
         robloxClientId: configMap.robloxClientId || '',
-        robloxClientSecret: configMap.robloxClientSecret || '',
+        robloxClientSecret: configMap.robloxClientSecret ? REDACTED_SECRET : '',
         robloxRedirectUri: configMap.robloxRedirectUri || '',
         oauthOnlyLogin: configMap.oauthOnlyLogin || false,
         discordApplicationID: configMap.discordAppID,
-        discordClientSecret: configMap.discordAppSecret,
+        discordClientSecret: configMap.discordAppSecret ? REDACTED_SECRET : '',
         usingEnvVars: false,
         redirectWorkspace: configMap.redirectWorkspace || '',
         google_id: configMap.google_id || '',
-        google_secret: configMap.google_secret || '',
+        google_secret: configMap.google_secret ? REDACTED_SECRET : '',
         google_email_filtration: configMap.google_email_filtration,
         loginBackground:
           typeof configMap.loginBackground === 'string' ? configMap.loginBackground : null,
@@ -222,7 +229,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         },
         {
           key: 'google_secret',
-          value: typeof google_secret === 'string' ? google_secret.trim() : google_id || '',
+          value: typeof google_secret === 'string' ? google_secret.trim() : google_secret || '',
         },
         {
           key: 'google_email_filtration',
@@ -244,13 +251,16 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       }
 
       await Promise.all(
-        updates.map(({ key, value }) =>
-          prisma.instanceConfig.upsert({
-            where: { key },
-            update: { value, updatedAt: new Date() },
-            create: { key, value, updatedAt: new Date() },
-          }),
-        ),
+        updates
+          // A masked value from GET means "keep the stored secret".
+          .filter(({ value }) => typeof value !== 'string' || value.trim() !== REDACTED_SECRET)
+          .map(({ key, value }) =>
+            prisma.instanceConfig.upsert({
+              where: { key },
+              update: { value, updatedAt: new Date() },
+              create: { key, value, updatedAt: new Date() },
+            }),
+          ),
       );
       return res.json({
         success: true,

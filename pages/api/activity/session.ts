@@ -29,13 +29,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   try {
     if (authorization) {
-      const cacheKey = `config:key:${authorization}`;
+      const cacheKey = `config:activity-key:${authorization}`;
 
       config = await cache.get<any>(cacheKey);
 
       if (!config) {
         config = await prisma.config.findFirst({
           where: {
+            key: 'activity',
             value: {
               path: ['key'],
               equals: authorization,

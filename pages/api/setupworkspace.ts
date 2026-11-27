@@ -1,9 +1,11 @@
 import { User } from '@/types/index.d';
+import { setSessionCookie } from '@/utils/authCookies';
 import { fetchAvatar } from '@/utils/avatar';
 import prisma from '@/utils/database';
 import { setRegistry } from '@/utils/registryManager';
 import { isGroupAllied } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
+import { isSetupRequestAllowed } from '@/utils/setup';
 import { getUsername, getDisplayName } from '@/utils/userinfoEngine';
 import bcryptjs from 'bcryptjs';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -21,6 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(405).json({
       success: false,
       error: 'Method not allowed',
+    });
+  }
+
+  if (!isSetupRequestAllowed(req)) {
+    return res.status(403).json({
+      success: false,
+      error: 'Instance setup is not allowed',
     });
   }
 
@@ -155,150 +164,156 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    const existingUserCount = await prisma.user.count();
+    let alreadySetUp = false;
 
-    if (existingUserCount > 0) {
+    await prisma.$transaction(
+      async (tx) => {
+        const existingUserCount = await tx.user.count();
+        if (existingUserCount > 0) {
+          alreadySetUp = true;
+          return;
+        }
+
+        await tx.workspace.create({
+          data: {
+            groupId: groupIdNumber,
+            groupName,
+            groupLogo,
+            lastSynced: new Date(),
+            isVerified: verified,
+            lastSyncedSuccessful: null,
+          },
+        });
+
+        await tx.config.createMany({
+          data: [
+            {
+              key: 'customization',
+              workspaceGroupId: groupIdNumber,
+              value: { color },
+            },
+            {
+              key: 'theme',
+              workspaceGroupId: groupIdNumber,
+              value: color,
+            },
+            {
+              key: 'guides',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: true },
+            },
+            {
+              key: 'sessions',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: true },
+            },
+            {
+              key: 'allies',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: true },
+            },
+            {
+              key: 'leaderboard',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: true },
+            },
+            {
+              key: 'notices',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: true },
+            },
+            {
+              key: 'resignations',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: false },
+            },
+            {
+              key: 'policies',
+              workspaceGroupId: groupIdNumber,
+              value: { enabled: false },
+            },
+            {
+              key: 'home',
+              workspaceGroupId: groupIdNumber,
+              value: { widgets: [] },
+            },
+          ],
+        });
+
+        const user = await tx.user.create({
+          data: {
+            userid: BigInt(userid),
+            info: {
+              create: {
+                passwordhash: hashedPassword,
+              },
+            },
+            isOwner: true,
+          },
+        });
+
+        const defaultRole = await tx.role.create({
+          data: {
+            name: 'Default',
+            workspaceGroupId: groupIdNumber,
+            permissions: [],
+            groupRoles: [],
+          },
+        });
+
+        await tx.user.update({
+          where: {
+            userid: BigInt(userid),
+          },
+          data: {
+            roles: {
+              connect: {
+                id: defaultRole.id,
+              },
+            },
+          },
+        });
+
+        await tx.workspaceMember.create({
+          data: {
+            workspaceGroupId: groupIdNumber,
+            userId: BigInt(userid),
+            joinDate: new Date(),
+            isAdmin: true,
+          },
+        });
+
+        if (typeof opencloudKey === 'string' && opencloudKey.trim().length > 0) {
+          await tx.config.create({
+            data: {
+              key: 'roblox_opencloud',
+              workspaceGroupId: groupIdNumber,
+              value: {
+                enabled: true,
+                key: opencloudKey.trim(),
+              },
+            },
+          });
+        }
+      },
+      { isolationLevel: 'Serializable' },
+    );
+
+    if (alreadySetUp) {
       return res.status(403).json({
         success: false,
         error: 'Instance setup has already been completed',
       });
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.workspace.create({
-        data: {
-          groupId: groupIdNumber,
-          groupName,
-          groupLogo,
-          lastSynced: new Date(),
-          isVerified: verified,
-          lastSyncedSuccessful: null,
-        },
-      });
-
-      await tx.config.createMany({
-        data: [
-          {
-            key: 'customization',
-            workspaceGroupId: groupIdNumber,
-            value: { color },
-          },
-          {
-            key: 'theme',
-            workspaceGroupId: groupIdNumber,
-            value: color,
-          },
-          {
-            key: 'guides',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: true },
-          },
-          {
-            key: 'sessions',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: true },
-          },
-          {
-            key: 'allies',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: true },
-          },
-          {
-            key: 'leaderboard',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: true },
-          },
-          {
-            key: 'notices',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: true },
-          },
-          {
-            key: 'resignations',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: false },
-          },
-          {
-            key: 'policies',
-            workspaceGroupId: groupIdNumber,
-            value: { enabled: false },
-          },
-          {
-            key: 'home',
-            workspaceGroupId: groupIdNumber,
-            value: { widgets: [] },
-          },
-        ],
-      });
-
-      const user = await tx.user.create({
-        data: {
-          userid: BigInt(userid),
-          info: {
-            create: {
-              passwordhash: hashedPassword,
-            },
-          },
-          isOwner: true,
-        },
-      });
-
-      const defaultRole = await tx.role.create({
-        data: {
-          name: 'Default',
-          workspaceGroupId: groupIdNumber,
-          permissions: [],
-          groupRoles: [],
-        },
-      });
-
-      await tx.user.update({
-        where: {
-          userid: BigInt(userid),
-        },
-        data: {
-          roles: {
-            connect: {
-              id: defaultRole.id,
-            },
-          },
-        },
-      });
-
-      await tx.workspaceMember.create({
-        data: {
-          workspaceGroupId: groupIdNumber,
-          userId: BigInt(userid),
-          joinDate: new Date(),
-          isAdmin: true,
-        },
-      });
-
-      if (typeof opencloudKey === 'string' && opencloudKey.trim().length > 0) {
-        await tx.config.create({
-          data: {
-            key: 'roblox_opencloud',
-            workspaceGroupId: groupIdNumber,
-            value: {
-              enabled: true,
-              key: opencloudKey.trim(),
-            },
-          },
-        });
-      }
-    });
     const session = await createSession(
       BigInt(userid),
       (req.headers['x-forwarded-for'] as string) ?? req.socket.remoteAddress,
       req.headers['user-agent'],
     );
 
-    res.setHeader('Set-Cookie', [
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${
-        60 * 60 * 24 * 30
-      }`,
-      `app_setup=true; Path=/; HttpOnly; SameSite=lax`,
-    ]);
+    setSessionCookie(res, session.token);
+    res.appendHeader('Set-Cookie', 'app_setup=true; Path=/; HttpOnly; SameSite=Lax');
 
     await setRegistry(req.headers.host as string);
 
@@ -306,10 +321,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       userId: userid,
       username: await getUsername(userid),
       displayname: await getDisplayName(userid),
-      thumbnail: await fetchAvatar(userid, {
-        type: 'headshot',
-        size: '180x180',
-      }),
+      thumbnail:
+        (await fetchAvatar(userid, {
+          type: 'headshot',
+          size: '180x180',
+        })) ?? '',
       isOwner: true,
     };
 

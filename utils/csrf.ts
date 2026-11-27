@@ -2,103 +2,80 @@ import crypto from 'crypto';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+function normalizeOrigin(value: string | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    if (url.username || url.password) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 function getAllowedOrigins(): string[] {
-  const origins: string[] = [];
-  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!) {
-    origins.push(process.env.NEXTAUTH_URL || process.env.PUBLIC_URL!);
+  const cloudUrl = process.env.PLANETARY_CLOUD_URL;
+  const configured = [
+    process.env.NEXTAUTH_URL,
+    process.env.PUBLIC_URL,
+    ...(process.env.ALLOWED_ORIGINS?.split(',') ?? []),
+  ];
+
+  if (cloudUrl) {
+    configured.push(/^https?:\/\//i.test(cloudUrl) ? cloudUrl : `https://${cloudUrl}`);
   }
 
-  if (process.env.ALLOWED_ORIGINS) {
-    origins.push(...process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()));
-  }
+  const origins = configured
+    .map(normalizeOrigin)
+    .filter((origin): origin is string => origin !== null);
 
-  return origins;
+  return Array.from(new Set(origins));
+}
+
+function isLoopbackAddress(address: string | undefined): boolean {
+  if (!address) return false;
+  const normalized = address.replace(/^::ffff:/i, '');
+  return normalized === '::1' || normalized === '127.0.0.1';
+}
+
+function isDevelopmentOrigin(origin: string): boolean {
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  } catch {
+    return false;
+  }
 }
 
 export function validateOrigin(req: NextApiRequest): boolean {
-  const origin = req.headers.origin as string | undefined;
-  const referer = req.headers.referer as string | undefined;
-  const forwardedHost = req.headers['x-forwarded-host'] as string | undefined;
-  const forwardedProto = req.headers['x-forwarded-proto'] as string | undefined;
-  const host = forwardedHost || (req.headers.host as string | undefined);
-
-  if (process.env.NODE_ENV === 'development') {
-    if (host?.includes('localhost') || host?.includes('127.0.0.1')) {
-      return true;
-    }
-  }
-
-  if (host?.endsWith('.planetaryapp.cloud')) {
-    return true;
-  }
-
   const allowedOrigins = getAllowedOrigins();
 
-  if (origin) {
-    if (allowedOrigins.includes(origin)) {
-      return true;
-    }
-
-    if (host) {
-      const protocol = forwardedProto || (process.env.NODE_ENV === 'production' ? 'https' : 'http');
-      const expectedOrigin = `${protocol}://${host}`;
-      if (origin === expectedOrigin) {
-        return true;
-      }
-    }
+  const originHeader = req.headers.origin;
+  if (originHeader !== undefined) {
+    if (typeof originHeader !== 'string') return false;
+    const origin = normalizeOrigin(originHeader);
+    if (!origin) return false;
+    if (allowedOrigins.includes(origin)) return true;
+    return process.env.NODE_ENV === 'development' && isDevelopmentOrigin(origin);
   }
 
-  if (referer) {
-    try {
-      const refererUrl = new URL(referer);
-      const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`;
-      if (allowedOrigins.includes(refererOrigin)) {
-        return true;
-      }
-      if (host && refererUrl.host === host) {
-        return true;
-      }
-    } catch (e) {
-      // invalid
-      return false;
-    }
+  const refererHeader = req.headers.referer;
+  if (refererHeader !== undefined) {
+    if (typeof refererHeader !== 'string') return false;
+    const origin = normalizeOrigin(refererHeader);
+    if (!origin) return false;
+    if (allowedOrigins.includes(origin)) return true;
+    return process.env.NODE_ENV === 'development' && isDevelopmentOrigin(origin);
   }
 
-  if (allowedOrigins.length > 0) {
-    return false;
-  }
-
-  if (host) {
-    if (origin) {
-      try {
-        const originUrl = new URL(origin);
-        return originUrl.host === host;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    if (referer) {
-      try {
-        const refererUrl = new URL(referer);
-        return refererUrl.host === host;
-      } catch (e) {
-        return false;
-      }
-    }
-  }
-
-  console.warn('[CSRF] Request missing origin, referer, and host headers');
-  return false;
+  return process.env.NODE_ENV === 'development' && isLoopbackAddress(req.socket.remoteAddress);
 }
 
 export function validateCsrf(req: NextApiRequest, res: NextApiResponse): boolean {
   const method = req.method?.toUpperCase();
   if (!method || ['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-    return true;
-  }
-
-  if (req.headers['x-planetary-cloud-service-key']) {
     return true;
   }
 

@@ -1,4 +1,6 @@
 import prisma from '@/utils/database';
+import { checkRateLimit, sendRateLimitExceeded } from '@/utils/rateLimit';
+import { findLatestResetState, isVerificationExpired } from '@/utils/verification';
 import { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
 
@@ -18,6 +20,10 @@ async function authHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
+  if (!(await checkRateLimit(req, 'reset-verify', 10, 15 * 60_000))) {
+    return sendRateLimitExceeded(res);
+  }
+
   const rawId = req.body.userId;
   if (!rawId || typeof rawId !== 'string') {
     return res.status(400).json({ success: false, error: 'Missing or invalid userId' });
@@ -31,14 +37,9 @@ async function authHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const verification = await prisma.verificationState.findFirst({
-      where: {
-        isReset: true,
-        userId: userIdBigInt,
-      },
-    });
+    const verification = await findLatestResetState(userIdBigInt);
 
-    if (!verification || !verification.isReset) {
+    if (!verification || !verification.isReset || isVerificationExpired(verification.createdAt)) {
       return res.status(400).json({ success: false, error: 'Invalid verification session' });
     }
 

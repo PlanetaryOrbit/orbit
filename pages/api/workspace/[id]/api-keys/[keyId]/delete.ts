@@ -1,4 +1,5 @@
 import { AuthenticatedRequest } from '@/lib/withAuth';
+import { revokeApiKeyCache } from '@/utils/api-auth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiResponse } from 'next';
@@ -21,7 +22,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   const keyId = req.query.keyId as string;
 
   try {
-    // Verify the API key belongs to this workspace
     const apiKey = await prisma.apiKey.findFirst({
       where: {
         id: keyId,
@@ -32,6 +32,9 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
     if (!apiKey) {
       return res.status(404).json({ success: false, error: 'API key not found' });
     }
+
+    // Mark revocation before deleting so an in-flight cache fill cannot resurrect the key.
+    await revokeApiKeyCache(apiKey.key);
 
     await prisma.apiKey.delete({
       where: {

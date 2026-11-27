@@ -24,14 +24,14 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/react-table": "^8.21.3",
-    "@tiptap/core": "^2.27.3",
-    "@tiptap/extension-image": "^2.27.3",
-    "@tiptap/extension-link": "^2.27.3",
-    "@tiptap/extension-placeholder": "^2.27.3",
-    "@tiptap/extension-underline": "^2.27.3",
-    "@tiptap/html": "^2.27.3",
-    "@tiptap/react": "^2.27.3",
-    "@tiptap/starter-kit": "^2.27.3",
+    "@tiptap/core": "^3.30.4",
+    "@tiptap/extension-image": "^3.30.4",
+    "@tiptap/extension-link": "^3.30.4",
+    "@tiptap/extension-placeholder": "^3.30.4",
+    "@tiptap/extension-underline": "^3.30.4",
+    "@tiptap/html": "^3.30.4",
+    "@tiptap/react": "^3.30.4",
+    "@tiptap/starter-kit": "^3.30.4",
     "@types/formidable": "^3.5.1",
     "@types/uuid": "^9.0.8",
     "@types/zxcvbn": "^4.4.5",
@@ -43,8 +43,7 @@
     "cross-env": "^10.1.0",
     "dotenv": "^16.6.1",
     "emoji-picker-react": "^4.22.3",
-    "express-rate-limit": "^7.5.1",
-    "file-type": "^18.7.0",
+    "file-type": "^21.3.1",
     "formidable": "^3.5.4",
     "framer-motion": "^12.43.0",
     "googleapis": "^171.4.0",
@@ -74,10 +73,10 @@
     "sanitize-html": "^2.18.2",
     "sass": "^1.108.2",
     "semver": "^7.8.6",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^2.6.2",
     "ua-parser-js": "^2.0.10",
-    "uuid": "^9.0.1",
+    "uuid": "^11.1.1",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
@@ -98,10 +97,22 @@
     "typescript": "^5.9.3"
   },
   "resolutions": {
-    "qs": ">=6.14.1"
+    "effect": "3.22.1",
+    "fast-xml-parser": "5.12.1",
+    "glob": "14.0.2",
+    "markdown-it": "14.3.3",
+    "minimatch": "11.0.1",
+    "postcss-selector-parser": "6.1.6",
+    "qs": "6.17.1"
   },
   "overrides": {
-    "qs": ">=6.14.1"
+    "effect": "3.22.1",
+    "fast-xml-parser": "5.12.1",
+    "glob": "14.0.2",
+    "markdown-it": "14.3.3",
+    "minimatch": "11.0.1",
+    "postcss-selector-parser": "6.1.6",
+    "qs": "6.17.1"
   },
   "packageManager": "pnpm@11.22.0",
   "allowScripts": {
@@ -109,7 +120,7 @@
     "noblox.js@7.3.1": true,
     "prisma@7.8.0": true,
     "protobufjs@7.5.8": true,
-    "sharp@0.34.5": true,
+    "sharp@0.35.5": true,
     "unrs-resolver@1.11.1": true,
     "@prisma/engines@7.8.0": true,
     "@parcel/watcher@2.5.6": true

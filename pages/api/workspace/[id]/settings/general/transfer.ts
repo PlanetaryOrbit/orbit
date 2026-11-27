@@ -1,6 +1,7 @@
 import { withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
+import { invalidateWorkspacePermissions } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
@@ -88,6 +89,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
       data: { isAdmin: true },
     });
+    invalidateWorkspacePermissions(workspaceId);
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Failed to transfer workspace ownership:', error);

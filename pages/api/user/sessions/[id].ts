@@ -28,8 +28,6 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
       .json({ success: false, error: 'Cannot revoke your current session — use sign out instead' });
   }
 
-  console.log(session);
-
-  await forceDeleteSession(session.id);
+  await forceDeleteSession(session.id, session.token);
   return res.status(200).json({ success: true });
 });

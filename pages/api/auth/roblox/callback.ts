@@ -1,4 +1,7 @@
+import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
+import { consumeOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin } from '@/utils/origin';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
 import axios from 'axios';
@@ -35,31 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect('/login?error=missing_params');
   }
 
-  const oauthState = await prisma.oAuthState.findUnique({
-    where: { state },
-  });
-
+  const oauthState = await consumeOAuthState(req, res, state, 'roblox');
   if (!oauthState) {
     return res.redirect('/login?error=invalid_state');
   }
 
-  if (oauthState.expiresAt < new Date()) {
-    await prisma.oAuthState.delete({
-      where: { state },
-    });
-
-    return res.redirect('/login?error=expired_state');
-  }
-
-  await prisma.oAuthState.delete({
-    where: { state },
-  });
-
   let clientId = process.env.ROBLOX_CLIENT_ID;
   let clientSecret = process.env.ROBLOX_CLIENT_SECRET;
+  const canonicalOrigin = getCanonicalOrigin();
   let redirectUri =
     process.env.ROBLOX_REDIRECT_URI ||
-    `${process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`;
+    (canonicalOrigin ? `${canonicalOrigin}/api/auth/roblox/callback` : undefined);
 
   if (!clientId || !clientSecret || !redirectUri) {
     const configs = await prisma.instanceConfig.findMany({
@@ -150,12 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const session = await createSession(userId, ipAddress, req.headers['user-agent']);
 
-    res.setHeader(
-      'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${
-        60 * 60 * 24 * 30
-      }; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`,
-    );
+    setSessionCookie(res, session.token);
 
     return res.redirect('/');
   } catch (err) {

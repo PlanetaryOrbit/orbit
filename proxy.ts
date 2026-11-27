@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
+import { getCanonicalOrigin } from './utils/origin';
+
+const isDev = process.env.NODE_ENV !== 'production';
 const REQUIRED_ENV_VARS = ['DATABASE_URL', 'SESSION_SECRET'];
+const INTERNAL_SETUP_CHECK_MESSAGE = 'orbit-setup-check';
 
 const PUBLIC_ROUTES = [
   '/welcome',
@@ -17,30 +21,40 @@ function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 }
 
-function internalUrl(request: NextRequest, path: string): string {
+function internalUrl(path: string): string {
+  // Cloud instances self-call over loopback; never derive this from the request Host.
   if (process.env.PLANETARY_CLOUD_URL) {
-    const base = 'http://localhost:3000'; // idk seem to work on cloud instances
-    return `${base}${path}`;
+    return `http://127.0.0.1:${process.env.PORT ?? 3000}${path}`;
   }
 
-  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
-    const base = process.env.NEXTAUTH_URL
-      ? process.env.NEXTAUTH_URL.replace(/\/$/, '')
-      : process.env.PUBLIC_URL!.replace(/\/$/, '');
-    return `${base}${path}`;
-  }
+  const origin = getCanonicalOrigin();
+  if (origin) return `${origin}${path}`;
 
-  const host = request.headers.get('host') || '';
-  if (host.includes('localhost') || host.includes('127.0.0.1')) {
-    return `http://${host}${path}`;
-  }
-
-  const { protocol, host: reqHost } = request.nextUrl;
-  return `${protocol}//${reqHost}${path}`;
+  return `http://127.0.0.1:${process.env.PORT ?? 3000}${path}`;
 }
 
 function getMissingEnvVars(): string[] {
   return REQUIRED_ENV_VARS.filter((v) => !process.env[v]);
+}
+
+async function internalSetupCheckHeader(): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(process.env.SESSION_SECRET ?? ''),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(INTERNAL_SETUP_CHECK_MESSAGE),
+  );
+
+  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, '0')).join(
+    '',
+  );
 }
 
 let setupCache: {
@@ -59,12 +73,14 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
   }
 
   try {
-    const url = internalUrl(request, '/api/admin/first-setup/config');
+    const url = internalUrl('/api/admin/first-setup/config');
 
     const res = await fetch(url, {
       cache: 'no-store',
+      redirect: 'error',
       headers: {
         'Content-Type': 'application/json',
+        'x-internal-setup-check': await internalSetupCheckHeader(),
       },
     });
 
@@ -152,9 +168,10 @@ export default async function middleware(request: NextRequest) {
     }
 
     try {
-      const url = internalUrl(request, '/api/auth/session/validate');
+      const url = internalUrl('/api/auth/session/validate');
 
       const res = await fetch(url, {
+        redirect: 'error',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -197,18 +214,22 @@ export default async function middleware(request: NextRequest) {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ''),
+      "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
+        (isDev ? " 'unsafe-eval'" : ''),
+      "script-src-attr 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https: blob:",
-      "connect-src 'self' https: wss:",
-      "frame-ancestors 'self'",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      "media-src 'self' https://audio-ssl.itunes.apple.com",
     ].join('; '),
   );
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 

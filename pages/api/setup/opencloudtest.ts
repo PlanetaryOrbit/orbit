@@ -1,6 +1,10 @@
-import { AuthenticatedRequest } from '@/lib/withAuth';
+import prisma from '@/utils/database';
+import { checkRateLimit, sendRateLimitExceeded } from '@/utils/rateLimit';
+import { getSessionByToken } from '@/utils/session';
+import { isSetupRequestAllowed } from '@/utils/setup';
 import axios from 'axios';
-import { NextApiResponse } from 'next';
+import * as cookie from 'cookie';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 interface OpenCloudKeyRes {
   name: string;
@@ -13,9 +17,35 @@ interface OpenCloudKeyRes {
   expired: boolean;
 }
 
-export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+export default handler;
+
+export async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  const cookies = cookie.parse(req.headers.cookie || '');
+  const session = cookies.session_token ? await getSessionByToken(cookies.session_token) : null;
+
+  const [owner, userCount] = await Promise.all([
+    session
+      ? prisma.user.findUnique({
+          where: { userid: BigInt(session.userId) },
+          select: { isOwner: true },
+        })
+      : Promise.resolve(null),
+    prisma.user.count(),
+  ]);
+
+  const setupAllowed = userCount === 0 && isSetupRequestAllowed(req);
+  if (!owner?.isOwner && !setupAllowed) {
+    return res
+      .status(403)
+      .json({ success: false, error: 'Access denied. Owner privileges required.' });
+  }
+
+  if (!(await checkRateLimit(req, 'opencloudtest', 10, 60_000))) {
+    return sendRateLimitExceeded(res);
   }
 
   const { key } = req.body as { key?: string };
@@ -27,7 +57,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     const ocres = await axios.post<OpenCloudKeyRes>(
       'https://apis.roblox.com/api-keys/v1/introspect',
       { apiKey: key.trim() },
-      { headers: { 'Content-Type': 'application/json' } },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 10_000 },
     );
 
     const { enabled, expired, scopes } = ocres.data;
@@ -58,13 +88,19 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
 
     return res.status(200).json({ success: true, message: 'API key is valid.' });
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+      return res.status(504).json({ success: false, error: 'Validation timed out' });
+    }
+    if (status === 401) {
       return res.status(400).json({ success: false, code: 5, error: 'Invalid API key' });
     }
-    console.error('Error testing Open Cloud key:', error);
+
+    // Never log the key, request config, or upstream response body.
+    console.error('Error testing Open Cloud key:', { status });
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error',
+      error: 'Failed to validate API key',
     });
   }
 }

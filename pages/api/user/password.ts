@@ -1,8 +1,12 @@
 import type { AuthenticatedRequest } from '@/lib/withAuth';
 import { withAuth } from '@/lib/withAuth';
 import { invalidateUserProfileCache } from '@/utils/accountCache';
+import { setSessionCookie } from '@/utils/authCookies';
+import cache from '@/utils/cache';
 import { validateCsrf } from '@/utils/csrf';
 import prisma from '@/utils/database';
+import { checkRateLimit, sendRateLimitExceeded } from '@/utils/rateLimit';
+import { deleteOtherSessions, rotateSessionToken } from '@/utils/session';
 import bcryptjs from 'bcryptjs';
 import type { NextApiResponse } from 'next';
 
@@ -14,6 +18,10 @@ type ResponseBody = {
 async function handler(req: AuthenticatedRequest, res: NextApiResponse<ResponseBody>) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  if (!(await checkRateLimit(req, 'password-change', 5, 15 * 60_000))) {
+    return sendRateLimitExceeded(res);
   }
 
   if (!validateCsrf(req, res)) {
@@ -63,6 +71,14 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<ResponseB
     });
 
     await invalidateUserProfileCache(userId);
+    await cache.del(`login:user:${userId}`);
+
+    const rotated = await rotateSessionToken(req.auth.token);
+    setSessionCookie(res, rotated.token);
+
+    if (req.auth.session) {
+      await deleteOtherSessions(userId, req.auth.session.id);
+    }
 
     return res.status(200).json({ success: true });
   } catch (error) {

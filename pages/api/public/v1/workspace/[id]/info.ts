@@ -1,4 +1,3 @@
-import { validateApiKey } from '@/utils/api-auth';
 import { getConfig } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import type { NextApiRequest, NextApiResponse } from 'next';

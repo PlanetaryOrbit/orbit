@@ -1,5 +1,6 @@
 import { withKey } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import { invalidateWorkspacePermissions } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const VALID_PERMISSIONS = [
@@ -237,6 +238,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
+      invalidateWorkspacePermissions(workspaceId);
       return res.status(200).json({ success: true, data: updatedRole });
     } catch (error) {
       console.error('Error updating role:', error);
@@ -273,6 +275,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           id: roleIdString,
         },
       });
+
+      invalidateWorkspacePermissions(workspaceId);
 
       return res.status(200).json({ success: true, message: 'Role deleted successfully' });
     } catch (error) {

@@ -55,6 +55,18 @@ export async function has(key: string): Promise<boolean> {
   }
 }
 
+export async function setStrict(key: string, value: unknown, ttl = 300): Promise<void> {
+  await provider.setStrict(key, value, ttl);
+}
+
+export async function delStrict(key: string): Promise<void> {
+  await provider.delStrict(key);
+}
+
+export async function hasStrict(key: string): Promise<boolean> {
+  return provider.hasStrict(key);
+}
+
 export async function increment(key: string, ttl = 60): Promise<number> {
   try {
     return await provider.increment(key, ttl);
@@ -187,6 +199,9 @@ const cache = {
   set,
   del,
   has,
+  setStrict,
+  delStrict,
+  hasStrict,
   increment,
   clear,
   swr,

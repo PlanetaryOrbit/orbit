@@ -17,6 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const userNotes = await prisma.userBook.findMany({
       where: {
+        workspaceGroupId: workspaceId,
         userId: Number(userId),
       },
     });

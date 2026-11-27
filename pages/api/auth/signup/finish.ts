@@ -1,5 +1,7 @@
+import { setSessionCookie } from '@/utils/authCookies';
 import fetchAvatar from '@/utils/avatar';
 import prisma from '@/utils/database';
+import { checkRateLimit, sendRateLimitExceeded } from '@/utils/rateLimit';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
 import bcryptjs from 'bcryptjs';
@@ -14,6 +16,10 @@ type Data = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'POST')
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  if (!(await checkRateLimit(req, 'signup-finish', 5, 15 * 60_000))) {
+    return sendRateLimitExceeded(res);
+  }
 
   const { code, userid, password } = req.body;
 
@@ -101,10 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await createSession(BigInt(userid), ipAddress, req.headers['user-agent']);
 
-    res.setHeader(
-      'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`,
-    );
+    setSessionCookie(res, session.token);
 
     return res.status(200).json({ success: true });
   } catch (error) {

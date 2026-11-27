@@ -13,6 +13,18 @@ const tiptapExtensions = [
   DocVideo,
 ];
 
+const ALLOWED_IFRAME_HOSTNAMES = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+  'youtu.be',
+  'www.youtu.be',
+  'vimeo.com',
+  'www.vimeo.com',
+  'player.vimeo.com',
+]);
+
 const SAFE_HTML_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat([
     'img',
@@ -39,8 +51,14 @@ const SAFE_HTML_OPTIONS: sanitizeHtml.IOptions = {
   transformTags: {
     iframe: (tagName, attribs) => {
       const src = attribs.src || '';
+      let url: URL;
+      try {
+        url = new URL(src);
+      } catch {
+        return { tagName: 'div', attribs: {} }; // strip invalid iframes
+      }
       const isAllowed =
-        /^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com)/.test(src);
+        url.protocol === 'https:' && ALLOWED_IFRAME_HOSTNAMES.has(url.hostname.toLowerCase());
       if (!isAllowed) return { tagName: 'div', attribs: {} }; // strip unknown iframes
       return { tagName, attribs: { ...attribs, src } };
     },

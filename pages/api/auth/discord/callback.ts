@@ -1,7 +1,10 @@
 import type { AuthenticatedRequest } from '@/lib/withAuth';
 import Package from '@/package.json';
 import { invalidateUserProfileCache } from '@/utils/accountCache';
+import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
+import { consumeOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin } from '@/utils/origin';
 import { createSession, getSessionByToken } from '@/utils/session';
 import axios from 'axios';
 import * as cookie from 'cookie';
@@ -35,20 +38,10 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     return res.redirect('/login?error=missing_params');
   }
 
-  const oauthState = await prisma.oAuthState.findUnique({
-    where: { state },
-  });
-
-  if (!oauthState || (oauthState.provider && oauthState.provider !== 'discord')) {
+  const oauthState = await consumeOAuthState(req, res, state, 'discord');
+  if (!oauthState) {
     return res.redirect('/login?error=invalid_state');
   }
-
-  if (oauthState.expiresAt < new Date()) {
-    await prisma.oAuthState.delete({ where: { state } });
-    return res.redirect('/login?error=expired_state');
-  }
-
-  await prisma.oAuthState.delete({ where: { state } });
 
   const isLink = oauthState.userId !== null;
   const accountError = (code: string) =>
@@ -87,7 +80,8 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     clientSecret ||= map.discordAppSecret;
   }
 
-  if (!clientId || !clientSecret) {
+  const baseUrl = getCanonicalOrigin();
+  if (!clientId || !clientSecret || !baseUrl) {
     return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
   }
 
@@ -97,7 +91,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       new URLSearchParams({
         grant_type: 'authorization_code',
         code: code as string,
-        redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
+        redirect_uri: `${baseUrl}/api/auth/discord/callback`,
         client_id: clientId,
         client_secret: clientSecret,
       }),
@@ -177,10 +171,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       req.headers['user-agent'],
     );
 
-    res.setHeader(
-      'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 7}; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`,
-    );
+    setSessionCookie(res, session.token, 60 * 60 * 24 * 7);
 
     return res.redirect('/');
   } catch (err) {
