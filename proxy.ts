@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
+const isDev = process.env.NODE_ENV !== 'production';
 const REQUIRED_ENV_VARS = ['DATABASE_URL', 'SESSION_SECRET'];
 const INTERNAL_SETUP_CHECK_MESSAGE = 'orbit-setup-check';
 
@@ -219,8 +220,9 @@ export default async function middleware(request: NextRequest) {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+      "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ''),
+      "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
+        (isDev ? " 'unsafe-eval'" : ''),
       "script-src-attr 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
