@@ -22,8 +22,13 @@ const Welcome: NextPage = () => {
   const [accent, setAccent] = useState(DEFAULT_ACCENT);
   const [groupId, setGroupId] = useState('');
   const [openCloudKey, setOpenCloudKey] = useState('');
+  const [setupToken, setSetupToken] = useState('');
 
-  const createAccount = async ({ username, password }: AccountValues): Promise<string | null> => {
+  const createAccount = async ({
+    username,
+    password,
+    setupToken: token,
+  }: AccountValues): Promise<string | null> => {
     try {
       const { data } = await axios.post(
         '/api/setupworkspace',
@@ -33,8 +38,12 @@ const Welcome: NextPage = () => {
           password,
           color: accent,
           ...(openCloudKey ? { opencloudKey: openCloudKey } : {}),
+          ...(token ? { setupToken: token } : {}),
         },
-        { timeout: SETUP_TIMEOUT_MS },
+        {
+          timeout: SETUP_TIMEOUT_MS,
+          ...(token ? { headers: { 'x-setup-token': token } } : {}),
+        },
       );
 
       if (data.success) {
@@ -94,9 +103,11 @@ const Welcome: NextPage = () => {
         {step === 1 && (
           <OpenCloudStep
             savedKey={openCloudKey}
+            setupToken={setupToken}
             onBack={() => setStep(0)}
-            onContinue={(key) => {
+            onContinue={(key, token) => {
               setOpenCloudKey(key);
+              setSetupToken(token);
               setStep(2);
             }}
           />

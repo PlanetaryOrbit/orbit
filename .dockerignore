@@ -1,2 +1,7 @@
 node_modules
 .next
+.env
+.git
+*.rbxmx
+data/
+*.log

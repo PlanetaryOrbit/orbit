@@ -26,6 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const user = await prisma.workspaceMember.findFirst({
         where: {
+          workspaceGroupId: workspaceId,
           userId: BigInt(userId.toString()),
         },
         include: {

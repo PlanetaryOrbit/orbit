@@ -438,8 +438,10 @@ export async function queryAudit(
     }
 
     const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-    const take = opts.take || 50;
-    const skip = opts.skip || 0;
+    const take = Number.isFinite(opts.take)
+      ? Math.min(Math.max(Math.trunc(opts.take!), 1), 1000)
+      : 50;
+    const skip = Number.isFinite(opts.skip) ? Math.max(Math.trunc(opts.skip!), 0) : 0;
 
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT * FROM "AuditLog" ${whereSql} ORDER BY "createdAt" DESC LIMIT ${take} OFFSET ${skip}`,

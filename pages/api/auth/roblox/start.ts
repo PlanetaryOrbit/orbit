@@ -1,6 +1,6 @@
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
-// import { withAuth } from '@/lib/withSession';
+import type { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import { createOAuthState } from '@/utils/oauth';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -41,15 +41,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     return res.status(500).json({ error: 'OAuth configuration error' });
   }
 
-  const state =
-    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  await prisma.oAuthState.create({
-    data: {
-      state,
-      provider: 'roblox',
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min
-    },
-  });
+  const state = await createOAuthState(req, res, 'roblox');
 
   const authUrl = new URL('https://apis.roblox.com/oauth/v1/authorize');
   authUrl.searchParams.set('client_id', clientId);

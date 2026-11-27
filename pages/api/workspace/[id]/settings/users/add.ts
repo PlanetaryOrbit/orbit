@@ -1,6 +1,6 @@
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-import { withPermissionCheck } from '@/utils/permissionsManager';
+import { invalidateWorkspacePermissions, withPermissionCheck } from '@/utils/permissionsManager';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -188,6 +188,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       isAdmin: false,
     },
   });
+
+  invalidateWorkspacePermissions(workspaceGroupId);
 
   const newuser = {
     roles: [role],

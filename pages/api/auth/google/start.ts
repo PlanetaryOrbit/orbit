@@ -1,8 +1,26 @@
 import prisma from '@/utils/database';
+import { createOAuthState } from '@/utils/oauth';
 import { getSessionByToken } from '@/utils/session';
 import * as cookie from 'cookie';
 import { google } from 'googleapis';
 import type { NextApiRequest, NextApiResponse } from 'next';
+
+function getRedirectUri(): string | null {
+  const cloudUrl = process.env.PLANETARY_CLOUD_URL;
+  const configured = cloudUrl
+    ? /^https?:\/\//i.test(cloudUrl)
+      ? cloudUrl
+      : `https://${cloudUrl}`
+    : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL;
+
+  if (!configured) return null;
+
+  try {
+    return `${new URL(configured).origin}/api/auth/google/callback`;
+  } catch {
+    return null;
+  }
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -74,23 +92,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'OAuth configuration error' });
   }
 
-  const state =
-    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const redirectUri = getRedirectUri();
+  if (!redirectUri) {
+    console.error('Missing configured base URL for Google OAuth callback');
+    return res.status(500).json({ error: 'OAuth configuration error' });
+  }
 
-  await prisma.oAuthState.create({
-    data: {
-      state,
-      provider: 'google',
-      userId: linkUserId,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    },
-  });
-
-  const redirectUri = `${
-    process.env.PLANETARY_CLOUD_URL
-      ? `https://${process.env.PLANETARY_CLOUD_URL}`
-      : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL
-  }/api/auth/google/callback`;
+  const state = await createOAuthState(
+    req,
+    res,
+    'google',
+    isLink ? (linkUserId ?? undefined) : undefined,
+  );
 
   const scopes = ['email', 'openid', 'profile'];
 

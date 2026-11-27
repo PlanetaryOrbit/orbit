@@ -1,7 +1,7 @@
+import { withKey } from '@/lib/withAuth';
 import { getConfig } from '@/utils/configEngine';
 import { initiateClient } from '@/utils/roblox';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withKey } from '@/lib/withAuth'; 
 
 export default withKey(handler);
 
@@ -12,10 +12,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const workspaceId = Number.parseInt(req.query.id as string);
   if (!workspaceId) return res.status(400).json({ success: false, error: 'Missing workspace ID' });
 
-  const { roleid, userid } = req.body;
-  if (!userid && userid.length > 0)
+  const { roleid, userid } = req.body ?? {};
+  if (typeof userid !== 'string' || userid.length === 0)
     return res.status(400).json({ success: false, error: 'Missing user ID in request body.' });
-  if (!roleid && roleid.length > 0)
+  if (typeof roleid !== 'string' || roleid.length === 0)
     return res.status(400).json({ success: false, error: 'Missing roleid in request body.' });
 
   try {

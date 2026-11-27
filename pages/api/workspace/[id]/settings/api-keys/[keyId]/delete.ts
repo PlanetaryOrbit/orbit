@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '@/lib/withAuth';
-import cache from '@/utils/cache';
+import { revokeApiKeyCache } from '@/utils/api-auth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiResponse } from 'next';
@@ -40,7 +40,7 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
       },
     });
 
-    await cache.del(`apiKey:${apiKey}`);
+    await revokeApiKeyCache(apiKey.key);
 
     return res.status(200).json({ success: true });
   } catch (error) {

@@ -10,6 +10,17 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
   try {
     if (req.method === 'GET') {
+      if (!req.auth.userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      const membership = await prisma.workspaceMember.findUnique({
+        where: {
+          workspaceGroupId_userId: {
+            workspaceGroupId: workspaceId,
+            userId: req.auth.userId,
+          },
+        },
+      });
+      if (!membership) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
       const views = await prisma.savedView.findMany({
         where: { workspaceGroupId: workspaceId },
         orderBy: { createdAt: 'asc' },

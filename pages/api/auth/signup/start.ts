@@ -1,6 +1,8 @@
 import prisma from '@/utils/database';
+import { checkRateLimit, sendRateLimitExceeded } from '@/utils/rateLimit';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { getUsername, getDisplayName } from '@/utils/userinfoEngine';
+import { generateVerificationCode } from '@/utils/verification';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
 
@@ -16,6 +18,10 @@ type Data = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (req.method !== 'POST')
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  if (!(await checkRateLimit(req, 'signup-start', 5, 15 * 60_000))) {
+    return sendRateLimitExceeded(res);
+  }
 
   const { username } = req.body;
   if (!username) return res.status(400).json({ success: false, error: 'Missing username' });
@@ -35,58 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
   }
 
-  const array = [
-    '📋',
-    '🎉',
-    '🎂',
-    '📆',
-    '✔️',
-    '📃',
-    '👍',
-    '➕',
-    '📢',
-    '🐒',
-    '🐴',
-    '🐑',
-    '🐘',
-    '🐼',
-    '🐧',
-    '🐦',
-    '🐤',
-    '🐥',
-    '🐣',
-    '🐔',
-    '🐍',
-    '🐢',
-    '🐛',
-    '🐝',
-    '🐜',
-    '📕',
-    '📗',
-    '📘',
-    '📙',
-    '📓',
-    '📔',
-    '📒',
-    '📚',
-    '📖',
-    '🔖',
-    '🎯',
-    '🏈',
-    '🏀',
-    '⚽',
-    '⚾',
-    '🎾',
-    '🎱',
-    '🏉',
-    '🎳',
-    '⛳',
-    '🚵',
-    '🚴',
-    '🏁',
-    '🏇',
-  ];
-  const code = `🤖${Array.from({ length: 11 }, () => array[Math.floor(Math.random() * array.length)]).join('')}`;
+  const code = generateVerificationCode();
 
   await prisma.validationState.deleteMany({
     where: { userId: userid },

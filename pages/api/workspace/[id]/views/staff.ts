@@ -11,16 +11,47 @@ export default withPermissionCheck(async (req: NextApiRequest, res: NextApiRespo
   }
 
   const workspaceGroupId = parseInt(req.query.id as string);
-  const page = parseInt(req.query.page as string) || 0;
-  const pageSize = parseInt(req.query.pageSize as string) || 10;
+
+  const pageParam = req.query.page;
+  const page = pageParam === undefined ? 0 : Number.parseInt(pageParam as string, 10);
+  if (!Number.isInteger(page) || page < 0) {
+    return res.status(400).json({ error: 'Invalid page' });
+  }
+
+  const pageSizeParam = req.query.pageSize;
+  const parsedPageSize =
+    pageSizeParam === undefined ? 10 : Number.parseInt(pageSizeParam as string, 10);
+  if (!Number.isInteger(parsedPageSize) || parsedPageSize < 0) {
+    return res.status(400).json({ error: 'Invalid page size' });
+  }
+  const pageSize = Math.min(parsedPageSize || 10, 100);
 
   let filters: any[] = [];
-  if (req.query.filters && typeof req.query.filters === 'string') {
+  if (req.query.filters !== undefined) {
+    if (typeof req.query.filters !== 'string') {
+      return res.status(400).json({ error: 'Invalid filters' });
+    }
+    let parsedFilters: unknown;
     try {
-      filters = JSON.parse(req.query.filters);
+      parsedFilters = JSON.parse(req.query.filters);
     } catch (e) {
       console.error('Failed to parse filters:', e);
+      return res.status(400).json({ error: 'Invalid filters' });
     }
+    if (
+      !Array.isArray(parsedFilters) ||
+      !parsedFilters.every(
+        (filter) =>
+          filter !== null &&
+          typeof filter === 'object' &&
+          !Array.isArray(filter) &&
+          typeof filter.column === 'string' &&
+          typeof filter.filter === 'string',
+      )
+    ) {
+      return res.status(400).json({ error: 'Invalid filters' });
+    }
+    filters = parsedFilters;
   }
 
   try {
@@ -40,15 +71,13 @@ export default withPermissionCheck(async (req: NextApiRequest, res: NextApiRespo
     const idleTimeEnabled = activityConfig?.idleTimeEnabled ?? true;
     const usernameFilters = filters.filter((f) => f.column === 'username');
     const hasUsernameFilter = usernameFilters.length > 0;
-    const whereClause: any = hasUsernameFilter
-      ? {}
-      : {
-          roles: {
-            some: {
-              workspaceGroupId,
-            },
-          },
-        };
+    const whereClause: any = {
+      roles: {
+        some: {
+          workspaceGroupId,
+        },
+      },
+    };
 
     if (hasUsernameFilter) {
       const usernameConditions = usernameFilters.map((filter) => {

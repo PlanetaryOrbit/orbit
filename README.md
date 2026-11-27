@@ -68,6 +68,7 @@ Orbit ships with a comprehensive set of management tools out of the box:
 ### Planetary Cloud (Recommended)
 
 The fastest and easiest way to run Orbit is through **Planetary Cloud**. It is free and hosts your instance for you, giving you peace of mind.
+
 > **[Get started at planetaryapp.cloud](https://planetaryapp.cloud)**
 
 ---

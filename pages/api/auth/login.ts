@@ -1,11 +1,11 @@
+import { setSessionCookie } from '@/utils/authCookies';
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
+import { checkRateLimit, getClientIp, sendRateLimitExceeded } from '@/utils/rateLimit';
 import { createSession } from '@/utils/session';
 import { getUsername, getThumbnail, getDisplayName } from '@/utils/userinfoEngine';
 import bcryptjs from 'bcryptjs';
-import rateLimit from 'express-rate-limit';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { NextApiHandler } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
 
 async function lookupRobloxUserId(username: string): Promise<number | null> {
@@ -101,51 +101,6 @@ async function getCachedGroupInfo(groupId: number) {
   }
 }
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: 'Slow down! Too many login attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const cfConnectingIp = req.headers['cf-connecting-ip'];
-    const xRealIp = req.headers['x-real-ip'];
-    const xForwardedFor = req.headers['x-forwarded-for'];
-    const remoteAddress = req.socket.remoteAddress;
-
-    return (
-      (cfConnectingIp as string) ||
-      (xRealIp as string) ||
-      (xForwardedFor as string)?.split(',')[0] ||
-      remoteAddress ||
-      'unknown'
-    );
-  },
-});
-
-const applyRateLimit = (handler: NextApiHandler) => {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
-    try {
-      await new Promise<void>((resolve, reject) => {
-        limiter(req as any, res as any, (result: unknown) => {
-          if (result instanceof Error) {
-            reject(result);
-          }
-
-          resolve();
-        });
-      });
-
-      return handler(req, res);
-    } catch {
-      return res.status(429).json({
-        success: false,
-        error: 'Slow down! Too many login attempts, please try again later.',
-      });
-    }
-  };
-};
-
 type User = {
   userId: number;
   username: string;
@@ -189,6 +144,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
         success: false,
         error: 'Method not allowed',
       });
+    }
+
+    if (!(await checkRateLimit(req, 'login', 30, 15 * 60_000))) {
+      return sendRateLimitExceeded(res);
     }
 
     if (!req.body.username || !req.body.password) {
@@ -291,17 +250,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       });
     }
 
-    const ipAddress = (req.headers['cf-connecting-ip'] ||
-      req.headers['x-real-ip'] ||
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      req.socket.remoteAddress) as string;
+    const session = await createSession(BigInt(id), getClientIp(req), req.headers['user-agent']);
 
-    const session = await createSession(BigInt(id), ipAddress, req.headers['user-agent']);
-
-    res.setHeader(
-      'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`,
-    );
+    setSessionCookie(res, session.token);
 
     let username = await cache.get<string>(`roblox:username:${id}`);
 
@@ -373,4 +324,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   }
 }
 
-export default applyRateLimit(handler);
+export default handler;

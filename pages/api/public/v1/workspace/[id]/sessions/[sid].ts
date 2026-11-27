@@ -1,10 +1,10 @@
-import { withAuth } from '@/lib/withAuth';
+import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import prisma from '@/utils/database';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 
 export default withAuth(handler);
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const workspaceId = Number.parseInt(req.query.id as string);
   const sessionId = req.query.sid as string;
 
@@ -12,6 +12,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!sessionId) return res.status(400).json({ success: false, error: 'Missing session ID' });
 
   try {
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceGroupId_userId: {
+          workspaceGroupId: workspaceId,
+          userId: req.auth.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      return res.status(403).json({ success: false, error: 'Not a member of this workspace' });
+    }
+
     const session = await prisma.session.findFirst({
       where: {
         id: sessionId,
@@ -21,11 +34,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       include: {
         sessionType: true,
+        users: {
+          where: { userid: req.auth.userId },
+          select: { userid: true },
+        },
       },
     });
 
     if (!session) {
       return res.status(404).json({ success: false, error: 'Session not found' });
+    }
+
+    if (req.method === 'PUT' || req.method === 'DELETE') {
+      const canManage =
+        membership.isAdmin === true ||
+        session.ownerId === req.auth.userId ||
+        session.users.length > 0;
+
+      if (!canManage) {
+        return res
+          .status(403)
+          .json({ success: false, error: 'Not authorized to modify this session' });
+      }
     }
 
     if (req.method === 'GET') {

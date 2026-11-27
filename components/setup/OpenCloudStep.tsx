@@ -48,12 +48,19 @@ function KeyStatusBadge({ status }: { status: KeyStatus }) {
 
 type OpenCloudStepProps = {
   savedKey: string;
+  setupToken?: string;
   onBack: () => void;
-  onContinue: (key: string) => void;
+  onContinue: (key: string, setupToken: string) => void;
 };
 
-export default function OpenCloudStep({ savedKey, onBack, onContinue }: OpenCloudStepProps) {
+export default function OpenCloudStep({
+  savedKey,
+  setupToken,
+  onBack,
+  onContinue,
+}: OpenCloudStepProps) {
   const [apiKey, setApiKey] = useState(savedKey);
+  const [token, setToken] = useState(setupToken ?? '');
   const [status, setStatus] = useState<KeyStatus>(savedKey ? 'verified' : 'idle');
   const [revealed, setRevealed] = useState(false);
 
@@ -69,7 +76,11 @@ export default function OpenCloudStep({ savedKey, onBack, onContinue }: OpenClou
     setStatus('testing');
 
     try {
-      const { data } = await axios.post('/api/setup/opencloudtest', { key: trimmedKey });
+      const { data } = await axios.post(
+        '/api/setup/opencloudtest',
+        { key: trimmedKey },
+        { headers: token ? { 'x-setup-token': token } : undefined },
+      );
 
       if (data.success) {
         setStatus('verified');
@@ -88,7 +99,7 @@ export default function OpenCloudStep({ savedKey, onBack, onContinue }: OpenClou
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (canContinue) onContinue(trimmedKey);
+    if (canContinue) onContinue(trimmedKey, token);
   };
 
   return (
@@ -121,6 +132,16 @@ export default function OpenCloudStep({ savedKey, onBack, onContinue }: OpenClou
               label='API key'
             />
           }
+        />
+
+        <Field
+          label='Setup token'
+          type='password'
+          value={token}
+          onChange={(event) => setToken(event.target.value)}
+          placeholder='Required in production'
+          autoComplete='off'
+          spellCheck={false}
         />
 
         <div className='flex items-center gap-3'>

@@ -1,4 +1,5 @@
 import { AuthenticatedRequest } from '@/lib/withAuth';
+import { revokeApiKeyCache } from '@/utils/api-auth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiResponse } from 'next';
@@ -21,7 +22,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
   const keyId = req.query.keyId as string;
 
   try {
-    // Verify the API key belongs to this workspace
     const apiKey = await prisma.apiKey.findFirst({
       where: {
         id: keyId,
@@ -38,6 +38,8 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse<Da
         id: keyId,
       },
     });
+
+    await revokeApiKeyCache(apiKey.key);
 
     return res.status(200).json({ success: true });
   } catch (error) {

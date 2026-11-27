@@ -18,7 +18,7 @@ services:
       sh -c "pnpm exec prisma migrate deploy && pnpm run start"
 
   db:
-    image: 'postgres:latest'
+    image: 'postgres:17'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost']
       interval: 5s
@@ -30,7 +30,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - db:/var/lib/postgresql
 

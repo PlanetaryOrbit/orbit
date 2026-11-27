@@ -360,8 +360,8 @@ async function deleteSession(token: string) {
     .catch(() => null);
 }
 
-async function forceDeleteSession(id: string) {
-  return prisma.authSession
+async function forceDeleteSession(id: string, tokenHash: string) {
+  const result = await prisma.authSession
     .delete({
       where: {
         id: id,
@@ -369,7 +369,12 @@ async function forceDeleteSession(id: string) {
     })
     .catch((err) => {
       console.error('Error deleting session:', err);
+      return null;
     });
+
+  await cache.del(`session:${tokenHash}`);
+
+  return result;
 }
 
 async function deleteAllUserSessions(userId: bigint) {

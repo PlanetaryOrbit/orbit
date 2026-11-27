@@ -1,4 +1,7 @@
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import { revokeApiKeyCache } from '@/utils/api-auth';
+import { clearSessionCookie } from '@/utils/authCookies';
+import cache from '@/utils/cache';
 import prisma from '@/utils/database';
 import type { NextApiResponse } from 'next';
 
@@ -10,6 +13,11 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const userId = req.auth.userId;
 
   try {
+    const [sessions, apiKeys] = await Promise.all([
+      prisma.authSession.findMany({ where: { userId }, select: { token: true } }),
+      prisma.apiKey.findMany({ where: { createdById: userId }, select: { key: true } }),
+    ]);
+
     await prisma.$transaction(async (tx) => {
       await tx.discordUser.deleteMany({ where: { robloxUserId: userId } });
       await tx.googleUser.deleteMany({ where: { robloxUserId: userId } });
@@ -52,10 +60,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       await tx.user.delete({ where: { userid: userId } });
     });
 
-    res.setHeader(
-      'Set-Cookie',
-      ['session_token=', 'Path=/', 'HttpOnly', 'SameSite=lax', 'Secure', 'Max-Age=0'].join('; '),
-    );
+    await Promise.all([
+      ...sessions.map((session) => cache.del(`session:${session.token}`)),
+      ...apiKeys.map((apiKey) => revokeApiKeyCache(apiKey.key)),
+    ]);
+
+    clearSessionCookie(res);
 
     return res.status(200).json({ success: true });
   } catch (err) {

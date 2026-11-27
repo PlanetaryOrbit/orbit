@@ -21,33 +21,15 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
 
   if (!req.query.sid) return res.status(400).json({ success: false, error: 'ID missing' });
 
-  const { authorization } = req.headers;
-  let isAuthenticated = false;
-
-  if (req.auth?.userId) {
-    isAuthenticated = true;
-  } else if (authorization) {
-    const config = await prisma.config.findFirst({
-      where: {
-        value: {
-          path: ['key'],
-          equals: authorization,
-        },
-      },
-    });
-
-    if (config) {
-      isAuthenticated = true;
-    }
+  const workspaceId = Number.parseInt(req.query.id as string, 10);
+  if (!workspaceId) {
+    return res.status(400).json({ success: false, error: 'Missing workspace ID' });
   }
 
-  if (!isAuthenticated) {
-    return res.status(401).json({ success: false, error: 'Not authenticated' });
-  }
-
-  const session = await prisma.activitySession.findUnique({
+  const session = await prisma.activitySession.findFirst({
     where: {
       id: req.query.sid as string,
+      workspaceGroupId: workspaceId,
     },
   });
 

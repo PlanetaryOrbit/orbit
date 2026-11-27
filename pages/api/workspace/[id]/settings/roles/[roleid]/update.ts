@@ -2,7 +2,7 @@ import cache from '@/utils/cache';
 import { fetchworkspace } from '@/utils/configEngine';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-import { withPermissionCheck } from '@/utils/permissionsManager';
+import { invalidateWorkspacePermissions, withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as noblox from 'noblox.js';
 
@@ -96,6 +96,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       color: req.body.color || null,
     },
   });
+
+  invalidateWorkspacePermissions(workspaceId);
 
   let after;
 

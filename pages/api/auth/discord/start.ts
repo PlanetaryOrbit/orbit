@@ -1,5 +1,6 @@
 import type { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
+import { createOAuthState } from '@/utils/oauth';
 import { getSessionByToken } from '@/utils/session';
 import * as cookie from 'cookie';
 import type { NextApiResponse } from 'next';
@@ -53,17 +54,12 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     return res.status(500).json({ error: 'OAuth configuration error' });
   }
 
-  const state =
-    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-  await prisma.oAuthState.create({
-    data: {
-      state,
-      provider: 'discord',
-      userId: linkUserId,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    },
-  });
+  const state = await createOAuthState(
+    req,
+    res,
+    'discord',
+    isLink ? (linkUserId ?? undefined) : undefined,
+  );
 
   const authUrl = new URL('https://discord.com/oauth2/authorize');
   authUrl.searchParams.set('client_id', clientId);

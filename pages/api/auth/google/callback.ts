@@ -1,10 +1,29 @@
 import type { AuthenticatedRequest } from '@/lib/withAuth';
 import { invalidateUserProfileCache } from '@/utils/accountCache';
+import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
+import { consumeOAuthState } from '@/utils/oauth';
 import { createSession, getSessionByToken } from '@/utils/session';
 import cookie from 'cookie';
 import { google } from 'googleapis';
 import type { NextApiResponse } from 'next';
+
+function getBaseUrl(): string | null {
+  const cloudUrl = process.env.PLANETARY_CLOUD_URL;
+  const configured = cloudUrl
+    ? /^https?:\/\//i.test(cloudUrl)
+      ? cloudUrl
+      : `https://${cloudUrl}`
+    : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL;
+
+  if (!configured) return null;
+
+  try {
+    return new URL(configured).origin;
+  } catch {
+    return null;
+  }
+}
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -23,29 +42,20 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     return res.redirect('/login?error=missing_params');
   }
 
-  const oauthState = await prisma.oAuthState.findUnique({
-    where: { state },
-  });
-
-  if (!oauthState || (oauthState.provider && oauthState.provider !== 'google')) {
+  // Validate and consume the state before exchanging the authorization code.
+  const oauthState = await consumeOAuthState(req, res, state, 'google');
+  if (!oauthState) {
     return res.redirect('/login?error=invalid_state');
   }
 
-  if (oauthState.expiresAt < new Date()) {
-    await prisma.oAuthState.delete({ where: { state } });
-    return res.redirect('/login?error=expired_state');
-  }
-
-  await prisma.oAuthState.delete({ where: { state } });
-
-  let isLink = oauthState.userId !== null;
+  const isLink = oauthState.userId !== null;
   const accountError = (code: string) =>
     `/settings?tab=connections&error=${encodeURIComponent(code)}`;
 
-  const originUrl = req.headers.host;
-  const isLocalhost = originUrl?.includes('localhost');
-
-  const baseUrl = `${isLocalhost ? 'http://' : 'https://'}${originUrl}`;
+  const baseUrl = getBaseUrl();
+  if (!baseUrl) {
+    return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
+  }
 
   let clientId = process.env.GOOGLE_APP_ID;
   let clientSecret = process.env.GOOGLE_SECRET;
@@ -192,10 +202,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       req.headers['user-agent'],
     );
 
-    res.setHeader(
-      'Set-Cookie',
-      `session_token=${session.token}; Path=/; HttpOnly; SameSite=lax; Max-Age=${60 * 60 * 24 * 30}`,
-    );
+    setSessionCookie(res, session.token);
 
     return res.redirect('/');
   } catch (err) {

@@ -1,6 +1,10 @@
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
 
+export async function revokeApiKeyCache(apiKey: string): Promise<void> {
+  await cache.del(`apikey:${apiKey}`);
+}
+
 // Validate API key for a given workspace
 export async function validateApiKey(apiKey: string, workspaceId: string | number) {
   if (!apiKey || !apiKey.startsWith('orbit_')) return null;
@@ -29,7 +33,7 @@ export async function validateApiKey(apiKey: string, workspaceId: string | numbe
   if (!key) return null;
 
   if (key.expiresAt && key.expiresAt < new Date()) {
-    await cache.del(cacheKey);
+    await revokeApiKeyCache(apiKey);
     return null;
   }
 

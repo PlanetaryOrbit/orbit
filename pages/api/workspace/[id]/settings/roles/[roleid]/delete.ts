@@ -1,7 +1,7 @@
 import cache from '@/utils/cache';
 import prisma from '@/utils/database';
 import { logAudit } from '@/utils/logs';
-import { withPermissionCheck } from '@/utils/permissionsManager';
+import { invalidateWorkspacePermissions, withPermissionCheck } from '@/utils/permissionsManager';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
@@ -129,6 +129,8 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       },
     });
   });
+
+  invalidateWorkspacePermissions(workspaceId);
 
   try {
     await logAudit(
