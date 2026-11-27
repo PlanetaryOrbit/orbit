@@ -4,6 +4,9 @@ export interface CacheProvider {
   del(key: string): Promise<void>;
   has(key: string): Promise<boolean>;
   increment(key: string, ttl?: number): Promise<number>;
+  setStrict(key: string, value: unknown, ttl?: number): Promise<void>;
+  delStrict(key: string): Promise<void>;
+  hasStrict(key: string): Promise<boolean>;
   clear(): Promise<void>;
 }
 
@@ -46,13 +49,30 @@ export class MemoryCache implements CacheProvider {
   }
 
   async increment(key: string, ttl = 60): Promise<number> {
-    const current = await this.get<number>(key);
+    const now = Date.now();
+    const item = this.cache.get(key);
 
-    const value = (current ?? 0) + 1;
+    if (!item || now >= item.expires) {
+      this.cache.set(key, { value: 1, expires: now + ttl * 1000 });
+      return 1;
+    }
 
-    await this.set(key, value, ttl);
+    const value = (typeof item.value === 'number' ? item.value : 0) + 1;
+    item.value = value;
 
     return value;
+  }
+
+  async setStrict(key: string, value: unknown, ttl = 300): Promise<void> {
+    await this.set(key, value, ttl);
+  }
+
+  async delStrict(key: string): Promise<void> {
+    await this.del(key);
+  }
+
+  async hasStrict(key: string): Promise<boolean> {
+    return (await this.get(key)) !== null;
   }
 
   async clear(): Promise<void> {

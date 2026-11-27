@@ -1,4 +1,4 @@
-import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
+import type { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { withPermissionCheck } from '@/utils/permissionsManager';
 // import { withAuth } from '@/lib/withSession'
@@ -67,5 +67,5 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<Data>) {
   });
 }
 
-// Export with session wrapper only (permission check happens inside)
-export default withAuth(handler);
+// Enforces membership in req.query.id before reading the activity session.
+export default withPermissionCheck(handler);

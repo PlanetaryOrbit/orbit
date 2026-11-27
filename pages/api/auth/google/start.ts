@@ -1,31 +1,22 @@
 import prisma from '@/utils/database';
 import { createOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin, redirectToCanonicalOrigin } from '@/utils/origin';
 import { getSessionByToken } from '@/utils/session';
 import * as cookie from 'cookie';
 import { google } from 'googleapis';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 function getRedirectUri(): string | null {
-  const cloudUrl = process.env.PLANETARY_CLOUD_URL;
-  const configured = cloudUrl
-    ? /^https?:\/\//i.test(cloudUrl)
-      ? cloudUrl
-      : `https://${cloudUrl}`
-    : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL;
-
-  if (!configured) return null;
-
-  try {
-    return `${new URL(configured).origin}/api/auth/google/callback`;
-  } catch {
-    return null;
-  }
+  const origin = getCanonicalOrigin();
+  return origin ? `${origin}/api/auth/google/callback` : null;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (redirectToCanonicalOrigin(req, res, '/api/auth/google/start')) return;
 
   const isLink = req.query.link === '1';
   let linkUserId: bigint | null = null;

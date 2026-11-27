@@ -58,7 +58,7 @@ export default withInstanceAuth(async function handler(
 
   const uploads = await cache.increment(rateKey, 60);
 
-  if (uploads > 20) {
+  if (uploads <= 0 || uploads > 20) {
     return res.status(429).json({
       success: false,
       error: 'Too many uploads. Try again later.',

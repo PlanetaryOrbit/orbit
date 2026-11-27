@@ -4,6 +4,7 @@ import { invalidateUserProfileCache } from '@/utils/accountCache';
 import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
 import { consumeOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin } from '@/utils/origin';
 import { createSession, getSessionByToken } from '@/utils/session';
 import axios from 'axios';
 import * as cookie from 'cookie';
@@ -79,7 +80,8 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     clientSecret ||= map.discordAppSecret;
   }
 
-  if (!clientId || !clientSecret) {
+  const baseUrl = getCanonicalOrigin();
+  if (!clientId || !clientSecret || !baseUrl) {
     return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
   }
 
@@ -89,7 +91,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
       new URLSearchParams({
         grant_type: 'authorization_code',
         code: code as string,
-        redirect_uri: `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
+        redirect_uri: `${baseUrl}/api/auth/discord/callback`,
         client_id: clientId,
         client_secret: clientSecret,
       }),

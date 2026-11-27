@@ -1,8 +1,8 @@
 import { AuthenticatedRequest, withAuth } from '@/lib/withAuth';
 import { revokeApiKeyCache } from '@/utils/api-auth';
 import { clearSessionCookie } from '@/utils/authCookies';
-import cache from '@/utils/cache';
 import prisma from '@/utils/database';
+import { revokeSessionCache } from '@/utils/session';
 import type { NextApiResponse } from 'next';
 
 export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
@@ -16,6 +16,12 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const [sessions, apiKeys] = await Promise.all([
       prisma.authSession.findMany({ where: { userId }, select: { token: true } }),
       prisma.apiKey.findMany({ where: { createdById: userId }, select: { key: true } }),
+    ]);
+
+    // Mark all credentials revoked before deleting them so in-flight cache fills cannot restore them.
+    await Promise.all([
+      ...sessions.map((session) => revokeSessionCache(session.token)),
+      ...apiKeys.map((apiKey) => revokeApiKeyCache(apiKey.key)),
     ]);
 
     await prisma.$transaction(async (tx) => {
@@ -59,11 +65,6 @@ export async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
       await tx.user.delete({ where: { userid: userId } });
     });
-
-    await Promise.all([
-      ...sessions.map((session) => cache.del(`session:${session.token}`)),
-      ...apiKeys.map((apiKey) => revokeApiKeyCache(apiKey.key)),
-    ]);
 
     clearSessionCookie(res);
 

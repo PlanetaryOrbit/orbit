@@ -6,9 +6,33 @@ services:
       context: .
       args:
         CACHE_BUST: ${CACHE_BUST:-1}
+        DATABASE_CONFIGURED: ${DATABASE_URL:+true}
     environment:
       SESSION_SECRET: ${SESSION_SECRET}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      PLANETARY_CLOUD_URL: ${PLANETARY_CLOUD_URL:-}
+      PLANETARY_CLOUD_SERVICE_KEY: ${PLANETARY_CLOUD_SERVICE_KEY:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      INSTANCE_SETUP_TOKEN: ${INSTANCE_SETUP_TOKEN:-}
+      TRUST_PROXY_IP_HEADER: ${TRUST_PROXY_IP_HEADER:-}
+      SECRET_KEY: ${SECRET_KEY:-}
+      CRON_SECRET: ${CRON_SECRET:-}
+      REDIS_URL: ${REDIS_URL:-}
+      MEDIA_ROOT: ${MEDIA_ROOT:-}
+      ROBLOX_WORKSPACE_REDIRECTID: ${ROBLOX_WORKSPACE_REDIRECTID:-}
+      ROBLOX_CLIENT_ID: ${ROBLOX_CLIENT_ID:-}
+      ROBLOX_CLIENT_SECRET: ${ROBLOX_CLIENT_SECRET:-}
+      ROBLOX_REDIRECT_URI: ${ROBLOX_REDIRECT_URI:-}
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:-}
+      DISCORD_SECRET: ${DISCORD_SECRET:-}
+      GOOGLE_APP_ID: ${GOOGLE_APP_ID:-}
+      GOOGLE_SECRET: ${GOOGLE_SECRET:-}
+      GOOGLE_EMAIL_FILTRATION: ${GOOGLE_EMAIL_FILTRATION:-}
+      OAUTH_ONLY: ${OAUTH_ONLY:-}
+      ROBLOX_OAUTH_ONLY: ${ROBLOX_OAUTH_ONLY:-}
+      VERCEL_URL: ${VERCEL_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -18,7 +42,7 @@ services:
       sh -c "pnpm exec prisma migrate deploy && pnpm run start"
 
   db:
-    image: 'postgres:17'
+    image: 'postgres:latest'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost']
       interval: 5s

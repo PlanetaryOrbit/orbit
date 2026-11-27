@@ -1,4 +1,4 @@
-import { safeExternalUrl } from '@/utils/urlSafety';
+import { readLimitedBody, safeExternalUrl } from '@/utils/urlSafety';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -37,12 +37,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(502).end();
     }
 
-    const buffer = await upstream.arrayBuffer();
-    if (buffer.byteLength > MAX_BYTES) return res.status(502).end();
+    const buffer = await readLimitedBody(upstream, MAX_BYTES);
+    if (!buffer) return res.status(502).end();
 
     res.setHeader('Content-Type', contentType ?? 'audio/mp4');
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    return res.send(Buffer.from(buffer));
+    return res.send(buffer);
   } catch {
     return res.status(502).end();
   }

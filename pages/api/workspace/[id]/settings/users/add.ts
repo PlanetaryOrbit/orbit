@@ -98,6 +98,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
   }
 
+  const targetUserId = userid;
   const workspaceGroupId = parseInt(req.query.id as string);
 
   const role = await prisma.role.findFirst({
@@ -106,18 +107,18 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     },
   });
 
-  const u = await prisma.user.findFirst({
+  // Key the duplicate check on the final membership row, not on a role connection
+  // from group sync. This keeps partially completed adds retryable.
+  const existingMember = await prisma.workspaceMember.findUnique({
     where: {
-      userid,
-      roles: {
-        some: {
-          workspaceGroupId,
-        },
+      workspaceGroupId_userId: {
+        workspaceGroupId,
+        userId: targetUserId,
       },
     },
   });
 
-  if (u) {
+  if (existingMember) {
     return res.status(400).json({
       success: false,
       error: 'User already exists',
@@ -131,62 +132,66 @@ export async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     });
   }
 
-  const usernameFromRoblox = await getUsername(userid);
+  const usernameFromRoblox = await getUsername(targetUserId);
 
-  const user = await prisma.user.upsert({
-    where: {
-      userid,
-    },
-    update: {
-      username: usernameFromRoblox,
-      roles: {
-        connect: {
-          id: role.id,
+  const user = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.upsert({
+      where: {
+        userid: targetUserId,
+      },
+      update: {
+        username: usernameFromRoblox,
+        roles: {
+          connect: {
+            id: role.id,
+          },
         },
       },
-    },
-    create: {
-      userid,
-      username: usernameFromRoblox,
-      roles: {
-        connect: {
-          id: role.id,
+      create: {
+        userid: targetUserId,
+        username: usernameFromRoblox,
+        roles: {
+          connect: {
+            id: role.id,
+          },
         },
       },
-    },
-  });
+    });
 
-  await prisma.roleMember.upsert({
-    where: {
-      roleId_userId: {
+    await tx.roleMember.upsert({
+      where: {
+        roleId_userId: {
+          roleId: role.id,
+          userId: targetUserId,
+        },
+      },
+      update: {
+        manuallyAdded: true,
+      },
+      create: {
         roleId: role.id,
-        userId: userid,
+        userId: targetUserId,
+        manuallyAdded: true,
       },
-    },
-    update: {
-      manuallyAdded: true,
-    },
-    create: {
-      roleId: role.id,
-      userId: userid,
-      manuallyAdded: true,
-    },
-  });
+    });
 
-  await prisma.workspaceMember.upsert({
-    where: {
-      workspaceGroupId_userId: {
-        workspaceGroupId,
-        userId: userid,
+    await tx.workspaceMember.upsert({
+      where: {
+        workspaceGroupId_userId: {
+          workspaceGroupId,
+          userId: targetUserId,
+        },
       },
-    },
-    update: {},
-    create: {
-      workspaceGroupId,
-      userId: userid,
-      joinDate: new Date(),
-      isAdmin: false,
-    },
+      update: {},
+      create: {
+        workspaceGroupId,
+        userId: targetUserId,
+        joinDate: new Date(),
+        isAdmin: false,
+      },
+    });
+
+    return updatedUser;
   });
 
   invalidateWorkspacePermissions(workspaceGroupId);

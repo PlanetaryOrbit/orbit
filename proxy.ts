@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 
+import { getCanonicalOrigin } from './utils/origin';
+
 const isDev = process.env.NODE_ENV !== 'production';
 const REQUIRED_ENV_VARS = ['DATABASE_URL', 'SESSION_SECRET'];
 const INTERNAL_SETUP_CHECK_MESSAGE = 'orbit-setup-check';
@@ -19,26 +21,16 @@ function isPublic(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 }
 
-function internalUrl(request: NextRequest, path: string): string {
+function internalUrl(path: string): string {
+  // Cloud instances self-call over loopback; never derive this from the request Host.
   if (process.env.PLANETARY_CLOUD_URL) {
-    const base = 'http://localhost:3000'; // idk seem to work on cloud instances
-    return `${base}${path}`;
+    return `http://127.0.0.1:${process.env.PORT ?? 3000}${path}`;
   }
 
-  if (process.env.NEXTAUTH_URL || process.env.PUBLIC_URL) {
-    const base = process.env.NEXTAUTH_URL
-      ? process.env.NEXTAUTH_URL.replace(/\/$/, '')
-      : process.env.PUBLIC_URL!.replace(/\/$/, '');
-    return `${base}${path}`;
-  }
+  const origin = getCanonicalOrigin();
+  if (origin) return `${origin}${path}`;
 
-  const host = request.headers.get('host') || '';
-  if (host.includes('localhost') || host.includes('127.0.0.1')) {
-    return `http://${host}${path}`;
-  }
-
-  const { protocol, host: reqHost } = request.nextUrl;
-  return `${protocol}//${reqHost}${path}`;
+  return `http://127.0.0.1:${process.env.PORT ?? 3000}${path}`;
 }
 
 function getMissingEnvVars(): string[] {
@@ -81,10 +73,11 @@ async function checkSetup(request: NextRequest): Promise<boolean> {
   }
 
   try {
-    const url = internalUrl(request, '/api/admin/first-setup/config');
+    const url = internalUrl('/api/admin/first-setup/config');
 
     const res = await fetch(url, {
       cache: 'no-store',
+      redirect: 'error',
       headers: {
         'Content-Type': 'application/json',
         'x-internal-setup-check': await internalSetupCheckHeader(),
@@ -175,9 +168,10 @@ export default async function middleware(request: NextRequest) {
     }
 
     try {
-      const url = internalUrl(request, '/api/auth/session/validate');
+      const url = internalUrl('/api/auth/session/validate');
 
       const res = await fetch(url, {
+        redirect: 'error',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

@@ -57,7 +57,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     const ocres = await axios.post<OpenCloudKeyRes>(
       'https://apis.roblox.com/api-keys/v1/introspect',
       { apiKey: key.trim() },
-      { headers: { 'Content-Type': 'application/json' } },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 10_000 },
     );
 
     const { enabled, expired, scopes } = ocres.data;
@@ -89,6 +89,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json({ success: true, message: 'API key is valid.' });
   } catch (error) {
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+      return res.status(504).json({ success: false, error: 'Validation timed out' });
+    }
     if (status === 401) {
       return res.status(400).json({ success: false, code: 5, error: 'Invalid API key' });
     }

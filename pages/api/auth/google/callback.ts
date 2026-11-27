@@ -3,27 +3,11 @@ import { invalidateUserProfileCache } from '@/utils/accountCache';
 import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
 import { consumeOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin } from '@/utils/origin';
 import { createSession, getSessionByToken } from '@/utils/session';
 import cookie from 'cookie';
 import { google } from 'googleapis';
 import type { NextApiResponse } from 'next';
-
-function getBaseUrl(): string | null {
-  const cloudUrl = process.env.PLANETARY_CLOUD_URL;
-  const configured = cloudUrl
-    ? /^https?:\/\//i.test(cloudUrl)
-      ? cloudUrl
-      : `https://${cloudUrl}`
-    : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL;
-
-  if (!configured) return null;
-
-  try {
-    return new URL(configured).origin;
-  } catch {
-    return null;
-  }
-}
 
 export default async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -52,7 +36,7 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   const accountError = (code: string) =>
     `/settings?tab=connections&error=${encodeURIComponent(code)}`;
 
-  const baseUrl = getBaseUrl();
+  const baseUrl = getCanonicalOrigin();
   if (!baseUrl) {
     return res.redirect(isLink ? accountError('config_error') : '/login?error=config_error');
   }

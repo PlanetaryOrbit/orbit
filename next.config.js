@@ -43,7 +43,8 @@ const nextConfig = {
   },
 
   env: {
-    NEXT_PUBLIC_DATABASE_CHECK: process.env.DATABASE_URL ? 'true' : '',
+    NEXT_PUBLIC_DATABASE_CHECK:
+      process.env.NEXT_PUBLIC_DATABASE_CHECK || (process.env.DATABASE_URL ? 'true' : ''),
   },
 
   async headers() {

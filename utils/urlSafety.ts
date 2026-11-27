@@ -72,3 +72,34 @@ export async function safeExternalUrl(
 
   return safe;
 }
+
+/** Read a response body in chunks, cancelling as soon as the limit is exceeded. */
+export async function readLimitedBody(
+  response: Response,
+  maxBytes: number,
+): Promise<Buffer | null> {
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+
+  const chunks: Buffer[] = [];
+  let total = 0;
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+
+      chunks.push(Buffer.from(value));
+    }
+
+    return Buffer.concat(chunks, total);
+  } finally {
+    reader.releaseLock();
+  }
+}

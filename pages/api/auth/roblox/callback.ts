@@ -1,6 +1,7 @@
 import { setSessionCookie } from '@/utils/authCookies';
 import prisma from '@/utils/database';
 import { consumeOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin } from '@/utils/origin';
 import { getRobloxThumbnail } from '@/utils/roblox';
 import { createSession } from '@/utils/session';
 import axios from 'axios';
@@ -44,9 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let clientId = process.env.ROBLOX_CLIENT_ID;
   let clientSecret = process.env.ROBLOX_CLIENT_SECRET;
+  const canonicalOrigin = getCanonicalOrigin();
   let redirectUri =
     process.env.ROBLOX_REDIRECT_URI ||
-    `${process.env.PLANETARY_CLOUD_URL || process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/roblox/callback`;
+    (canonicalOrigin ? `${canonicalOrigin}/api/auth/roblox/callback` : undefined);
 
   if (!clientId || !clientSecret || !redirectUri) {
     const configs = await prisma.instanceConfig.findMany({

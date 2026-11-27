@@ -1,6 +1,7 @@
 import type { AuthenticatedRequest } from '@/lib/withAuth';
 import prisma from '@/utils/database';
 import { createOAuthState } from '@/utils/oauth';
+import { getCanonicalOrigin, redirectToCanonicalOrigin } from '@/utils/origin';
 import { getSessionByToken } from '@/utils/session';
 import * as cookie from 'cookie';
 import type { NextApiResponse } from 'next';
@@ -9,6 +10,8 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (redirectToCanonicalOrigin(req, res, '/api/auth/discord/start')) return;
 
   const isLink = req.query.link === '1';
   let linkUserId: bigint | null = null;
@@ -61,12 +64,14 @@ export default async function handler(req: AuthenticatedRequest, res: NextApiRes
     isLink ? (linkUserId ?? undefined) : undefined,
   );
 
+  const origin = getCanonicalOrigin();
+  if (!origin) {
+    return res.status(500).json({ error: 'OAuth configuration error' });
+  }
+
   const authUrl = new URL('https://discord.com/oauth2/authorize');
   authUrl.searchParams.set('client_id', clientId);
-  authUrl.searchParams.set(
-    'redirect_uri',
-    `${process.env.PLANETARY_CLOUD_URL ? `https://${process.env.PLANETARY_CLOUD_URL}` : process.env.NEXTAUTH_URL || process.env.PUBLIC_URL}/api/auth/discord/callback`,
-  );
+  authUrl.searchParams.set('redirect_uri', `${origin}/api/auth/discord/callback`);
   authUrl.searchParams.set('scope', 'identify');
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('state', state);

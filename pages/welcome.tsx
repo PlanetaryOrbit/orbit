@@ -27,8 +27,9 @@ const Welcome: NextPage = () => {
   const createAccount = async ({
     username,
     password,
-    setupToken: token,
+    setupToken: accountToken,
   }: AccountValues): Promise<string | null> => {
+    const token = accountToken || setupToken;
     try {
       const { data } = await axios.post(
         '/api/setupworkspace',
@@ -65,7 +66,11 @@ const Welcome: NextPage = () => {
       }
 
       if (error.response?.status === 403) {
-        toast.error('Workspace already exists');
+        toast.error(
+          error.response.data?.error === 'Workspace already exists'
+            ? 'Workspace already exists'
+            : 'Invalid or missing setup token',
+        );
       } else if (error.code === 'ECONNABORTED') {
         toast.error('Request timed out. Please try again.');
       } else {

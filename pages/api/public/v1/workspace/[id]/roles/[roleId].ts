@@ -276,6 +276,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
+      invalidateWorkspacePermissions(workspaceId);
+
       return res.status(200).json({ success: true, message: 'Role deleted successfully' });
     } catch (error) {
       console.error('Error deleting role:', error);

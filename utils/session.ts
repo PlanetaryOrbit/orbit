@@ -22,6 +22,24 @@ interface GeoResult {
 }
 
 const SESSION_SECRET = process.env.SESSION_SECRET!;
+const SESSION_REVOKED_PREFIX = 'session:revoked:';
+// Cached sessions can live until expiresAt (7 days); keep the marker slightly longer.
+const SESSION_REVOKED_TTL = 8 * 24 * 60 * 60;
+
+async function isSessionRevoked(tokenHash: string): Promise<boolean> {
+  try {
+    return await cache.hasStrict(`${SESSION_REVOKED_PREFIX}${tokenHash}`);
+  } catch {
+    // Fail closed if revocation state cannot be read.
+    return true;
+  }
+}
+
+/** Mark a token hash revoked before removing its cached session. */
+export async function revokeSessionCache(tokenHash: string): Promise<void> {
+  await cache.setStrict(`${SESSION_REVOKED_PREFIX}${tokenHash}`, true, SESSION_REVOKED_TTL);
+  await cache.delStrict(`session:${tokenHash}`);
+}
 
 const geoCache = new Map<string, { data: GeoResult; expiresAt: number }>();
 const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
@@ -228,6 +246,8 @@ async function getSessionByToken(token: string) {
   const hashedToken = hashToken(token);
   const cacheKey = `session:${hashedToken}`;
 
+  if (await isSessionRevoked(hashedToken)) return null;
+
   const cached = await cache.get<{
     session: any;
     expiresAt: number;
@@ -238,6 +258,8 @@ async function getSessionByToken(token: string) {
       await cache.del(cacheKey);
       return null;
     }
+
+    if (await isSessionRevoked(hashedToken)) return null;
 
     return {
       ...cached.session,
@@ -282,6 +304,8 @@ async function getSessionByToken(token: string) {
 
   const ttl = Math.max(1, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000));
 
+  if (await isSessionRevoked(hashedToken)) return null;
+
   await cache.set(
     cacheKey,
     {
@@ -290,6 +314,8 @@ async function getSessionByToken(token: string) {
     },
     ttl,
   );
+
+  if (await isSessionRevoked(hashedToken)) return null;
 
   return {
     ...result,
@@ -320,9 +346,8 @@ async function rotateSessionToken(token: string) {
   if (!isValidDontShare) throw new Error('Invalid token format');
 
   const oldHash = hashToken(token);
-  const cacheKey = `session:${oldHash}`;
 
-  await cache.del(cacheKey);
+  await revokeSessionCache(oldHash);
 
   const newToken = generateToken();
   const newHash = hashToken(newToken);
@@ -349,7 +374,7 @@ async function deleteSession(token: string) {
 
   const hashedToken = hashToken(token);
 
-  await cache.del(`session:${hashedToken}`);
+  await revokeSessionCache(hashedToken);
 
   return prisma.authSession
     .delete({
@@ -372,7 +397,7 @@ async function forceDeleteSession(id: string, tokenHash: string) {
       return null;
     });
 
-  await cache.del(`session:${tokenHash}`);
+  await revokeSessionCache(tokenHash);
 
   return result;
 }
@@ -391,7 +416,7 @@ async function deleteAllUserSessions(userId: bigint) {
       userId,
     },
   });
-  await Promise.all(sessions.map((session) => cache.del(`session:${session.token}`)));
+  await Promise.all(sessions.map((session) => revokeSessionCache(session.token)));
   return result;
 }
 
@@ -417,7 +442,7 @@ async function deleteOtherSessions(userId: bigint, sid: string) {
     },
   });
 
-  await Promise.all(sessions.map((session) => cache.del(`session:${session.token}`)));
+  await Promise.all(sessions.map((session) => revokeSessionCache(session.token)));
 
   return result;
 }

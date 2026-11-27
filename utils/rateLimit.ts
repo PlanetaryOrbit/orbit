@@ -22,7 +22,8 @@ export async function checkRateLimit(
   const key = `ratelimit:${action}:${getClientIp(req)}`;
   const count = await cache.increment(key, Math.ceil(windowMs / 1000));
 
-  return count <= max;
+  // increment() returns 0 when the provider fails; never treat that as an allowed attempt.
+  return count > 0 && count <= max;
 }
 
 export function sendRateLimitExceeded(res: NextApiResponse): void {

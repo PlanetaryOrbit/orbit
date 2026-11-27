@@ -321,10 +321,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       userId: userid,
       username: await getUsername(userid),
       displayname: await getDisplayName(userid),
-      thumbnail: await fetchAvatar(userid, {
-        type: 'headshot',
-        size: '180x180',
-      }),
+      thumbnail:
+        (await fetchAvatar(userid, {
+          type: 'headshot',
+          size: '180x180',
+        })) ?? '',
       isOwner: true,
     };
 
